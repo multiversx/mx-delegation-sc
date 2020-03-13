@@ -13,15 +13,28 @@ pub struct UserData<BigInt> {
     personal_stake: BigInt,
 }
 
-static TOTAL_STAKE_KEY:           [u8; 32] = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static NR_USERS_KEY:              [u8; 32] = [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static UNFILLED_STAKE_KEY:        [u8; 32] = [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static TOTAL_REWARDS_LAST_PREFIX: u8 = 4;
-static UNCLAIMED_REWARDS_PREFIX:  u8 = 5;
-static PERSONAL_STAKE_PREFIX:     u8 = 6;
-static NON_REWARD_BALANCE_KEY:    [u8; 32] = [7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static SENT_REWARDS_KEY:          [u8; 32] = [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static STAKE_FOR_SALE_PREFIX:     u8 = 9;
+// Indicates how we express the percentage of rewards that go to the node.
+// Since we cannot have floating point numbers, we used fixed point with this denominator.
+// Percents + 2 decimals -> 10000.
+static NODE_SHARE_DENOMINATOR: i64 = 10000;
+
+// node reward destination will always be user with id 1
+static NODE_REWARD_DEST_USER_ID: i64 = 1;
+
+static OWNER_KEY:                 [u8; 32] = [0x00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+static TOTAL_STAKE_KEY:           [u8; 32] = [0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+static NODE_SHARE_KEY:            [u8; 32] = [0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+static NODE_REWARD_DEST_KEY:      [u8; 32] = [0x03, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+static NR_USERS_KEY:              [u8; 32] = [0x04, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+static UNFILLED_STAKE_KEY:        [u8; 32] = [0x05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+static NON_REWARD_BALANCE_KEY:    [u8; 32] = [0x06, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+static SENT_REWARDS_KEY:          [u8; 32] = [0x07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+
+// per user 
+static TOTAL_REWARDS_LAST_PREFIX: u8 = 0x10;
+static UNCLAIMED_REWARDS_PREFIX:  u8 = 0x11;
+static PERSONAL_STAKE_PREFIX:     u8 = 0x12;
+static STAKE_FOR_SALE_PREFIX:     u8 = 0x13;
 
 // constructs keys for user data
 fn user_data_key(prefix: u8, user_id: i64) -> StorageKey {
@@ -31,23 +44,49 @@ fn user_data_key(prefix: u8, user_id: i64) -> StorageKey {
     key.into()
 }
 
-#[elrond_wasm_derive::contract(StakingDelegationImpl)]
-pub trait StakingDelegation {
+#[elrond_wasm_derive::callable(StakingProxy)]
+pub trait Staking {
+    #[payable(payment)]
+    fn stake(&self, payment: BigInt);
+}
 
-    fn init(&self, total_stake: BigInt) -> Result<(), &str> {
-        if &total_stake == &BigInt::from(0) {
+#[elrond_wasm_derive::contract(DelegationImpl)]
+pub trait Delegation {
+
+    fn init(&self, total_stake: BigInt, node_share_per_10000: BigInt) -> Result<(), &str> {
+        if total_stake == 0 {
             return Err("total stake cannot be 0");
         }
         self.storage_store_big_int(&TOTAL_STAKE_KEY.into(), &total_stake);
         self.storage_store_big_int(&UNFILLED_STAKE_KEY.into(), &total_stake);
+        self.storage_store_big_int(&NODE_SHARE_KEY.into(), &node_share_per_10000);
+
+        let owner = self.get_caller();
+        self.storage_store_bytes32(&OWNER_KEY.into(), &owner.as_fixed_bytes());
+
+        let node_reward_destination = owner;
+        self.storage_store_bytes32(&NODE_REWARD_DEST_KEY.into(), &node_reward_destination.as_fixed_bytes());
+        self.storage_store_i64(&node_reward_destination.into(), NODE_REWARD_DEST_USER_ID); // node reward destination will be user #1
+        self.storage_store_i64(&NR_USERS_KEY.into(), 1);
 
         Ok(())
     }
 
+    #[view]
+    fn getTotalStake(&self) -> BigInt {
+        self.storage_load_big_int(&TOTAL_STAKE_KEY.into())
+    }
+
+    // Nr delegators + 1 (the node address)
+    #[private]
+    fn get_nr_users(&self) -> i64 {
+        self.storage_load_i64(&NR_USERS_KEY.into()).unwrap()
+    }
+
     // Yields how many different addresses have staked in the contract.
     #[view]
-    fn getNrUsers(&self) -> i64 {
-        self.storage_load_i64(&NR_USERS_KEY.into()).unwrap()
+    fn getNrDelegators(&self) -> i64 {
+        self.get_nr_users() - 1
     }
 
     // Yields how much a user has staked in the contract.
@@ -79,26 +118,47 @@ pub trait StakingDelegation {
         rewards
     }
 
+    /// The account running the nodes is entitled to (node_share / NODE_DENOMINATOR) * rewards.
+    #[view]
+    fn getHistoricalRewardsForNode(&self) -> BigInt {
+        let mut res = self.getHistoricalRewards();
+        let node_share = self.storage_load_big_int(&NODE_SHARE_KEY.into());
+        res *= &node_share;
+        res /= BigInt::from(NODE_SHARE_DENOMINATOR);
+        res
+    }
+
+    /// The delegators are entitles to (1 - node_share / NODE_DENOMINATOR) * rewards.
+    #[view]
+    fn getHistoricalRewardsForDelegators(&self) -> BigInt {
+        let hist_rew = self.getHistoricalRewards();
+        let mut rewards_for_nodes = hist_rew.clone();
+        let node_share = self.storage_load_big_int(&NODE_SHARE_KEY.into());
+        rewards_for_nodes *= &node_share;
+        rewards_for_nodes /= BigInt::from(NODE_SHARE_DENOMINATOR);
+        hist_rew - rewards_for_nodes
+    }
+
     /// Staking is possible while the total stake required by the contract has not yet been filled.
     /// It is as if users "buy" stake from the contract itself.
     #[payable(payment)]
-    fn stake(&self, payment: &BigInt) -> Result<(), &str> {
-        if payment == &BigInt::from(0) {
+    fn stake(&self, payment: BigInt) -> Result<(), &str> {
+        if payment == 0 {
             return Ok(());
         }
 
         // decrease unfilled stake
         let mut unfilled_stake = self.storage_load_big_int(&UNFILLED_STAKE_KEY.into());
-        if payment > &unfilled_stake {
+        if &payment > &unfilled_stake {
             return Err("payment exceeds maximum total stake");
         }
-        unfilled_stake -= payment;
+        unfilled_stake -= &payment;
         self.storage_store_big_int(&UNFILLED_STAKE_KEY.into(), &unfilled_stake);
 
         // increase non-reward balance
         // this keeps the stake separate from rewards
         let mut non_reward_balance = self.storage_load_big_int(&NON_REWARD_BALANCE_KEY.into());
-        non_reward_balance += payment;
+        non_reward_balance += &payment;
         self.storage_store_big_int(&NON_REWARD_BALANCE_KEY.into(), &non_reward_balance);
 
         // get user id or create user
@@ -112,37 +172,42 @@ pub trait StakingDelegation {
         }
 
         // compute reward - catch up with historical rewards 
-        let mut user_data = self.compute_reward(user_id);
+        let mut user_data = self.compute_delegator_reward(user_id);
 
         // save increased stake
-        user_data.personal_stake += payment;
+        user_data.personal_stake += &payment;
         self.store_user_data(user_id, &user_data);
 
+        Ok(())
+    }
+
+    /// Send stake to the staking contract, if the entire stake has been gathered.
+    fn sendStake(&self) -> Result<(), &str> {
         Ok(())
     }
 
     // creates new user id
     #[private]
     fn new_user(&self) -> i64 {
-        let mut nr_users = self.getNrUsers();
+        let mut nr_users = self.get_nr_users();
         nr_users += 1;
         self.storage_store_i64(&NR_USERS_KEY.into(), nr_users);
         nr_users
     }
 
     #[private]
-    fn compute_reward(&self, user_id: i64) -> UserData<BigInt> {
+    fn compute_delegator_reward(&self, user_id: i64) -> UserData<BigInt> {
         let mut user_data = self.load_user_data(user_id);
-        if &user_data.personal_stake == &BigInt::from(0) {
+        if user_data.personal_stake == 0 {
             return user_data; // no stake, no reward
         }
 
-        let historical_rewards = self.getHistoricalRewards();
+        let historical_rewards = self.getHistoricalRewardsForDelegators();
         if historical_rewards == user_data.historical_rewards_when_last_collected {
             return user_data; // nothing happened since the last claim
         }
 
-        let total_stake = self.storage_load_big_int(&TOTAL_STAKE_KEY.into());
+        let total_stake = self.getTotalStake();        
 
         // compute reward share
         // (historical rewards now - historical rewards when last claimed) * user stake / total stake
@@ -160,34 +225,45 @@ pub trait StakingDelegation {
 
     // Yields how much a user is able to claim in rewards at the present time.
     #[view]
-    fn getClaimableReward(&self, user: Address) -> BigInt {
+    fn getClaimableRewards(&self, user: Address) -> BigInt {
         let user_id = self.storage_load_i64(&user).unwrap();
         if user_id == 0 {
             return 0.into()
         }
 
-        let user_data = self.compute_reward(user_id);
+        let user_data = self.compute_delegator_reward(user_id);
         user_data.unclaimed_rewards
     }
 
     // Retrieve those rewards to which the caller is entitled.
-    fn claimReward(&self) -> Result<(), &str> {
+    fn claimRewards(&self) -> Result<(), &str> {
         let caller = self.get_caller();
         let user_id = self.storage_load_i64(&caller).unwrap();
         if user_id == 0 {
             return Err("unknown caller")
         }
 
-        let mut user_data = self.compute_reward(user_id);
+        let mut user_data = self.compute_delegator_reward(user_id);
 
-        if user_data.unclaimed_rewards > BigInt::from(0) {
-            self.send_tx(&caller, &user_data.unclaimed_rewards, "delegation claim");
-            user_data.unclaimed_rewards = BigInt::from(0);
+        if user_data.unclaimed_rewards > 0 {
+            self.send_rewards(&caller, &user_data.unclaimed_rewards);
+            user_data.unclaimed_rewards = 0.into();
         }
 
         self.store_user_data(user_id, &user_data);
 
         Ok(())
+    }
+
+    #[private]
+    fn send_rewards(&self, to: &Address, amount: &BigInt) {
+        // send funds
+        self.send_tx(to, amount, "delegation claim");
+
+        // increment globally sent funds
+        let mut sent_rewards = self.storage_load_big_int(&SENT_REWARDS_KEY.into());
+        sent_rewards += amount;
+        self.storage_store_big_int(&SENT_REWARDS_KEY.into(), &sent_rewards);
     }
 
     /// Creates a stake offer. Overwrites any previous stake offer.
