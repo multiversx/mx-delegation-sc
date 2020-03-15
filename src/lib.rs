@@ -21,17 +21,20 @@ static NODE_SHARE_DENOMINATOR: i64 = 10000;
 // node reward destination will always be user with id 1
 static NODE_REWARD_DEST_USER_ID: i64 = 1;
 
+// global contract variables
 static OWNER_KEY:                 [u8; 32] = [0x00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static TOTAL_STAKE_KEY:           [u8; 32] = [0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static NODE_SHARE_KEY:            [u8; 32] = [0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static NODE_REWARD_DEST_KEY:      [u8; 32] = [0x03, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static NODE_REWARDS_LAST_KEY:     [u8; 32] = [0x03, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ];
 static NR_USERS_KEY:              [u8; 32] = [0x04, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static UNFILLED_STAKE_KEY:        [u8; 32] = [0x05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static NON_REWARD_BALANCE_KEY:    [u8; 32] = [0x06, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static SENT_REWARDS_KEY:          [u8; 32] = [0x07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 
-// per user 
+// for node
+static NODE_REWARDS_LAST_KEY:     [u8; 32] = [0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ];
+
+// per delegator 
 static TOTAL_REWARDS_LAST_PREFIX: u8 = 0x10;
 static UNCLAIMED_REWARDS_PREFIX:  u8 = 0x11;
 static PERSONAL_STAKE_PREFIX:     u8 = 0x12;
@@ -54,13 +57,14 @@ pub trait Staking {
 #[elrond_wasm_derive::contract(DelegationImpl)]
 pub trait Delegation {
 
-    fn init(&self, total_stake: BigInt, node_share_per_10000: BigInt) -> Result<(), &str> {
+    fn init(&self, total_stake_u: BigUint, node_share_per_10000: BigUint) -> Result<(), &str> {
+        let total_stake = total_stake_u.into_signed();
         if total_stake == 0 {
             return Err("total stake cannot be 0");
         }
         self.storage_store_big_int(&TOTAL_STAKE_KEY.into(), &total_stake);
         self.storage_store_big_int(&UNFILLED_STAKE_KEY.into(), &total_stake);
-        self.storage_store_big_int(&NODE_SHARE_KEY.into(), &node_share_per_10000);
+        self.storage_store_big_int(&NODE_SHARE_KEY.into(), &node_share_per_10000.into_signed());
 
         let owner = self.get_caller();
         self.storage_store_bytes32(&OWNER_KEY.into(), &owner.as_fixed_bytes());
@@ -240,7 +244,7 @@ pub trait Delegation {
         let mut user_data = self.load_user_data(user_id);
         let mut hist_node_rewards_to_update: Option<BigInt> = None;
         
-        if user_id == 1 {
+        if user_id == NODE_REWARD_DEST_USER_ID {
             self.add_node_rewards(&mut user_data, &mut hist_node_rewards_to_update);
         }
 
