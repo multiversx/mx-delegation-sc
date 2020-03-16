@@ -91,31 +91,37 @@ pub trait Delegation {
         self.storage_load_big_int(&TOTAL_STAKE_KEY.into())
     }
 
-    // Nr delegators + 1 (the node address)
+    /// Nr delegators + 1 (the node address)
     #[private]
     fn get_nr_users(&self) -> i64 {
         self.storage_load_i64(&NR_USERS_KEY.into()).unwrap()
     }
 
-    // Yields how many different addresses have staked in the contract.
+    /// Yields how many different addresses have staked in the contract.
     #[view]
     fn getNrDelegators(&self) -> i64 {
         self.get_nr_users() - 1
     }
 
-    // Yields the address of the contract with which staking will be performed.
+    /// Yields the address of the contract with which staking will be performed.
+    #[view]
+    fn getOwner(&self) -> Address {
+        self.storage_load_bytes32(&OWNER_KEY.into()).into()
+    }
+
+    /// Yields the address of the contract with which staking will be performed.
     #[view]
     fn getStakingContractAddress(&self) -> Address {
         self.storage_load_bytes32(&STAKING_CONTRACT_ADDR_KEY.into()).into()
     }
 
-    // An active contract allows staking/unstaking, but no rewards
+    /// An active contract allows staking/unstaking, but no rewards
     #[view]
     fn isActive(&self) -> bool {
         self.storage_load_big_int(&ACTIVE_KEY.into()) > 0
     }
 
-    // Yields how much a user has staked in the contract.
+    /// Yields how much a user has staked in the contract.
     #[view]
     fn getStake(&self, user: Address) -> BigInt {
         let user_id = self.storage_load_i64(&user).unwrap();
@@ -175,7 +181,7 @@ pub trait Delegation {
     /// It is as if users "buy" stake from the contract itself.
     #[payable(payment)]
     fn stake(&self, payment: BigInt) -> Result<(), &str> {
-        if !self.isActive() {
+        if self.isActive() {
             return Err("cannot stake while contract is active"); 
         }
 
@@ -220,7 +226,11 @@ pub trait Delegation {
 
     /// Send stake to the staking contract, if the entire stake has been gathered.
     fn activate(&self) -> Result<(), &str> {
-        if !self.isActive() {
+        if self.get_caller() != self.getOwner() {
+            return Err("only owner can activate"); 
+        }
+
+        if self.isActive() {
             return Err("contract already active"); 
         }
 
