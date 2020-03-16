@@ -30,6 +30,8 @@ static NR_USERS_KEY:              [u8; 32] = [0x04, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 static UNFILLED_STAKE_KEY:        [u8; 32] = [0x05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static NON_REWARD_BALANCE_KEY:    [u8; 32] = [0x06, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static SENT_REWARDS_KEY:          [u8; 32] = [0x07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+static STAKING_CONTRACT_ADDR_KEY: [u8; 32] = [0x08, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+static ACTIVE_KEY:                [u8; 32] = [0x09, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 
 // for node
 static NODE_REWARDS_LAST_KEY:     [u8; 32] = [0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ];
@@ -51,13 +53,18 @@ fn user_data_key(prefix: u8, user_id: i64) -> StorageKey {
 #[elrond_wasm_derive::callable(StakingProxy)]
 pub trait Staking {
     #[payable(payment)]
-    fn stake(&self, payment: BigInt);
+    fn stake(&self, payment: &BigInt);
 }
 
 #[elrond_wasm_derive::contract(DelegationImpl)]
 pub trait Delegation {
 
-    fn init(&self, total_stake_u: BigUint, node_share_per_10000: BigUint) -> Result<(), &str> {
+    fn init(&self, 
+            total_stake_u: BigUint, 
+            node_share_per_10000: BigUint,
+            staking_contract: &Address,
+        ) -> Result<(), &str> {
+
         let total_stake = total_stake_u.into_signed();
         if total_stake == 0 {
             return Err("total stake cannot be 0");
@@ -73,6 +80,8 @@ pub trait Delegation {
         self.storage_store_bytes32(&NODE_REWARD_DEST_KEY.into(), &node_reward_destination.as_fixed_bytes());
         self.storage_store_i64(&node_reward_destination.into(), NODE_REWARD_DEST_USER_ID); // node reward destination will be user #1
         self.storage_store_i64(&NR_USERS_KEY.into(), 1);
+
+        self.storage_store_bytes32(&STAKING_CONTRACT_ADDR_KEY.into(), staking_contract.as_fixed_bytes());
 
         Ok(())
     }
@@ -92,6 +101,18 @@ pub trait Delegation {
     #[view]
     fn getNrDelegators(&self) -> i64 {
         self.get_nr_users() - 1
+    }
+
+    // Yields the address of the contract with which staking will be performed.
+    #[view]
+    fn getStakingContractAddress(&self) -> Address {
+        self.storage_load_bytes32(&STAKING_CONTRACT_ADDR_KEY.into()).into()
+    }
+
+    // An active contract allows staking/unstaking, but no rewards
+    #[view]
+    fn isActive(&self) -> bool {
+        self.storage_load_big_int(&ACTIVE_KEY.into()) > 0
     }
 
     // Yields how much a user has staked in the contract.
@@ -144,16 +165,26 @@ pub trait Delegation {
         hist_rew - rewards_for_nodes
     }
 
+    // Yields how much stake the contract continues to accept.
+    #[view]
+    fn getUnfilledStake(&self) -> BigInt {
+        self.storage_load_big_int(&UNFILLED_STAKE_KEY.into())
+    }
+
     /// Staking is possible while the total stake required by the contract has not yet been filled.
     /// It is as if users "buy" stake from the contract itself.
     #[payable(payment)]
     fn stake(&self, payment: BigInt) -> Result<(), &str> {
+        if !self.isActive() {
+            return Err("cannot stake while contract is active"); 
+        }
+
         if payment == 0 {
             return Ok(());
         }
 
         // decrease unfilled stake
-        let mut unfilled_stake = self.storage_load_big_int(&UNFILLED_STAKE_KEY.into());
+        let mut unfilled_stake = self.getUnfilledStake();
         if &payment > &unfilled_stake {
             return Err("payment exceeds maximum total stake");
         }
@@ -188,7 +219,24 @@ pub trait Delegation {
     }
 
     /// Send stake to the staking contract, if the entire stake has been gathered.
-    fn sendStake(&self) -> Result<(), &str> {
+    fn activate(&self) -> Result<(), &str> {
+        if !self.isActive() {
+            return Err("contract already active"); 
+        }
+
+        if self.getUnfilledStake() > 0 {
+            return Err("cannot activate before all stake has been filled")
+        }
+
+        // save active flag
+        self.storage_store_i64(&ACTIVE_KEY.into(), 1);
+
+        // send all stake to staking contract
+        let total_stake = self.getTotalStake();
+        let staking_contract_addr = self.getStakingContractAddress();
+        let staking_contract = contract_proxy!(self, &staking_contract_addr, Staking);
+        staking_contract.stake(&total_stake);
+
         Ok(())
     }
 
