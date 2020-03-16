@@ -104,8 +104,8 @@ pub trait Delegation {
     }
 
     /// Yields the address of the contract with which staking will be performed.
-    #[view]
-    fn getOwner(&self) -> Address {
+    #[private]
+    fn getContractOwner(&self) -> Address {
         self.storage_load_bytes32(&OWNER_KEY.into()).into()
     }
 
@@ -226,7 +226,7 @@ pub trait Delegation {
 
     /// Send stake to the staking contract, if the entire stake has been gathered.
     fn activate(&self) -> Result<(), &str> {
-        if self.get_caller() != self.getOwner() {
+        if self.get_caller() != self.getContractOwner() {
             return Err("only owner can activate"); 
         }
 
