@@ -15,7 +15,7 @@ pub trait StakingMock {
     }
 
     #[payable(payment)]
-    fn stake(&self, payment: &BigInt) {
-        self.storage_store_big_int(&STAKE_KEY.into(), payment);
+    fn stake(&self, payment: &BigUint) {
+        self.storage_store_big_uint(&STAKE_KEY.into(), payment);
     }
 }
