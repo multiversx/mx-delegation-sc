@@ -103,7 +103,7 @@ pub trait Delegation {
     }
 
     /// Yields the address of the contract with which staking will be performed.
-    #[private]
+    #[view]
     fn getContractOwner(&self) -> Address {
         self.storage_load_bytes32(&OWNER_KEY.into()).into()
     }
