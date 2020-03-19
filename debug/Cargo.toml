@@ -1,14 +1,14 @@
 [package]
 name = "sc-delegation-rs-debug"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["andrei-marinica <andrei_m_marinica@yahoo.com>"]
 edition = "2018"
 
 [dependencies]
-elrond-wasm = "0.1.1"
-elrond-wasm-debug = "0.1.1"
+elrond-wasm = "0.2.0"
+elrond-wasm-debug = "0.2.0"
 
-elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
-elrond-wasm-debug = { path = "../../elrond-wasm-rs/elrond-wasm-debug" }
+# elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
+# elrond-wasm-debug = { path = "../../elrond-wasm-rs/elrond-wasm-debug" }
 
 sc-delegation-rs = { path = ".." }
