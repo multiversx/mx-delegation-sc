@@ -4,12 +4,18 @@ Smart contract for managing staking delegation in Elrond.
 
 # Build
 
-To build any of the Rust projects:
+Run
+```
+./compile-wasm.sh 
+```
+in root, it will produce delegation.wasm and staking-mock.wasm (a dummy used in tests instead of a staking contract).
+
+# Advanced
+
+Wasm is built with this line:
 ```
 cargo build --bin wasm --target=wasm32-unknown-unknown --release
 ```
-
-# Advanced
 
 To debug macros:
 - wasm mode:
