@@ -393,6 +393,10 @@ pub trait Delegation {
     /// 1 staked ERD always costs 1 ERD.
     #[payable(payment)]
     fn purchaseStake(&self, seller: Address, payment: BigUint) -> Result<(), &str> {
+        if payment == 0 {
+            return Ok(())
+        }
+
         // get seller id
         let seller_id = self.storage_load_i64(&seller).unwrap();
         if seller_id == 0 {
@@ -425,10 +429,7 @@ pub trait Delegation {
 
         // increase stake of buyer
         let mut buyer_stake = self.storage_load_big_uint(&user_data_key(PERSONAL_STAKE_PREFIX, buyer_id));
-        if &payment > &buyer_stake {
-            return Err("payment exceeds stake owned by user")
-        }
-        buyer_stake -= &payment;
+        buyer_stake += &payment;
         self.storage_store_big_uint(&user_data_key(PERSONAL_STAKE_PREFIX, buyer_id), &buyer_stake);
 
         // forward payment to seller
