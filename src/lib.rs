@@ -52,8 +52,8 @@ fn user_data_key(prefix: u8, user_id: i64) -> StorageKey {
 
 #[elrond_wasm_derive::callable(StakingProxy)]
 pub trait Staking {
-    #[payable(payment)]
-    fn stake(&self, payment: &BigUint);
+    #[payable]
+    fn stake(&self, #[payment] payment: &BigUint);
 }
 
 #[elrond_wasm_derive::contract(DelegationImpl)]
@@ -178,8 +178,8 @@ pub trait Delegation {
 
     /// Staking is possible while the total stake required by the contract has not yet been filled.
     /// It is as if users "buy" stake from the contract itself.
-    #[payable(payment)]
-    fn stake(&self, payment: BigUint) -> Result<(), &str> {
+    #[payable]
+    fn stake(&self, #[payment] payment: BigUint) -> Result<(), &str> {
         if self.isActive() {
             return Err("cannot stake while contract is active"); 
         }
@@ -391,8 +391,8 @@ pub trait Delegation {
     /// Only stake that has been offered for sale by owner can be bought.
     /// The exact amount has to be payed. 
     /// 1 staked ERD always costs 1 ERD.
-    #[payable(payment)]
-    fn purchaseStake(&self, seller: Address, payment: BigUint) -> Result<(), &str> {
+    #[payable]
+    fn purchaseStake(&self, seller: Address, #[payment] payment: BigUint) -> Result<(), &str> {
         if payment == 0 {
             return Ok(())
         }
