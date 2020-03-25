@@ -8,8 +8,8 @@
 // global contract variables
 static STAKE_KEY: [u8; 32] = [0x00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 
-#[elrond_wasm_derive::contract(DelegationImpl)]
-pub trait StakingMock {
+#[elrond_wasm_derive::contract(AuctionMockImpl)]
+pub trait AuctionMock {
 
     fn init(&self) {
     }
