@@ -21,6 +21,10 @@ static NODE_SHARE_DENOMINATOR: i64 = 10000;
 // node reward destination will always be user with id 1
 static NODE_REWARD_DEST_USER_ID: i64 = 1;
 
+// BLS keys have 96 bytes, signatures only 32
+static BLS_KEY_BYTE_LENGTH: usize = 96;
+static BLS_SIGNATURE_BYTE_LENGTH: usize = 32;
+
 // global contract variables
 static OWNER_KEY:                 [u8; 32] = [0x00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static TOTAL_STAKE_KEY:           [u8; 32] = [0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
@@ -30,11 +34,13 @@ static NR_USERS_KEY:              [u8; 32] = [0x04, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 static UNFILLED_STAKE_KEY:        [u8; 32] = [0x05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static NON_REWARD_BALANCE_KEY:    [u8; 32] = [0x06, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static SENT_REWARDS_KEY:          [u8; 32] = [0x07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static STAKING_CONTRACT_ADDR_KEY: [u8; 32] = [0x08, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+static AUCTION_CONTRACT_ADDR_KEY: [u8; 32] = [0x08, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 static ACTIVE_KEY:                [u8; 32] = [0x09, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+
 
 // for node
 static NODE_REWARDS_LAST_KEY:     [u8; 32] = [0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ];
+static BLS_KEYS_KEY:              [u8; 32] = [0x21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 
 // per delegator 
 static TOTAL_REWARDS_LAST_PREFIX: u8 = 0x10;
@@ -50,10 +56,35 @@ fn user_data_key(prefix: u8, user_id: i64) -> StorageKey {
     key.into()
 }
 
-#[elrond_wasm_derive::callable(StakingProxy)]
-pub trait Staking {
+/// Takes 2 separate vecs and combines them into a single vec, alternating elements from the first with elements from the second.
+/// Assumes vectors have the same length.
+/// E.g. zip_vectors([1, 2, 3], [4, 5, 6]) -> [1, 4, 2, 5, 3, 6]
+fn zip_vectors(
+        mut first_vec: Vec<Vec<u8>>,
+        mut second_vec: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+    
+    let len = first_vec.len();
+    let mut zipped = Vec::with_capacity(len * 2);
+    zipped.resize_with(len * 2, Default::default);
+    let mut i: isize = (len as isize) - 1;
+    // we use remove to move ownership of the elements and avoid a clone
+    // we go backwards to keep Vec::remove O(1)
+    while i >= 0 {
+        let i_usize = i as usize;
+        zipped[i_usize*2] = first_vec.remove(i_usize);
+        zipped[i_usize*2+1] = second_vec.remove(i_usize);
+        i -= 1;
+    }
+    zipped
+}
+
+#[elrond_wasm_derive::callable(AuctionProxy)]
+pub trait Auction {
     #[payable]
-    fn stake(&self, #[payment] payment: &BigUint);
+    fn stake(&self,
+        nr_nodes: i64,
+        #[multi(2*nr_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
+        #[payment] payment: &BigUint);
 }
 
 #[elrond_wasm_derive::contract(DelegationImpl)]
@@ -62,7 +93,7 @@ pub trait Delegation {
     fn init(&self, 
             total_stake: BigUint, 
             node_share_per_10000: BigUint,
-            staking_contract: &Address,
+            auction_contract_addr: &Address,
         ) -> Result<(), &str> {
 
         if total_stake == 0 {
@@ -80,9 +111,15 @@ pub trait Delegation {
         self.storage_store_i64(&node_reward_destination.into(), NODE_REWARD_DEST_USER_ID); // node reward destination will be user #1
         self.storage_store_i64(&NR_USERS_KEY.into(), 1);
 
-        self.storage_store_bytes32(&STAKING_CONTRACT_ADDR_KEY.into(), staking_contract.as_fixed_bytes());
+        self.storage_store_bytes32(&AUCTION_CONTRACT_ADDR_KEY.into(), auction_contract_addr.as_fixed_bytes());
 
         Ok(())
+    }
+
+    /// Yields the address of the contract with which staking will be performed.
+    #[view]
+    fn getContractOwner(&self) -> Address {
+        self.storage_load_bytes32(&OWNER_KEY.into()).into()
     }
 
     #[view]
@@ -104,14 +141,45 @@ pub trait Delegation {
 
     /// Yields the address of the contract with which staking will be performed.
     #[view]
-    fn getContractOwner(&self) -> Address {
-        self.storage_load_bytes32(&OWNER_KEY.into()).into()
+    fn getAuctionContractAddress(&self) -> Address {
+        self.storage_load_bytes32(&AUCTION_CONTRACT_ADDR_KEY.into()).into()
     }
 
-    /// Yields the address of the contract with which staking will be performed.
+    fn setBlsKeys(&self, 
+            nr_nodes: i64,
+            #[multi(nr_nodes)] bls_keys: Vec<Vec<u8>>) -> Result<(), &str> {
+
+        if self.isActive() {
+            return Err("cannot change BLS keys while active"); 
+        }
+        
+        let mut flat: Vec<u8> = Vec::with_capacity((nr_nodes as usize) * BLS_KEY_BYTE_LENGTH);
+        for (_, bls_key) in bls_keys.iter().enumerate() {
+            if bls_key.len() != BLS_KEY_BYTE_LENGTH {
+                return Err("wrong size BLS key");
+            }
+            flat.extend(bls_key);
+        }
+
+        self.storage_store(&BLS_KEYS_KEY.into(), &flat);
+
+        Ok(())
+    }
+
     #[view]
-    fn getStakingContractAddress(&self) -> Address {
-        self.storage_load_bytes32(&STAKING_CONTRACT_ADDR_KEY.into()).into()
+    fn getBlsKeys(&self) -> Vec<Vec<u8>> {
+        let raw = self.storage_load(&BLS_KEYS_KEY.into());
+        let nr_keys = raw.len() / BLS_KEY_BYTE_LENGTH;
+        let mut result = Vec::with_capacity(nr_keys);
+        for i in 0..nr_keys {
+            result.push(raw[i*BLS_KEY_BYTE_LENGTH .. (i+1)*BLS_KEY_BYTE_LENGTH].to_vec());
+        }
+        result
+    }
+
+    #[view]
+    fn getNrBlsKeys(&self) -> i64 {
+        (self.storage_load_len(&BLS_KEYS_KEY.into()) / BLS_KEY_BYTE_LENGTH) as i64
     }
 
     /// An active contract allows staking/unstaking, but no rewards
@@ -224,7 +292,10 @@ pub trait Delegation {
     }
 
     /// Send stake to the staking contract, if the entire stake has been gathered.
-    fn activate(&self) -> Result<(), &str> {
+    fn activate(&self,
+            #[multi(self.getNrBlsKeys())] bls_signatures: Vec<Vec<u8>>)
+        -> Result<(), &str> {
+
         if self.get_caller() != self.getContractOwner() {
             return Err("only owner can activate"); 
         }
@@ -233,18 +304,34 @@ pub trait Delegation {
             return Err("contract already active"); 
         }
 
+        // check signature lengths
+        for (_, signature) in bls_signatures.iter().enumerate() {
+            if signature.len() != BLS_SIGNATURE_BYTE_LENGTH {
+                return Err("wrong size BLS signature");
+            }
+        }
+
+        let bls_keys = self.getBlsKeys();
+        let nr_nodes = bls_keys.len();
+        if nr_nodes == 0 {
+            return Err("cannot activate before specifying any BLS keys");
+        }
+
         if self.getUnfilledStake() > 0 {
-            return Err("cannot activate before all stake has been filled")
+            return Err("cannot activate before all stake has been filled");
         }
 
         // save active flag
         self.storage_store_i64(&ACTIVE_KEY.into(), 1);
 
         // send all stake to staking contract
+        let auction_contract_addr = self.getAuctionContractAddress();
+        let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
         let total_stake = self.getTotalStake();
-        let staking_contract_addr = self.getStakingContractAddress();
-        let staking_contract = contract_proxy!(self, &staking_contract_addr, Staking);
-        staking_contract.stake(&total_stake);
+        auction_contract.stake(
+            nr_nodes as i64,
+            zip_vectors(bls_keys, bls_signatures),
+            &total_stake);
 
         Ok(())
     }
