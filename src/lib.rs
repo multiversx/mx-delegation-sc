@@ -6,6 +6,11 @@
 
 // all coins: 0x108b2a2c28029094000000
 
+mod storage;
+mod util;
+
+use crate::util::*;
+use crate::storage::*;
 
 pub struct UserData<BigUint> {
     hist_deleg_rewards_when_last_collected: BigUint,
@@ -24,59 +29,6 @@ static NODE_REWARD_DEST_USER_ID: i64 = 1;
 // BLS keys have 96 bytes, signatures only 32
 static BLS_KEY_BYTE_LENGTH: usize = 96;
 static BLS_SIGNATURE_BYTE_LENGTH: usize = 32;
-
-// global contract variables
-static OWNER_KEY:                 [u8; 32] = [0x00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static TOTAL_STAKE_KEY:           [u8; 32] = [0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static NODE_SHARE_KEY:            [u8; 32] = [0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static NODE_REWARD_DEST_KEY:      [u8; 32] = [0x03, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static NR_USERS_KEY:              [u8; 32] = [0x04, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static UNFILLED_STAKE_KEY:        [u8; 32] = [0x05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static NON_REWARD_BALANCE_KEY:    [u8; 32] = [0x06, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static SENT_REWARDS_KEY:          [u8; 32] = [0x07, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static AUCTION_CONTRACT_ADDR_KEY: [u8; 32] = [0x08, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-static ACTIVE_KEY:                [u8; 32] = [0x09, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-
-
-// for node
-static NODE_REWARDS_LAST_KEY:     [u8; 32] = [0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ];
-static BLS_KEYS_KEY:              [u8; 32] = [0x21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-
-// per delegator 
-static TOTAL_REWARDS_LAST_PREFIX: u8 = 0x10;
-static UNCLAIMED_REWARDS_PREFIX:  u8 = 0x11;
-static PERSONAL_STAKE_PREFIX:     u8 = 0x12;
-static STAKE_FOR_SALE_PREFIX:     u8 = 0x13;
-
-// constructs keys for user data
-fn user_data_key(prefix: u8, user_id: i64) -> StorageKey {
-    let mut key = [0u8; 32];
-    key[0] = prefix;
-    elrond_wasm::serialize_i64(&mut key[28..32], user_id);
-    key.into()
-}
-
-/// Takes 2 separate vecs and combines them into a single vec, alternating elements from the first with elements from the second.
-/// Assumes vectors have the same length.
-/// E.g. zip_vectors([1, 2, 3], [4, 5, 6]) -> [1, 4, 2, 5, 3, 6]
-fn zip_vectors(
-        mut first_vec: Vec<Vec<u8>>,
-        mut second_vec: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-    
-    let len = first_vec.len();
-    let mut zipped = Vec::with_capacity(len * 2);
-    zipped.resize_with(len * 2, Default::default);
-    let mut i: isize = (len as isize) - 1;
-    // we use remove to move ownership of the elements and avoid a clone
-    // we go backwards to keep Vec::remove O(1)
-    while i >= 0 {
-        let i_usize = i as usize;
-        zipped[i_usize*2] = first_vec.remove(i_usize);
-        zipped[i_usize*2+1] = second_vec.remove(i_usize);
-        i -= 1;
-    }
-    zipped
-}
 
 #[elrond_wasm_derive::callable(AuctionProxy)]
 pub trait Auction {
