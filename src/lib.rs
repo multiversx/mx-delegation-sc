@@ -273,9 +273,6 @@ pub trait Delegation {
             return Err("cannot activate before all stake has been filled");
         }
 
-        // save active flag
-        self.storage_store_i64(&ACTIVE_KEY.into(), 1);
-
         // send all stake to staking contract
         let auction_contract_addr = self.getAuctionContractAddress();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
@@ -286,6 +283,13 @@ pub trait Delegation {
             &total_stake);
 
         Ok(())
+    }
+
+    /// Currently only activate performs an async call, so only one callback possible.
+    #[callback_raw]
+    fn callback_raw(_args: Vec<Vec<u8>>) {
+        // save active flag, true
+        self.storage_store_i64(&ACTIVE_KEY.into(), 1);
     }
 
     // creates new user id
