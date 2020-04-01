@@ -26,8 +26,8 @@ static NODE_SHARE_DENOMINATOR: i64 = 10000;
 // node reward destination will always be user with id 1
 static NODE_REWARD_DEST_USER_ID: i64 = 1;
 
-// BLS keys have 96 bytes, signatures only 32
-static BLS_KEY_BYTE_LENGTH: usize = 96;
+// BLS keys have 128 bytes, signatures only 32
+static BLS_KEY_BYTE_LENGTH: usize = 128;
 static BLS_SIGNATURE_BYTE_LENGTH: usize = 32;
 
 #[elrond_wasm_derive::callable(AuctionProxy)]
