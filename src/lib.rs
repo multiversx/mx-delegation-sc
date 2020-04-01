@@ -51,6 +51,9 @@ pub trait Delegation {
         if total_stake == 0 {
             return Err("total stake cannot be 0");
         }
+        if node_share_per_10000 > NODE_SHARE_DENOMINATOR {
+            return Err("node share out of range");
+        }
         self.storage_store_big_uint(&TOTAL_STAKE_KEY.into(), &total_stake);
         self.storage_store_big_uint(&UNFILLED_STAKE_KEY.into(), &total_stake);
         self.storage_store_big_uint(&NODE_SHARE_KEY.into(), &node_share_per_10000);
