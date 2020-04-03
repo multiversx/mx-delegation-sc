@@ -4,6 +4,9 @@
 
 cargo build --bin wasm --target=wasm32-unknown-unknown --release
 mv target/wasm32-unknown-unknown/release/wasm.wasm delegation.wasm
+wasm-snip delegation.wasm -o delegation.wasm --snip-rust-fmt-code --snip-rust-panicking-code
+#wasm-gc delegation.wasm
+# twiggy top -n 100 delegation.wasm > twiggy-snip.txt
 
 cd auction-mock
 cargo build --bin wasm --target=wasm32-unknown-unknown --release

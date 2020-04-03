@@ -10,6 +10,15 @@ Run
 ```
 in root, it will produce delegation.wasm and staking-mock.wasm (a dummy used in tests instead of a staking contract).
 
+# Rust configuration
+
+```
+rustup toolchain install nightly
+rustup target add wasm32-unknown-unknown
+rustc --version
+cargo install wasm-snip
+```
+
 # Advanced
 
 Wasm is built with this line:

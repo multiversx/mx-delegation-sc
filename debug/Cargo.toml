@@ -1,12 +1,12 @@
 [package]
 name = "sc-delegation-rs-debug"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["andrei-marinica <andrei_m_marinica@yahoo.com>"]
 edition = "2018"
 
 [dependencies]
-elrond-wasm = "0.2.0"
-elrond-wasm-debug = "0.2.0"
+elrond-wasm = "0.3.0"
+elrond-wasm-debug = "0.3.0"
 
 # elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
 # elrond-wasm-debug = { path = "../../elrond-wasm-rs/elrond-wasm-debug" }
