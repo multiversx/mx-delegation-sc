@@ -8,7 +8,7 @@ edition = "2018"
 path = "src/lib.rs"
 
 [[bin]]
-name = "wasm"
+name = "auction-mock"
 path = "src/lib.rs"
 
 
