@@ -243,6 +243,9 @@ pub trait Delegation {
         self.store_user_data(user_id, &user_data);
         self.update_historical_node_rewards(&hist_node_rewards_to_update);
 
+        // log staking event
+        self.stake_event(&caller, &payment);
+
         Ok(())
     }
 
@@ -276,6 +279,9 @@ pub trait Delegation {
             return Err("cannot activate before all stake has been filled");
         }
 
+        // save active flag, true
+        self.storage_store_i64(&ACTIVE_KEY.into(), 1);
+
         // send all stake to staking contract
         let auction_contract_addr = self.getAuctionContractAddress();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
@@ -291,8 +297,10 @@ pub trait Delegation {
     /// Currently only activate performs an async call, so only one callback possible.
     #[callback_raw]
     fn callback_raw(_args: Vec<Vec<u8>>) {
-        // save active flag, true
-        self.storage_store_i64(&ACTIVE_KEY.into(), 1);
+        // TODO: deactivate back if staking failed
+
+        // log event (no data)
+        self.activation_ok_event(());
     }
 
     // creates new user id
@@ -481,6 +489,9 @@ pub trait Delegation {
         // forward payment to seller
         self.send_tx(&seller, &payment, "payment for stake");
 
+        // log transaction
+        self.purchase_stake_event(&seller, &caller, &payment);
+
         Ok(())
     }
 
@@ -512,4 +523,15 @@ pub trait Delegation {
         }
     }
 
+    #[event("0x0000000000000000000000000000000000000000000000000000000000000001")]
+    fn stake_event(&self, delegator: &Address, amount: &BigUint);
+
+    #[event("0x0000000000000000000000000000000000000000000000000000000000000002")]
+    fn activation_ok_event(&self, _data: ());
+
+    #[event("0x0000000000000000000000000000000000000000000000000000000000000003")]
+    fn activation_fail_event(&self, _data: ());
+
+    #[event("0x0000000000000000000000000000000000000000000000000000000000000004")]
+    fn purchase_stake_event(&self, seller: &Address, buyer: &Address, amount: &BigUint);
 }
