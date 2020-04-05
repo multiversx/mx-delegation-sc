@@ -34,7 +34,7 @@ static BLS_SIGNATURE_BYTE_LENGTH: usize = 32;
 pub trait Auction {
     #[payable]
     fn stake(&self,
-        nr_nodes: i64,
+        nr_nodes: usize,
         #[multi(2*nr_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
         #[payment] payment: &BigUint);
 }
@@ -101,14 +101,14 @@ pub trait Delegation {
     }
 
     fn setBlsKeys(&self, 
-            nr_nodes: i64,
+            nr_nodes: usize,
             #[multi(nr_nodes)] bls_keys: Vec<Vec<u8>>) -> Result<(), &str> {
 
         if self.isActive() {
             return Err("cannot change BLS keys while active"); 
         }
         
-        let mut flat: Vec<u8> = Vec::with_capacity((nr_nodes as usize) * BLS_KEY_BYTE_LENGTH);
+        let mut flat: Vec<u8> = Vec::with_capacity((nr_nodes) * BLS_KEY_BYTE_LENGTH);
         for (_, bls_key) in bls_keys.iter().enumerate() {
             if bls_key.len() != BLS_KEY_BYTE_LENGTH {
                 return Err("wrong size BLS key");
@@ -133,8 +133,8 @@ pub trait Delegation {
     }
 
     #[view]
-    fn getNrBlsKeys(&self) -> i64 {
-        (self.storage_load_len(&BLS_KEYS_KEY.into()) / BLS_KEY_BYTE_LENGTH) as i64
+    fn getNrBlsKeys(&self) -> usize {
+        (self.storage_load_len(&BLS_KEYS_KEY.into()) / BLS_KEY_BYTE_LENGTH) as usize
     }
 
     /// An active contract allows staking/unstaking, but no rewards
@@ -281,7 +281,7 @@ pub trait Delegation {
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
         let total_stake = self.getTotalStake();
         auction_contract.stake(
-            nr_nodes as i64,
+            nr_nodes,
             zip_vectors(bls_keys, bls_signatures),
             &total_stake);
 
