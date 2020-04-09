@@ -33,6 +33,7 @@ static BLS_SIGNATURE_BYTE_LENGTH: usize = 32;
 #[elrond_wasm_derive::callable(AuctionProxy)]
 pub trait Auction {
     #[payable]
+    #[callback(stake_callback)]
     fn stake(&self,
         nr_nodes: usize,
         #[multi(2*nr_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
@@ -295,8 +296,8 @@ pub trait Delegation {
     }
 
     /// Currently only activate performs an async call, so only one callback possible.
-    #[callback_raw]
-    fn callback_raw(_args: Vec<Vec<u8>>) {
+    #[callback]
+    fn stake_callback() {
         // TODO: deactivate back if staking failed
 
         // log event (no data)
