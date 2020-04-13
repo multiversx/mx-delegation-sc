@@ -1,6 +1,6 @@
 [package]
 name = "sc-delegation-rs"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
@@ -13,9 +13,9 @@ path = "src/lib.rs"
 
 
 [dependencies]
-elrond-wasm = "0.3.0"
-elrond-wasm-node = "0.3.0"
-elrond-wasm-derive = "0.3.0"
+elrond-wasm = "0.3.2"
+elrond-wasm-node = "0.3.2"
+elrond-wasm-derive = "0.3.2"
 
 # elrond-wasm = { path = "../elrond-wasm-rs/elrond-wasm" }
 # elrond-wasm-node = { path = "../elrond-wasm-rs/elrond-wasm-node" }
