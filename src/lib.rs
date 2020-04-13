@@ -4,14 +4,13 @@
 #![allow(non_snake_case)]
 #![allow(unused_attributes)]
 
-// all coins: 0x108b2a2c28029094000000
-
 mod storage;
 mod util;
 
 use crate::util::*;
 use crate::storage::*;
 
+// Groups together data per delegator from the storage
 pub struct UserData<BigUint> {
     hist_deleg_rewards_when_last_collected: BigUint,
     unclaimed_rewards: BigUint,
@@ -138,7 +137,7 @@ pub trait Delegation {
         (self.storage_load_len(&BLS_KEYS_KEY.into()) / BLS_KEY_BYTE_LENGTH) as usize
     }
 
-    /// An active contract allows staking/unstaking, but no rewards
+    /// An inactive contract allows staking/unstaking, but no rewards.
     #[view]
     fn isActive(&self) -> bool {
         self.storage_load_big_uint(&ACTIVE_KEY.into()) > 0
@@ -194,7 +193,7 @@ pub trait Delegation {
         hist_rew - rewards_for_nodes
     }
 
-    // Yields how much stake the contract continues to accept.
+    /// Yields how much stake the contract continues to accept.
     #[view]
     fn getUnfilledStake(&self) -> BigUint {
         self.storage_load_big_uint(&UNFILLED_STAKE_KEY.into())
@@ -365,7 +364,7 @@ pub trait Delegation {
         (user_data, hist_node_rewards_to_update)
     }
 
-    // Yields how much a user is able to claim in rewards at the present time.
+    /// Yields how much a user is able to claim in rewards at the present time.
     #[view]
     fn getClaimableRewards(&self, user: Address) -> BigUint {
         let user_id = self.storage_load_i64(&user).unwrap();
@@ -377,7 +376,7 @@ pub trait Delegation {
         user_data.unclaimed_rewards
     }
 
-    // Retrieve those rewards to which the caller is entitled.
+    /// Retrieve those rewards to which the caller is entitled.
     fn claimRewards(&self) -> Result<(), &str> {
         let caller = self.get_caller();
         let user_id = self.storage_load_i64(&caller).unwrap();
