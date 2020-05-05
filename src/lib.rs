@@ -226,9 +226,8 @@ pub trait Delegation {
 
     // DELEGATOR DATA
 
-    #[private]
     #[storage_get("user_id")]
-    fn _get_user_id(&self, address: &Address) -> usize;
+    fn getUserId(&self, address: &Address) -> usize;
 
     #[private]
     #[storage_set("user_id")]
@@ -333,7 +332,7 @@ pub trait Delegation {
     /// Yields how much a user has staked in the contract.
     #[view]
     fn getStake(&self, user: Address) -> BigUint {
-        let user_id = self._get_user_id(&user);
+        let user_id = self.getUserId(&user);
         if user_id == 0 {
             BigUint::zero()
         } else {
@@ -371,7 +370,7 @@ pub trait Delegation {
         // we use user id as an intermediate identifier between user address and data,
         // because we might at some point need to iterate over all user data
         let caller = self.get_caller();
-        let mut user_id = self._get_user_id(&caller);
+        let mut user_id = self.getUserId(&caller);
         if user_id == 0 {
             user_id = self.new_user();
             self._set_user_id(&caller, user_id);
@@ -517,7 +516,7 @@ pub trait Delegation {
     /// Yields how much a user is able to claim in rewards at the present time.
     #[view]
     fn getClaimableRewards(&self, user: Address) -> BigUint {
-        let user_id = self._get_user_id(&user);
+        let user_id = self.getUserId(&user);
         if user_id == 0 {
             return BigUint::zero()
         }
@@ -529,7 +528,7 @@ pub trait Delegation {
     /// Retrieve those rewards to which the caller is entitled.
     fn claimRewards(&self) -> Result<(), &str> {
         let caller = self.get_caller();
-        let user_id = self._get_user_id(&caller);
+        let user_id = self.getUserId(&caller);
         if user_id == 0 {
             return Err("unknown caller")
         }
@@ -562,7 +561,7 @@ pub trait Delegation {
     /// Once a stake offer is up, it can be bought by anyone on a first come first served basis.
     fn offerStakeForSale(&self, amount: BigUint) -> Result<(), &str> {
         let caller = self.get_caller();
-        let user_id = self._get_user_id(&caller);
+        let user_id = self.getUserId(&caller);
         if user_id == 0 {
             return Err("unknown caller")
         }
@@ -582,7 +581,7 @@ pub trait Delegation {
     /// Check if user is willing to sell stake, and how much.
     #[view]
     fn getStakeForSale(&self, user: Address) -> BigUint {
-        let user_id = self._get_user_id(&user);
+        let user_id = self.getUserId(&user);
         if user_id == 0 {
             return BigUint::zero()
         }
@@ -600,7 +599,7 @@ pub trait Delegation {
         }
 
         // get seller id
-        let seller_id = self._get_user_id(&seller);
+        let seller_id = self.getUserId(&seller);
         if seller_id == 0 {
             return Err("unknown seller")
         }
@@ -623,7 +622,7 @@ pub trait Delegation {
 
         // get buyer id or create buyer
         let caller = self.get_caller();
-        let mut buyer_id = self._get_user_id(&caller);
+        let mut buyer_id = self.getUserId(&caller);
         if buyer_id == 0 {
             buyer_id = self.new_user();
             self._set_user_id(&caller, buyer_id);
