@@ -341,7 +341,6 @@ pub trait Delegation {
     }
 
     /// Staking is possible while the total stake required by the contract has not yet been filled.
-    /// It is as if users "buy" stake from the contract itself.
     #[payable]
     fn stake(&self, #[payment] payment: BigUint) -> Result<(), &str> {
         if self.isActive() {
@@ -352,6 +351,26 @@ pub trait Delegation {
             return Ok(());
         }
 
+        // increase non-reward balance
+        // this keeps the stake separate from rewards
+        let mut non_reward_balance = self._get_non_reward_balance();
+        non_reward_balance += &payment;
+        self._set_non_reward_balance(&non_reward_balance);
+
+        self._process_stake(payment)
+    }
+
+    /// Function to be used only once, during genesis block.
+    /// Cannot perform payments during genesis block, so we update state but not.
+    fn stakeGenesis(&self, stake: BigUint) -> Result<(), &str> {
+        if self.get_block_nonce() > 0 {
+            return Err("genesis block only")
+        }
+        self._process_stake(stake)
+    }
+
+    #[private]
+    fn _process_stake(&self, payment: BigUint) -> Result<(), &str> {
         // increase global filled stake
         let mut filled_stake = self.getFilledStake();
         if &filled_stake + &payment > self.getExpectedStake() { // avoid subtractions, unsigned ints panic if the result is negative
@@ -359,12 +378,6 @@ pub trait Delegation {
         }
         filled_stake += &payment;
         self._set_filled_stake(&filled_stake);
-
-        // increase non-reward balance
-        // this keeps the stake separate from rewards
-        let mut non_reward_balance = self._get_non_reward_balance();
-        non_reward_balance += &payment;
-        self._set_non_reward_balance(&non_reward_balance);
 
         // get user id or create user
         // we use user id as an intermediate identifier between user address and data,
@@ -386,6 +399,27 @@ pub trait Delegation {
 
         // log staking event
         self.stake_event(&caller, &payment);
+
+        Ok(())
+    }
+
+    #[private]
+    fn _check_entire_stake_filled(&self) -> Result<(), &str> {
+        let expected_stake = self.getExpectedStake();
+        if expected_stake == 0 {
+            return Err("cannot activate with 0 stake");
+        }
+
+        let filled_stake = self.getFilledStake();
+        match filled_stake.cmp(&expected_stake) {
+            core::cmp::Ordering::Less => {
+                return Err("cannot activate before all stake has been filled");
+            },
+            core::cmp::Ordering::Greater => {
+                return Err("too much stake filled");
+            }
+            _ => {}
+        }
 
         Ok(())
     }
@@ -420,21 +454,7 @@ pub trait Delegation {
             return Err("cannot activate before specifying any BLS keys");
         }
 
-        let expected_stake = self.getExpectedStake();
-        if expected_stake == 0 {
-            return Err("cannot activate with 0 stake");
-        }
-
-        let filled_stake = self.getFilledStake();
-        match filled_stake.cmp(&expected_stake) {
-            core::cmp::Ordering::Less => {
-                return Err("cannot activate before all stake has been filled");
-            },
-            core::cmp::Ordering::Greater => {
-                return Err("too much stake filled");
-            }
-            _ => {}
-        }
+        self._check_entire_stake_filled()?;
 
         // save active flag, true
         self._set_active(true);
@@ -448,6 +468,25 @@ pub trait Delegation {
             nr_nodes,
             zip_vectors(bls_keys, bls_signatures),
             &total_stake);
+
+        Ok(())
+    }
+
+    /// Function to be used only once, during genesis block.
+    /// Cannot perform payments during genesis block, so we update state but not.
+    fn activateGenesis(&self) -> Result<(), &str> {
+        if self.get_block_nonce() > 0 {
+            return Err("genesis block only")
+        }
+
+        self._check_entire_stake_filled()?;
+
+        // save active flag, true
+        self._set_active(true);
+        self._set_rewards_dirty(true);
+
+        // log event (no data)
+        self.activation_ok_event(());
 
         Ok(())
     }
