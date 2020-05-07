@@ -1,6 +1,6 @@
 [package]
 name = "sc-delegation-rs"
-version = "0.3.0"
+version = "0.5.0"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
@@ -19,12 +19,10 @@ debug = false
 panic = "abort"
 
 [dependencies]
-elrond-wasm = "0.4.0"
-elrond-wasm-node = "0.4.0"
-elrond-wasm-derive = "0.4.0"
+elrond-wasm = "0.4.2"
+elrond-wasm-node = "0.4.2"
+elrond-wasm-derive = "0.4.2"
 
 # elrond-wasm = { path = "../elrond-wasm-rs/elrond-wasm" }
 # elrond-wasm-node = { path = "../elrond-wasm-rs/elrond-wasm-node" }
 # elrond-wasm-derive = { path = "../elrond-wasm-rs/elrond-wasm-derive" }
-
-serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }

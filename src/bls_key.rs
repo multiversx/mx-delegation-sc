@@ -1,4 +1,6 @@
 use elrond_wasm::Vec;
+use elrond_wasm::serde::ser::{Serialize, Serializer, SerializeTuple};
+use elrond_wasm::serde::de::{Deserialize, Deserializer, Visitor, SeqAccess, Error};
 
 // BLS keys have 128 bytes, signatures only 32
 pub const BLS_KEY_BYTE_LENGTH: usize = 128;
@@ -11,9 +13,6 @@ impl BLSKey {
         self.0.to_vec()
     }
 }
-
-use serde::ser::{Serialize, Serializer, SerializeTuple};
-use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess, Error};
 
 impl Serialize for BLSKey {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
