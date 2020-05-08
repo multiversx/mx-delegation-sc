@@ -24,6 +24,14 @@ pub trait AuctionMock {
     #[storage_set("bls_sig")]
     fn _set_bls_signature(&self, node_index: usize, bls_signature: &Vec<u8>);
 
+    #[private]
+    #[storage_set("staking_failure")]
+    fn setStakingFailure(&self, will_fail: bool);
+
+    #[private]
+    #[storage_get("staking_failure")]
+    fn _is_staking_failure(&self) -> bool;
+
     fn init(&self) {
     }
 
@@ -32,6 +40,10 @@ pub trait AuctionMock {
             nr_nodes: usize,
             #[multi(2*nr_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
             #[payment] payment: &BigUint) -> Result<(), &str> {
+
+        if self._is_staking_failure() {
+            return Err("auction smart contract deliberate error");
+        }
 
         self._set_received_stake(&payment);
         self._set_nr_nodes(nr_nodes);

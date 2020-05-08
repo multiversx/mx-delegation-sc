@@ -28,7 +28,7 @@ static NODE_REWARD_DEST_USER_ID: usize = 1;
 #[elrond_wasm_derive::callable(AuctionProxy)]
 pub trait Auction {
     #[payable]
-    #[callback(stake_callback)]
+    #[callback(auction_stake_callback)]
     fn stake(&self,
         nr_nodes: usize,
         #[multi(2*nr_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
@@ -491,13 +491,23 @@ pub trait Delegation {
         Ok(())
     }
 
-    /// Currently only activate performs an async call, so only one callback possible.
+    /// Only finalize activation if we got confirmation from the auction contract.
     #[callback]
-    fn stake_callback() {
-        // TODO: deactivate back if staking failed
+    fn auction_stake_callback(&self, call_result: AsyncCallResult<()>) {
+        match call_result {
+            AsyncCallResult::Ok(()) => {
+                // log event (no data)
+                self.activation_ok_event(());
+            },
+            AsyncCallResult::Err(error) => {
+                 // revert active flag
+                self._set_active(false);
+                self._set_rewards_dirty(false);
 
-        // log event (no data)
-        self.activation_ok_event(());
+                // log failure event (no data)
+                self.activation_fail_event(error.err_msg);
+            }
+        }
     }
 
     #[private]
@@ -716,7 +726,7 @@ pub trait Delegation {
     fn activation_ok_event(&self, _data: ());
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000003")]
-    fn activation_fail_event(&self, _data: ());
+    fn activation_fail_event(&self, _data: Vec<u8>);
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000004")]
     fn purchase_stake_event(&self, seller: &Address, buyer: &Address, amount: &BigUint);

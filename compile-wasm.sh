@@ -4,8 +4,8 @@
 
 rm output/delegation.wasm
 rm tests/delegation.wasm
-rm output/delegation.wasm
-rm tests/delegation.wasm
+rm output/auction-mock.wasm
+rm tests/auction-mock.wasm
 
 RUSTFLAGS='-C link-arg=-s' \
 cargo build --bin delegation --target=wasm32-unknown-unknown --release
@@ -26,4 +26,4 @@ cp auction-mock/target/wasm32-unknown-unknown/release/auction-mock.wasm tests/au
 rm auction-mock/target/wasm32-unknown-unknown/release/auction-mock.wasm
 
 # for debugging macros:
-# cargo +nightly rustc --bin delegation -- -Z unstable-options --pretty=expanded > demacroed.rs
+cargo +nightly rustc --lib -- -Z unstable-options --pretty=expanded > demacroed.rs
