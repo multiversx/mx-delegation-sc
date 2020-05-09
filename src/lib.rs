@@ -25,6 +25,34 @@ static NODE_SHARE_DENOMINATOR: u64 = 10000;
 // node reward destination will always be user with id 1
 static NODE_REWARD_DEST_USER_ID: usize = 1;
 
+use serde::{Serialize, Deserialize};
+
+/// Contract-wide status of all stake.
+#[derive(Serialize, Deserialize)]
+pub enum StakeState {
+    /// Users can add or withdraw stake. 
+    /// The owner can change the number of nodes and the BLS keys.
+    /// No rewards arrive from the protocol.
+    OpenForStaking,
+
+    /// Stake is locked and rewards are coming in.
+    /// Users cannot withdraw stake, but they can trade their share of the total stake amongst each other.
+    Active,
+
+    /// Same as Active, but no rewards are coming in.
+    /// This is necessary for a period of time before the stake can be retrieved and unlocked.
+    UnBondPeriod,
+}
+
+impl StakeState {
+    pub fn is_open(&self) -> bool {
+        match self {
+            StakeState::OpenForStaking => true,
+            _ => false,
+        }
+    }
+}
+
 #[elrond_wasm_derive::callable(AuctionProxy)]
 pub trait Auction {
     #[payable]
@@ -110,7 +138,7 @@ pub trait Delegation {
         if self.get_caller() != self.getContractOwner() {
             return Err("only owner can change stake per node"); 
         }
-        if self.isActive() {
+        if self._get_stake_state().is_open() {
             return Err("cannot change stake per node while active"); 
         }
         self._set_stake_per_node(&stake_per_node);
@@ -160,7 +188,7 @@ pub trait Delegation {
         if self.get_caller() != self.getContractOwner() {
             return Err("only owner can change the number of nodes"); 
         }
-        if self.isActive() {
+        if self._get_stake_state().is_open() {
             return Err("cannot change nr of nodes while active"); 
         }
         self._set_nr_nodes(nr_nodes);
@@ -196,7 +224,7 @@ pub trait Delegation {
             return Err("only owner can set BLS keys"); 
         }
 
-        if self.isActive() {
+        if self._get_stake_state().is_open() {
             return Err("cannot change BLS keys while active"); 
         }
         
@@ -215,6 +243,18 @@ pub trait Delegation {
     #[private]
     #[storage_set("active")]
     fn _set_active(&self, active: bool);
+
+    #[private]
+    #[storage_get("stake_state")]
+    fn _get_stake_state(&self) -> StakeState;
+
+    // fn getStakeState(&self) -> StakeState {
+    //     StakeState::UnBondPeriod
+    // }
+
+    #[private]
+    #[storage_set("stake_state")]
+    fn _set_stake_state(&self, active: StakeState);
 
     #[view]
     #[storage_get("rewards_dirty")]
@@ -343,7 +383,7 @@ pub trait Delegation {
     /// Staking is possible while the total stake required by the contract has not yet been filled.
     #[payable]
     fn stake(&self, #[payment] payment: BigUint) -> Result<(), &str> {
-        if self.isActive() {
+        if self._get_stake_state().is_open() {
             return Err("cannot stake while contract is active"); 
         }
 
@@ -433,7 +473,7 @@ pub trait Delegation {
             return Err("only owner can activate"); 
         }
 
-        if self.isActive() {
+        if self._get_stake_state().is_open() {
             return Err("contract already active"); 
         }
 
