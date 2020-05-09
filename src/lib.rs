@@ -35,6 +35,14 @@ pub trait Auction {
         nr_nodes: usize,
         #[multi(2*nr_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
         #[payment] payment: &BigUint);
+
+    #[callback(auction_unStake_callback)]
+    fn unStake(&self,
+        #[var_args] bls_keys_signatures: Vec<BLSKey>);
+
+    #[callback(auction_unBond_callback)]
+    fn unBond(&self,
+        #[var_args] bls_keys_signatures: Vec<BLSKey>);
 }
 
 #[elrond_wasm_derive::contract(DelegationImpl)]
@@ -404,6 +412,8 @@ pub trait Delegation {
         Ok(())
     }
 
+    // ACTIVATE
+
     #[private]
     fn _check_entire_stake_filled(&self) -> Result<(), &str> {
         let expected_stake = self.getExpectedStake();
@@ -457,8 +467,8 @@ pub trait Delegation {
 
         self._check_entire_stake_filled()?;
 
-        // save active flag, true
-        self._set_stake_state(StakeState::Active);
+        // change state
+        self._set_stake_state(StakeState::PendingActivation);
         self._set_rewards_dirty(true);
 
         // send all stake to staking contract
@@ -482,8 +492,10 @@ pub trait Delegation {
 
         self._check_entire_stake_filled()?;
 
-        // save active flag, true
+        // save stake state flag, true
         self._set_stake_state(StakeState::Active);
+
+        // rewards might arrive at any moment
         self._set_rewards_dirty(true);
 
         // log event (no data)
@@ -497,19 +509,118 @@ pub trait Delegation {
     fn auction_stake_callback(&self, call_result: AsyncCallResult<()>) {
         match call_result {
             AsyncCallResult::Ok(()) => {
+                // set to Active
+                self._set_stake_state(StakeState::Active);
+
                 // log event (no data)
                 self.activation_ok_event(());
             },
             AsyncCallResult::Err(error) => {
-                 // revert active flag
+                // revert stake state flag
                 self._set_stake_state(StakeState::OpenForStaking);
-                self._set_rewards_dirty(false);
 
                 // log failure event (no data)
                 self.activation_fail_event(error.err_msg);
             }
         }
     }
+
+    // DEACTIVATE
+
+    /// Unstakes from the auction smart contract.
+    /// The contract will stop receiving rewards, but stake cannot be yet reclaimed.
+    fn deactivate(&self) -> Result<(), &str> {
+
+        if self.get_caller() != self.getContractOwner() {
+            return Err("only owner can deactivate"); 
+        }
+
+        if self.stakeState() != StakeState::Active {
+            return Err("contract is not active"); 
+        }
+
+        let bls_keys = self.getBlsKeys();
+
+        // change state
+        self._set_stake_state(StakeState::PendingDectivation);
+        
+        // send all stake to staking contract
+        let auction_contract_addr = self.getAuctionContractAddress();
+        let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
+        auction_contract.unStake(bls_keys);
+
+        Ok(())
+    }
+
+    /// Only finalize deactivation if we got confirmation from the auction contract.
+    #[callback]
+    fn auction_unStake_callback(&self, call_result: AsyncCallResult<()>) {
+        match call_result {
+            AsyncCallResult::Ok(()) => {
+                // set to Active
+                self._set_stake_state(StakeState::UnBondPeriod);
+
+                // log event (no data)
+                self.deactivation_ok_event(());
+            },
+            AsyncCallResult::Err(error) => {
+                // revert stake state flag
+                self._set_stake_state(StakeState::Active);
+
+                // log failutradere event (no data)
+                self.deactivation_fail_event(error.err_msg);
+            }
+        }
+    }
+
+    // UNBOND
+
+    /// Claims unstaked stake from the auction smart contract.
+    fn unBond(&self) -> Result<(), &str> {
+
+        if self.get_caller() != self.getContractOwner() {
+            return Err("only owner can unBond"); 
+        }
+
+        if self.stakeState() != StakeState::UnBondPeriod {
+            return Err("contract is not in unbond period"); 
+        }
+
+        let bls_keys = self.getBlsKeys();
+
+        // save stake state flag, true
+        self._set_stake_state(StakeState::PendingUnBond);
+        
+        // send all stake to staking contract
+        let auction_contract_addr = self.getAuctionContractAddress();
+        let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
+        auction_contract.unBond(bls_keys);
+
+        Ok(())
+    }
+
+    /// Only finalize deactivation if we got confirmation from the auction contract.
+    #[callback]
+    fn auction_unBond_callback(&self, call_result: AsyncCallResult<()>) {
+        match call_result {
+            AsyncCallResult::Ok(()) => {
+                // open up staking
+                self._set_stake_state(StakeState::OpenForStaking);
+
+                // log event (no data)
+                self.unBond_ok_event(());
+            },
+            AsyncCallResult::Err(error) => {
+                // revert stake state flag
+                self._set_stake_state(StakeState::UnBondPeriod);
+
+                // log failutradere event (no data)
+                self.unBond_fail_event(error.err_msg);
+            }
+        }
+    }
+
+    // REWARDS
 
     #[private]
     fn add_node_rewards(&self, 
@@ -727,8 +838,20 @@ pub trait Delegation {
     fn activation_ok_event(&self, _data: ());
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000003")]
-    fn activation_fail_event(&self, _data: Vec<u8>);
+    fn activation_fail_event(&self, _reason: Vec<u8>);
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000004")]
     fn purchase_stake_event(&self, seller: &Address, buyer: &Address, amount: &BigUint);
+
+    #[event("0x0000000000000000000000000000000000000000000000000000000000000005")]
+    fn deactivation_ok_event(&self, _data: ());
+
+    #[event("0x0000000000000000000000000000000000000000000000000000000000000006")]
+    fn deactivation_fail_event(&self, _reason: Vec<u8>);
+
+    #[event("0x0000000000000000000000000000000000000000000000000000000000000007")]
+    fn unBond_ok_event(&self, _data: ());
+
+    #[event("0x0000000000000000000000000000000000000000000000000000000000000008")]
+    fn unBond_fail_event(&self, _reason: Vec<u8>);
 }

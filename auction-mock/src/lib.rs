@@ -13,16 +13,28 @@ pub trait AuctionMock {
     fn _set_received_stake(&self, total_stake: &BigUint);
 
     #[private]
+    #[storage_get("nr_nodes")]
+    fn _get_nr_nodes(&self) -> usize;
+
+    #[private]
     #[storage_set("nr_nodes")]
     fn _set_nr_nodes(&self, nr_nodes: usize);
 
     #[private]
-    #[storage_set("bls_key")]
-    fn _set_bls_key(&self, node_index: usize, bls_key: &Vec<u8>);
+    #[storage_set("stake_bls_key")]
+    fn _set_stake_bls_key(&self, node_index: usize, bls_key: &Vec<u8>);
 
     #[private]
-    #[storage_set("bls_sig")]
-    fn _set_bls_signature(&self, node_index: usize, bls_signature: &Vec<u8>);
+    #[storage_set("stake_bls_sig")]
+    fn _set_stake_bls_signature(&self, node_index: usize, bls_signature: &Vec<u8>);
+
+    #[private]
+    #[storage_set("unStake_bls_key")]
+    fn _set_unStake_bls_key(&self, node_index: usize, bls_key: &Vec<u8>);
+
+    #[private]
+    #[storage_set("unBond_bls_key")]
+    fn _set_unBond_bls_key(&self, node_index: usize, bls_key: &Vec<u8>);
 
     #[private]
     #[storage_set("staking_failure")]
@@ -49,8 +61,46 @@ pub trait AuctionMock {
         self._set_nr_nodes(nr_nodes);
         
         for n in 0..nr_nodes {
-            self._set_bls_key(n, &bls_keys_signatures[2*n]);
-            self._set_bls_signature(n, &bls_keys_signatures[2*n+1]);
+            self._set_stake_bls_key(n, &bls_keys_signatures[2*n]);
+            self._set_stake_bls_signature(n, &bls_keys_signatures[2*n+1]);
+        }
+
+        Ok(())
+    }
+
+    fn unStake(&self,
+            #[var_args] bls_keys: Vec<Vec<u8>>) -> Result<(), &str> {
+
+        if self._is_staking_failure() {
+            return Err("auction smart contract deliberate error");
+        }
+
+        let nr_nodes = self._get_nr_nodes();
+        if nr_nodes != bls_keys.len() {
+            return Err("all BLS keys expected as arguments in this mock");
+        }
+
+        for n in 0..nr_nodes {
+            self._set_unStake_bls_key(n, &bls_keys[n]);
+        }
+
+        Ok(())
+    }
+
+    fn unBond(&self,
+            #[var_args] bls_keys: Vec<Vec<u8>>) -> Result<(), &str> {
+
+        if self._is_staking_failure() {
+            return Err("auction smart contract deliberate error");
+        }
+
+        let nr_nodes = self._get_nr_nodes();
+        if nr_nodes != bls_keys.len() {
+            return Err("all BLS keys expected as arguments in this mock");
+        }
+
+        for n in 0..nr_nodes {
+            self._set_unStake_bls_key(n, &bls_keys[n]);
         }
 
         Ok(())
