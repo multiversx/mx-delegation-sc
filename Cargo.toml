@@ -19,8 +19,6 @@ debug = false
 panic = "abort"
 
 [dependencies]
-serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
-
 # elrond-wasm = "0.4.2"
 # elrond-wasm-node = "0.4.2"
 # elrond-wasm-derive = "0.4.2"
