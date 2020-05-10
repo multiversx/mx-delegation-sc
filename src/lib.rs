@@ -129,7 +129,7 @@ pub trait Delegation {
 
     #[view]
     fn getExpectedStake(&self) -> BigUint {
-        self.getStakePerNode() * BigUint::from(self.getNrNodes() as u64) // TODO: implement BigUint from usize
+        self.getStakePerNode() * BigUint::from(self.getNrNodes())
     }
 
     /// Nr delegators + 1 (the node address)
@@ -265,6 +265,14 @@ pub trait Delegation {
     #[private]
     #[storage_set("u_sale")]
     fn _set_user_stake_for_sale(&self, user_id: usize, user_stake_for_sale: &BigUint);
+
+    #[private]
+    #[storage_get("u_toff")]
+    fn _get_user_time_of_stake_offer(&self, user_id: usize) -> u64;
+
+    #[private]
+    #[storage_set("u_toff")]
+    fn _set_user_time_of_stake_offer(&self, user_id: usize, time_of_stake_offer: u64);
 
     // loads the entire user data from storage and groups it in an object
     #[private]
@@ -786,6 +794,7 @@ pub trait Delegation {
 
         // store offer
         self._set_user_stake_for_sale(user_id, &amount);
+        self._set_user_time_of_stake_offer(user_id, self.get_block_timestamp());
 
         Ok(())
     }
