@@ -413,8 +413,8 @@ pub trait Delegation {
         self._process_stake(payment)
     }
 
-    /// Function to be used only once, during genesis block.
-    /// Cannot perform payments during genesis block, so we update state but not.
+    /// Function to be used only during genesis block.
+    /// Cannot perform payments during genesis block, so we update state but not the balance.
     fn stakeGenesis(&self, stake: BigUint) -> Result<(), &str> {
         if self.get_block_nonce() > 0 {
             return Err("genesis block only")
@@ -452,6 +452,55 @@ pub trait Delegation {
 
         // log staking event
         self.stake_event(&caller, &payment);
+
+        Ok(())
+    }
+
+    // UNSTAKE
+
+    fn unstake(&self, amount: BigUint) -> Result<(), &str> {
+        if !self.stakeState().is_open() {
+            return Err("cannot unstake while contract is active"); 
+        }
+
+        if amount == 0 {
+            return Ok(());
+        }
+
+        let caller = self.get_caller();
+        let user_id = self.getUserId(&caller);
+        if user_id == 0 {
+            return Err("only delegators can unstake");
+        }
+
+        // compute reward - catch up with historical rewards 
+        let (mut user_data, hist_node_rewards_to_update) = self.compute_rewards(user_id);
+
+        if &amount > &user_data.personal_stake {
+            return Err("cannot unstake more than was staked");
+        }
+
+        // save decreased stake
+        user_data.personal_stake -= &amount;
+        self.store_user_data(user_id, &user_data);
+        self.update_historical_node_rewards(&hist_node_rewards_to_update);
+
+        // decrease non-reward balance
+        // this keeps the stake separate from rewards
+        let mut non_reward_balance = self._get_non_reward_balance();
+        non_reward_balance -= &amount;
+        self._set_non_reward_balance(&non_reward_balance);
+
+        // decrease global filled stake
+        let mut filled_stake = self.getFilledStake();
+        filled_stake -= &amount;
+        self._set_filled_stake(&filled_stake);
+
+        // send stake to delegator
+        self.send_tx(&caller, &amount, "delegation unstake");
+
+        // log
+        self.unstake_event(&caller, &amount);
 
         Ok(())
     }
