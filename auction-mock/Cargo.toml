@@ -1,6 +1,6 @@
 [package]
 name = "auction-mock"
-version = "0.1.3"
+version = "0.6.0"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
@@ -19,10 +19,10 @@ debug = false
 panic = "abort"
 
 [dependencies]
-# elrond-wasm = "0.4.2"
-# elrond-wasm-node = "0.4.2"
-# elrond-wasm-derive = "0.4.2"
+elrond-wasm = "0.4.3"
+elrond-wasm-node = "0.4.3"
+elrond-wasm-derive = "0.4.3"
 
-elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
-elrond-wasm-node = { path = "../../elrond-wasm-rs/elrond-wasm-node" }
-elrond-wasm-derive = { path = "../../elrond-wasm-rs/elrond-wasm-derive" }
+# elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
+# elrond-wasm-node = { path = "../../elrond-wasm-rs/elrond-wasm-node" }
+# elrond-wasm-derive = { path = "../../elrond-wasm-rs/elrond-wasm-derive" }
