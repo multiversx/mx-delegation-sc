@@ -53,6 +53,7 @@ pub trait Delegation {
     fn init(&self,
             node_share_per_10000: BigUint,
             auction_contract_addr: &Address,
+            time_before_force_unstake: u64,
         ) -> Result<(), &str> {
 
         if node_share_per_10000 > NODE_SHARE_DENOMINATOR {
@@ -68,6 +69,8 @@ pub trait Delegation {
         self._set_nr_users(1);
 
         self._set_auction_addr(&auction_contract_addr);
+
+        self._set_time_before_force_unstake(time_before_force_unstake);
 
         Ok(())
     }
@@ -99,6 +102,19 @@ pub trait Delegation {
     #[private]
     #[storage_set("auction_addr")]
     fn _set_auction_addr(&self, auction_addr: &Address);
+
+    
+    /// Delegators can force the entire contract to unstake
+    /// if they put up stake for sale and no-one is buying it.
+    /// However, they need to wait this much time (in milliseconds)
+    /// from when the put up the stake for sale and the moment they can force unstaking.
+    #[view]
+    #[storage_get("time_before_force_unstake")]
+    fn getTimeBeforeForceUnstake(&self) -> u64;
+
+    #[private]
+    #[storage_set("time_before_force_unstake")]
+    fn _set_time_before_force_unstake(&self, time_before_force_unstake: u64);
 
     #[view]
     #[storage_get("node_share")]
@@ -554,12 +570,12 @@ pub trait Delegation {
         }
     }
 
-    // DEACTIVATE
+    // DEACTIVATE + FORCE UNSTAKE
 
     /// Unstakes from the auction smart contract.
     /// The contract will stop receiving rewards, but stake cannot be yet reclaimed.
+    /// This operation is performed by the owner.
     fn deactivate(&self) -> Result<(), &str> {
-
         if self.get_caller() != self.getContractOwner() {
             return Err("only owner can deactivate"); 
         }
@@ -568,15 +584,42 @@ pub trait Delegation {
             return Err("contract is not active"); 
         }
 
-        let bls_keys = self.getBlsKeys();
+        self._perform_deactivate()
+    }
 
+    /// Delegators can force the entire contract to unstake
+    /// if they put up stake for sale and no-one has bought it for long enough.
+    /// This operation can be performed by any delegator.
+    fn forceUnstake(&self) -> Result<(), &str> {
+        let user_id = self.getUserId(&self.get_caller());
+        if user_id == 0 {
+            return Err("only delegators can call forceUnstake");
+        }
+
+        if self._get_user_stake_for_sale(user_id) == 0 {
+            return Err("only delegators that are trying to sell stake can call forceUnstake");
+        }
+
+        let time_of_stake_offer = self._get_user_time_of_stake_offer(user_id);
+        let time_before_force_unstake = self.getTimeBeforeForceUnstake();
+        if self.get_block_timestamp() <= time_of_stake_offer + time_before_force_unstake {
+            return Err("too soon to call forceUnstake");
+        }
+
+
+ 
+        self._perform_deactivate()
+    }
+
+    #[private]
+    fn _perform_deactivate(&self) -> Result<(), &str> {
         // change state
         self._set_stake_state(StakeState::PendingDectivation);
         
         // send unstake command to Auction SC
         let auction_contract_addr = self.getAuctionContractAddress();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
-        auction_contract.unStake(bls_keys);
+        auction_contract.unStake(self.getBlsKeys());
 
         Ok(())
     }
@@ -605,12 +648,8 @@ pub trait Delegation {
     // UNBOND
 
     /// Claims unstaked stake from the auction smart contract.
+    /// This operation can be executed by anyone (note that it might cost much gas).
     fn unBond(&self) -> Result<(), &str> {
-
-        if self.get_caller() != self.getContractOwner() {
-            return Err("only owner can unBond"); 
-        }
-
         if self.stakeState() != StakeState::UnBondPeriod {
             return Err("contract is not in unbond period"); 
         }
@@ -869,13 +908,13 @@ pub trait Delegation {
     fn stake_event(&self, delegator: &Address, amount: &BigUint);
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000002")]
-    fn activation_ok_event(&self, _data: ());
+    fn unstake_event(&self, delegator: &Address, amount: &BigUint);
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000003")]
-    fn activation_fail_event(&self, _reason: Vec<u8>);
+    fn activation_ok_event(&self, _data: ());
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000004")]
-    fn purchase_stake_event(&self, seller: &Address, buyer: &Address, amount: &BigUint);
+    fn activation_fail_event(&self, _reason: Vec<u8>);
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000005")]
     fn deactivation_ok_event(&self, _data: ());
@@ -888,4 +927,7 @@ pub trait Delegation {
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000008")]
     fn unBond_fail_event(&self, _reason: Vec<u8>);
+
+    #[event("0x0000000000000000000000000000000000000000000000000000000000000009")]
+    fn purchase_stake_event(&self, seller: &Address, buyer: &Address, amount: &BigUint);
 }
