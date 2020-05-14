@@ -12,19 +12,25 @@ use crate::bls_key::*;
 use crate::stake_state::*;
 use crate::util::*;
 
-// Groups together data per delegator from the storage
+// Groups together data per delegator from the storage.
 pub struct UserData<BigUint> {
-    tot_cumul_rewards_when_last_collected: BigUint,
+    /// The value of the total cumulated rewards in the contract when the user's rewards were computed the last time.
+    reward_checkpoint: BigUint,
+
+    /// Rewards that are computed but not yet sent to the delegator.
     unclaimed_rewards: BigUint,
+
+    /// How much stake the delegator has in the contract.
     personal_stake: BigUint,
 }
 
-// Indicates how we express the percentage of rewards that go to the node.
-// Since we cannot have floating point numbers, we use fixed point with this denominator.
-// Percents + 2 decimals -> 10000.
+/// Indicates how we express the percentage of rewards that go to the node.
+/// Since we cannot have floating point numbers, we use fixed point with this denominator.
+/// Percents + 2 decimals -> 10000.
 static NODE_SHARE_DENOMINATOR: u64 = 10000;
 
-// node reward destination will always be user with id 1
+/// Validator reward destination will always be user with id 1.
+/// This can also count as a delegator (if the owner adds stake into the contract) or not.
 static NODE_USER_ID: usize = 1;
 
 #[elrond_wasm_derive::callable(AuctionProxy)]
@@ -289,7 +295,7 @@ pub trait Delegation {
         let per_rew = self._get_user_unclaimed(user_id);
         let per_stk = self._get_user_stake(user_id);
         UserData {
-            tot_cumul_rewards_when_last_collected: tot_rew,
+            reward_checkpoint: tot_rew,
             unclaimed_rewards: per_rew,
             personal_stake: per_stk,
         }
@@ -298,7 +304,7 @@ pub trait Delegation {
     // saves the entire user data into storage
     #[private]
     fn store_user_data(&self, user_id: usize, data: &UserData<BigUint>) {
-        self._set_user_last(user_id, &data.tot_cumul_rewards_when_last_collected);
+        self._set_user_last(user_id, &data.reward_checkpoint);
         self._set_user_unclaimed(user_id, &data.unclaimed_rewards);
         self._set_user_stake(user_id, &data.personal_stake);
     }
@@ -377,10 +383,10 @@ pub trait Delegation {
     fn _process_stake(&self, payment: BigUint) -> Result<(), &str> {
         // increase global filled stake
         let mut filled_stake = self.getFilledStake();
-        if &filled_stake + &payment > self.getExpectedStake() { // avoid subtractions, unsigned ints panic if the result is negative
+        filled_stake += &payment;
+        if &filled_stake > &self.getExpectedStake() {
             return Err("payment exceeds unfilled total stake");
         }
-        filled_stake += &payment;
         self._set_filled_stake(&filled_stake);
 
         // get user id or create user
@@ -720,7 +726,7 @@ pub trait Delegation {
 
         // new rewards are what was added since the last time rewards were computed
         let tot_cumul_rewards = self.getTotalCumulatedRewards();
-        let tot_new_rewards = &tot_cumul_rewards - &user_data.tot_cumul_rewards_when_last_collected;
+        let tot_new_rewards = &tot_cumul_rewards - &user_data.reward_checkpoint;
         if tot_new_rewards == 0 {
             return user_data; // nothing happened since the last claim
         }
@@ -744,7 +750,7 @@ pub trait Delegation {
         }
 
         // update user data checkpoint
-        user_data.tot_cumul_rewards_when_last_collected = tot_cumul_rewards;
+        user_data.reward_checkpoint = tot_cumul_rewards;
 
         user_data
     }
@@ -826,7 +832,7 @@ pub trait Delegation {
         self.get_own_balance() - expected_balance
     }
 
-    fn withdrawUnexpecteBalance(&self) -> Result<(), &str> {
+    fn withdrawUnexpectedBalance(&self) -> Result<(), &str> {
         let caller = self.get_caller();
         if &caller != &self.getContractOwner() {
             return Err("only owner can withdraw unexpected balance");
