@@ -14,7 +14,7 @@ use crate::util::*;
 
 // Groups together data per delegator from the storage
 pub struct UserData<BigUint> {
-    hist_deleg_rewards_when_last_collected: BigUint,
+    tot_cumul_rewards_when_last_collected: BigUint,
     unclaimed_rewards: BigUint,
     personal_stake: BigUint,
 }
@@ -32,8 +32,8 @@ pub trait Auction {
     #[payable]
     #[callback(auction_stake_callback)]
     fn stake(&self,
-        nr_nodes: usize,
-        #[multi(2*nr_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
+        num_nodes: usize,
+        #[multi(2*num_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
         #[payment] payment: &BigUint);
 
     #[callback(auction_unStake_callback)]
@@ -66,7 +66,7 @@ pub trait Delegation {
 
         self._set_node_reward_destination(&owner);
         self._set_user_id(&owner, NODE_USER_ID); // node reward destination will be user #1
-        self._set_nr_users(1);
+        self._set_num_users(1);
 
         self._set_auction_addr(&auction_contract_addr);
 
@@ -145,62 +145,54 @@ pub trait Delegation {
 
     #[view]
     fn getExpectedStake(&self) -> BigUint {
-        self.getStakePerNode() * BigUint::from(self.getNrNodes())
+        self.getStakePerNode() * BigUint::from(self.getNumNodes())
     }
 
     /// Nr delegators + 1 (the node address)
     #[private]
-    #[storage_get("nr_users")]
-    fn _get_nr_users(&self) -> usize;
+    #[storage_get("num_users")]
+    fn _get_num_users(&self) -> usize;
 
     #[private]
-    #[storage_set("nr_users")]
-    fn _set_nr_users(&self, nr_users: usize);
+    #[storage_set("num_users")]
+    fn _set_num_users(&self, num_users: usize);
 
     // creates new user id
     #[private]
     fn new_user(&self) -> usize {
-        let mut nr_users = self._get_nr_users();
-        nr_users += 1;
-        self._set_nr_users(nr_users);
-        nr_users
+        let mut num_users = self._get_num_users();
+        num_users += 1;
+        self._set_num_users(num_users);
+        num_users
     }
 
     /// Yields how many different addresses have staked in the contract.
     #[view]
     fn getNrDelegators(&self) -> usize {
-        self._get_nr_users() - 1
+        self._get_num_users() - 1
     }
 
     // NODE DATA
 
     #[view]
-    #[storage_get("nr_nodes")]
-    fn getNrNodes(&self) -> usize;
+    #[storage_get("num_nodes")]
+    fn getNumNodes(&self) -> usize;
 
     #[private]
-    #[storage_set("nr_nodes")]
-    fn _set_nr_nodes(&self, nr_nodes: usize);
+    #[storage_set("num_nodes")]
+    fn _set_num_nodes(&self, num_nodes: usize);
 
-    fn setNrNodes(&self, nr_nodes: usize) -> Result<(), &str> {
+    fn setNumNodes(&self, num_nodes: usize) -> Result<(), &str> {
         if self.get_caller() != self.getContractOwner() {
             return Err("only owner can change the number of nodes"); 
         }
         if !self.stakeState().is_open() {
             return Err("cannot change nr of nodes while active"); 
         }
-        self._set_nr_nodes(nr_nodes);
+        self._set_num_nodes(num_nodes);
         self._set_bls_keys(Vec::with_capacity(0)); // reset BLS keys
         Ok(())
     }
-
-    #[view]
-    #[storage_get("node_last")]
-    fn _get_node_last(&self) -> BigUint;
-
-    #[private]
-    #[storage_set("node_last")]
-    fn _set_node_last(&self, node_last: &BigUint);
 
     #[view]
     #[storage_get("bls_keys")]
@@ -211,12 +203,12 @@ pub trait Delegation {
     fn _set_bls_keys(&self, bls_keys: Vec<BLSKey>);
 
     #[view]
-    fn getNrBlsKeys(&self) -> usize {
+    fn getNumBlsKeys(&self) -> usize {
         self.getBlsKeys().len()
     }
 
     fn setBlsKeys(&self,
-            #[multi(self.getNrNodes())] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
+            #[multi(self.getNumNodes())] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
 
         if self.get_caller() != self.getContractOwner() {
             return Err("only owner can set BLS keys"); 
@@ -292,12 +284,12 @@ pub trait Delegation {
 
     // loads the entire user data from storage and groups it in an object
     #[private]
-    fn load_user_data(&self, user_id: usize) -> UserData<BigUint> {
+    fn _load_user_data(&self, user_id: usize) -> UserData<BigUint> {
         let tot_rew = self._get_user_last(user_id);
         let per_rew = self._get_user_unclaimed(user_id);
         let per_stk = self._get_user_stake(user_id);
         UserData {
-            hist_deleg_rewards_when_last_collected: tot_rew,
+            tot_cumul_rewards_when_last_collected: tot_rew,
             unclaimed_rewards: per_rew,
             personal_stake: per_stk,
         }
@@ -306,17 +298,11 @@ pub trait Delegation {
     // saves the entire user data into storage
     #[private]
     fn store_user_data(&self, user_id: usize, data: &UserData<BigUint>) {
-        self._set_user_last(user_id, &data.hist_deleg_rewards_when_last_collected);
+        self._set_user_last(user_id, &data.tot_cumul_rewards_when_last_collected);
         self._set_user_unclaimed(user_id, &data.unclaimed_rewards);
         self._set_user_stake(user_id, &data.personal_stake);
     }
 
-    #[private]
-    fn update_historical_node_rewards(&self, hist_node_rewards_to_update: &Option<BigUint>) {
-        if let Some(hist_node_rewards) = hist_node_rewards_to_update {
-            self._set_node_last(hist_node_rewards);
-        }
-    }
 
     // HISTORICAL REWARDS COMPUTATION
 
@@ -328,48 +314,14 @@ pub trait Delegation {
     #[storage_set("sent_rewards")]
     fn _set_sent_rewards(&self, sent_rewards: &BigUint);
 
+    /// This is stake that is in the contract, not sent to the auction contract.
     #[private]
-    #[storage_get("non_reward_balance")]
-    fn _get_non_reward_balance(&self) -> BigUint;
+    #[storage_get("inactive_stake")]
+    fn _get_inactive_stake(&self) -> BigUint;
 
     #[private]
-    #[storage_set("non_reward_balance")]
-    fn _set_non_reward_balance(&self, non_reward_balance: &BigUint);
-
-    /// The historical rewards refer to all the rewards received by the contract since its creation.
-    /// This value is monotonously increasing - it can never decrease.
-    /// Every incoming transaction with value will increase this value.
-    /// Handing out rewards will not decrease this value.
-    /// This is to keep track of how many funds entered the contract. It ignores any funds leaving the contract.
-    /// Individual rewards are computed based on this value.
-    /// For each user we keep a record on what was the value of the historical rewards when they last claimed.
-    /// Subtracting that from the current historical rewards yields how much accumulated in the contract since they last claimed.
-    #[view]
-    fn getHistoricalRewards(&self) -> BigUint {
-        let mut rewards = self.get_own_balance();
-        rewards += self._get_sent_rewards();
-        rewards -= self._get_non_reward_balance();
-        rewards
-    }
-
-    /// The account running the nodes is entitled to (node_share / NODE_DENOMINATOR) * rewards.
-    #[view]
-    fn getHistoricalRewardsForNode(&self) -> BigUint {
-        let mut res = self.getHistoricalRewards();
-        res *= &self.getNodeShare();
-        res /= BigUint::from(NODE_SHARE_DENOMINATOR);
-        res
-    }
-
-    /// The delegators are entitles to (1 - node_share / NODE_DENOMINATOR) * rewards.
-    #[view]
-    fn getHistoricalRewardsForDelegators(&self) -> BigUint {
-        let hist_rew = self.getHistoricalRewards();
-        let mut rewards_for_nodes = hist_rew.clone();
-        rewards_for_nodes *= &self.getNodeShare();
-        rewards_for_nodes /= BigUint::from(NODE_SHARE_DENOMINATOR);
-        hist_rew - rewards_for_nodes
-    }
+    #[storage_set("inactive_stake")]
+    fn _set_inactive_stake(&self, inactive_stake: &BigUint);
 
     // STAKE
 
@@ -404,11 +356,10 @@ pub trait Delegation {
             return Ok(());
         }
 
-        // increase non-reward balance
-        // this keeps the stake separate from rewards
-        let mut non_reward_balance = self._get_non_reward_balance();
-        non_reward_balance += &payment;
-        self._set_non_reward_balance(&non_reward_balance);
+        // keep track of how much of the contract balance is the accumulated stake
+        let mut inactive_stake = self._get_inactive_stake();
+        inactive_stake += &payment;
+        self._set_inactive_stake(&inactive_stake);
 
         self._process_stake(payment)
     }
@@ -441,14 +392,11 @@ pub trait Delegation {
             user_id = self.new_user();
             self._set_user_id(&caller, user_id);
         }
-
-        // compute reward - catch up with historical rewards 
-        let (mut user_data, hist_node_rewards_to_update) = self.compute_rewards(user_id);
-
+        
         // save increased stake
+        let mut user_data = self._load_user_data(user_id);
         user_data.personal_stake += &payment;
         self.store_user_data(user_id, &user_data);
-        self.update_historical_node_rewards(&hist_node_rewards_to_update);
 
         // log staking event
         self.stake_event(&caller, &payment);
@@ -473,9 +421,8 @@ pub trait Delegation {
             return Err("only delegators can unstake");
         }
 
-        // compute reward - catch up with historical rewards 
-        let (mut user_data, hist_node_rewards_to_update) = self.compute_rewards(user_id);
-
+        // check stake 
+        let mut user_data = self._load_user_data(user_id);
         if &amount > &user_data.personal_stake {
             return Err("cannot unstake more than was staked");
         }
@@ -483,13 +430,11 @@ pub trait Delegation {
         // save decreased stake
         user_data.personal_stake -= &amount;
         self.store_user_data(user_id, &user_data);
-        self.update_historical_node_rewards(&hist_node_rewards_to_update);
 
-        // decrease non-reward balance
-        // this keeps the stake separate from rewards
-        let mut non_reward_balance = self._get_non_reward_balance();
-        non_reward_balance -= &amount;
-        self._set_non_reward_balance(&non_reward_balance);
+        // keeping track of inactive stake
+        let mut inactive_stake = self._get_inactive_stake();
+        inactive_stake -= &amount;
+        self._set_inactive_stake(&inactive_stake);
 
         // decrease global filled stake
         let mut filled_stake = self.getFilledStake();
@@ -517,20 +462,18 @@ pub trait Delegation {
         let filled_stake = self.getFilledStake();
         match filled_stake.cmp(&expected_stake) {
             core::cmp::Ordering::Less => {
-                return Err("cannot activate before all stake has been filled");
+                Err("cannot activate before all stake has been filled")
             },
             core::cmp::Ordering::Greater => {
-                return Err("too much stake filled");
-            }
-            _ => {}
+                Err("too much stake filled")
+            },
+            core::cmp::Ordering::Equal => Ok(())
         }
-
-        Ok(())
     }
 
     /// Send stake to the staking contract, if the entire stake has been gathered.
     fn activate(&self,
-            #[multi(self.getNrNodes())] bls_signatures: Vec<Vec<u8>>)
+            #[multi(self.getNumNodes())] bls_signatures: Vec<Vec<u8>>)
         -> Result<(), &str> {
 
         if self.get_caller() != self.getContractOwner() {
@@ -541,7 +484,7 @@ pub trait Delegation {
             return Err("contract already active"); 
         }
 
-        if self.getNrBlsKeys() != self.getNrNodes() {
+        if self.getNumBlsKeys() != self.getNumNodes() {
             return Err("wrong number of BLS keys"); 
         }
 
@@ -553,9 +496,9 @@ pub trait Delegation {
         }
 
         let bls_keys = self.getBlsKeys();
-        let nr_nodes = bls_keys.len();
-        if nr_nodes == 0 {
-            return Err("cannot activate before specifying any BLS keys");
+        let num_nodes = bls_keys.len();
+        if num_nodes == 0 {
+            return Err("cannot activate with no nodes");
         }
 
         self._check_entire_stake_filled()?;
@@ -563,32 +506,14 @@ pub trait Delegation {
         // change state
         self._set_stake_state(StakeState::PendingActivation);
 
-        // send all stake to staking contract
+        // send all stake to auction contract
         let auction_contract_addr = self.getAuctionContractAddress();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
         let total_stake = self.getExpectedStake();
         auction_contract.stake(
-            nr_nodes,
+            num_nodes,
             zip_vectors(bls_keys, bls_signatures),
             &total_stake);
-
-        Ok(())
-    }
-
-    /// Function to be used only once, during genesis block.
-    /// Cannot perform payments during genesis block, so we update state but not.
-    fn activateGenesis(&self) -> Result<(), &str> {
-        if self.get_block_nonce() > 0 {
-            return Err("genesis block only")
-        }
-
-        self._check_entire_stake_filled()?;
-
-        // save stake state flag, true
-        self._set_stake_state(StakeState::Active);
-
-        // log event (no data)
-        self.activation_ok_event(());
 
         Ok(())
     }
@@ -602,9 +527,9 @@ pub trait Delegation {
                 self._set_stake_state(StakeState::Active);
 
                 // decrease non-reward balance to account for the stake that went to the auction SC
-                let mut non_reward_balance = self._get_non_reward_balance();
-                non_reward_balance -= self.getExpectedStake();
-                self._set_non_reward_balance(&non_reward_balance);
+                let mut inactive_stake = self._get_inactive_stake();
+                inactive_stake -= self.getExpectedStake();
+                self._set_inactive_stake(&inactive_stake);
 
                 // log event (no data)
                 self.activation_ok_event(());
@@ -617,6 +542,24 @@ pub trait Delegation {
                 self.activation_fail_event(error.err_msg);
             }
         }
+    }
+
+    /// Function to be used only once, during genesis block.
+    /// Cannot perform payments during genesis block, so we update state but do not receive or send funds.
+    fn activateGenesis(&self) -> Result<(), &str> {
+        if self.get_block_nonce() > 0 {
+            return Err("genesis block only")
+        }
+
+        self._check_entire_stake_filled()?;
+
+        // change state, jump directly to Active
+        self._set_stake_state(StakeState::Active);
+
+        // log event (no data)
+        self.activation_ok_event(());
+
+        Ok(())
     }
 
     // DEACTIVATE + FORCE UNSTAKE
@@ -731,9 +674,9 @@ pub trait Delegation {
                 self._set_stake_state(StakeState::OpenForStaking);
 
                 // increase non-reward balance to account for the stake that came from the auction SC
-                let mut non_reward_balance = self._get_non_reward_balance();
-                non_reward_balance += self.getExpectedStake();
-                self._set_non_reward_balance(&non_reward_balance);
+                let mut inactive_stake = self._get_inactive_stake();
+                inactive_stake += self.getExpectedStake();
+                self._set_inactive_stake(&inactive_stake);
 
                 // log event (no data)
                 self.unBond_ok_event(());
@@ -750,72 +693,72 @@ pub trait Delegation {
 
     // REWARDS
 
-    #[private]
-    fn add_node_rewards(&self, 
-            user_data: &mut UserData<BigUint>,
-            hist_node_rewards_to_update: &mut Option<BigUint>) {
-
-        let hist_node_rewards = self.getHistoricalRewardsForNode();
-        let hist_node_rewards_when_last_collected = self._get_node_last();
-        if hist_node_rewards > hist_node_rewards_when_last_collected {
-            user_data.unclaimed_rewards += &hist_node_rewards;
-            *hist_node_rewards_to_update = Some(hist_node_rewards);
-        }
+    /// Yields all the rewards received by the contract since its creation.
+    /// This value is monotonously increasing - it can never decrease.
+    /// Every incoming transaction with value will increase this value.
+    /// Handing out rewards will not decrease this value.
+    /// This is to keep track of how many funds entered the contract. It ignores any funds leaving the contract.
+    /// Individual rewards are computed based on this value.
+    /// For each user we keep a record on what was the value of the historical rewards when they last claimed.
+    /// Subtracting that from the current historical rewards yields how much accumulated in the contract since they last claimed.
+    #[view]
+    fn getTotalCumulatedRewards(&self) -> BigUint {
+        self.storage_load_cumulated_validator_reward()
     }
 
-    #[private]
-    fn add_delegator_rewards(&self, user_data: &mut UserData<BigUint>) {
-        if user_data.personal_stake == 0 {
-            return; // no stake, no reward
-        }
-
-        let hist_deleg_rewards = self.getHistoricalRewardsForDelegators();
-        if hist_deleg_rewards == user_data.hist_deleg_rewards_when_last_collected {
-            return; // nothing happened since the last claim
-        }
-
-        let total_stake = self.getExpectedStake();        
-
-        // compute reward share
-        // (historical rewards now - historical rewards when last claimed) * user stake / total stake
-        let mut delegator_reward = &hist_deleg_rewards - &user_data.hist_deleg_rewards_when_last_collected;
-        delegator_reward *= &user_data.personal_stake;
-        delegator_reward /= &total_stake;
-
-        // update user data
-        user_data.hist_deleg_rewards_when_last_collected = hist_deleg_rewards;
-        user_data.unclaimed_rewards += delegator_reward;
+    /// The account running the nodes is entitled to (node_share / NODE_DENOMINATOR) * rewards.
+    fn _rewards_for_node(&self, tot_rewards: &BigUint) -> BigUint {
+        let mut node_rewards = tot_rewards * &self.getNodeShare();
+        node_rewards /= BigUint::from(NODE_SHARE_DENOMINATOR);
+        node_rewards
     }
 
     /// Does not update storage, only returns the updated user data object.
     #[private]
-    fn compute_rewards(&self, user_id: usize) -> (UserData<BigUint>, Option<BigUint>) {
-        let mut user_data = self.load_user_data(user_id);
-        let mut hist_node_rewards_to_update: Option<BigUint> = None;
-        
-        if user_id == NODE_USER_ID {
-            self.add_node_rewards(&mut user_data, &mut hist_node_rewards_to_update);
+    fn _load_user_data_update_rewards(&self, user_id: usize) -> UserData<BigUint> {
+        let mut user_data = self._load_user_data(user_id);
+
+        // new rewards are what was added since the last time rewards were computed
+        let tot_cumul_rewards = self.getTotalCumulatedRewards();
+        let tot_new_rewards = &tot_cumul_rewards - &user_data.tot_cumul_rewards_when_last_collected;
+        if tot_new_rewards == 0 {
+            return user_data; // nothing happened since the last claim
         }
 
-        self.add_delegator_rewards(&mut user_data);
+        // the owner is entitled to: new rewards * node_share / NODE_DENOMINATOR
+        let node_new_rewards = self._rewards_for_node(&tot_new_rewards);
+        
+        // update node rewards, if applicable
+        if user_id == NODE_USER_ID {
+            user_data.unclaimed_rewards += &node_new_rewards;
+        }
 
-        (user_data, hist_node_rewards_to_update)
+        // update delegator rewards, if applicable
+        if user_data.personal_stake > 0 {
+            // delegator reward is:
+            // total new rewards * (1 - node_share / NODE_DENOMINATOR) * user stake / total stake
+            let mut delegator_new_rewards = tot_new_rewards - node_new_rewards;
+            delegator_new_rewards *= &user_data.personal_stake;
+            delegator_new_rewards /= &self.getFilledStake();
+            user_data.unclaimed_rewards += &delegator_new_rewards;
+        }
+
+        // update user data checkpoint
+        user_data.tot_cumul_rewards_when_last_collected = tot_cumul_rewards;
+
+        user_data
     }
 
     /// Computes rewards for all delegators and the node.
     /// Updates storage.
     /// Could cost a lot of gas.
     fn computeAllRewards(&self) {
-        let nr_nodes = self._get_nr_users();
+        let num_nodes = self._get_num_users();
 
-        // user 1 is the node
-        let (node_user_data, hist_node_rewards_to_update) = self.compute_rewards(NODE_USER_ID);
-        self.store_user_data(NODE_USER_ID, &node_user_data);
-        self.update_historical_node_rewards(&hist_node_rewards_to_update);
-
-        // from 2 on are the delegators
-        for user_id in 2..(nr_nodes+1) {
-            let (user_data, _) = self.compute_rewards(user_id);
+        // user 1 is the node and from 2 on are the other delegators,
+        // but _load_user_data_update_rewards handles them all
+        for user_id in 1..(num_nodes+1) {
+            let user_data = self._load_user_data_update_rewards(user_id);
             self.store_user_data(user_id, &user_data);
         }
     }
@@ -829,11 +772,14 @@ pub trait Delegation {
             return BigUint::zero()
         }
 
-        let (user_data, _) = self.compute_rewards(user_id);
+        let user_data = self._load_user_data_update_rewards(user_id);
         user_data.unclaimed_rewards
     }
 
     /// Retrieve those rewards to which the caller is entitled.
+    /// Will send:
+    /// - new rewards
+    /// - rewards that were previously computed but not sent
     fn claimRewards(&self) -> Result<(), &str> {
         let caller = self.get_caller();
         let user_id = self.getUserId(&caller);
@@ -841,7 +787,7 @@ pub trait Delegation {
             return Err("unknown caller")
         }
 
-        let (mut user_data, hist_node_rewards_to_update) = self.compute_rewards(user_id);
+        let mut user_data = self._load_user_data_update_rewards(user_id);
 
         if user_data.unclaimed_rewards > 0 {
             self.send_rewards(&caller, &user_data.unclaimed_rewards);
@@ -849,7 +795,6 @@ pub trait Delegation {
         }
 
         self.store_user_data(user_id, &user_data);
-        self.update_historical_node_rewards(&hist_node_rewards_to_update);
 
         Ok(())
     }
@@ -865,13 +810,45 @@ pub trait Delegation {
         self._set_sent_rewards(&sent_rewards);
     }
 
+    // UNEXPECTED BALANCE
+
+    /// Expected balance includes:
+    /// - stake
+    /// - unclaimed rewards (bulk uncomputed rewards + computed but unclaimed rewards; everything that was not yet sent to the delegators).
+    /// Everything else is unexpected and can be withdrawn by the owner.
+    /// This can come from someone accidentally sending ERD to the contract via direct transfer.
+    #[view]
+    fn getUnexpectedBalance(&self) -> BigUint {
+        let mut expected_balance = self._get_inactive_stake();
+        expected_balance += self.getTotalCumulatedRewards();
+        expected_balance -= self._get_sent_rewards();
+
+        self.get_own_balance() - expected_balance
+    }
+
+    fn withdrawUnexpecteBalance(&self) -> Result<(), &str> {
+        let caller = self.get_caller();
+        if &caller != &self.getContractOwner() {
+            return Err("only owner can withdraw unexpected balance");
+        }
+
+        let unexpected_balance = self.getUnexpectedBalance();
+        if unexpected_balance > 0 {
+            self.send_tx(&caller, &unexpected_balance, "unexpected balance");
+        }
+
+        Ok(())
+    }
+
+    // TRADE STAKE AMONG DELEGATORS
+
     /// Creates a stake offer. Overwrites any previous stake offer.
     /// Once a stake offer is up, it can be bought by anyone on a first come first served basis.
     fn offerStakeForSale(&self, amount: BigUint) -> Result<(), &str> {
         let caller = self.get_caller();
         let user_id = self.getUserId(&caller);
         if user_id == 0 {
-            return Err("unknown caller")
+            return Err("only delegators can offer stake for sale")
         }
 
         // get stake
@@ -913,13 +890,13 @@ pub trait Delegation {
             return Err("unknown seller")
         }
 
-        // decrease stake offer
-        let mut stake_offer = self._get_user_stake_for_sale(seller_id);
-        if &payment > &stake_offer {
+        // decrease stake for sale
+        let mut stake_for_sale = self._get_user_stake_for_sale(seller_id);
+        if &payment > &stake_for_sale {
             return Err("payment exceeds stake offered")
         }
-        stake_offer -= &payment;
-        self._set_user_stake_for_sale(seller_id, &stake_offer);
+        stake_for_sale -= &payment;
+        self._set_user_stake_for_sale(seller_id, &stake_for_sale);
 
         // decrease stake of seller
         let mut seller_stake = self._get_user_stake(seller_id);

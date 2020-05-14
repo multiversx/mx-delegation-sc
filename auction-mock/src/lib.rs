@@ -13,12 +13,12 @@ pub trait AuctionMock {
     fn _set_received_stake(&self, total_stake: &BigUint);
 
     #[private]
-    #[storage_get("nr_nodes")]
-    fn _get_nr_nodes(&self) -> usize;
+    #[storage_get("num_nodes")]
+    fn _get_num_nodes(&self) -> usize;
 
     #[private]
-    #[storage_set("nr_nodes")]
-    fn _set_nr_nodes(&self, nr_nodes: usize);
+    #[storage_set("num_nodes")]
+    fn _set_num_nodes(&self, num_nodes: usize);
 
     #[private]
     #[storage_set("stake_bls_key")]
@@ -49,8 +49,8 @@ pub trait AuctionMock {
 
     #[payable]
     fn stake(&self,
-            nr_nodes: usize,
-            #[multi(2*nr_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
+            num_nodes: usize,
+            #[multi(2*num_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
             #[payment] payment: &BigUint) -> Result<(), &str> {
 
         if self._is_staking_failure() {
@@ -58,9 +58,9 @@ pub trait AuctionMock {
         }
 
         self._set_received_stake(&payment);
-        self._set_nr_nodes(nr_nodes);
+        self._set_num_nodes(num_nodes);
         
-        for n in 0..nr_nodes {
+        for n in 0..num_nodes {
             self._set_stake_bls_key(n, &bls_keys_signatures[2*n]);
             self._set_stake_bls_signature(n, &bls_keys_signatures[2*n+1]);
         }
@@ -75,12 +75,12 @@ pub trait AuctionMock {
             return Err("auction smart contract deliberate error");
         }
 
-        let nr_nodes = self._get_nr_nodes();
-        if nr_nodes != bls_keys.len() {
+        let num_nodes = self._get_num_nodes();
+        if num_nodes != bls_keys.len() {
             return Err("all BLS keys expected as arguments in this mock");
         }
 
-        for n in 0..nr_nodes {
+        for n in 0..num_nodes {
             self._set_unStake_bls_key(n, &bls_keys[n]);
         }
 
@@ -94,12 +94,12 @@ pub trait AuctionMock {
             return Err("auction smart contract deliberate error");
         }
 
-        let nr_nodes = self._get_nr_nodes();
-        if nr_nodes != bls_keys.len() {
+        let num_nodes = self._get_num_nodes();
+        if num_nodes != bls_keys.len() {
             return Err("all BLS keys expected as arguments in this mock");
         }
 
-        for n in 0..nr_nodes {
+        for n in 0..num_nodes {
             self._set_unStake_bls_key(n, &bls_keys[n]);
         }
 
