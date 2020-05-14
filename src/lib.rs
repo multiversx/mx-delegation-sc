@@ -760,12 +760,23 @@ pub trait Delegation {
     /// Could cost a lot of gas.
     fn computeAllRewards(&self) {
         let num_nodes = self._get_num_users();
+        let mut sum_unclaimed = BigUint::zero();
 
         // user 1 is the node and from 2 on are the other delegators,
         // but _load_user_data_update_rewards handles them all
         for user_id in 1..(num_nodes+1) {
             let user_data = self._load_user_data_update_rewards(user_id);
             self.store_user_data(user_id, &user_data);
+            sum_unclaimed += user_data.unclaimed_rewards;
+        }
+
+        // divisions are inexact so a small remainder can remain after distributing rewards
+        // give it to the validator user, to keep things clear
+        let remainder = self.getTotalCumulatedRewards() - sum_unclaimed - self._get_sent_rewards();
+        if remainder > 0 {
+            let mut node_unclaimed = self._get_user_unclaimed(NODE_USER_ID);
+            node_unclaimed += &remainder;
+            self._set_user_unclaimed(NODE_USER_ID, &node_unclaimed);
         }
     }
 
