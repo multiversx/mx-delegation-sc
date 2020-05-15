@@ -2,8 +2,8 @@ use elrond_wasm::Vec;
 use elrond_wasm::serde::ser::{Serialize, Serializer, SerializeTuple};
 use elrond_wasm::serde::de::{Deserialize, Deserializer, Visitor, SeqAccess, Error};
 
-// BLS keys have 128 bytes, signatures only 32
-pub const BLS_KEY_BYTE_LENGTH: usize = 128;
+// BLS keys have 96 bytes, signatures only 32
+pub const BLS_KEY_BYTE_LENGTH: usize = 96;
 pub const BLS_SIGNATURE_BYTE_LENGTH: usize = 32;
 
 pub struct BLSKey(pub [u8; BLS_KEY_BYTE_LENGTH]);
