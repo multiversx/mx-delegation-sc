@@ -12,6 +12,8 @@ use crate::bls_key::*;
 use crate::stake_state::*;
 use crate::util::*;
 
+const VERSION: &[u8] = b"0.2.1";
+
 // Groups together data per delegator from the storage.
 pub struct UserData<BigUint> {
     /// The value of the total cumulated rewards in the contract when the user's rewards were computed the last time.
@@ -53,6 +55,12 @@ pub trait Auction {
 
 #[elrond_wasm_derive::contract(DelegationImpl)]
 pub trait Delegation {
+
+    // METADATA
+
+    fn version(&self) -> Vec<u8> {
+        VERSION.to_vec()
+    }
 
     // INIT
 
