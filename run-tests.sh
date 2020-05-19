@@ -2,7 +2,7 @@
 
 # Works with the latest version of Arwen cloned in the default location
 # Will be replaced by erdpy
-$GOPATH/src/github.com/ElrondNetwork/arwen-wasm-vm/cmd/test/test tests
+$GOPATH/src/github.com/ElrondNetwork/arwen-wasm-vm/cmd/test/test test
 
 # erdpy command examples:
 
