@@ -4,6 +4,8 @@ use crate::bls_key::*;
 /// Takes 2 separate vecs and combines them into a single vec, alternating elements from the first with elements from the second.
 /// Assumes vectors have the same length.
 /// E.g. zip_vectors([1, 2, 3], [4, 5, 6]) -> [1, 4, 2, 5, 3, 6]
+/// 
+/// This function will be no longer needed or might be seriously altered once the framework accepts tuple arguments.
 pub fn zip_vectors(
         mut first_vec: Vec<BLSKey>,
         mut second_vec: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
