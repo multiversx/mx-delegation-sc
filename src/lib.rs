@@ -4,13 +4,10 @@
 #![allow(non_snake_case)]
 #![allow(unused_attributes)]
 
-// pub mod auction_proxy;
+pub mod auction_proxy;
 pub mod bls_key;
 pub mod stake_state;
 pub mod util;
-
-// use auction_proxy::Auction;
-use crate::bls_key::*;
 
 // modules
 pub mod events;
@@ -33,24 +30,6 @@ use crate::stake_sale::*;
 use crate::unexpected::*;
 use crate::user_data::*;
 use crate::settings::*;
-
-#[elrond_wasm_derive::callable(AuctionProxy)]
-pub trait Auction {
-    #[payable]
-    #[callback(auction_stake_callback)]
-    fn stake(&self,
-        num_nodes: usize,
-        #[multi(2*num_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
-        #[payment] payment: &BigUint);
-
-    #[callback(auction_unStake_callback)]
-    fn unStake(&self,
-        #[var_args] bls_keys_signatures: Vec<BLSKey>);
-
-    #[callback(auction_unBond_callback)]
-    fn unBond(&self,
-        #[var_args] bls_keys_signatures: Vec<BLSKey>);
-}
 
 // increment this whenever changing the contract
 const VERSION: &[u8] = b"0.2.2";

@@ -1,5 +1,5 @@
 
-use super::Auction;
+use crate::auction_proxy::Auction;
 
 use crate::bls_key::*;
 use crate::stake_state::*;
