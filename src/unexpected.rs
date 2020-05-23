@@ -1,6 +1,6 @@
 use crate::rewards::*;
 use crate::settings::*;
-use crate::stake::*;
+use crate::stake_per_contract::*;
 
 /// Contains logic for the owner to extract any unexpected balance that resides in the contract.
 #[elrond_wasm_derive::module(UnexpectedBalanceModuleImpl)]
@@ -13,8 +13,8 @@ pub trait UnexpectedBalanceModule {
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
-    #[module(UserStakeModuleImpl)]
-    fn stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
+    #[module(ContractStakeModuleImpl)]
+    fn contract_stake(&self) -> ContractStakeModuleImpl<T, BigInt, BigUint>;
 
 
 
@@ -25,7 +25,7 @@ pub trait UnexpectedBalanceModule {
     /// This can come from someone accidentally sending ERD to the contract via direct transfer.
     #[view]
     fn getUnexpectedBalance(&self) -> BigUint {
-        let mut expected_balance = self.stake()._get_inactive_stake();
+        let mut expected_balance = self.contract_stake()._get_inactive_stake();
         expected_balance += self.rewards().getTotalCumulatedRewards();
         expected_balance -= self.rewards()._get_sent_rewards();
 

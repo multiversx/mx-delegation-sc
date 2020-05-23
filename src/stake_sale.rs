@@ -1,6 +1,5 @@
 
 use crate::events::*;
-use crate::stake::*;
 use crate::user_data::*;
 
 /// Deals with stake trade among delegators.
@@ -10,9 +9,6 @@ pub trait StakeSaleModule {
 
     #[module(EventsModuleImpl)]
     fn events(&self) -> EventsModuleImpl<T, BigInt, BigUint>;
-
-    #[module(UserStakeModuleImpl)]
-    fn stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;

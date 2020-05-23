@@ -1,7 +1,8 @@
 
 use crate::bls_key::*;
 use crate::settings::*;
-use crate::stake::*;
+use crate::stake_per_contract::*;
+use crate::stake_per_user::*;
 
 /// This module manages the validator node info:
 /// - how many nodes there are,
@@ -15,7 +16,10 @@ pub trait NodeModule {
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
     #[module(UserStakeModuleImpl)]
-    fn stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
+    fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
+
+    #[module(ContractStakeModuleImpl)]
+    fn contract_stake(&self) -> ContractStakeModuleImpl<T, BigInt, BigUint>;
 
 
 
@@ -35,7 +39,7 @@ pub trait NodeModule {
         if self.get_caller() != self.settings().getContractOwner() {
             return Err("only owner can change stake per node"); 
         }
-        if !self.stake().stakeState().is_open() {
+        if !self.contract_stake().stakeState().is_open() {
             return Err("cannot change stake per node while active"); 
         }
         self._set_stake_per_node(&stake_per_node);
@@ -64,7 +68,7 @@ pub trait NodeModule {
         if self.get_caller() != self.settings().getContractOwner() {
             return Err("only owner can change the number of nodes"); 
         }
-        if !self.stake().stakeState().is_open() {
+        if !self.contract_stake().stakeState().is_open() {
             return Err("cannot change the number of nodes while active"); 
         }
         self._set_num_nodes(num_nodes);
@@ -100,7 +104,7 @@ pub trait NodeModule {
         if self.get_caller() != self.settings().getContractOwner() {
             return Err("only owner can set BLS keys"); 
         }
-        if !self.stake().stakeState().is_open() {
+        if !self.contract_stake().stakeState().is_open() {
             return Err("cannot change BLS keys while active"); 
         }
         

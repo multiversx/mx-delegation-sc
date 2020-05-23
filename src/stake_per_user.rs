@@ -1,8 +1,8 @@
 
 use crate::events::*;
 use crate::nodes::*;
-use crate::stake_state::*;
 use crate::user_data::*;
+use crate::stake_per_contract::*;
 
 #[elrond_wasm_derive::module(UserStakeModuleImpl)]
 pub trait UserStakeModule {
@@ -16,56 +16,8 @@ pub trait UserStakeModule {
     #[module(NodeModuleImpl)]
     fn nodes(&self) -> NodeModuleImpl<T, BigInt, BigUint>;
 
-    #[module(UserStakeModuleImpl)]
-    fn stake_mod(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
-
-
-
-
-    #[view]
-    #[storage_get("stake_state")]
-    fn stakeState(&self) -> StakeState;
-
-    #[private]
-    #[storage_set("stake_state")]
-    fn _set_stake_state(&self, active: StakeState);
-
-    /// This is stake that is in the contract, not sent to the auction contract.
-    #[private]
-    #[storage_get("inactive_stake")]
-    fn _get_inactive_stake(&self) -> BigUint;
-
-    #[private]
-    #[storage_set("inactive_stake")]
-    fn _set_inactive_stake(&self, inactive_stake: &BigUint);
-
-    /// Yields how much stake was added to the contract.
-    #[view]
-    #[storage_get("filled_stake")]
-    fn getFilledStake(&self) -> BigUint;
-
-    #[private]
-    #[storage_set("filled_stake")]
-    fn _set_filled_stake(&self, filled_stake: &BigUint);
-
-    #[private]
-    fn _check_entire_stake_filled(&self) -> Result<(), &'static str> {
-        let expected_stake = self.nodes().getExpectedStake();
-        if expected_stake == 0 {
-            return Err("cannot activate with 0 stake");
-        }
-
-        let filled_stake = self.stake_mod().getFilledStake();
-        match filled_stake.cmp(&expected_stake) {
-            core::cmp::Ordering::Less => {
-                Err("cannot activate before all stake has been filled")
-            },
-            core::cmp::Ordering::Greater => {
-                Err("too much stake filled")
-            },
-            core::cmp::Ordering::Equal => Ok(())
-        }
-    }
+    #[module(ContractStakeModuleImpl)]
+    fn contract_stake(&self) -> ContractStakeModuleImpl<T, BigInt, BigUint>;
 
     /// Yields how much a user has staked in the contract.
     #[view]
@@ -81,7 +33,7 @@ pub trait UserStakeModule {
     /// Staking is possible while the total stake required by the contract has not yet been filled.
     #[payable]
     fn stake(&self, #[payment] payment: BigUint) -> Result<(), &str> {
-        if !self.stakeState().is_open() {
+        if !self.contract_stake().stakeState().is_open() {
             return Err("cannot stake while contract is active"); 
         }
 
@@ -90,9 +42,9 @@ pub trait UserStakeModule {
         }
 
         // keep track of how much of the contract balance is the accumulated stake
-        let mut inactive_stake = self._get_inactive_stake();
+        let mut inactive_stake = self.contract_stake()._get_inactive_stake();
         inactive_stake += &payment;
-        self._set_inactive_stake(&inactive_stake);
+        self.contract_stake()._set_inactive_stake(&inactive_stake);
 
         self._process_stake(payment)
     }
@@ -100,12 +52,12 @@ pub trait UserStakeModule {
     #[private]
     fn _process_stake(&self, payment: BigUint) -> Result<(), &'static str> {
         // increase global filled stake
-        let mut filled_stake = self.getFilledStake();
+        let mut filled_stake = self.contract_stake().getFilledStake();
         filled_stake += &payment;
         if &filled_stake > &self.nodes().getExpectedStake() {
             return Err("payment exceeds unfilled total stake");
         }
-        self._set_filled_stake(&filled_stake);
+        self.contract_stake()._set_filled_stake(&filled_stake);
 
         // get user id or create user
         // we use user id as an intermediate identifier between user address and data,
@@ -131,7 +83,7 @@ pub trait UserStakeModule {
     // UNSTAKE
 
     fn unstake(&self, amount: BigUint) -> Result<(), &str> {
-        if !self.stakeState().is_open() {
+        if !self.contract_stake().stakeState().is_open() {
             return Err("cannot unstake while contract is active"); 
         }
 
@@ -156,14 +108,14 @@ pub trait UserStakeModule {
         self.user_data().store_user_data(user_id, &user_data);
 
         // keeping track of inactive stake
-        let mut inactive_stake = self._get_inactive_stake();
+        let mut inactive_stake = self.contract_stake()._get_inactive_stake();
         inactive_stake -= &amount;
-        self._set_inactive_stake(&inactive_stake);
+        self.contract_stake()._set_inactive_stake(&inactive_stake);
 
         // decrease global filled stake
-        let mut filled_stake = self.getFilledStake();
+        let mut filled_stake = self.contract_stake().getFilledStake();
         filled_stake -= &amount;
-        self._set_filled_stake(&filled_stake);
+        self.contract_stake()._set_filled_stake(&filled_stake);
 
         // send stake to delegator
         self.send_tx(&caller, &amount, "delegation unstake");

@@ -2,7 +2,8 @@
 use super::settings::*;
 use crate::events::*;
 use crate::nodes::*;
-use crate::stake::*;
+use crate::stake_per_user::*;
+use crate::stake_per_contract::*;
 use crate::user_data::*;
 
 /// Contains logic to compute and distribute individual delegator rewards.
@@ -18,11 +19,14 @@ pub trait RewardsModule {
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
-    #[module(UserStakeModuleImpl)]
-    fn stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
-
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
+
+    #[module(UserStakeModuleImpl)]
+    fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
+
+    #[module(ContractStakeModuleImpl)]
+    fn contract_stake(&self) -> ContractStakeModuleImpl<T, BigInt, BigUint>;
 
 
 
@@ -36,7 +40,6 @@ pub trait RewardsModule {
 
     /// Yields all the rewards received by the contract since its creation.
     /// This value is monotonously increasing - it can never decrease.
-    /// Every incoming transaction with value will increase this value.
     /// Handing out rewards will not decrease this value.
     /// This is to keep track of how many funds entered the contract. It ignores any funds leaving the contract.
     /// Individual rewards are computed based on this value.
@@ -81,7 +84,7 @@ pub trait RewardsModule {
             // total new rewards * (1 - node_share / NODE_DENOMINATOR) * user stake / total stake
             let mut delegator_new_rewards = tot_new_rewards - node_new_rewards;
             delegator_new_rewards *= &user_data.personal_stake;
-            delegator_new_rewards /= &self.stake().getFilledStake();
+            delegator_new_rewards /= &self.contract_stake().getFilledStake();
             user_data.unclaimed_rewards += &delegator_new_rewards;
         }
 
