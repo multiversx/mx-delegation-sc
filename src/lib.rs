@@ -34,6 +34,8 @@ use crate::settings::*;
 // increment this whenever changing the contract
 const VERSION: &[u8] = b"0.2.2";
 
+imports!();
+
 #[elrond_wasm_derive::contract(DelegationImpl)]
 pub trait Delegation {
 

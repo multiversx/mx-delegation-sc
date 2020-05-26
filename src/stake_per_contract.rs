@@ -11,6 +11,8 @@ use crate::rewards::*;
 use crate::settings::*;
 use crate::user_data::*;
 
+imports!();
+
 #[elrond_wasm_derive::module(ContractStakeModuleImpl)]
 pub trait ContractStakeModule {
 

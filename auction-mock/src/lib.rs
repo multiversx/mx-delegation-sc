@@ -7,6 +7,8 @@
 mod storage;
 use storage::*;
 
+imports!();
+
 #[elrond_wasm_derive::contract(AuctionMockImpl)]
 pub trait AuctionMock {
 

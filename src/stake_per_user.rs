@@ -4,6 +4,8 @@ use crate::nodes::*;
 use crate::user_data::*;
 use crate::stake_per_contract::*;
 
+imports!();
+
 #[elrond_wasm_derive::module(UserStakeModuleImpl)]
 pub trait UserStakeModule {
 

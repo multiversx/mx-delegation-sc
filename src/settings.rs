@@ -10,6 +10,8 @@ pub static NODE_SHARE_DENOMINATOR: u64 = 10000;
 /// This can also count as a delegator (if the owner adds stake into the contract) or not.
 pub static NODE_USER_ID: usize = 1;
 
+imports!();
+
 /// The module deals with initializaton and the global contract settings.
 /// 
 #[elrond_wasm_derive::module(SettingsModuleImpl)]

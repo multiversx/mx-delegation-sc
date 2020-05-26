@@ -2,6 +2,8 @@
 use crate::events::*;
 use crate::user_data::*;
 
+imports!();
+
 /// Deals with stake trade among delegators.
 /// Note: each 1 staked ERD can only be traded for 1 unstaked ERD.
 #[elrond_wasm_derive::module(StakeSaleModuleImpl)]

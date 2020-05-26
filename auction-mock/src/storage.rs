@@ -4,6 +4,8 @@
 #![allow(non_snake_case)]
 #![allow(unused_attributes)]
 
+imports!();
+
 #[elrond_wasm_derive::module(AuctionMockStorageImpl)]
 pub trait AuctionMockStorage {
 

@@ -2,6 +2,8 @@ use crate::rewards::*;
 use crate::settings::*;
 use crate::stake_per_contract::*;
 
+imports!();
+
 /// Contains logic for the owner to extract any unexpected balance that resides in the contract.
 #[elrond_wasm_derive::module(UnexpectedBalanceModuleImpl)]
 pub trait UnexpectedBalanceModule {

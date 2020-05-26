@@ -6,6 +6,8 @@ use crate::stake_per_user::*;
 use crate::stake_per_contract::*;
 use crate::user_data::*;
 
+imports!();
+
 /// Contains logic to compute and distribute individual delegator rewards.
 #[elrond_wasm_derive::module(RewardsModuleImpl)]
 pub trait RewardsModule {
