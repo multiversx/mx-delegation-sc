@@ -1,5 +1,4 @@
-use elrond_wasm::serde::ser::{Serialize, Serializer};
-use elrond_wasm::serde::de::{Deserialize, Deserializer, Visitor, Error};
+use elrond_wasm::esd_light::*;
 
 /// Contract-wide status of all stake.
 #[derive(PartialEq)]
@@ -35,38 +34,19 @@ impl StakeState {
             _ => false,
         }
     }
-}
 
-impl Serialize for StakeState {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let variant_index: u8 = match self {
+    fn to_u8(&self) -> u8 {
+        match self {
             StakeState::OpenForStaking => 0,
             StakeState::PendingActivation => 1,
             StakeState::Active => 2,
             StakeState::PendingDectivation => 3,
             StakeState::UnBondPeriod => 4,
             StakeState::PendingUnBond => 5,
-        };
-        serializer.serialize_u8(variant_index)
-    }
-}
-
-struct StakeStateVisitor;
-
-impl<'a> Visitor<'a> for StakeStateVisitor {
-    type Value = StakeState;
-
-    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
-        formatter.write_str("StakeState")
+        }
     }
 
-    fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E>
-    where
-        E: Error,
-    {
+    fn from_u8(v: u8) -> Result<Self, DeError> {
         match v {
             0 => Ok(StakeState::OpenForStaking),
             1 => Ok(StakeState::PendingActivation),
@@ -74,17 +54,31 @@ impl<'a> Visitor<'a> for StakeStateVisitor {
             3 => Ok(StakeState::PendingDectivation),
             4 => Ok(StakeState::UnBondPeriod),
             5 => Ok(StakeState::PendingUnBond),
-            _ => Err(E::custom("invalid value")),
+            _ => Err(DeError::InvalidValue),
         }
     }
 }
 
-impl<'de> Deserialize<'de> for StakeState {
+impl Encode for StakeState {
     #[inline]
-    fn deserialize<D>(deserializer: D) -> Result<StakeState, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_u8(StakeStateVisitor)
+	fn dep_encode_to<O: Output>(&self, dest: &mut O) {
+        self.to_u8().dep_encode_to(dest)
+	}
+
+	#[inline]
+	fn using_top_encoded<F: FnOnce(&[u8])>(&self, f: F) {
+        self.to_u8().using_top_encoded(f)
+	}
+}
+
+impl Decode for StakeState {
+	#[inline]
+	fn top_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+        StakeState::from_u8(u8::top_decode(input)?)
+    }
+    
+    #[inline]
+	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+        StakeState::from_u8(u8::dep_decode(input)?)
     }
 }
