@@ -20,6 +20,8 @@ rm target/wasm32-unknown-unknown/release/delegation.wasm
 
 cd auction-mock
 cargo build --bin auction-mock --target=wasm32-unknown-unknown --release
+# cargo +nightly rustc --lib -- -Z unstable-options --pretty=expanded > demacroed.rs
+# cargo +nightly rustc --bin auction-mock -- -Z unstable-options --pretty=expanded > demacroed.rs
 cd ..
 cp auction-mock/target/wasm32-unknown-unknown/release/auction-mock.wasm output/auction-mock.wasm
 cp auction-mock/target/wasm32-unknown-unknown/release/auction-mock.wasm test/auction-mock.wasm

@@ -13,4 +13,4 @@ elrond-wasm-debug = { path = "../../elrond-wasm-rs/elrond-wasm-debug" }
 
 sc-delegation-rs = { path = ".." }
 
-serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
+# serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
