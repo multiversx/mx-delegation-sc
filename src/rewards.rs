@@ -52,11 +52,11 @@ pub trait RewardsModule {
         self.storage_load_cumulated_validator_reward()
     }
 
-    /// The account running the nodes is entitled to (node_share / NODE_DENOMINATOR) * rewards.
+    /// The account running the nodes is entitled to (service_fee / NODE_DENOMINATOR) * rewards.
     #[private]
     fn _rewards_for_node(&self, tot_rewards: &BigUint) -> BigUint {
-        let mut node_rewards = tot_rewards * &self.settings().getNodeShare();
-        node_rewards /= BigUint::from(NODE_SHARE_DENOMINATOR);
+        let mut node_rewards = tot_rewards * &self.settings().getServiceFee();
+        node_rewards /= BigUint::from(SERVICE_FEE_DENOMINATOR);
         node_rewards
     }
 
@@ -72,18 +72,18 @@ pub trait RewardsModule {
             return user_data; // nothing happened since the last claim
         }
 
-        // the owner is entitled to: new rewards * node_share / NODE_DENOMINATOR
+        // the owner is entitled to: new rewards * service_fee / NODE_DENOMINATOR
         let node_new_rewards = self._rewards_for_node(&tot_new_rewards);
         
         // update node rewards, if applicable
-        if user_id == NODE_USER_ID {
+        if user_id == OWNER_USER_ID {
             user_data.unclaimed_rewards += &node_new_rewards;
         }
 
         // update delegator rewards, if applicable
         if user_data.personal_stake > 0 {
             // delegator reward is:
-            // total new rewards * (1 - node_share / NODE_DENOMINATOR) * user stake / total stake
+            // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake
             let mut delegator_new_rewards = tot_new_rewards - node_new_rewards;
             delegator_new_rewards *= &user_data.personal_stake;
             delegator_new_rewards /= &self.contract_stake().getFilledStake();
@@ -115,9 +115,9 @@ pub trait RewardsModule {
         // give it to the validator user, to keep things clear
         let remainder = self.getTotalCumulatedRewards() - sum_unclaimed - self._get_sent_rewards();
         if remainder > 0 {
-            let mut node_unclaimed = self.user_data()._get_user_unclaimed(NODE_USER_ID);
+            let mut node_unclaimed = self.user_data()._get_user_unclaimed(OWNER_USER_ID);
             node_unclaimed += &remainder;
-            self.user_data()._set_user_unclaimed(NODE_USER_ID, &node_unclaimed);
+            self.user_data()._set_user_unclaimed(OWNER_USER_ID, &node_unclaimed);
         }
     }
 

@@ -1,5 +1,5 @@
 {
-    "name": "init_bad_node_share",
+    "name": "init_bad_service_fee",
     "steps": [
         {
             "step": "setState",

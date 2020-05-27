@@ -18,7 +18,7 @@
                         
                         "``num_nodes": "1",
                         "``stake_per_node": "1,000,000",
-                        "``node_share": "3000",
+                        "``service_fee": "3000",
                         "``node_rewards_addr": "``node_address__________________s1",
                         "``num_users": "3",
                         "``filled_stake": "1,000,000",
@@ -112,7 +112,7 @@
                         
                         "``num_nodes": "1",
                         "``stake_per_node": "1,000,000",
-                        "``node_share": "3000",
+                        "``service_fee": "3000",
                         "``node_rewards_addr": "``node_address__________________s1",
                         "``num_users": "3",
                         "``filled_stake": "1,000,000",

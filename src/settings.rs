@@ -4,11 +4,11 @@ use crate::user_data::*;
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
 /// Percents + 2 decimals -> 10000.
-pub static NODE_SHARE_DENOMINATOR: u64 = 10000;
+pub static SERVICE_FEE_DENOMINATOR: u64 = 10000;
 
 /// Validator reward destination will always be user with id 1.
 /// This can also count as a delegator (if the owner adds stake into the contract) or not.
-pub static NODE_USER_ID: usize = 1;
+pub static OWNER_USER_ID: usize = 1;
 
 imports!();
 
@@ -23,21 +23,21 @@ pub trait SettingsModule {
     /// This is the contract constructor, called only once when the contract is deployed.
     /// 
     fn init(&self,
-        node_share_per_10000: BigUint,
+        service_fee_per_10000: BigUint,
         auction_contract_addr: &Address,
         time_before_force_unstake: u64,
     ) -> Result<(), &str> {
 
-        if node_share_per_10000 > NODE_SHARE_DENOMINATOR {
+        if service_fee_per_10000 > SERVICE_FEE_DENOMINATOR {
             return Err("node share out of range");
         }
-        self._set_node_share(&node_share_per_10000);
+        self._set_service_fee(&service_fee_per_10000);
 
         let owner = self.get_caller();
         self._set_owner(&owner);
 
         self._set_node_reward_destination(&owner);
-        self.user_data()._set_user_id(&owner, NODE_USER_ID); // node reward destination will be user #1
+        self.user_data()._set_user_id(&owner, OWNER_USER_ID); // node reward destination will be user #1
         self.user_data()._set_num_users(1);
 
         self._set_auction_addr(&auction_contract_addr);
@@ -92,10 +92,10 @@ pub trait SettingsModule {
     /// The proportion of rewards that goes to the owner as compensation for running the nodes.
     /// 10000 = 100%.
     #[view]
-    #[storage_get("node_share")]
-    fn getNodeShare(&self) -> BigUint;
+    #[storage_get("service_fee")]
+    fn getServiceFee(&self) -> BigUint;
 
     #[private]
-    #[storage_set("node_share")]
-    fn _set_node_share(&self, node_share: &BigUint);
+    #[storage_set("service_fee")]
+    fn _set_service_fee(&self, service_fee: &BigUint);
 }

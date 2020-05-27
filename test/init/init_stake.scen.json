@@ -164,7 +164,7 @@
                         
                         "``num_nodes": "1",
                         "``stake_per_node": "789,000,000,000",
-                        "``node_share": "3455",
+                        "``service_fee": "3455",
                         "``time_before_force_unstake": "680400",
                         "``node_rewards_addr": "``node_address__________________s1",
                         "``num_users": "2",
