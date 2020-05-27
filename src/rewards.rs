@@ -81,11 +81,11 @@ pub trait RewardsModule {
         }
 
         // update delegator rewards, if applicable
-        if user_data.personal_stake > 0 {
+        if user_data.total_stake > 0 {
             // delegator reward is:
             // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake
             let mut delegator_new_rewards = tot_new_rewards - node_new_rewards;
-            delegator_new_rewards *= &user_data.personal_stake;
+            delegator_new_rewards *= &user_data.total_stake;
             delegator_new_rewards /= &self.contract_stake().getFilledStake();
             user_data.unclaimed_rewards += &delegator_new_rewards;
         }
@@ -115,9 +115,9 @@ pub trait RewardsModule {
         // give it to the validator user, to keep things clear
         let remainder = self.getTotalCumulatedRewards() - sum_unclaimed - self._get_sent_rewards();
         if remainder > 0 {
-            let mut node_unclaimed = self.user_data()._get_user_unclaimed(OWNER_USER_ID);
+            let mut node_unclaimed = self.user_data()._get_user_rew_unclaimed(OWNER_USER_ID);
             node_unclaimed += &remainder;
-            self.user_data()._set_user_unclaimed(OWNER_USER_ID, &node_unclaimed);
+            self.user_data()._set_user_rew_unclaimed(OWNER_USER_ID, &node_unclaimed);
         }
     }
 

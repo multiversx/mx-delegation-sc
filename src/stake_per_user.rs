@@ -28,7 +28,7 @@ pub trait UserStakeModule {
         if user_id == 0 {
             BigUint::zero()
         } else {
-            self.user_data()._get_user_stake(user_id)
+            self.user_data()._get_user_total_stake(user_id)
         }
     }
 
@@ -73,7 +73,7 @@ pub trait UserStakeModule {
         
         // save increased stake
         let mut user_data = self.user_data()._load_user_data(user_id);
-        user_data.personal_stake += &payment;
+        user_data.total_stake += &payment;
         self.user_data().store_user_data(user_id, &user_data);
 
         // log staking event
@@ -101,12 +101,12 @@ pub trait UserStakeModule {
 
         // check stake 
         let mut user_data = self.user_data()._load_user_data(user_id);
-        if &amount > &user_data.personal_stake {
+        if &amount > &user_data.total_stake {
             return Err("cannot unstake more than was staked");
         }
 
         // save decreased stake
-        user_data.personal_stake -= &amount;
+        user_data.total_stake -= &amount;
         self.user_data().store_user_data(user_id, &user_data);
 
         // keeping track of inactive stake

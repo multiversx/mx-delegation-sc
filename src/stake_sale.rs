@@ -27,7 +27,7 @@ pub trait StakeSaleModule {
         }
 
         // get stake
-        let stake = self.user_data()._get_user_stake(user_id);
+        let stake = self.user_data()._get_user_active_stake(user_id);
         if &amount > &stake {
             return Err("cannot offer more stake than is owned")
         }
@@ -66,20 +66,27 @@ pub trait StakeSaleModule {
         }
 
         // decrease stake for sale
-        let mut stake_for_sale = self.user_data()._get_user_stake_for_sale(seller_id);
-        if &payment > &stake_for_sale {
-            return Err("payment exceeds stake offered")
-        }
-        stake_for_sale -= &payment;
-        self.user_data()._set_user_stake_for_sale(seller_id, &stake_for_sale);
+        self.user_data()._update_user_stake_for_sale(seller_id, |stake_for_sale| {
+            if &payment > &*stake_for_sale {
+                Err("payment exceeds stake offered")
+            } else {
+                *stake_for_sale -= &payment;
+                Ok(())
+            }
+        })?;
 
         // decrease stake of seller
-        let mut seller_stake = self.user_data()._get_user_stake(seller_id);
-        if &payment > &seller_stake {
-            return Err("payment exceeds stake owned by user")
-        }
-        seller_stake -= &payment;
-        self.user_data()._set_user_stake(seller_id, &seller_stake);
+        self.user_data()._update_user_active_stake(seller_id, |seller_active_stake| {
+            if &payment > &*seller_active_stake {
+                Err("payment exceeds seller active stake")
+            } else {
+                *seller_active_stake -= &payment;
+                Ok(())
+            }
+        })?;
+        self.user_data()._update_user_total_stake(seller_id, |seller_total_stake| {
+            *seller_total_stake -= &payment;
+        });
 
         // get buyer id or create buyer
         let caller = self.get_caller();
@@ -90,9 +97,12 @@ pub trait StakeSaleModule {
         }
 
         // increase stake of buyer
-        let mut buyer_stake = self.user_data()._get_user_stake(buyer_id);
-        buyer_stake += &payment;
-        self.user_data()._set_user_stake(buyer_id, &buyer_stake);
+        self.user_data()._update_user_total_stake(buyer_id, |buyer_total_stake| {
+            *buyer_total_stake += &payment;
+        });
+        self.user_data()._update_user_active_stake(buyer_id, |buyer_active_stake| {
+            *buyer_active_stake += &payment;
+        });
 
         // forward payment to seller
         self.send_tx(&seller, &payment, "payment for stake");

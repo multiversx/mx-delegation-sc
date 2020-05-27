@@ -9,7 +9,10 @@ pub struct UserData<BigUint> {
     pub unclaimed_rewards: BigUint,
 
     /// How much stake the delegator has in the contract.
-    pub personal_stake: BigUint,
+    pub total_stake: BigUint,
+
+    // /// How much stake the delegator has in the contract.
+    pub active_stake: BigUint,
 }
 
 /// Deals with storage data about delegators.
@@ -53,12 +56,41 @@ pub trait UserDataModule {
 
     /// How much a delegator has staked.
     #[private]
-    #[storage_get("u_stak")]
-    fn _get_user_stake(&self, user_id: usize) -> BigUint;
+    #[storage_get("u_stake_totl")]
+    fn _get_user_total_stake(&self, user_id: usize) -> BigUint;
 
     #[private]
-    #[storage_set("u_stak")]
-    fn _set_user_stake(&self, user_id: usize, user_stake: &BigUint);
+    #[storage_set("u_stake_totl")]
+    fn _set_user_total_stake(&self, user_id: usize, user_total_stake: &BigUint);
+
+    // TODO: auto-generate
+    #[private]
+    fn _update_user_total_stake<F: FnOnce(&mut BigUint)>(&self, user_id: usize, f: F)
+    {
+        let mut value = self._get_user_total_stake(user_id);
+        f(&mut value);
+        self._set_user_total_stake(user_id, &value);
+    }
+
+    /// How much of a delegator's has been sent to the auction SC.
+    #[private]
+    #[storage_get("u_stake_actv")]
+    fn _get_user_active_stake(&self, user_id: usize) -> BigUint;
+
+    #[private]
+    #[storage_set("u_stake_actv")]
+    fn _set_user_active_stake(&self, user_id: usize, user_active_stake: &BigUint);
+
+    // TODO: auto-generate
+    #[private]
+    fn _update_user_active_stake<F, R>(&self, user_id: usize, f: F) -> R
+    where F: Fn(&mut BigUint) -> R
+    {
+        let mut value = self._get_user_active_stake(user_id);
+        let result = f(&mut value);
+        self._set_user_active_stake(user_id, &value);
+        result
+    }
 
     /// Claiming rewards has 2 steps:
     /// 1. computing the delegator rewards out of the total rewards, and
@@ -67,12 +99,12 @@ pub trait UserDataModule {
     /// i.e. were computed and deducted from the total rewards, but not yet "physically" sent to the user.
     /// The unclaimed stake still resides in the contract.
     #[private]
-    #[storage_get("u_uncl")]
-    fn _get_user_unclaimed(&self, user_id: usize) -> BigUint;
+    #[storage_get("u_rew_unclmd")]
+    fn _get_user_rew_unclaimed(&self, user_id: usize) -> BigUint;
 
     #[private]
-    #[storage_set("u_uncl")]
-    fn _set_user_unclaimed(&self, user_id: usize, user_unclaimed: &BigUint);
+    #[storage_set("u_rew_unclmd")]
+    fn _set_user_rew_unclaimed(&self, user_id: usize, user_rew_unclaimed: &BigUint);
 
     /// As the time passes, if the contract is active, rewards periodically arrive in the contract. 
     /// Users can claim their share of rewards anytime.
@@ -82,42 +114,56 @@ pub trait UserDataModule {
     /// If zero, it means the user never claimed any rewards.
     /// If equal to getTotalCumulatedRewards, it means the user claimed everything there is for him/her.
     #[private]
-    #[storage_get("u_last")]
-    fn _get_user_last(&self, user_id: usize) -> BigUint;
+    #[storage_get("u_rew_checkp")]
+    fn _get_user_rew_checkpoint(&self, user_id: usize) -> BigUint;
 
     #[private]
-    #[storage_set("u_last")]
-    fn _set_user_last(&self, user_id: usize, user_last: &BigUint);
+    #[storage_set("u_rew_checkp")]
+    fn _set_user_rew_checkpoint(&self, user_id: usize, user_rew_checkpoint: &BigUint);
 
     /// Users can trade stake. To do so, a user must first offer stake for sale.
     /// This field keeps track of how much stake each user has offered for sale.
     #[private]
-    #[storage_get("u_sale")]
+    #[storage_get("u_stake_sale")]
     fn _get_user_stake_for_sale(&self, user_id: usize) -> BigUint;
 
     #[private]
-    #[storage_set("u_sale")]
+    #[storage_set("u_stake_sale")]
     fn _set_user_stake_for_sale(&self, user_id: usize, user_stake_for_sale: &BigUint);
+
+    // TODO: auto-generate
+    #[private]
+    fn _update_user_stake_for_sale<F, R>(&self, user_id: usize, f: F) -> R
+    where F: Fn(&mut BigUint) -> R
+    {
+        let mut value = self._get_user_stake_for_sale(user_id);
+        let result = f(&mut value);
+        self._set_user_stake_for_sale(user_id, &value);
+        result
+    }
 
     /// Loads the entire UserData object from storage.
     #[private]
     fn _load_user_data(&self, user_id: usize) -> UserData<BigUint> {
-        let tot_rew = self._get_user_last(user_id);
-        let per_rew = self._get_user_unclaimed(user_id);
-        let per_stk = self._get_user_stake(user_id);
+        let u_rew_checkp = self._get_user_rew_checkpoint(user_id);
+        let u_rew_unclmd = self._get_user_rew_unclaimed(user_id);
+        let u_stake_totl = self._get_user_total_stake(user_id);
+        let u_stake_actv = self._get_user_active_stake(user_id);
         UserData {
-            reward_checkpoint: tot_rew,
-            unclaimed_rewards: per_rew,
-            personal_stake: per_stk,
+            reward_checkpoint: u_rew_checkp,
+            unclaimed_rewards: u_rew_unclmd,
+            total_stake: u_stake_totl,
+            active_stake: u_stake_actv,
         }
     }
 
     /// Saves a UserData object to storage.
     #[private]
     fn store_user_data(&self, user_id: usize, data: &UserData<BigUint>) {
-        self._set_user_last(user_id, &data.reward_checkpoint);
-        self._set_user_unclaimed(user_id, &data.unclaimed_rewards);
-        self._set_user_stake(user_id, &data.personal_stake);
+        self._set_user_rew_checkpoint(user_id, &data.reward_checkpoint);
+        self._set_user_rew_unclaimed(user_id, &data.unclaimed_rewards);
+        self._set_user_total_stake(user_id, &data.total_stake);
+        self._set_user_active_stake(user_id, &data.active_stake);
     }
 
     /// Block timestamp of when the user offered stake for sale.
