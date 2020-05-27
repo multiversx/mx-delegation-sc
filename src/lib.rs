@@ -32,7 +32,7 @@ use crate::user_data::*;
 use crate::settings::*;
 
 // increment this whenever changing the contract
-const VERSION: &[u8] = b"0.2.2";
+const VERSION: &[u8] = b"0.3.0";
 
 imports!();
 
