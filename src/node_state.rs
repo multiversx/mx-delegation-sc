@@ -1,0 +1,86 @@
+use elrond_wasm::esd_light::*;
+
+/// Contract-wide status of all stake.
+#[derive(PartialEq, Clone, Copy)]
+pub enum NodeState {
+    /// Node is registered in delegation, but not in the auction SC.
+    Inactive,
+
+    /// Stake call to auction sent.
+    PendingActivation,
+
+    /// Stake is locked in the protocol and rewards are coming in.
+    /// Users cannot withdraw stake, but they can exchange their share of the total stake amongst each other.
+    Active,
+
+    /// UnStake call to auction sent.
+    PendingDeactivation,
+
+    /// Same as Active, but no rewards are coming in.
+    /// This is necessary for a period of time before the stake can be retrieved and unlocked.
+    UnBondPeriod,
+
+    /// UnBond call to auction sent.
+    PendingUnBond,
+
+    /// Node completely removed from the delegation contract.
+    Removed,
+}
+
+impl NodeState {
+    pub fn is_open(&self) -> bool {
+        match self {
+            NodeState::Inactive => true,
+            _ => false,
+        }
+    }
+
+    fn to_u8(&self) -> u8 {
+        match self {
+            NodeState::Inactive => 0,
+            NodeState::PendingActivation => 1,
+            NodeState::Active => 2,
+            NodeState::PendingDeactivation => 3,
+            NodeState::UnBondPeriod => 4,
+            NodeState::PendingUnBond => 5,
+            NodeState::Removed => 6,
+        }
+    }
+
+    fn from_u8(v: u8) -> Result<Self, DeError> {
+        match v {
+            0 => Ok(NodeState::Inactive),
+            1 => Ok(NodeState::PendingActivation),
+            2 => Ok(NodeState::Active),
+            3 => Ok(NodeState::PendingDeactivation),
+            4 => Ok(NodeState::UnBondPeriod),
+            5 => Ok(NodeState::PendingUnBond),
+            6 => Ok(NodeState::Removed),
+            _ => Err(DeError::InvalidValue),
+        }
+    }
+}
+
+impl Encode for NodeState {
+    #[inline]
+	fn dep_encode_to<O: Output>(&self, dest: &mut O) {
+        self.to_u8().dep_encode_to(dest)
+	}
+
+	#[inline]
+	fn using_top_encoded<F: FnOnce(&[u8])>(&self, f: F) {
+        self.to_u8().using_top_encoded(f)
+	}
+}
+
+impl Decode for NodeState {
+	#[inline]
+	fn top_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+        NodeState::from_u8(u8::top_decode(input)?)
+    }
+    
+    #[inline]
+	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+        NodeState::from_u8(u8::dep_decode(input)?)
+    }
+}

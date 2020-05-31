@@ -1,11 +1,6 @@
 
 use crate::user_data::*;
 
-/// Indicates how we express the percentage of rewards that go to the node.
-/// Since we cannot have floating point numbers, we use fixed point with this denominator.
-/// Percents + 2 decimals -> 10000.
-pub static SERVICE_FEE_DENOMINATOR: u64 = 10000;
-
 /// Validator reward destination will always be user with id 1.
 /// This can also count as a delegator (if the owner adds stake into the contract) or not.
 pub static OWNER_USER_ID: usize = 1;
@@ -23,15 +18,10 @@ pub trait SettingsModule {
     /// This is the contract constructor, called only once when the contract is deployed.
     /// 
     fn init(&self,
-        service_fee_per_10000: BigUint,
         auction_contract_addr: &Address,
         time_before_force_unstake: u64,
+        time_before_unbond: u64,
     ) -> Result<(), &str> {
-
-        if service_fee_per_10000 > SERVICE_FEE_DENOMINATOR {
-            return Err("node share out of range");
-        }
-        self._set_service_fee(&service_fee_per_10000);
 
         let owner = self.get_caller();
         self._set_owner(&owner);
@@ -43,6 +33,7 @@ pub trait SettingsModule {
         self._set_auction_addr(&auction_contract_addr);
 
         self._set_time_before_force_unstake(time_before_force_unstake);
+        self._set_time_before_unbond(time_before_unbond);
 
         Ok(())
     }
@@ -89,13 +80,15 @@ pub trait SettingsModule {
     #[storage_set("time_before_force_unstake")]
     fn _set_time_before_force_unstake(&self, time_before_force_unstake: u64);
 
-    /// The proportion of rewards that goes to the owner as compensation for running the nodes.
-    /// 10000 = 100%.
+    /// Minimum time between unstake and unbond.
+    /// This mirrors the minimum unbonding period in the auction SC. 
+    /// The auction SC cannot be cheated by setting this field lower, unbond will fail anyway if attempted too early.
     #[view]
-    #[storage_get("service_fee")]
-    fn getServiceFee(&self) -> BigUint;
+    #[storage_get("time_before_unbond")]
+    fn getTimeBeforeUnBond(&self) -> u64;
 
     #[private]
-    #[storage_set("service_fee")]
-    fn _set_service_fee(&self, service_fee: &BigUint);
+    #[storage_set("time_before_unbond")]
+    fn _set_time_before_unbond(&self, time_before_unbond: u64);
+
 }

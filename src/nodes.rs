@@ -1,10 +1,17 @@
 
 use crate::bls_key::*;
+use crate::node_state::*;
+
 use crate::settings::*;
-use crate::stake_per_contract::*;
+use crate::stake_per_node::*;
 use crate::stake_per_user::*;
 
 imports!();
+
+/// Indicates how we express the percentage of rewards that go to the node.
+/// Since we cannot have floating point numbers, we use fixed point with this denominator.
+/// Percents + 2 decimals -> 10000.
+pub static SERVICE_FEE_DENOMINATOR: usize = 10000;
 
 /// This module manages the validator node info:
 /// - how many nodes there are,
@@ -23,8 +30,36 @@ pub trait NodeModule {
     #[module(ContractStakeModuleImpl)]
     fn contract_stake(&self) -> ContractStakeModuleImpl<T, BigInt, BigUint>;
 
+    /// The proportion of rewards that goes to the owner as compensation for running the nodes.
+    /// 10000 = 100%.
+    #[view]
+    #[storage_get("service_fee")]
+    fn getServiceFee(&self) -> BigUint;
 
+    #[private]
+    #[storage_set("service_fee")]
+    fn _set_service_fee(&self, service_fee: usize);
 
+    /// The stake per node can be changed by the owner.
+    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
+    fn setServiceFee(&self, service_fee_per_10000: usize) -> Result<(), &str> {
+        if self.get_caller() != self.settings().getContractOwner() {
+            return Err("only owner can change service fee"); 
+        }
+
+        if service_fee_per_10000 > SERVICE_FEE_DENOMINATOR {
+            return Err("node share out of range");
+        }
+
+        // check that all nodes idle
+        if !self.allNodesIdle() {
+            return Err("cannot change service fee while at least one node is active");
+        }
+
+        self._set_service_fee(service_fee_per_10000);
+        Ok(())
+    }
+    
     /// How much stake has to be provided per validator node.
     /// After genesis this sum is fixed to 2,500,000 ERD, but at some point bidding will happen.
     #[view]
@@ -41,19 +76,16 @@ pub trait NodeModule {
         if self.get_caller() != self.settings().getContractOwner() {
             return Err("only owner can change stake per node"); 
         }
-        if !self.contract_stake().stakeState().is_open() {
-            return Err("cannot change stake per node while active"); 
+
+        // check that all nodes idle
+        if !self.allNodesIdle() {
+            return Err("cannot change stake per node while at least one node is active");
         }
+
         self._set_stake_per_node(&stake_per_node);
         Ok(())
     }
-
-    /// Indicates how much stake the whole contract needs to accumulate before it can run.
-    #[view]
-    fn getExpectedStake(&self) -> BigUint {
-        self.getStakePerNode() * BigUint::from(self.getNumNodes())
-    }
-
+    
     /// The number of nodes that will run with the contract stake, as configured by the owner.
     #[view]
     #[storage_get("num_nodes")]
@@ -63,54 +95,83 @@ pub trait NodeModule {
     #[storage_set("num_nodes")]
     fn _set_num_nodes(&self, num_nodes: usize);
 
+    /// Each node gets a node id. This is in order to be able to iterate over their data.
+    /// This is a mapping from node BLS key to node id.
+    /// The key is the bytes "node_id" concatenated with the BLS key. The value is the node id.
+    /// Ids start from 1 because 0 means unset of None.
+    #[view]
+    #[storage_get("node_id")]
+    fn getNodeId(&self, bls_key: &BLSKey) -> usize;
+
+    #[private]
+    #[storage_set("node_id")]
+    fn _set_node_id(&self, bls_key: &BLSKey, node_id: usize);
+
+    /// Current state of node: inactive, active, deleted, etc.
+    #[storage_get("n_state")]
+    fn getNodeState(&self, user_id: usize) -> NodeState;
+
+    #[private]
+    #[storage_set("n_state")]
+    fn _set_node_state(&self, user_id: usize, node_state: NodeState);
+
+    #[view]
+    fn allNodesIdle(&self) -> bool {
+        let mut i = self.getNumNodes();
+        while i > 0 {
+            let node_state = self.getNodeState(i);
+            if node_state != NodeState::Inactive && node_state != NodeState::Removed {
+                return false;
+            }
+            i -= 1;
+        }
+
+        true
+    }
+
     /// The number of nodes that will run with the contract stake is configured by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     /// Important: it has to be called BEFORE setting the BLS keys.
-    fn setNumNodes(&self, num_nodes: usize) -> Result<(), &str> {
+    fn addNodes(&self, #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
         if self.get_caller() != self.settings().getContractOwner() {
-            return Err("only owner can change the number of nodes"); 
+            return Err("only owner can add nodes"); 
         }
-        if !self.contract_stake().stakeState().is_open() {
-            return Err("cannot change the number of nodes while active"); 
+
+        let mut num_nodes = self.getNumNodes();
+
+        for bls_key in bls_keys.iter() {
+            let existing_node_id = self.getNodeId(bls_key);
+            if existing_node_id == 0 {
+                num_nodes += 1;
+                let new_node_id = num_nodes;
+                self._set_node_id(bls_key, new_node_id);
+                self._set_node_state(new_node_id, NodeState::Inactive);
+            } else if self.getNodeState(existing_node_id) == NodeState::Removed {
+                self._set_node_state(existing_node_id, NodeState::Inactive);
+            } else {
+                return Err("node already registered"); 
+            }
         }
+       
         self._set_num_nodes(num_nodes);
-        self._set_bls_keys(Vec::with_capacity(0)); // reset BLS keys
         Ok(())
     }
 
-    /// Node BLS keys, as configured by the owner.
-    /// Will yield multiple results, one result for each BLS key.
-    /// Note: in storage they get concatenated and stored under a single key.
-    #[view]
-    #[storage_get("bls_keys")]
-    fn getBlsKeys(&self) -> Vec<BLSKey>;
-
-    #[private]
-    #[storage_set("bls_keys")]
-    fn _set_bls_keys(&self, bls_keys: Vec<BLSKey>);
-
-    /// Convenience function for checking the number of BLS keys.
-    /// It can be equal to the number of nodes or 0 if not yet configured.
-    #[view]
-    fn getNumBlsKeys(&self) -> usize {
-        self.getBlsKeys().len()
-    }
-
-    /// The owner must set all the BLS keys of the nodes to run, before starting the validation.
-    /// The function receives one argument for each BLS key.
-    /// The number of arguments/BLS keys must match the number of nodes.
-    /// Important: it has to be called AFTER setting the BLS keys.
-    fn setBlsKeys(&self,
-            #[multi(self.getNumNodes())] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
-
+    fn removeNodes(&self, #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
         if self.get_caller() != self.settings().getContractOwner() {
-            return Err("only owner can set BLS keys"); 
+            return Err("only owner can remove nodes"); 
         }
-        if !self.contract_stake().stakeState().is_open() {
-            return Err("cannot change BLS keys while active"); 
+
+        for bls_key in bls_keys.iter() {
+            let node_id = self.getNodeId(bls_key);
+            if node_id == 0 {
+                return Err("node not registered");
+            }
+            if self.getNodeState(node_id) != NodeState::Inactive {
+                return Err("only inactive nodes can be removed");
+            }
+            self._set_node_state(node_id, NodeState::Removed);
         }
-        
-        self._set_bls_keys(bls_keys);
 
         Ok(())
     }

@@ -3,7 +3,7 @@ use super::settings::*;
 use crate::events::*;
 use crate::nodes::*;
 use crate::stake_per_user::*;
-use crate::stake_per_contract::*;
+use crate::stake_per_node::*;
 use crate::user_data::*;
 
 imports!();
@@ -55,7 +55,7 @@ pub trait RewardsModule {
     /// The account running the nodes is entitled to (service_fee / NODE_DENOMINATOR) * rewards.
     #[private]
     fn _rewards_for_node(&self, tot_rewards: &BigUint) -> BigUint {
-        let mut node_rewards = tot_rewards * &self.settings().getServiceFee();
+        let mut node_rewards = tot_rewards * &self.nodes().getServiceFee();
         node_rewards /= BigUint::from(SERVICE_FEE_DENOMINATOR);
         node_rewards
     }
@@ -81,12 +81,12 @@ pub trait RewardsModule {
         }
 
         // update delegator rewards, if applicable
-        if user_data.total_stake > 0 {
+        if user_data.active_stake > 0 {
             // delegator reward is:
             // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake
             let mut delegator_new_rewards = tot_new_rewards - node_new_rewards;
-            delegator_new_rewards *= &user_data.total_stake;
-            delegator_new_rewards /= &self.contract_stake().getFilledStake();
+            delegator_new_rewards *= &user_data.active_stake;
+            delegator_new_rewards /= &self.contract_stake().getTotalActiveStake();
             user_data.unclaimed_rewards += &delegator_new_rewards;
         }
 
@@ -100,7 +100,7 @@ pub trait RewardsModule {
     /// Updates storage.
     /// Could cost a lot of gas.
     fn computeAllRewards(&self) {
-        let num_nodes = self.user_data()._get_num_users();
+        let num_nodes = self.user_data().getNumUsers();
         let mut sum_unclaimed = BigUint::zero();
 
         // user 1 is the node and from 2 on are the other delegators,

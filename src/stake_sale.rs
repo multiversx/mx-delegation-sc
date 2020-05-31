@@ -1,3 +1,4 @@
+use crate::node_state::*;
 
 use crate::events::*;
 use crate::user_data::*;
@@ -26,10 +27,10 @@ pub trait StakeSaleModule {
             return Err("only delegators can offer stake for sale")
         }
 
-        // get stake
-        let stake = self.user_data()._get_user_active_stake(user_id);
+        // get active stake
+        let stake = self.user_data()._get_user_stake_of_type(user_id, NodeState::Active);
         if &amount > &stake {
-            return Err("cannot offer more stake than is owned")
+            return Err("cannot offer more than the user active stake")
         }
 
         // store offer

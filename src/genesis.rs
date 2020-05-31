@@ -1,9 +1,9 @@
 imports!();
 
-use crate::stake_state::*;
+use crate::node_state::*;
 
 use crate::events::*;
-use crate::stake_per_contract::*;
+use crate::stake_per_node::*;
 use crate::stake_per_user::*;
 
 #[elrond_wasm_derive::module(GenesisModuleImpl)]
@@ -38,7 +38,7 @@ pub trait GenesisModule {
         self.contract_stake()._check_entire_stake_filled()?;
 
         // change state, jump directly to Active
-        self.contract_stake()._set_stake_state(StakeState::Active);
+        self.contract_stake()._set_stake_state(NodeState::Active);
 
         // log event (no data)
         self.events().activation_ok_event(());

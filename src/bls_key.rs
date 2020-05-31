@@ -11,6 +11,17 @@ impl BLSKey {
     pub fn to_vec(&self) -> Vec<u8> {
         self.0.to_vec()
     }
+
+    pub fn from_bytes(bytes: &Vec<u8>) -> Result<Self, &'static str> {
+        if bytes.len() != BLS_KEY_BYTE_LENGTH {
+            return Err("bad BLS key length");
+        }
+        let mut arr = [0u8; BLS_KEY_BYTE_LENGTH];
+        for (i, &b) in bytes.iter().enumerate() {
+            arr[i] = b;
+        }
+        Ok(BLSKey(arr))
+    }
 }
 
 impl Encode for BLSKey {
