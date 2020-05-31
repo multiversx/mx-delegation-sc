@@ -3,20 +3,21 @@
     "steps": [
         {
             "step": "externalSteps",
-            "path": "4_activate.scen.json"
+            "path": "07_activate_pt_2.scen.json"
         },
         {
             "step": "validatorReward",
-            "txId": "validatorReward-1",
+            "txId": "validatorReward-2",
             "comment": "reward value proportional to stake to make it easier to check, 50% are fees",
             "tx": {
                 "to": "''delegation_contract___________s1",
-                "value": "666,000,000"
+                "value": "888,000,000"
             }
         },
         {
             "step": "scCall",
             "txId": "get-total-cumulated-1",
+            "comment": "666,000,000 + 888,000,000",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
@@ -28,7 +29,7 @@
             },
             "expect": {
                 "out": [
-                    "666,000,000"
+                    "1554,000,000"
                 ],
                 "status": "",
                 "logs": [],
@@ -38,7 +39,32 @@
         },
         {
             "step": "scCall",
-            "txId": "claimable-1",
+            "txId": "claimable-8_0",
+            "comment": "50% * 666,000,000 + 50% * 888,000,000 + delegation reward",
+            "tx": {
+                "from": "''someone_______________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "getClaimableRewards",
+                "arguments": [
+                    "''node_address__________________s1"
+                ],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [
+                    "788,000,000"
+                ],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "claimable-8_1",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
@@ -52,7 +78,7 @@
             },
             "expect": {
                 "out": [
-                    "300,000,000"
+                    "400,000,000"
                 ],
                 "status": "",
                 "logs": [],
@@ -62,7 +88,7 @@
         },
         {
             "step": "scCall",
-            "txId": "claimable-2",
+            "txId": "claimable-8_2",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
@@ -76,12 +102,32 @@
             },
             "expect": {
                 "out": [
-                    "033,000,000"
+                    "066,000,000"
                 ],
                 "status": "",
                 "logs": [],
                 "gas": "*",
                 "refund": "*"
+            }
+        },
+        {
+            "step": "checkState",
+            "comment": "check that rewards were received",
+            "accounts": {
+                "''delegator_1___________________s1": {
+                    "nonce": "*",
+                    "balance": "300,000,000",
+                    "storage": {},
+                    "code": "",
+                    "asyncCallData": "delegation claim"
+                },
+                "''delegator_2___________________s1": {
+                    "nonce": "*",
+                    "balance": "0",
+                    "storage": {},
+                    "code": ""
+                },
+                "+": ""
             }
         }
     ]

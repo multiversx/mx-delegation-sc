@@ -3,7 +3,7 @@
     "steps": [
         {
             "step": "externalSteps",
-            "path": "3_stake.scen.json"
+            "path": "06_stake_pt_2.scen.json"
         },
         {
             "step": "scCall",
@@ -14,13 +14,9 @@
                 "value": "0",
                 "function": "activateNodes",
                 "arguments": [
-                    "3",
-                    "''bls_key_2_______________________________________________________________________________________",
-                    "''signature_2_____________________",
-                    "''bls_key_3_______________________________________________________________________________________",
-                    "''signature_3_____________________",
-                    "''bls_key_6_______________________________________________________________________________________",
-                    "''signature_6_____________________"
+                    "1",
+                    "''bls_key_5_______________________________________________________________________________________",
+                    "''signature_5_____________________"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -42,7 +38,31 @@
         },
         {
             "step": "scCall",
-            "txId": "check-stake-by-type-1",
+            "txId": "check-stake-by-type-7_0",
+            "tx": {
+                "from": "''someone_______________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "getUserStakeByType",
+                "arguments": [
+                    "''node_address__________________s1"
+                ],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [
+                    "0", "0", "011,000,000,000,000", "0", "0", "0", "0"
+                ],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "check-stake-by-type-7_1",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
@@ -56,7 +76,7 @@
             },
             "expect": {
                 "out": [
-                    "0", "0", "300,000,000,000,000", "0", "0", "0", "0"
+                    "0", "0", "400,000,000,000,000", "0", "0", "0", "0"
                 ],
                 "status": "",
                 "logs": [],
@@ -66,7 +86,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-stake-by-type-1",
+            "txId": "check-stake-by-type-7_2",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
@@ -90,7 +110,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-total-active",
+            "txId": "check-total-active-7",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
@@ -102,7 +122,7 @@
             },
             "expect": {
                 "out": [
-                    "333,000,000,000,000"
+                    "444,000,000,000,000"
                 ],
                 "status": "",
                 "logs": [],
