@@ -1,10 +1,6 @@
 {
-    "name": "init",
+    "name": "rewards pt 2",
     "steps": [
-        {
-            "step": "externalSteps",
-            "path": "07_activate_pt_2.scen.json"
-        },
         {
             "step": "validatorReward",
             "txId": "validatorReward-2",

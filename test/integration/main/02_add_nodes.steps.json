@@ -1,10 +1,6 @@
 {
-    "name": "init",
+    "name": "init nodes",
     "steps": [
-        {
-            "step": "externalSteps",
-            "path": "01_init.scen.json"
-        },
         {
             "step": "scCall",
             "txId": "add nodes",

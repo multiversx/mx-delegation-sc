@@ -1,10 +1,6 @@
 {
-    "name": "init",
+    "name": "check init ok",
     "steps": [
-        {
-            "step": "externalSteps",
-            "path": "init.scen.json"
-        },
         {
             "step": "scCall",
             "txId": "check auction addr",
@@ -98,7 +94,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "out": [ "3455" ],
+                "out": [ "5000" ],
                 "status": "",
                 "logs": [],
                 "gas": "*",

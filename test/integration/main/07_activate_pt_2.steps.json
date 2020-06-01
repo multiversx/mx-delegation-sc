@@ -1,10 +1,6 @@
 {
-    "name": "init",
+    "name": "activate pt 2",
     "steps": [
-        {
-            "step": "externalSteps",
-            "path": "06_stake_pt_2.scen.json"
-        },
         {
             "step": "scCall",
             "txId": "activate-1",

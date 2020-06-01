@@ -1,10 +1,6 @@
 {
-    "name": "init",
+    "name": "remove nodes err",
     "steps": [
-        {
-            "step": "externalSteps",
-            "path": "nodes_add_rem.scen.json"
-        },
         {
             "step": "scCall",
             "txId": "rem nodes bad 1",

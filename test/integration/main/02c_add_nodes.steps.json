@@ -1,10 +1,6 @@
 {
-    "name": "init",
+    "name": "check nodes",
     "steps": [
-        {
-            "step": "externalSteps",
-            "path": "init_nodes.scen.json"
-        },
         {
             "step": "scCall",
             "txId": "check all nodes idle",
