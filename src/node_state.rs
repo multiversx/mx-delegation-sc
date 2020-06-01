@@ -1,40 +1,33 @@
 use elrond_wasm::esd_light::*;
 
-/// Contract-wide status of all stake.
+/// Status of a node.
 #[derive(PartialEq, Clone, Copy)]
 pub enum NodeState {
     /// Node is registered in delegation, but not in the auction SC.
     Inactive,
 
-    /// Stake call to auction sent.
+    /// Stake call to auction sent, but callback not yet received.
     PendingActivation,
 
-    /// Stake is locked in the protocol and rewards are coming in.
-    /// Users cannot withdraw stake, but they can exchange their share of the total stake amongst each other.
+    /// Node is registered in the auction SC, active and producing rewards.
     Active,
 
-    /// UnStake call to auction sent.
+    /// UnStake call to auction sent, but callback not yet received.
     PendingDeactivation,
 
     /// Same as Active, but no rewards are coming in.
     /// This is necessary for a period of time before the stake can be retrieved and unlocked.
     UnBondPeriod,
 
-    /// UnBond call to auction sent.
+    /// UnBond call to auction sent, but callback not yet received.
     PendingUnBond,
 
     /// Node completely removed from the delegation contract.
+    /// TODO: properly remove nodes instead of just flagging them.
     Removed,
 }
 
 impl NodeState {
-    pub fn is_open(&self) -> bool {
-        match self {
-            NodeState::Inactive => true,
-            _ => false,
-        }
-    }
-
     fn to_u8(&self) -> u8 {
         match self {
             NodeState::Inactive => 0,

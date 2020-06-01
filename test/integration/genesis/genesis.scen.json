@@ -1,0 +1,65 @@
+{
+    "name": "init",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "../main/01_init.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/01c_init.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/02_add_nodes.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/02c_add_nodes.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../genesis/03_genesis_stake.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/03c_stake.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../genesis/04a_adjust_before.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../genesis/04b_genesis_activate.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../genesis/04c_adjust_after.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/04c_activate.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/05_rewards.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/06_stake_pt_2.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/06c_stake_pt_2.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/07_activate_pt_2.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/07c_activate_pt_2.steps.json"
+        }
+    ]
+}

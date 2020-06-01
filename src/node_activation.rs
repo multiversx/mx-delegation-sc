@@ -3,17 +3,18 @@ use crate::auction_proxy::Auction;
 
 use crate::bls_key::*;
 use crate::node_state::*;
+use crate::user_stake_state::*;
 // use crate::util::*;
 
 use crate::events::*;
-use crate::nodes::*;
+use crate::node_config::*;
 use crate::rewards::*;
 use crate::settings::*;
 use crate::user_data::*;
 
 imports!();
 
-#[elrond_wasm_derive::module(ContractStakeModuleImpl)]
+#[elrond_wasm_derive::module(NodeActivationModuleImpl)]
 pub trait ContractStakeModule {
 
     #[module(UserDataModuleImpl)]
@@ -25,87 +26,14 @@ pub trait ContractStakeModule {
     #[module(EventsModuleImpl)]
     fn events(&self) -> EventsModuleImpl<T, BigInt, BigUint>;
 
-    #[module(NodeModuleImpl)]
-    fn nodes(&self) -> NodeModuleImpl<T, BigInt, BigUint>;
+    #[module(NodeConfigModuleImpl)]
+    fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, BigUint>;
 
     #[module(RewardsModuleImpl)]
     fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
 
-    #[module(ContractStakeModuleImpl)]
-    fn contract_stake(&self) -> ContractStakeModuleImpl<T, BigInt, BigUint>;
-
-
-    /// Yields how much stake was added to the contract.
-    #[view]
-    #[storage_get("filled_stake")]
-    fn getFilledStake(&self) -> BigUint;
-
-    #[private]
-    #[storage_set("filled_stake")]
-    fn _set_filled_stake(&self, filled_stake: &BigUint);
-
-    /// This is stake that is in the contract, not sent to the auction contract.
-    #[view]
-    #[storage_get("total_active_stake")]
-    fn getTotalActiveStake(&self) -> BigUint;
-
-    #[private]
-    #[storage_set("total_active_stake")]
-    fn _set_total_active_stake(&self, total_active_stake: &BigUint);
-
-    #[private]
-    fn transform_user_stake(&self, user_id: usize, old_type: NodeState, new_type: NodeState, mut total_supply: BigUint) -> BigUint {
-        let mut user_stake_old_type = self.user_data()._get_user_stake_of_type(user_id, old_type);
-        let mut user_stake_new_type = self.user_data()._get_user_stake_of_type(user_id, new_type);
-        if total_supply > user_stake_old_type {
-            user_stake_new_type += &user_stake_old_type;
-            total_supply -= &user_stake_old_type;
-            user_stake_old_type = BigUint::zero();
-        } else {
-            user_stake_old_type -= &total_supply;
-            user_stake_new_type += &total_supply;
-            total_supply = BigUint::zero();
-        }
-        self.user_data()._set_user_stake_of_type(user_id, old_type, &user_stake_old_type);
-        self.user_data()._set_user_stake_of_type(user_id, new_type, &user_stake_new_type);
-        
-        total_supply
-    }
-
-    /// Converts inactive stake into active stake for users.
-    /// Walking in increasing user id order, so older users get picked first.
-    #[private]
-    fn transform_user_stake_asc(&self, old_type: NodeState, new_type: NodeState, amount: &BigUint) -> Result<(), &'static str> {
-        let mut remaining = amount.clone();
-        let num_users = self.user_data().getNumUsers();
-        let mut i = 1usize;
-        while i <= num_users && remaining > 0 {
-            remaining = self.transform_user_stake(i, old_type, new_type, remaining);
-            i += 1;
-        }
-
-        if remaining > 0 {
-            Err("not enough user stake")
-        } else {
-            Ok(())
-        }
-    }
-
-    #[private]
-    fn transform_user_stake_desc(&self, old_type: NodeState, new_type: NodeState, amount: &BigUint) -> Result<(), &'static str> {
-        let mut remaining = amount.clone();
-        let mut i = self.user_data().getNumUsers();
-        while i > 0 && remaining > 0 {
-            remaining = self.transform_user_stake(i, old_type, new_type, remaining);
-            i -= 1;
-        }
-
-        if remaining > 0 {
-            Err("not enough active stake")
-        } else {
-            Ok(())
-        }
-    }
+    #[module(NodeActivationModuleImpl)]
+    fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
 
 
     /// Send stake to the staking contract, if the entire stake has been gathered.
@@ -123,12 +51,12 @@ pub trait ContractStakeModule {
             if i % 2 == 0 {
                 // set nodes to active & collect ids
                 let bls_key = BLSKey::from_bytes(arg)?;
-                let node_id = self.nodes().getNodeId(&bls_key);
+                let node_id = self.node_config().getNodeId(&bls_key);
                 node_ids.push(node_id);
-                if self.nodes().getNodeState(node_id) != NodeState::Inactive {
+                if self.node_config().getNodeState(node_id) != NodeState::Inactive {
                     return Err("node not inactive");
                 }
-                self.nodes()._set_node_state(node_id, NodeState::PendingActivation);
+                self.node_config()._set_node_state(node_id, NodeState::PendingActivation);
             } else {
                 // check signature lengths
                 let signature = arg;
@@ -138,8 +66,8 @@ pub trait ContractStakeModule {
             }
         }
 
-        let stake = BigUint::from(num_nodes) * self.nodes().getStakePerNode();
-        self.transform_user_stake_asc(NodeState::Inactive, NodeState::PendingActivation, &stake)?;
+        let stake = BigUint::from(num_nodes) * self.node_config().getStakePerNode();
+        self.user_data().transform_user_stake_asc(UserStakeState::Inactive, UserStakeState::PendingActivation, &stake)?;
 
         // send all stake to auction contract
         let auction_contract_addr = self.settings().getAuctionContractAddress();
@@ -160,7 +88,7 @@ pub trait ContractStakeModule {
             node_ids: Vec<usize>, // #[callback_arg]
             call_result: AsyncCallResult<()>) -> Result<(), &str> {
 
-        let stake_sent = BigUint::from(node_ids.len()) * self.nodes().getStakePerNode();
+        let stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
 
         match call_result {
             AsyncCallResult::Ok(()) => {
@@ -169,16 +97,11 @@ pub trait ContractStakeModule {
                 self.rewards().computeAllRewards();
 
                 // set user stake to Active
-                self.transform_user_stake_asc(NodeState::PendingActivation, NodeState::Active, &stake_sent)?;
-
-                // also increase total active stake, required for rewards
-                let mut total_active_stake = self.contract_stake().getTotalActiveStake();
-                total_active_stake += &stake_sent;
-                self.contract_stake()._set_total_active_stake(&total_active_stake);
+                self.user_data().transform_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::Active, &stake_sent)?;
 
                 // set nodes to Active
                 for &node_id in node_ids.iter() {
-                    self.nodes()._set_node_state(node_id, NodeState::Active);
+                    self.node_config()._set_node_state(node_id, NodeState::Active);
                 }
 
                 // log event (no data)
@@ -186,11 +109,11 @@ pub trait ContractStakeModule {
             },
             AsyncCallResult::Err(error) => {
                 // revert user stake to Inactive
-                self.transform_user_stake_asc(NodeState::PendingActivation, NodeState::Inactive, &stake_sent)?;
+                self.user_data().transform_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::Inactive, &stake_sent)?;
 
                 // revert nodes to Inactive
                 for &node_id in node_ids.iter() {
-                    self.nodes()._set_node_state(node_id, NodeState::Inactive);
+                    self.node_config()._set_node_state(node_id, NodeState::Inactive);
                 }
 
                 // log failure event (no data)
@@ -220,23 +143,16 @@ pub trait ContractStakeModule {
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
-            let node_id = self.nodes().getNodeId(&bls_key);
+            let node_id = self.node_config().getNodeId(&bls_key);
             node_ids.push(node_id);
-            if self.nodes().getNodeState(node_id) != NodeState::Active {
+            if self.node_config().getNodeState(node_id) != NodeState::Active {
                 return Err("node not active");
             }
-            self.nodes()._set_node_state(node_id, NodeState::PendingActivation);
+            self.node_config()._set_node_state(node_id, NodeState::PendingActivation);
         }
 
-        let stake = BigUint::from(bls_keys.len()) * self.nodes().getStakePerNode();
-        self.transform_user_stake_asc(NodeState::Active, NodeState::PendingDeactivation, &stake)?;
-
-        // also decrease total active stake, required for rewards
-        let mut total_active_stake = self.contract_stake().getTotalActiveStake();
-        total_active_stake -= &stake;
-        self.contract_stake()._set_total_active_stake(&total_active_stake);
-
-        // self._perform_deactivate()
+        let stake = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
+        self.user_data().transform_user_stake_asc(UserStakeState::Active, UserStakeState::PendingDeactivation, &stake)?;
 
         // send unstake command to Auction SC
         let auction_contract_addr = self.settings().getAuctionContractAddress();
@@ -255,16 +171,16 @@ pub trait ContractStakeModule {
             node_ids: Vec<usize>, // #[callback_arg]
             call_result: AsyncCallResult<()>) -> Result<(), &str> {
 
-        let stake_sent = BigUint::from(node_ids.len()) * self.nodes().getStakePerNode();
+        let stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
 
         match call_result {
             AsyncCallResult::Ok(()) => {
                 // set user stake to Active
-                self.transform_user_stake_asc(NodeState::PendingDeactivation, NodeState::UnBondPeriod, &stake_sent)?;
+                self.user_data().transform_user_stake_asc(UserStakeState::PendingDeactivation, UserStakeState::UnBondPeriod, &stake_sent)?;
 
                 // set nodes to Active
                 for &node_id in node_ids.iter() {
-                    self.nodes()._set_node_state(node_id, NodeState::UnBondPeriod);
+                    self.node_config()._set_node_state(node_id, NodeState::UnBondPeriod);
                 }
 
                 // log event (no data)
@@ -272,11 +188,11 @@ pub trait ContractStakeModule {
             },
             AsyncCallResult::Err(error) => {
                 // revert user stake to Inactive
-                self.transform_user_stake_asc(NodeState::PendingDeactivation, NodeState::Active, &stake_sent)?;
+                self.user_data().transform_user_stake_asc(UserStakeState::PendingDeactivation, UserStakeState::Active, &stake_sent)?;
 
                 // revert nodes to Inactive
                 for &node_id in node_ids.iter() {
-                    self.nodes()._set_node_state(node_id, NodeState::Active);
+                    self.node_config()._set_node_state(node_id, NodeState::Active);
                 }
 
                 // log failure event (no data)
@@ -296,12 +212,12 @@ pub trait ContractStakeModule {
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
-            let node_id = self.nodes().getNodeId(&bls_key);
+            let node_id = self.node_config().getNodeId(&bls_key);
             node_ids.push(node_id);
-            if self.nodes().getNodeState(node_id) != NodeState::Active {
+            if self.node_config().getNodeState(node_id) != NodeState::Active {
                 return Err("node not in unbond period");
             }
-            self.nodes()._set_node_state(node_id, NodeState::PendingUnBond);
+            self.node_config()._set_node_state(node_id, NodeState::PendingUnBond);
         }
         
         // send unbond command to Auction SC
@@ -321,16 +237,16 @@ pub trait ContractStakeModule {
             node_ids: Vec<usize>, // #[callback_arg]
             call_result: AsyncCallResult<()>) -> Result<(), &str> {
 
-        let stake_sent = BigUint::from(node_ids.len()) * self.nodes().getStakePerNode();
+        let stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
 
         match call_result {
             AsyncCallResult::Ok(()) => {
                 // set user stake to Active
-                self.transform_user_stake_asc(NodeState::PendingUnBond, NodeState::Inactive, &stake_sent)?;
+                self.user_data().transform_user_stake_asc(UserStakeState::PendingUnBond, UserStakeState::Inactive, &stake_sent)?;
 
                 // set nodes to Inactive
                 for &node_id in node_ids.iter() {
-                    self.nodes()._set_node_state(node_id, NodeState::Inactive);
+                    self.node_config()._set_node_state(node_id, NodeState::Inactive);
                 }
 
                 // log event (no data)
@@ -338,11 +254,11 @@ pub trait ContractStakeModule {
             },
             AsyncCallResult::Err(error) => {
                 // revert user stake to Inactive
-                self.transform_user_stake_asc(NodeState::PendingUnBond, NodeState::UnBondPeriod, &stake_sent)?;
+                self.user_data().transform_user_stake_asc(UserStakeState::PendingUnBond, UserStakeState::UnBondPeriod, &stake_sent)?;
 
                 // revert nodes to Inactive
                 for &node_id in node_ids.iter() {
-                    self.nodes()._set_node_state(node_id, NodeState::UnBondPeriod);
+                    self.node_config()._set_node_state(node_id, NodeState::UnBondPeriod);
                 }
 
                 // log failure event (no data)
@@ -385,7 +301,7 @@ pub trait ContractStakeModule {
     //     // send unstake command to Auction SC
     //     let auction_contract_addr = self.settings().getAuctionContractAddress();
     //     let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
-    //     auction_contract.unStake(self.nodes().getBlsKeys());
+    //     auction_contract.unStake(self.node_config().getBlsKeys());
 
     //     Ok(())
     // }

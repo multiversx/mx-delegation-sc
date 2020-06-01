@@ -3,8 +3,8 @@ use crate::bls_key::*;
 use crate::node_state::*;
 
 use crate::settings::*;
-use crate::stake_per_node::*;
-use crate::stake_per_user::*;
+use crate::node_activation::*;
+use crate::user_stake::*;
 
 imports!();
 
@@ -18,7 +18,7 @@ pub static SERVICE_FEE_DENOMINATOR: usize = 10000;
 /// - how much they need to stake and 
 /// - what BLS keys they have.
 /// 
-#[elrond_wasm_derive::module(NodeModuleImpl)]
+#[elrond_wasm_derive::module(NodeConfigModuleImpl)]
 pub trait NodeModule {
 
     #[module(SettingsModuleImpl)]
@@ -27,8 +27,8 @@ pub trait NodeModule {
     #[module(UserStakeModuleImpl)]
     fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
 
-    #[module(ContractStakeModuleImpl)]
-    fn contract_stake(&self) -> ContractStakeModuleImpl<T, BigInt, BigUint>;
+    #[module(NodeActivationModuleImpl)]
+    fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
 
     /// The proportion of rewards that goes to the owner as compensation for running the nodes.
     /// 10000 = 100%.
@@ -72,7 +72,7 @@ pub trait NodeModule {
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    fn setStakePerNode(&self, stake_per_node: &BigUint) -> Result<(), &str> {
+    fn setStakePerNode(&self, node_activation: &BigUint) -> Result<(), &str> {
         if self.get_caller() != self.settings().getContractOwner() {
             return Err("only owner can change stake per node"); 
         }
@@ -82,7 +82,7 @@ pub trait NodeModule {
             return Err("cannot change stake per node while at least one node is active");
         }
 
-        self._set_stake_per_node(&stake_per_node);
+        self._set_stake_per_node(&node_activation);
         Ok(())
     }
     

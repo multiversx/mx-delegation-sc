@@ -30,6 +30,31 @@
             "path": "03c_stake.steps.json"
         },
         {
+            "step": "checkState",
+            "comment": "check that stake was transferred",
+            "accounts": {
+                "''delegation_contract___________s1": {
+                    "nonce": "*",
+                    "balance": "333,001,000,000,000",
+                    "storage": "*",
+                    "code": "file:../../delegation.wasm"
+                },
+                "''delegator_1___________________s1": {
+                    "nonce": "*",
+                    "balance": "0",
+                    "storage": {},
+                    "code": ""
+                },
+                "''delegator_2___________________s1": {
+                    "nonce": "*",
+                    "balance": "0",
+                    "storage": {},
+                    "code": ""
+                },
+                "+": ""
+            }
+        },
+        {
             "step": "externalSteps",
             "path": "04_activate.steps.json"
         },

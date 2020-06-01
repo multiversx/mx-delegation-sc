@@ -1,9 +1,9 @@
 
 use super::settings::*;
 use crate::events::*;
-use crate::nodes::*;
-use crate::stake_per_user::*;
-use crate::stake_per_node::*;
+use crate::node_config::*;
+use crate::user_stake::*;
+use crate::node_activation::*;
 use crate::user_data::*;
 
 imports!();
@@ -15,8 +15,8 @@ pub trait RewardsModule {
     #[module(EventsModuleImpl)]
     fn events(&self) -> EventsModuleImpl<T, BigInt, BigUint>;
 
-    #[module(NodeModuleImpl)]
-    fn nodes(&self) -> NodeModuleImpl<T, BigInt, BigUint>;
+    #[module(NodeConfigModuleImpl)]
+    fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, BigUint>;
 
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
@@ -27,8 +27,8 @@ pub trait RewardsModule {
     #[module(UserStakeModuleImpl)]
     fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
 
-    #[module(ContractStakeModuleImpl)]
-    fn contract_stake(&self) -> ContractStakeModuleImpl<T, BigInt, BigUint>;
+    #[module(NodeActivationModuleImpl)]
+    fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
 
 
 
@@ -54,8 +54,8 @@ pub trait RewardsModule {
 
     /// The account running the nodes is entitled to (service_fee / NODE_DENOMINATOR) * rewards.
     #[private]
-    fn _rewards_for_node(&self, tot_rewards: &BigUint) -> BigUint {
-        let mut node_rewards = tot_rewards * &self.nodes().getServiceFee();
+    fn _service_fee_reward(&self, tot_rewards: &BigUint) -> BigUint {
+        let mut node_rewards = tot_rewards * &self.node_config().getServiceFee();
         node_rewards /= BigUint::from(SERVICE_FEE_DENOMINATOR);
         node_rewards
     }
@@ -73,20 +73,20 @@ pub trait RewardsModule {
         }
 
         // the owner is entitled to: new rewards * service_fee / NODE_DENOMINATOR
-        let node_new_rewards = self._rewards_for_node(&tot_new_rewards);
+        let service_fee = self._service_fee_reward(&tot_new_rewards);
         
         // update node rewards, if applicable
         if user_id == OWNER_USER_ID {
-            user_data.unclaimed_rewards += &node_new_rewards;
+            user_data.unclaimed_rewards += &service_fee;
         }
 
         // update delegator rewards, if applicable
         if user_data.active_stake > 0 {
             // delegator reward is:
             // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake
-            let mut delegator_new_rewards = tot_new_rewards - node_new_rewards;
+            let mut delegator_new_rewards = tot_new_rewards - service_fee;
             delegator_new_rewards *= &user_data.active_stake;
-            delegator_new_rewards /= &self.contract_stake().getTotalActiveStake();
+            delegator_new_rewards /= &self.user_data().getTotalActiveStake();
             user_data.unclaimed_rewards += &delegator_new_rewards;
         }
 

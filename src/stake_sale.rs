@@ -1,4 +1,4 @@
-use crate::node_state::*;
+use crate::user_stake_state::*;
 
 use crate::events::*;
 use crate::user_data::*;
@@ -28,7 +28,7 @@ pub trait StakeSaleModule {
         }
 
         // get active stake
-        let stake = self.user_data()._get_user_stake_of_type(user_id, NodeState::Active);
+        let stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::Active);
         if &amount > &stake {
             return Err("cannot offer more than the user active stake")
         }
@@ -77,17 +77,10 @@ pub trait StakeSaleModule {
         })?;
 
         // decrease stake of seller
-        self.user_data()._update_user_active_stake(seller_id, |seller_active_stake| {
-            if &payment > &*seller_active_stake {
-                Err("payment exceeds seller active stake")
-            } else {
-                *seller_active_stake -= &payment;
-                Ok(())
-            }
-        })?;
-        self.user_data()._update_user_total_stake(seller_id, |seller_total_stake| {
-            *seller_total_stake -= &payment;
-        });
+        let enough = self.user_data()._decrease_user_stake_of_type(seller_id, UserStakeState::Active, &payment);
+        if !enough {
+            return Err("payment exceeds seller active stake");
+        }
 
         // get buyer id or create buyer
         let caller = self.get_caller();
@@ -98,12 +91,7 @@ pub trait StakeSaleModule {
         }
 
         // increase stake of buyer
-        self.user_data()._update_user_total_stake(buyer_id, |buyer_total_stake| {
-            *buyer_total_stake += &payment;
-        });
-        self.user_data()._update_user_active_stake(buyer_id, |buyer_active_stake| {
-            *buyer_active_stake += &payment;
-        });
+        self.user_data()._increase_user_stake_of_type(buyer_id, UserStakeState::Active, &payment);
 
         // forward payment to seller
         self.send_tx(&seller, &payment, "payment for stake");

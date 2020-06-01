@@ -1,6 +1,6 @@
 imports!();
 
-use crate::node_state::*;
+use crate::user_stake_state::*;
 
 // Groups together data per delegator from the storage.
 pub struct UserData<BigUint> {
@@ -13,6 +13,13 @@ pub struct UserData<BigUint> {
     // /// How much stake the delegator has in the contract.
     pub active_stake: BigUint,
 }
+
+/// Storing total stake per type the same way as we store it for users, but with user_id 0.
+/// There can be no user with id 0, so the value is safe to use.
+/// These values are redundant. They help avoid having to recompute the sum, especially when computing rewards.
+/// At all times the values stored here must be the sums of all user values for the respective stake state,
+/// no operation may break this invariant!
+pub const USER_STAKE_TOTALS_ID: usize = 0;
 
 /// Deals with storage data about delegators.
 #[elrond_wasm_derive::module(UserDataModuleImpl)]
@@ -58,33 +65,107 @@ pub trait UserDataModule {
     #[storage_set("u_stake_totl")]
     fn _set_user_total_stake(&self, user_id: usize, user_total_stake: &BigUint);
 
-    // TODO: auto-generate
-    #[private]
-    fn _update_user_total_stake<F: FnOnce(&mut BigUint)>(&self, user_id: usize, f: F)
-    {
-        let mut value = self._get_user_total_stake(user_id);
-        f(&mut value);
-        self._set_user_total_stake(user_id, &value);
-    }
-
     /// How much of a delegator's has been sent to the auction SC.
     #[private]
     #[storage_get("u_stake_type")]
-    fn _get_user_stake_of_type(&self, user_id: usize, stake_type: NodeState) -> BigUint;
+    fn _get_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState) -> BigUint;
 
     #[private]
     #[storage_set("u_stake_type")]
-    fn _set_user_stake_of_type(&self, user_id: usize, stake_type: NodeState, stake: &BigUint);
+    fn _set_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, stake: &BigUint);
 
-    // TODO: auto-generate
     #[private]
-    fn _update_user_active_stake<F, R>(&self, user_id: usize, f: F) -> R
-    where F: Fn(&mut BigUint) -> R
-    {
-        let mut value = self._get_user_stake_of_type(user_id, NodeState::Active);
-        let result = f(&mut value);
-        self._set_user_stake_of_type(user_id, NodeState::Active, &value);
+    fn _increase_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, amount: &BigUint) {
+        let mut user_st_value = self._get_user_stake_of_type(user_id, stake_type);
+        let mut total_st_value = self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type);
+        let mut user_total = self._get_user_total_stake(user_id);
+        user_st_value += amount;
+        total_st_value += amount;
+        user_total += amount;
+        self._set_user_stake_of_type(user_id, stake_type, &user_st_value);
+        self._set_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type, &total_st_value);
+        self._set_user_total_stake(user_id, &user_total);
+    }
+
+    #[private]
+    fn _decrease_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, amount: &BigUint) -> bool {
+        let mut user_st_value = self._get_user_stake_of_type(user_id, stake_type);
+        if amount > &user_st_value {
+            return false;
+        }
+        let mut total_st_value = self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type);
+        let mut user_total = self._get_user_total_stake(user_id);
+        user_st_value -= amount;
+        total_st_value -= amount;
+        user_total -= amount;
+        self._set_user_stake_of_type(user_id, stake_type, &user_st_value);
+        self._set_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type, &total_st_value);
+        self._set_user_total_stake(user_id, &user_total);
+
+        true
+    }
+
+    /// Yields how much a user has staked in the contract.
+    #[view]
+    fn getUserStake(&self, user_address: Address) -> BigUint {
+        let user_id = self.getUserId(&user_address);
+        if user_id == 0 {
+            BigUint::zero()
+        } else {
+            self._get_user_total_stake(user_id)
+        }
+    }
+
+    #[view]
+    fn getUserActiveStake(&self, user_address: Address) -> BigUint {
+        let user_id = self.getUserId(&user_address);
+        if user_id == 0 {
+            BigUint::zero()
+        } else {
+            self._get_user_stake_of_type(user_id, UserStakeState::Active)
+        }
+    }
+
+    #[private]
+    fn _get_user_stake_by_type(&self, user_id: usize) -> Vec<BigUint> {
+        let mut result = Vec::<BigUint>::with_capacity(7);
+        result.push(self._get_user_stake_of_type(user_id, UserStakeState::Inactive));
+        result.push(self._get_user_stake_of_type(user_id, UserStakeState::PendingActivation));
+        result.push(self._get_user_stake_of_type(user_id, UserStakeState::Active));
+        result.push(self._get_user_stake_of_type(user_id, UserStakeState::PendingDeactivation));
+        result.push(self._get_user_stake_of_type(user_id, UserStakeState::UnBondPeriod));
+        result.push(self._get_user_stake_of_type(user_id, UserStakeState::PendingUnBond));
+        result.push(self._get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly));
         result
+    }
+
+    #[view]
+    fn getUserStakeByType(&self, user_address: &Address) -> Vec<BigUint> {
+        // TODO: replace result type with something based on tuples
+        let user_id = self.getUserId(&user_address);
+        if user_id == 0 {
+            let mut result = Vec::<BigUint>::with_capacity(7);
+            result.push(BigUint::zero());
+            result.push(BigUint::zero());
+            result.push(BigUint::zero());
+            result.push(BigUint::zero());
+            result.push(BigUint::zero());
+            result.push(BigUint::zero());
+            result.push(BigUint::zero());
+            result
+        } else {
+            self._get_user_stake_by_type(user_id)
+        }
+    }
+
+    #[view]
+    fn getTotalStakeByType(&self) -> Vec<BigUint> {
+        self._get_user_stake_by_type(USER_STAKE_TOTALS_ID)
+    }
+
+    #[view]
+    fn getTotalActiveStake(&self) -> BigUint {
+        self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Active)
     }
 
     /// Claiming rewards has 2 steps:
@@ -142,8 +223,7 @@ pub trait UserDataModule {
     fn _load_user_data(&self, user_id: usize) -> UserData<BigUint> {
         let u_rew_checkp = self._get_user_rew_checkpoint(user_id);
         let u_rew_unclmd = self._get_user_rew_unclaimed(user_id);
-        // let u_stake_totl = self._get_user_total_stake(user_id);
-        let u_stake_actv = self._get_user_stake_of_type(user_id, NodeState::Active);
+        let u_stake_actv = self._get_user_stake_of_type(user_id, UserStakeState::Active);
         UserData {
             reward_checkpoint: u_rew_checkp,
             unclaimed_rewards: u_rew_unclmd,
@@ -157,8 +237,7 @@ pub trait UserDataModule {
     fn store_user_data(&self, user_id: usize, data: &UserData<BigUint>) {
         self._set_user_rew_checkpoint(user_id, &data.reward_checkpoint);
         self._set_user_rew_unclaimed(user_id, &data.unclaimed_rewards);
-        // self._set_user_total_stake(user_id, &data.total_stake);
-        self._set_user_stake_of_type(user_id, NodeState::Active, &data.active_stake);
+        self._set_user_stake_of_type(user_id, UserStakeState::Active, &data.active_stake);
     }
 
     /// Block timestamp of when the user offered stake for sale.
@@ -170,5 +249,67 @@ pub trait UserDataModule {
     #[private]
     #[storage_set("u_stake_toff")]
     fn _set_user_time_of_stake_offer(&self, user_id: usize, time_of_stake_offer: u64);
+
+    #[private]
+    fn transform_user_stake(&self, user_id: usize, old_type: UserStakeState, new_type: UserStakeState, mut total_supply: BigUint) -> BigUint {
+        let mut user_stake_old_type = self._get_user_stake_of_type(user_id, old_type);
+        let mut user_stake_new_type = self._get_user_stake_of_type(user_id, new_type);
+        let mut total_stake_old_type = self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, old_type);
+        let mut total_stake_new_type = self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, new_type);
+        if total_supply > user_stake_old_type {
+            user_stake_new_type += &user_stake_old_type;
+            total_stake_new_type += &user_stake_old_type;
+            total_stake_old_type -= &user_stake_old_type;
+            total_supply -= &user_stake_old_type;
+            user_stake_old_type = BigUint::zero();
+        } else {
+            user_stake_old_type -= &total_supply;
+            total_stake_old_type -= &total_supply;
+            user_stake_new_type += &total_supply;
+            total_stake_new_type += &total_supply;
+            total_supply = BigUint::zero();
+        }
+        self._set_user_stake_of_type(user_id, old_type, &user_stake_old_type);
+        self._set_user_stake_of_type(user_id, new_type, &user_stake_new_type);
+        self._set_user_stake_of_type(USER_STAKE_TOTALS_ID, old_type, &total_stake_old_type);
+        self._set_user_stake_of_type(USER_STAKE_TOTALS_ID, new_type, &total_stake_new_type);
+        
+        total_supply
+    }
+
+    /// Converts inactive stake into active stake for users.
+    /// Walking in increasing user id order, so older users get picked first.
+    #[private]
+    fn transform_user_stake_asc(&self, old_type: UserStakeState, new_type: UserStakeState, amount: &BigUint) -> Result<(), &'static str> {
+        let mut remaining = amount.clone();
+        let num_users = self.getNumUsers();
+        let mut i = 1usize;
+        while i <= num_users && remaining > 0 {
+            remaining = self.transform_user_stake(i, old_type, new_type, remaining);
+            i += 1;
+        }
+
+        if remaining > 0 {
+            Err("not enough user stake")
+        } else {
+            Ok(())
+        }
+    }
+
+    #[private]
+    fn transform_user_stake_desc(&self, old_type: UserStakeState, new_type: UserStakeState, amount: &BigUint) -> Result<(), &'static str> {
+        let mut remaining = amount.clone();
+        let mut i = self.getNumUsers();
+        while i > 0 && remaining > 0 {
+            remaining = self.transform_user_stake(i, old_type, new_type, remaining);
+            i -= 1;
+        }
+
+        if remaining > 0 {
+            Err("not enough active stake")
+        } else {
+            Ok(())
+        }
+    }
 
 }

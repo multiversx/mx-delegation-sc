@@ -8,25 +8,26 @@
 pub mod auction_proxy;
 pub mod bls_key;
 pub mod node_state;
+pub mod user_stake_state;
 pub mod util;
 
 // modules
 pub mod events;
-// pub mod genesis;
-pub mod nodes;
+pub mod genesis;
+pub mod node_config;
 pub mod rewards;
-pub mod stake_per_node;
-pub mod stake_per_user;
+pub mod node_activation;
+pub mod user_stake;
 pub mod stake_sale;
 // pub mod unexpected;
 pub mod user_data;
 pub mod settings;
 
 use crate::events::*;
-use crate::nodes::*;
+use crate::node_config::*;
 use crate::rewards::*;
-use crate::stake_per_node::*;
-use crate::stake_per_user::*;
+use crate::node_activation::*;
+use crate::user_stake::*;
 use crate::stake_sale::*;
 // use crate::unexpected::*;
 use crate::user_data::*;
@@ -51,8 +52,8 @@ pub trait Delegation {
     #[module(EventsModuleImpl)]
     fn events(&self) -> EventsModuleImpl<T, BigInt, BigUint>;
 
-    #[module(NodeModuleImpl)]
-    fn nodes(&self) -> NodeModuleImpl<T, BigInt, BigUint>;
+    #[module(NodeConfigModuleImpl)]
+    fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, BigUint>;
 
     #[module(RewardsModuleImpl)]
     fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
@@ -63,8 +64,8 @@ pub trait Delegation {
     #[module(UserStakeModuleImpl)]
     fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
 
-    #[module(ContractStakeModuleImpl)]
-    fn contract_stake(&self) -> ContractStakeModuleImpl<T, BigInt, BigUint>;
+    #[module(NodeActivationModuleImpl)]
+    fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
 
     #[module(StakeSaleModuleImpl)]
     fn stake_sale(&self) -> StakeSaleModuleImpl<T, BigInt, BigUint>;
@@ -83,7 +84,7 @@ pub trait Delegation {
             #[callback_arg] node_ids: Vec<usize>,
             call_result: AsyncCallResult<()>) {
 
-        let _ = self.contract_stake().auction_stake_callback(
+        let _ = self.node_activation().auction_stake_callback(
             node_ids,
             call_result);
     }
@@ -93,7 +94,7 @@ pub trait Delegation {
             #[callback_arg] node_ids: Vec<usize>,
             call_result: AsyncCallResult<()>) {
 
-        let _ = self.contract_stake().auction_unStake_callback(
+        let _ = self.node_activation().auction_unStake_callback(
             node_ids,
             call_result);
     }
@@ -103,7 +104,7 @@ pub trait Delegation {
             #[callback_arg] node_ids: Vec<usize>,
             call_result: AsyncCallResult<()>) {
 
-        let _ = self.contract_stake().auction_unBond_callback(
+        let _ = self.node_activation().auction_unBond_callback(
             node_ids,
             call_result);
     }
