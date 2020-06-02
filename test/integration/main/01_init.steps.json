@@ -40,6 +40,12 @@
                     "balance": "0",
                     "storage": {},
                     "code": ""
+                },
+                "''delegator_3___________________s1": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "storage": {},
+                    "code": ""
                 }
             },
             "newAddresses": [

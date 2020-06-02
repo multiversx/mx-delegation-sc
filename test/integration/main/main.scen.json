@@ -97,6 +97,22 @@
         {
             "step": "externalSteps",
             "path": "10c_check_unbond.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "11_stake_sale_pt_1.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "11c_check_stake_sale.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "12_stake_sale_pt_2.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "12c_check_stake_sale.steps.json"
         }
     ]
 }
