@@ -152,7 +152,7 @@ pub trait ContractStakeModule {
         }
 
         let stake = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
-        self.user_data().transform_user_stake_asc(UserStakeState::Active, UserStakeState::PendingDeactivation, &stake)?;
+        self.user_data().transform_user_stake_desc(UserStakeState::Active, UserStakeState::PendingDeactivation, &stake)?;
 
         // send unstake command to Auction SC
         let auction_contract_addr = self.settings().getAuctionContractAddress();
@@ -176,7 +176,7 @@ pub trait ContractStakeModule {
         match call_result {
             AsyncCallResult::Ok(()) => {
                 // set user stake to Active
-                self.user_data().transform_user_stake_asc(UserStakeState::PendingDeactivation, UserStakeState::UnBondPeriod, &stake_sent)?;
+                self.user_data().transform_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::UnBondPeriod, &stake_sent)?;
 
                 // set nodes to Active
                 for &node_id in node_ids.iter() {
@@ -188,7 +188,7 @@ pub trait ContractStakeModule {
             },
             AsyncCallResult::Err(error) => {
                 // revert user stake to Inactive
-                self.user_data().transform_user_stake_asc(UserStakeState::PendingDeactivation, UserStakeState::Active, &stake_sent)?;
+                self.user_data().transform_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::Active, &stake_sent)?;
 
                 // revert nodes to Inactive
                 for &node_id in node_ids.iter() {
@@ -221,7 +221,7 @@ pub trait ContractStakeModule {
         }
 
         let stake = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
-        self.user_data().transform_user_stake_asc(UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond, &stake)?;
+        self.user_data().transform_user_stake_desc(UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond, &stake)?;
         
         // send unbond command to Auction SC
         let auction_contract_addr = self.settings().getAuctionContractAddress();
@@ -245,7 +245,7 @@ pub trait ContractStakeModule {
         match call_result {
             AsyncCallResult::Ok(()) => {
                 // set user stake to Active
-                self.user_data().transform_user_stake_asc(UserStakeState::PendingUnBond, UserStakeState::Inactive, &stake_sent)?;
+                self.user_data().transform_user_stake_desc(UserStakeState::PendingUnBond, UserStakeState::Inactive, &stake_sent)?;
 
                 // set nodes to Inactive
                 for &node_id in node_ids.iter() {
@@ -257,7 +257,7 @@ pub trait ContractStakeModule {
             },
             AsyncCallResult::Err(error) => {
                 // revert user stake to Inactive
-                self.user_data().transform_user_stake_asc(UserStakeState::PendingUnBond, UserStakeState::UnBondPeriod, &stake_sent)?;
+                self.user_data().transform_user_stake_desc(UserStakeState::PendingUnBond, UserStakeState::UnBondPeriod, &stake_sent)?;
 
                 // revert nodes to Inactive
                 for &node_id in node_ids.iter() {
