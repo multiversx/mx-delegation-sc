@@ -47,7 +47,7 @@ pub trait GenesisModule {
         // set nodes to Active, and count how many not deleted
         let num_nodes = self.node_config().getNumNodes();
         let mut num_inactive_nodes = 0usize;
-        for node_id in 1..num_nodes {
+        for node_id in 1..num_nodes+1 {
             match self.node_config().getNodeState(node_id) {
                 NodeState::Inactive => {
                     self.node_config()._set_node_state(node_id, NodeState::Active);
