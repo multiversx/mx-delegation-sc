@@ -17,16 +17,18 @@ pub mod genesis;
 pub mod node_config;
 pub mod rewards;
 pub mod node_activation;
-pub mod user_stake;
+pub mod pause;
 pub mod stake_sale;
 pub mod unexpected;
 pub mod user_data;
+pub mod user_stake;
 pub mod settings;
 
 use crate::events::*;
 use crate::node_config::*;
 use crate::rewards::*;
 use crate::node_activation::*;
+use crate::pause::*;
 use crate::user_stake::*;
 use crate::stake_sale::*;
 use crate::unexpected::*;
@@ -60,6 +62,9 @@ pub trait Delegation {
 
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
+
+    #[module(PauseModuleImpl)]
+    fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
 
     #[module(UserStakeModuleImpl)]
     fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;

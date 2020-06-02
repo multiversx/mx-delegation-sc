@@ -56,6 +56,10 @@
         },
         {
             "step": "externalSteps",
+            "path": "03x_stake_paused.steps.json"
+        },
+        {
+            "step": "externalSteps",
             "path": "04_activate.steps.json"
         },
         {

@@ -56,8 +56,72 @@
         },
         {
             "step": "scCall",
-            "comment": "new delegator buys the stake",
-            "txId": "1",
+            "txId": "pause stake sale",
+            "tx": {
+                "from": "''node_address__________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "pauseStakeSale",
+                "arguments": [],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "comment": "new delegator tries to buy the stake, but cannot",
+            "txId": "purchaseStake-paused",
+            "tx": {
+                "from": "''delegator_3___________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "1,000,000,000,000",
+                "function": "purchaseStake",
+                "arguments": [
+                    "''delegator_1___________________s1"
+                ],
+                "gasLimit": "4,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "stake sale paused",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "unpause stake sale",
+            "tx": {
+                "from": "''node_address__________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "unpauseStakeSale",
+                "arguments": [],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "comment": "new delegator now buys the stake",
+            "txId": "purchaseStake",
             "tx": {
                 "from": "''delegator_3___________________s1",
                 "to": "''delegation_contract___________s1",

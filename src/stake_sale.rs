@@ -1,6 +1,7 @@
 use crate::user_stake_state::*;
 
 use crate::events::*;
+use crate::pause::*;
 use crate::user_data::*;
 
 imports!();
@@ -16,10 +17,12 @@ pub trait StakeSaleModule {
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
 
-
+    #[module(PauseModuleImpl)]
+    fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
 
     /// Creates a stake offer. Overwrites any previous stake offer.
     /// Once a stake offer is up, it can be bought by anyone on a first come first served basis.
+    /// Cannot be paused, because this is also part of the mechanism of forceUnstake, which the owner cannot veto.
     fn offerStakeForSale(&self, amount: BigUint) -> Result<(), &str> {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);
@@ -56,6 +59,10 @@ pub trait StakeSaleModule {
     /// The payment for the stake does not stay in the contract, it gets forwarded immediately to the seller.
     #[payable]
     fn purchaseStake(&self, seller: Address, #[payment] payment: BigUint) -> Result<(), &str> {
+        if self.pause().isStakeSalePaused() {
+            return Err("stake sale paused");
+        }
+
         if payment == 0 {
             return Ok(())
         }

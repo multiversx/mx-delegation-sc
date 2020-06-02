@@ -3,6 +3,7 @@ use crate::user_stake_state::*;
 
 use crate::events::*;
 use crate::node_config::*;
+use crate::pause::*;
 use crate::user_data::*;
 use crate::node_activation::*;
 
@@ -24,8 +25,15 @@ pub trait UserStakeModule {
     #[module(NodeActivationModuleImpl)]
     fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
 
+    #[module(PauseModuleImpl)]
+    fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
+
     #[payable]
     fn stake(&self, #[payment] payment: BigUint) -> Result<(), &str> {
+        if self.pause().isStakingPaused() {
+            return Err("staking paused");
+        }
+        
         if payment == 0 {
             return Ok(());
         }
