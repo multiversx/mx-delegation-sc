@@ -131,7 +131,7 @@ pub trait ContractStakeModule {
     /// The contract will stop receiving rewards, but stake cannot be yet reclaimed.
     /// This operation is performed by the owner.
     fn deactivateNodes(&self,
-            bls_keys: Vec<BLSKey>) -> Result<(), &str> {
+            #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
 
         if self.get_caller() != self.settings().getContractOwner() {
             return Err("only owner can deactivate"); 
@@ -208,17 +208,20 @@ pub trait ContractStakeModule {
     /// Claims unstaked stake from the auction smart contract.
     /// This operation can be executed by anyone (note that it might cost much gas).
     fn unBond(&self,
-            bls_keys: Vec<BLSKey>) -> Result<(), &str> {
+            #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
             let node_id = self.node_config().getNodeId(&bls_key);
             node_ids.push(node_id);
-            if self.node_config().getNodeState(node_id) != NodeState::Active {
+            if self.node_config().getNodeState(node_id) != NodeState::UnBondPeriod {
                 return Err("node not in unbond period");
             }
             self.node_config()._set_node_state(node_id, NodeState::PendingUnBond);
         }
+
+        let stake = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
+        self.user_data().transform_user_stake_asc(UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond, &stake)?;
         
         // send unbond command to Auction SC
         let auction_contract_addr = self.settings().getAuctionContractAddress();
@@ -269,7 +272,7 @@ pub trait ContractStakeModule {
         Ok(())
     }
 
-        // /// Delegators can force the entire contract to unstake
+    // /// Delegators can force the entire contract to unstake
     // /// if they put up stake for sale and no-one has bought it for long enough.
     // /// This operation can be performed by any delegator.
     // fn forceUnstake(&self) -> Result<(), &str> {

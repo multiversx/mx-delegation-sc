@@ -46,13 +46,8 @@ pub trait AuctionMock {
             return Err("auction smart contract deliberate error");
         }
 
-        let num_nodes = self.storage()._get_num_nodes();
-        if num_nodes != bls_keys.len() {
-            return Err("all BLS keys expected as arguments in this mock");
-        }
-
-        for n in 0..num_nodes {
-            self.storage()._set_unStake_bls_key(n, &bls_keys[n]);
+        for (n, bls_key) in bls_keys.iter().enumerate() {
+            self.storage()._set_unStake_bls_key(n, bls_key);
         }
 
         Ok(())
@@ -65,13 +60,8 @@ pub trait AuctionMock {
             return Err("auction smart contract deliberate error");
         }
 
-        let num_nodes = self.storage()._get_num_nodes();
-        if num_nodes != bls_keys.len() {
-            return Err("all BLS keys expected as arguments in this mock");
-        }
-
-        for n in 0..num_nodes {
-            self.storage()._set_unStake_bls_key(n, &bls_keys[n]);
+        for (n, bls_key) in bls_keys.iter().enumerate() {
+            self.storage()._set_unBond_bls_key(n, bls_key);
         }
 
         Ok(())

@@ -12,7 +12,7 @@
         },
         {
             "step": "scCall",
-            "txId": "get-total-cumulated-1",
+            "txId": "get-total-cumulated-2",
             "comment": "666,000,000 + 888,000,000",
             "tx": {
                 "from": "''someone_______________________s1",

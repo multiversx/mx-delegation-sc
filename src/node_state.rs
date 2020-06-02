@@ -28,7 +28,7 @@ pub enum NodeState {
 }
 
 impl NodeState {
-    fn to_u8(&self) -> u8 {
+    pub fn to_u8(&self) -> u8 {
         match self {
             NodeState::Inactive => 0,
             NodeState::PendingActivation => 1,

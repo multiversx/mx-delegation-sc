@@ -80,7 +80,23 @@
         },
         {
             "step": "externalSteps",
-            "path": "07c_activate_pt_2.steps.json"
+            "path": "08_rewards_pt_2.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "09_unstake_nodes.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "09c_check_unstake.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "10_unbond_nodes.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "10c_check_unbond.steps.json"
         }
     ]
 }

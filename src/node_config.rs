@@ -100,12 +100,20 @@ pub trait NodeModule {
     /// The key is the bytes "node_id" concatenated with the BLS key. The value is the node id.
     /// Ids start from 1 because 0 means unset of None.
     #[view]
-    #[storage_get("node_id")]
+    #[storage_get("node_bls_to_id")]
     fn getNodeId(&self, bls_key: &BLSKey) -> usize;
 
     #[private]
-    #[storage_set("node_id")]
-    fn _set_node_id(&self, bls_key: &BLSKey, node_id: usize);
+    #[storage_set("node_bls_to_id")]
+    fn _set_node_bls_to_id(&self, bls_key: &BLSKey, node_id: usize);
+
+    #[view]
+    #[storage_get("node_id_to_bls")]
+    fn _get_node_id_to_bls(&self, node_id: usize) -> BLSKey;
+
+    #[private]
+    #[storage_set("node_id_to_bls")]
+    fn _set_node_id_to_bls(&self, node_id: usize, bls_key: &BLSKey);
 
     /// Current state of node: inactive, active, deleted, etc.
     #[storage_get("n_state")]
@@ -129,6 +137,19 @@ pub trait NodeModule {
         true
     }
 
+    #[view]
+    fn getAllNodeStates(&self) -> Vec<Vec<u8>> {
+        let num_nodes = self.getNumNodes();
+        let mut result: Vec<Vec<u8>> = Vec::new();
+        for i in 1..num_nodes+1 {
+            let bls = self._get_node_id_to_bls(i);
+            result.push(bls.to_vec());
+            let state = self.getNodeState(i);
+            result.push([state.to_u8()].to_vec());
+        }
+        result
+    }
+
     /// The number of nodes that will run with the contract stake is configured by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     /// Important: it has to be called BEFORE setting the BLS keys.
@@ -144,7 +165,8 @@ pub trait NodeModule {
             if existing_node_id == 0 {
                 num_nodes += 1;
                 let new_node_id = num_nodes;
-                self._set_node_id(bls_key, new_node_id);
+                self._set_node_bls_to_id(bls_key, new_node_id);
+                self._set_node_id_to_bls(new_node_id, bls_key);
                 self._set_node_state(new_node_id, NodeState::Inactive);
             } else if self.getNodeState(existing_node_id) == NodeState::Removed {
                 self._set_node_state(existing_node_id, NodeState::Inactive);
