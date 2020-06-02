@@ -10,8 +10,8 @@ imports!();
 pub trait AuctionMockStorage {
 
     #[private]
-    #[storage_set("received_stake")]
-    fn _set_received_stake(&self, total_stake: &BigUint);
+    #[storage_get("stake_per_node")]
+    fn _get_stake_per_node(&self) -> BigUint;
 
     #[private]
     #[storage_get("num_nodes")]

@@ -113,6 +113,10 @@
         {
             "step": "externalSteps",
             "path": "12c_check_stake_sale.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "13_unexpected.steps.json"
         }
     ]
 }

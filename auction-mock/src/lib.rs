@@ -28,13 +28,19 @@ pub trait AuctionMock {
             return Err("auction smart contract deliberate error");
         }
 
-        self.storage()._set_received_stake(&payment);
-        self.storage()._set_num_nodes(num_nodes);
-        
-        for n in 0..num_nodes {
-            self.storage()._set_stake_bls_key(n, &bls_keys_signatures[2*n]);
-            self.storage()._set_stake_bls_signature(n, &bls_keys_signatures[2*n+1]);
+        let mut new_num_nodes = self.storage()._get_num_nodes();
+        let expected_payment = BigUint::from(num_nodes) * self.storage()._get_stake_per_node();
+        if payment != &expected_payment {
+            return Err("incorrect payment to auction mock");
         }
+
+        for n in 0..num_nodes {
+            new_num_nodes += 1;
+            self.storage()._set_stake_bls_key(new_num_nodes, &bls_keys_signatures[2*n]);
+            self.storage()._set_stake_bls_signature(new_num_nodes, &bls_keys_signatures[2*n+1]);
+        }
+
+        self.storage()._set_num_nodes(new_num_nodes);
 
         Ok(())
     }
@@ -63,6 +69,9 @@ pub trait AuctionMock {
         for (n, bls_key) in bls_keys.iter().enumerate() {
             self.storage()._set_unBond_bls_key(n, bls_key);
         }
+
+        let unbond_stake = BigUint::from(bls_keys.len()) * self.storage()._get_stake_per_node();
+        self.send_tx(&self.get_caller(), &unbond_stake, "unbond stake");
 
         Ok(())
     }

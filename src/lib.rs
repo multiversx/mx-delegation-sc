@@ -19,7 +19,7 @@ pub mod rewards;
 pub mod node_activation;
 pub mod user_stake;
 pub mod stake_sale;
-// pub mod unexpected;
+pub mod unexpected;
 pub mod user_data;
 pub mod settings;
 
@@ -29,7 +29,7 @@ use crate::rewards::*;
 use crate::node_activation::*;
 use crate::user_stake::*;
 use crate::stake_sale::*;
-// use crate::unexpected::*;
+use crate::unexpected::*;
 use crate::user_data::*;
 use crate::settings::*;
 
@@ -70,8 +70,8 @@ pub trait Delegation {
     #[module(StakeSaleModuleImpl)]
     fn stake_sale(&self) -> StakeSaleModuleImpl<T, BigInt, BigUint>;
 
-    // #[module(UnexpectedBalanceModuleImpl)]
-    // fn unexpected(&self) -> UnexpectedBalanceModuleImpl<T, BigInt, BigUint>;
+    #[module(UnexpectedBalanceModuleImpl)]
+    fn unexpected(&self) -> UnexpectedBalanceModuleImpl<T, BigInt, BigUint>;
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
