@@ -84,6 +84,10 @@
         },
         {
             "step": "externalSteps",
+            "path": "07c_activate_pt_2.steps.json"
+        },
+        {
+            "step": "externalSteps",
             "path": "08_rewards_pt_2.steps.json"
         },
         {

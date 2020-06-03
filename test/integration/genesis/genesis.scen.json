@@ -60,6 +60,58 @@
         {
             "step": "externalSteps",
             "path": "../main/07c_activate_pt_2.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/08_rewards_pt_2.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/09_unstake_nodes.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/09c_check_unstake.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/10_unbond_nodes.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/10c_check_unbond.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/11_stake_sale_pt_1.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/11c_check_stake_sale.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/12_stake_sale_pt_2.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/12c_check_stake_sale.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/13_unexpected.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/14x_force_unstake_too_soon.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/14_force_unstake.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/14c_check_force_unstake.steps.json"
         }
     ]
 }
