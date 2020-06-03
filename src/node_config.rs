@@ -123,6 +123,8 @@ pub trait NodeModule {
     #[storage_set("n_state")]
     fn _set_node_state(&self, user_id: usize, node_state: NodeState);
 
+    /// True if all nodes are either inactive or removed.
+    /// Some operations (like setServiceFee and setStakePerNode) can only be performed when all nodes are idle.
     #[view]
     fn allNodesIdle(&self) -> bool {
         let mut i = self.getNumNodes();
