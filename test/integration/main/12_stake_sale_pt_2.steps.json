@@ -2,6 +2,13 @@
     "name": "unstake some nodes",
     "steps": [
         {
+            "step": "setState",
+            "comment": "relevant for force unstake later",
+            "currentBlockInfo": {
+                "blockTimestamp": "1589120000"
+            }
+        },
+        {
             "step": "scCall",
             "txId": "offer-2",
             "tx": {
@@ -39,6 +46,28 @@
             },
             "expect": {
                 "out": [ "113,000,000,000,000" ],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "check-stake-offer-time",
+            "tx": {
+                "from": "''someone_______________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "getTimeOfStakeOffer",
+                "arguments": [
+                    "''delegator_1___________________s1"
+                ],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [ "1589120000" ],
                 "status": "",
                 "logs": [],
                 "gas": "*",

@@ -48,7 +48,7 @@ pub trait GenesisModule {
         let num_nodes = self.node_config().getNumNodes();
         let mut num_inactive_nodes = 0usize;
         for node_id in 1..num_nodes+1 {
-            match self.node_config().getNodeState(node_id) {
+            match self.node_config()._get_node_state(node_id) {
                 NodeState::Inactive => {
                     self.node_config()._set_node_state(node_id, NodeState::Active);
                     num_inactive_nodes += 1;

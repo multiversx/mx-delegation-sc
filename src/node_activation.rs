@@ -53,7 +53,7 @@ pub trait ContractStakeModule {
                 let bls_key = BLSKey::from_bytes(arg)?;
                 let node_id = self.node_config().getNodeId(&bls_key);
                 node_ids.push(node_id);
-                if self.node_config().getNodeState(node_id) != NodeState::Inactive {
+                if self.node_config()._get_node_state(node_id) != NodeState::Inactive {
                     return Err("node not inactive");
                 }
                 self.node_config()._set_node_state(node_id, NodeState::PendingActivation);
@@ -137,20 +137,29 @@ pub trait ContractStakeModule {
             return Err("only owner can deactivate"); 
         }
 
-        // All rewards need to be recalculated now, 
-        // because the rewardable stake will change shortly.
-        self.rewards().computeAllRewards();
-
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
             let node_id = self.node_config().getNodeId(&bls_key);
             node_ids.push(node_id);
-            if self.node_config().getNodeState(node_id) != NodeState::Active {
+            if self.node_config()._get_node_state(node_id) != NodeState::Active {
                 return Err("node not active");
             }
-            self.node_config()._set_node_state(node_id, NodeState::PendingActivation);
+            self.node_config()._set_node_state(node_id, NodeState::PendingDeactivation);
         }
 
+        self._perform_deactivate_nodes(node_ids, bls_keys)
+    }
+
+    #[private]
+    fn _perform_deactivate_nodes(&self, 
+            node_ids: Vec<usize>,
+            bls_keys: Vec<BLSKey>) -> Result<(), &str> {
+
+        // All rewards need to be recalculated now, 
+        // because the rewardable stake will change shortly.
+        self.rewards().computeAllRewards();
+
+        // convert user stake to PendingDeactivation
         let stake = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
         self.user_data().transform_user_stake_desc(UserStakeState::Active, UserStakeState::PendingDeactivation, &stake)?;
 
@@ -214,7 +223,7 @@ pub trait ContractStakeModule {
         for bls_key in bls_keys.iter() {
             let node_id = self.node_config().getNodeId(&bls_key);
             node_ids.push(node_id);
-            if self.node_config().getNodeState(node_id) != NodeState::UnBondPeriod {
+            if self.node_config()._get_node_state(node_id) != NodeState::UnBondPeriod {
                 return Err("node not in unbond period");
             }
             self.node_config()._set_node_state(node_id, NodeState::PendingUnBond);
@@ -272,41 +281,42 @@ pub trait ContractStakeModule {
         Ok(())
     }
 
-    // /// Delegators can force the entire contract to unstake
-    // /// if they put up stake for sale and no-one has bought it for long enough.
-    // /// This operation can be performed by any delegator.
-    // fn forceUnstake(&self) -> Result<(), &str> {
-    //     let user_id = self.user_data().getUserId(&self.get_caller());
-    //     if user_id == 0 {
-    //         return Err("only delegators can call forceUnstake");
-    //     }
+    /// Delegators can force some or all nodes to unstake
+    /// if they put up stake for sale and no-one has bought it for long enough.
+    /// This operation can be performed by any delegator.
+    fn forceUnstake(&self) -> Result<(), &str> {
+        let user_id = self.user_data().getUserId(&self.get_caller());
+        if user_id == 0 {
+            return Err("only delegators can call forceUnstake");
+        }
 
-    //     if self.user_data()._get_user_stake_for_sale(user_id) == 0 {
-    //         return Err("only delegators that are trying to sell stake can call forceUnstake");
-    //     }
+        let stake_for_sale = self.user_data()._get_user_stake_for_sale(user_id);
+        if stake_for_sale == 0 {
+            return Err("only delegators that are trying to sell stake can call forceUnstake");
+        }
 
-    //     let time_of_stake_offer = self.user_data()._get_user_time_of_stake_offer(user_id);
-    //     let time_before_force_unstake = self.settings().getTimeBeforeForceUnstake();
-    //     if self.get_block_timestamp() <= time_of_stake_offer + time_before_force_unstake {
-    //         return Err("too soon to call forceUnstake");
-    //     }
+        let time_of_stake_offer = self.user_data()._get_user_time_of_stake_offer(user_id);
+        let time_before_force_unstake = self.settings().getTimeBeforeForceUnstake();
+        if self.get_block_timestamp() <= time_of_stake_offer + time_before_force_unstake {
+            return Err("too soon to call forceUnstake");
+        }
 
-
+        // find enough nodes to cover requested stake
+        let mut node_ids: Vec<usize> = Vec::new();
+        let mut bls_keys: Vec<BLSKey> = Vec::new();
+        let mut i = self.node_config().getNumNodes();
+        let mut node_stake = BigUint::zero();
+        let stake_per_node = self.node_config().getStakePerNode();
+        while i > 0 && stake_for_sale > node_stake {
+            if let NodeState::Active = self.node_config()._get_node_state(i) {
+                node_stake += &stake_per_node;
+                node_ids.push(i);
+                bls_keys.push(self.node_config()._get_node_id_to_bls(i));
+            }
+            i -= 1;
+        }
  
-    //     self._perform_deactivate()
-    // }
-
-    // #[private]
-    // fn _perform_deactivate(&self) -> Result<(), &str> {
-    //     // change state
-    //     self._set_stake_state(NodeState::PendingDeactivation);
-        
-    //     // send unstake command to Auction SC
-    //     let auction_contract_addr = self.settings().getAuctionContractAddress();
-    //     let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
-    //     auction_contract.unStake(self.node_config().getBlsKeys());
-
-    //     Ok(())
-    // }
+        self._perform_deactivate_nodes(node_ids, bls_keys)
+    }
 
 }

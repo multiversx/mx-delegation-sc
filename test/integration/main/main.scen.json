@@ -121,6 +121,14 @@
         {
             "step": "externalSteps",
             "path": "13_unexpected.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "14x_force_unstake_too_soon.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "14_force_unstake.steps.json"
         }
     ]
 }

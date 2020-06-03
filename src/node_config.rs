@@ -117,7 +117,7 @@ pub trait NodeModule {
 
     /// Current state of node: inactive, active, deleted, etc.
     #[storage_get("n_state")]
-    fn getNodeState(&self, user_id: usize) -> NodeState;
+    fn _get_node_state(&self, user_id: usize) -> NodeState;
 
     #[private]
     #[storage_set("n_state")]
@@ -127,7 +127,7 @@ pub trait NodeModule {
     fn allNodesIdle(&self) -> bool {
         let mut i = self.getNumNodes();
         while i > 0 {
-            let node_state = self.getNodeState(i);
+            let node_state = self._get_node_state(i);
             if node_state != NodeState::Inactive && node_state != NodeState::Removed {
                 return false;
             }
@@ -144,7 +144,7 @@ pub trait NodeModule {
         for i in 1..num_nodes+1 {
             let bls = self._get_node_id_to_bls(i);
             result.push(bls.to_vec());
-            let state = self.getNodeState(i);
+            let state = self._get_node_state(i);
             result.push([state.to_u8()].to_vec());
         }
         result
@@ -168,7 +168,7 @@ pub trait NodeModule {
                 self._set_node_bls_to_id(bls_key, new_node_id);
                 self._set_node_id_to_bls(new_node_id, bls_key);
                 self._set_node_state(new_node_id, NodeState::Inactive);
-            } else if self.getNodeState(existing_node_id) == NodeState::Removed {
+            } else if self._get_node_state(existing_node_id) == NodeState::Removed {
                 self._set_node_state(existing_node_id, NodeState::Inactive);
             } else {
                 return Err("node already registered"); 
@@ -189,7 +189,7 @@ pub trait NodeModule {
             if node_id == 0 {
                 return Err("node not registered");
             }
-            if self.getNodeState(node_id) != NodeState::Inactive {
+            if self._get_node_state(node_id) != NodeState::Inactive {
                 return Err("only inactive nodes can be removed");
             }
             self._set_node_state(node_id, NodeState::Removed);

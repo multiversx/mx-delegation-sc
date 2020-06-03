@@ -2,6 +2,7 @@ use crate::user_stake_state::*;
 
 use crate::events::*;
 use crate::pause::*;
+use crate::rewards::*;
 use crate::user_data::*;
 
 imports!();
@@ -19,6 +20,9 @@ pub trait StakeSaleModule {
 
     #[module(PauseModuleImpl)]
     fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
+
+    #[module(RewardsModuleImpl)]
+    fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
 
     /// Creates a stake offer. Overwrites any previous stake offer.
     /// Once a stake offer is up, it can be bought by anyone on a first come first served basis.
@@ -53,6 +57,15 @@ pub trait StakeSaleModule {
         self.user_data()._get_user_stake_for_sale(user_id)
     }
 
+    #[view]
+    fn getTimeOfStakeOffer(&self, user: Address) -> u64 {
+        let user_id = self.user_data().getUserId(&user);
+        if user_id == 0 {
+            return 0
+        }
+        self.user_data()._get_user_time_of_stake_offer(user_id)
+    }
+
     /// User-to-user purchase of stake.
     /// Only stake that has been offered for sale by owner can be bought.
     /// Note: the price of 1 staked ERD must always be 1 "free" ERD, from outside the contract.
@@ -83,6 +96,10 @@ pub trait StakeSaleModule {
             }
         })?;
 
+        // compute seller rewards
+        let seller_data = self.rewards()._load_user_data_update_rewards(seller_id);
+        self.user_data().store_user_data(seller_id, &seller_data);
+
         // decrease stake of seller
         let enough = self.user_data()._decrease_user_stake_of_type(seller_id, UserStakeState::Active, &payment);
         if !enough {
@@ -96,6 +113,10 @@ pub trait StakeSaleModule {
             buyer_id = self.user_data().new_user();
             self.user_data()._set_user_id(&caller, buyer_id);
         }
+
+        // compute buyer rewards
+        let buyer_data = self.rewards()._load_user_data_update_rewards(buyer_id);
+        self.user_data().store_user_data(buyer_id, &buyer_data);
 
         // increase stake of buyer
         self.user_data()._increase_user_stake_of_type(buyer_id, UserStakeState::Active, &payment);
