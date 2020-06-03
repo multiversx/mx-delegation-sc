@@ -147,11 +147,12 @@ pub trait ContractStakeModule {
             self.node_config()._set_node_state(node_id, NodeState::PendingDeactivation);
         }
 
-        self._perform_deactivate_nodes(node_ids, bls_keys)
+        self._perform_deactivate_nodes(None, node_ids, bls_keys)
     }
 
     #[private]
-    fn _perform_deactivate_nodes(&self, 
+    fn _perform_deactivate_nodes(&self,
+            opt_requester_id: Option<usize>,
             node_ids: Vec<usize>,
             bls_keys: Vec<BLSKey>) -> Result<(), &str> {
 
@@ -160,8 +161,17 @@ pub trait ContractStakeModule {
         self.rewards().computeAllRewards();
 
         // convert user stake to PendingDeactivation
-        let stake = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
-        self.user_data().transform_user_stake_desc(UserStakeState::Active, UserStakeState::PendingDeactivation, &stake)?;
+        let mut stake_to_deactivate = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
+        if let Some(requester_id) = opt_requester_id {
+            // if requested by a user, that user has priority
+            stake_to_deactivate = self.user_data().transform_user_stake(
+                requester_id,
+                UserStakeState::Active, UserStakeState::PendingDeactivation,
+                stake_to_deactivate);
+        }
+        self.user_data().transform_user_stake_desc(
+            UserStakeState::Active, UserStakeState::PendingDeactivation,
+            &stake_to_deactivate)?;
 
         // send unstake command to Auction SC
         let auction_contract_addr = self.settings().getAuctionContractAddress();
@@ -254,6 +264,7 @@ pub trait ContractStakeModule {
         match call_result {
             AsyncCallResult::Ok(()) => {
                 // set user stake to Active
+                // TODO: make sure delegators with stake for sale get the stake first
                 self.user_data().transform_user_stake_desc(UserStakeState::PendingUnBond, UserStakeState::Inactive, &stake_sent)?;
 
                 // set nodes to Inactive
@@ -316,7 +327,7 @@ pub trait ContractStakeModule {
             i -= 1;
         }
  
-        self._perform_deactivate_nodes(node_ids, bls_keys)
+        self._perform_deactivate_nodes(Some(user_id), node_ids, bls_keys)
     }
 
 }

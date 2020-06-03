@@ -129,6 +129,10 @@
         {
             "step": "externalSteps",
             "path": "14_force_unstake.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "14c_check_force_unstake.steps.json"
         }
     ]
 }
