@@ -244,11 +244,11 @@ pub trait UserDataModule {
     /// Note: not part of the UserData struct because it is not needed as often.
     #[private]
     #[storage_get("u_stake_toff")]
-    fn _get_user_time_of_stake_offer(&self, user_id: usize) -> u64;
+    fn _get_user_bl_nonce_of_stake_offer(&self, user_id: usize) -> u64;
 
     #[private]
     #[storage_set("u_stake_toff")]
-    fn _set_user_time_of_stake_offer(&self, user_id: usize, time_of_stake_offer: u64);
+    fn _set_user_bl_nonce_of_stake_offer(&self, user_id: usize, bl_nonce_of_stake_offer: u64);
 
     #[private]
     fn transform_user_stake(&self, user_id: usize, old_type: UserStakeState, new_type: UserStakeState, mut total_supply: BigUint) -> BigUint {

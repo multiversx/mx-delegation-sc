@@ -42,7 +42,7 @@ pub trait StakeSaleModule {
 
         // store offer
         self.user_data()._set_user_stake_for_sale(user_id, &amount);
-        self.user_data()._set_user_time_of_stake_offer(user_id, self.get_block_timestamp());
+        self.user_data()._set_user_bl_nonce_of_stake_offer(user_id, self.get_block_nonce());
 
         Ok(())
     }
@@ -63,7 +63,7 @@ pub trait StakeSaleModule {
         if user_id == 0 {
             return 0
         }
-        self.user_data()._get_user_time_of_stake_offer(user_id)
+        self.user_data()._get_user_bl_nonce_of_stake_offer(user_id)
     }
 
     /// User-to-user purchase of stake.

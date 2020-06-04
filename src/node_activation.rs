@@ -306,9 +306,9 @@ pub trait ContractStakeModule {
             return Err("only delegators that are trying to sell stake can call forceUnstake");
         }
 
-        let time_of_stake_offer = self.user_data()._get_user_time_of_stake_offer(user_id);
-        let time_before_force_unstake = self.settings().getTimeBeforeForceUnstake();
-        if self.get_block_timestamp() <= time_of_stake_offer + time_before_force_unstake {
+        let block_nonce_of_stake_offer = self.user_data()._get_user_bl_nonce_of_stake_offer(user_id);
+        let n_blocks_before_force_unstake = self.settings().getNonceDiffBeforeForceUnstake();
+        if self.get_block_nonce() <= block_nonce_of_stake_offer + n_blocks_before_force_unstake {
             return Err("too soon to call forceUnstake");
         }
 

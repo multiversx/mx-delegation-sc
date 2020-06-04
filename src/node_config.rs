@@ -116,12 +116,12 @@ pub trait NodeModule {
     fn _set_node_id_to_bls(&self, node_id: usize, bls_key: &BLSKey);
 
     /// Current state of node: inactive, active, deleted, etc.
-    #[storage_get("n_state")]
-    fn _get_node_state(&self, user_id: usize) -> NodeState;
+    #[storage_get("node_state")]
+    fn _get_node_state(&self, node_id: usize) -> NodeState;
 
     #[private]
-    #[storage_set("n_state")]
-    fn _set_node_state(&self, user_id: usize, node_state: NodeState);
+    #[storage_set("node_state")]
+    fn _set_node_state(&self, node_id: usize, node_state: NodeState);
 
     /// True if all nodes are either inactive or removed.
     /// Some operations (like setServiceFee and setStakePerNode) can only be performed when all nodes are idle.
@@ -150,6 +150,24 @@ pub trait NodeModule {
             result.push([state.to_u8()].to_vec());
         }
         result
+    }
+
+    /// Block timestamp when unbond happened. 0 if not in unbond period.
+    #[private]
+    #[storage_get("node_unbond_time")]
+    fn _get_node_unbond_time(&self, node_id: usize) -> u64;
+
+    #[private]
+    #[storage_set("node_unbond_time")]
+    fn _set_node_unbond_time(&self, node_id: usize, unbond_time: u64);
+
+    fn getNodeUnbondTime(&self, bls_key: BLSKey) -> u64 {
+        let node_id = self.getNodeId(&bls_key);
+        if node_id == 0 {
+            0
+        } else {
+            self._get_node_unbond_time(node_id)
+        }
     }
 
     /// The number of nodes that will run with the contract stake is configured by the owner.

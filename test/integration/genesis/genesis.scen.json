@@ -1,5 +1,5 @@
 {
-    "name": "init",
+    "name": "genesis big scenario",
     "steps": [
         {
             "step": "externalSteps",

@@ -19,8 +19,8 @@ pub trait SettingsModule {
     /// 
     fn init(&self,
         auction_contract_addr: &Address,
-        time_before_force_unstake: u64,
-        time_before_unbond: u64,
+        n_blocks_before_force_unstake: u64,
+        n_blocks_before_unbond: u64,
     ) -> Result<(), &str> {
 
         let owner = self.get_caller();
@@ -32,8 +32,8 @@ pub trait SettingsModule {
 
         self._set_auction_addr(&auction_contract_addr);
 
-        self._set_time_before_force_unstake(time_before_force_unstake);
-        self._set_time_before_unbond(time_before_unbond);
+        self._set_n_blocks_before_force_unstake(n_blocks_before_force_unstake);
+        self._set_n_blocks_before_unbond(n_blocks_before_unbond);
 
         Ok(())
     }
@@ -70,25 +70,25 @@ pub trait SettingsModule {
 
     /// Delegators can force the entire contract to unstake
     /// if they put up stake for sale and no-one is buying it.
-    /// However, they need to wait this much time (in milliseconds)
+    /// However, they need to wait for this many n_blocks to be processed in between,
     /// from when the put up the stake for sale and the moment they can force global unstaking.
     #[view]
-    #[storage_get("time_before_force_unstake")]
-    fn getTimeBeforeForceUnstake(&self) -> u64;
+    #[storage_get("n_blocks_before_force_unstake")]
+    fn getNonceDiffBeforeForceUnstake(&self) -> u64;
 
     #[private]
-    #[storage_set("time_before_force_unstake")]
-    fn _set_time_before_force_unstake(&self, time_before_force_unstake: u64);
+    #[storage_set("n_blocks_before_force_unstake")]
+    fn _set_n_blocks_before_force_unstake(&self, n_blocks_before_force_unstake: u64);
 
-    /// Minimum time between unstake and unbond.
+    /// Minimum number of n_blocks between unstake and unbond.
     /// This mirrors the minimum unbonding period in the auction SC. 
     /// The auction SC cannot be cheated by setting this field lower, unbond will fail anyway if attempted too early.
     #[view]
-    #[storage_get("time_before_unbond")]
-    fn getTimeBeforeUnBond(&self) -> u64;
+    #[storage_get("n_blocks_before_unbond")]
+    fn getNonceDiffBeforeUnBond(&self) -> u64;
 
     #[private]
-    #[storage_set("time_before_unbond")]
-    fn _set_time_before_unbond(&self, time_before_unbond: u64);
+    #[storage_set("n_blocks_before_unbond")]
+    fn _set_n_blocks_before_unbond(&self, n_blocks_before_unbond: u64);
 
 }

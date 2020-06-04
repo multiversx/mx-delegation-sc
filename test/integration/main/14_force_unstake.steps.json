@@ -5,7 +5,7 @@
             "step": "setState",
             "comment": "one week passes",
             "currentBlockInfo": {
-                "blockTimestamp": "1589800401"
+                "blockNonce": "521051"
             }
         },
         {
