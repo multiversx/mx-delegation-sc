@@ -4,6 +4,7 @@ use crate::user_stake_state::*;
 use crate::events::*;
 use crate::node_config::*;
 use crate::pause::*;
+use crate::settings::*;
 use crate::user_data::*;
 use crate::node_activation::*;
 
@@ -24,6 +25,9 @@ pub trait UserStakeModule {
 
     #[module(NodeActivationModuleImpl)]
     fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
+
+    #[module(SettingsModuleImpl)]
+    fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
     #[module(PauseModuleImpl)]
     fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
@@ -55,6 +59,12 @@ pub trait UserStakeModule {
         
         // save increased stake
         self.user_data()._increase_user_stake_of_type(user_id, UserStakeState::Inactive, &payment);
+
+        // auto-activation, if enabled
+        if self.settings().isAutoActivationEnabled() {
+            self.node_activation()._perform_activate_auto()?;
+        }
+        
 
         // log staking event
         self.events().stake_event(&caller, &payment);

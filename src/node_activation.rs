@@ -36,37 +36,74 @@ pub trait ContractStakeModule {
     fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
 
 
-    /// Send stake to the staking contract, if the entire stake has been gathered.
+    /// Owner activates specific nodes.
     fn activateNodes(&self,
-            num_nodes: usize,
-            #[multi(2*num_nodes)] bls_keys_signatures: Vec<Vec<u8>>)
-        -> Result<(), &str> {
+            #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
 
-        if self.get_caller() != self.settings().getContractOwner() {
-            return Err("only owner can activate"); 
+        if !self.settings()._owner_called() {
+            return Err("only owner can activate nodes individually"); 
         }
 
-        let mut node_ids = Vec::<usize>::with_capacity(num_nodes);
-        for (i, arg) in bls_keys_signatures.iter().enumerate() {
-            if i % 2 == 0 {
-                // set nodes to active & collect ids
-                let bls_key = BLSKey::from_bytes(arg)?;
-                let node_id = self.node_config().getNodeId(&bls_key);
-                node_ids.push(node_id);
-                if self.node_config()._get_node_state(node_id) != NodeState::Inactive {
-                    return Err("node not inactive");
-                }
-                self.node_config()._set_node_state(node_id, NodeState::PendingActivation);
-            } else {
-                // check signature lengths
-                let signature = arg;
-                if signature.len() != BLS_SIGNATURE_BYTE_LENGTH {
-                    return Err("wrong size BLS signature");
-                }
+        let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
+        let mut bls_keys_signatures = Vec::<Vec<u8>>::with_capacity(2 * bls_keys.len());
+        for bls_key in bls_keys.iter() {
+            let node_id = self.node_config().getNodeId(&bls_key);
+            node_ids.push(node_id);
+            bls_keys_signatures.push(bls_key.to_vec());
+            bls_keys_signatures.push(self.node_config()._get_node_signature(node_id).to_vec());
+            if self.node_config()._get_node_state(node_id) != NodeState::Inactive {
+                return Err("node not inactive");
             }
+            self.node_config()._set_node_state(node_id, NodeState::PendingActivation);
         }
 
-        let stake = BigUint::from(num_nodes) * self.node_config().getStakePerNode();
+        self._perform_activate_nodes(node_ids, bls_keys_signatures)
+    }
+
+    /// Activate as many nodes as necessary to activate the maximum possible stake.
+    /// Anyone can call if auto activation is enabled.
+    /// Error if auto activation is disabled.
+    fn activateAuto(&self) -> Result<(), &'static str> {
+        if !self.settings().isAutoActivationEnabled() {
+            return Err("auto activation disabled");
+        }
+
+        self._perform_activate_auto()
+    }
+
+    #[private]
+    fn _perform_activate_auto(&self) -> Result<(), &'static str> {
+
+        let mut inactive_stake = self.user_data()._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
+        let stake_per_node = self.node_config().getStakePerNode();
+        let num_nodes = self.node_config().getNumNodes();
+        let mut node_id = 1;
+        let mut node_ids = Vec::<usize>::new();
+        let mut bls_keys_signatures = Vec::<Vec<u8>>::new();
+        while node_id <= num_nodes && &inactive_stake >= &stake_per_node {
+            if self.node_config()._get_node_state(node_id) == NodeState::Inactive {
+                self.node_config()._set_node_state(node_id, NodeState::PendingActivation);
+                inactive_stake -= &stake_per_node;
+                node_ids.push(node_id);
+                bls_keys_signatures.push(self.node_config()._get_node_id_to_bls(node_id).to_vec());
+                bls_keys_signatures.push(self.node_config()._get_node_signature(node_id).to_vec());
+            }
+
+            node_id += 1;
+        }
+
+        if node_ids.len() == 0 {
+            return Ok(())
+        }
+
+        self._perform_activate_nodes(node_ids, bls_keys_signatures)
+    }
+
+    #[private]
+    fn _perform_activate_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>) -> Result<(), &'static str> {
+        let num_nodes = node_ids.len();
+
+        let stake = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
         self.user_data().transform_user_stake_asc(UserStakeState::Inactive, UserStakeState::PendingActivation, &stake)?;
 
         // send all stake to auction contract
@@ -133,8 +170,8 @@ pub trait ContractStakeModule {
     fn deactivateNodes(&self,
             #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
 
-        if self.get_caller() != self.settings().getContractOwner() {
-            return Err("only owner can deactivate"); 
+        if !self.settings()._owner_called() {
+            return Err("only owner can deactivate nodes individually"); 
         }
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());

@@ -43,7 +43,7 @@ pub trait NodeModule {
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     fn setServiceFee(&self, service_fee_per_10000: usize) -> Result<(), &str> {
-        if self.get_caller() != self.settings().getContractOwner() {
+        if !self.settings()._owner_called() {
             return Err("only owner can change service fee"); 
         }
 
@@ -73,7 +73,7 @@ pub trait NodeModule {
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     fn setStakePerNode(&self, node_activation: &BigUint) -> Result<(), &str> {
-        if self.get_caller() != self.settings().getContractOwner() {
+        if !self.settings()._owner_called() {
             return Err("only owner can change stake per node"); 
         }
 
@@ -115,6 +115,23 @@ pub trait NodeModule {
     #[storage_set("node_id_to_bls")]
     fn _set_node_id_to_bls(&self, node_id: usize, bls_key: &BLSKey);
 
+    #[storage_get("node_signature")]
+    fn _get_node_signature(&self, node_id: usize) -> BLSSignature;
+
+    #[private]
+    #[storage_set("node_signature")]
+    fn _set_node_signature(&self, node_id: usize, node_signature: BLSSignature);
+
+    #[view]
+    fn getNodeSignature(&self, bls_key: BLSKey) -> Option<BLSSignature> {
+        let node_id = self.getNodeId(&bls_key);
+        if node_id == 0 {
+            None
+        } else {
+            Some(self._get_node_signature(node_id))
+        }
+    }
+
     /// Current state of node: inactive, active, deleted, etc.
     #[storage_get("node_state")]
     fn _get_node_state(&self, node_id: usize) -> NodeState;
@@ -122,6 +139,16 @@ pub trait NodeModule {
     #[private]
     #[storage_set("node_state")]
     fn _set_node_state(&self, node_id: usize, node_state: NodeState);
+
+    #[view]
+    fn getNodeState(&self, bls_key: BLSKey) -> NodeState {
+        let node_id = self.getNodeId(&bls_key);
+        if node_id == 0 {
+            NodeState::Removed
+        } else {
+            self._get_node_state(node_id)
+        }
+    }
 
     /// True if all nodes are either inactive or removed.
     /// Some operations (like setServiceFee and setStakePerNode) can only be performed when all nodes are idle.
@@ -173,25 +200,44 @@ pub trait NodeModule {
     /// The number of nodes that will run with the contract stake is configured by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     /// Important: it has to be called BEFORE setting the BLS keys.
-    fn addNodes(&self, #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
-        if self.get_caller() != self.settings().getContractOwner() {
+    fn addNodes(&self, 
+            #[var_args] bls_keys_signatures: Vec<Vec<u8>>)
+        -> Result<(), &str> {
+
+        if !self.settings()._owner_called() {
             return Err("only owner can add nodes"); 
         }
 
         let mut num_nodes = self.getNumNodes();
+        if bls_keys_signatures.len() % 2 != 0 {
+            return Err("even number of arguments expected"); 
+        }
 
-        for bls_key in bls_keys.iter() {
-            let existing_node_id = self.getNodeId(bls_key);
-            if existing_node_id == 0 {
-                num_nodes += 1;
-                let new_node_id = num_nodes;
-                self._set_node_bls_to_id(bls_key, new_node_id);
-                self._set_node_id_to_bls(new_node_id, bls_key);
-                self._set_node_state(new_node_id, NodeState::Inactive);
-            } else if self._get_node_state(existing_node_id) == NodeState::Removed {
-                self._set_node_state(existing_node_id, NodeState::Inactive);
+        // TODO: handle arguments more elegantly,
+        // once elrond-wasm supports more complex multi-arg definitions
+        let mut node_id = 0usize;
+        for (i, arg) in bls_keys_signatures.iter().enumerate() {
+            if i % 2 == 0 {
+                let bls_key = BLSKey::from_bytes(arg)?;
+                node_id = self.getNodeId(&bls_key);
+                if node_id == 0 {
+                    num_nodes += 1;
+                    node_id = num_nodes;
+                    self._set_node_bls_to_id(&bls_key, node_id);
+                    self._set_node_id_to_bls(node_id, &bls_key);
+                    self._set_node_state(node_id, NodeState::Inactive);
+                } else if self._get_node_state(node_id) == NodeState::Removed {
+                    self._set_node_state(node_id, NodeState::Inactive);
+                } else {
+                    return Err("node already registered"); 
+                }
             } else {
-                return Err("node already registered"); 
+                // check signature lengths
+                if arg.len() != BLS_SIGNATURE_BYTE_LENGTH {
+                    return Err("wrong size BLS signature");
+                }
+                let signature = BLSSignature::from_slice(arg.as_slice());
+                self._set_node_signature(node_id, signature)
             }
         }
        
@@ -200,7 +246,7 @@ pub trait NodeModule {
     }
 
     fn removeNodes(&self, #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
-        if self.get_caller() != self.settings().getContractOwner() {
+        if !self.settings()._owner_called() {
             return Err("only owner can remove nodes"); 
         }
 

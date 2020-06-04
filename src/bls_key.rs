@@ -1,11 +1,13 @@
 use elrond_wasm::Vec;
 use elrond_wasm::esd_light::*;
+use elrond_wasm::H256;
 
 // BLS keys have 96 bytes, signatures only 32
 pub const BLS_KEY_BYTE_LENGTH: usize = 96;
 pub const BLS_SIGNATURE_BYTE_LENGTH: usize = 32;
 
 pub struct BLSKey(pub [u8; BLS_KEY_BYTE_LENGTH]);
+pub type BLSSignature = H256;
 
 impl BLSKey {
     pub fn to_vec(&self) -> Vec<u8> {

@@ -47,6 +47,11 @@ pub trait SettingsModule {
     #[storage_set("owner")]
     fn _set_owner(&self, owner: &Address);
 
+    #[private]
+    fn _owner_called(&self) -> bool {
+        self.get_caller() == self.getContractOwner()
+    }
+
     /// This is the address where the contract owner receives the rewards for running the nodes.
     /// It can in principle be different from the owner address.
     #[view]
@@ -90,5 +95,29 @@ pub trait SettingsModule {
     #[private]
     #[storage_set("n_blocks_before_unbond")]
     fn _set_n_blocks_before_unbond(&self, n_blocks_before_unbond: u64);
+
+    #[view]
+    #[storage_get("auto_activation_enabled")]
+    fn isAutoActivationEnabled(&self) -> bool;
+
+    #[private]
+    #[storage_set("auto_activation_enabled")]
+    fn _set_auto_activation_enabled(&self, auto_activation_enabled: bool);
+
+    fn enableAutoActivation(&self) -> Result<(), &str>{
+        if self.get_caller() != self.getContractOwner() {
+            return Err("only owner can enable auto activation");
+        }
+        self._set_auto_activation_enabled(true);
+        Ok(())
+    }
+
+    fn disableAutoActivation(&self) -> Result<(), &str>{
+        if self.get_caller() != self.getContractOwner() {
+            return Err("only owner can disable auto activation");
+        }
+        self._set_auto_activation_enabled(false);
+        Ok(())
+    }
 
 }

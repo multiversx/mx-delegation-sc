@@ -20,7 +20,7 @@ pub trait PauseModule {
     fn _set_staking_paused(&self, staking_paused: bool);
 
     fn pauseStaking(&self) -> Result<(), &str>{
-        if self.get_caller() != self.settings().getContractOwner() {
+        if !self.settings()._owner_called() {
             return Err("only owner can pause staking");
         }
         self._set_staking_paused(true);
@@ -29,7 +29,7 @@ pub trait PauseModule {
     }
 
     fn unpauseStaking(&self) -> Result<(), &str>{
-        if self.get_caller() != self.settings().getContractOwner() {
+        if !self.settings()._owner_called() {
             return Err("only owner can unpause staking");
         }
         self._set_staking_paused(false);
@@ -46,7 +46,7 @@ pub trait PauseModule {
     fn _set_stake_sale_paused(&self, stake_sale_paused: bool);
 
     fn pauseStakeSale(&self) -> Result<(), &str>{
-        if self.get_caller() != self.settings().getContractOwner() {
+        if !self.settings()._owner_called() {
             return Err("only owner can pause stake sale");
         }
         self._set_stake_sale_paused(true);
@@ -55,7 +55,7 @@ pub trait PauseModule {
     }
 
     fn unpauseStakeSale(&self) -> Result<(), &str>{
-        if self.get_caller() != self.settings().getContractOwner() {
+        if !self.settings()._owner_called() {
             return Err("only owner can unpause stake sale");
         }
         self._set_stake_sale_paused(false);
