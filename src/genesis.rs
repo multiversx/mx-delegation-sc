@@ -62,13 +62,16 @@ pub trait GenesisModule {
 
         // validate that node stake and user stake match
         let stake_required_by_nodes = BigUint::from(num_inactive_nodes) * self.node_config().getStakePerNode();
-        let total_inactive_stake = self.user_data()._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
+        let mut total_inactive_stake = self.user_data()._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
         if stake_required_by_nodes != total_inactive_stake {
             return Err("stake required by nodes must match total user stake at genesis");
         }
 
         // convert all user inactive stake to active stake
-        self.user_data().transform_user_stake_asc(UserStakeState::Inactive, UserStakeState::Active, &total_inactive_stake)?;
+        self.user_data().convert_user_stake_asc(UserStakeState::Inactive, UserStakeState::Active, &mut total_inactive_stake);
+        if total_inactive_stake > 0 {
+            return Err("not enough active stake");
+        }
 
         // log event (no data)
         self.events().activation_ok_event(());

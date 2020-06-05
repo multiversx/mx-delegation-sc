@@ -251,64 +251,54 @@ pub trait UserDataModule {
     fn _set_user_bl_nonce_of_stake_offer(&self, user_id: usize, bl_nonce_of_stake_offer: u64);
 
     #[private]
-    fn transform_user_stake(&self, user_id: usize, old_type: UserStakeState, new_type: UserStakeState, mut total_supply: BigUint) -> BigUint {
+    fn convert_user_stake(&self, user_id: usize, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
         let mut user_stake_old_type = self._get_user_stake_of_type(user_id, old_type);
         let mut user_stake_new_type = self._get_user_stake_of_type(user_id, new_type);
         let mut total_stake_old_type = self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, old_type);
         let mut total_stake_new_type = self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, new_type);
-        if total_supply > user_stake_old_type {
+        if &*total_supply > &user_stake_old_type {
             user_stake_new_type += &user_stake_old_type;
             total_stake_new_type += &user_stake_old_type;
             total_stake_old_type -= &user_stake_old_type;
-            total_supply -= &user_stake_old_type;
+            *total_supply -= &user_stake_old_type;
             user_stake_old_type = BigUint::zero();
         } else {
-            user_stake_old_type -= &total_supply;
-            total_stake_old_type -= &total_supply;
-            user_stake_new_type += &total_supply;
-            total_stake_new_type += &total_supply;
-            total_supply = BigUint::zero();
+            user_stake_old_type -= &*total_supply;
+            total_stake_old_type -= &*total_supply;
+            user_stake_new_type += &*total_supply;
+            total_stake_new_type += &*total_supply;
+            *total_supply = BigUint::zero();
         }
         self._set_user_stake_of_type(user_id, old_type, &user_stake_old_type);
         self._set_user_stake_of_type(user_id, new_type, &user_stake_new_type);
         self._set_user_stake_of_type(USER_STAKE_TOTALS_ID, old_type, &total_stake_old_type);
         self._set_user_stake_of_type(USER_STAKE_TOTALS_ID, new_type, &total_stake_new_type);
-        
-        total_supply
     }
 
-    /// Converts inactive stake into active stake for users.
+    /// Converts from one type of stake to another, for as many users as possible,
+    /// within the limit of total_supply.
+    /// Argument total_supply decreases in the process.
     /// Walking in increasing user id order, so older users get picked first.
     #[private]
-    fn transform_user_stake_asc(&self, old_type: UserStakeState, new_type: UserStakeState, amount: &BigUint) -> Result<(), &'static str> {
-        let mut remaining = amount.clone();
+    fn convert_user_stake_asc(&self, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
         let num_users = self.getNumUsers();
         let mut i = 1usize;
-        while i <= num_users && remaining > 0 {
-            remaining = self.transform_user_stake(i, old_type, new_type, remaining);
+        while i <= num_users && *total_supply > 0 {
+            self.convert_user_stake(i, old_type, new_type, total_supply);
             i += 1;
-        }
-
-        if remaining > 0 {
-            Err("not enough user stake")
-        } else {
-            Ok(())
         }
     }
 
+    /// Converts from one type of stake to another, for as many users as possible,
+    /// within the limit of total_supply.
+    /// Argument total_supply decreases in the process.
+    /// Walking in decreasing user id order, so newer users get picked first.
     #[private]
-    fn transform_user_stake_desc(&self, old_type: UserStakeState, new_type: UserStakeState, amount: &BigUint) -> Result<(), &'static str> {
-        let mut remaining = amount.clone();
+    fn convert_user_stake_desc(&self, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
         let mut i = self.getNumUsers();
-        while i > 0 && remaining > 0 {
-            remaining = self.transform_user_stake(i, old_type, new_type, remaining);
+        while i > 0 && *total_supply > 0 {
+            self.convert_user_stake(i, old_type, new_type, total_supply);
             i -= 1;
-        }
-
-        if remaining > 0 {
-            Err("not enough active stake")
-        } else {
-            Ok(())
         }
     }
 

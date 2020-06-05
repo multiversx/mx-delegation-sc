@@ -104,8 +104,12 @@ pub trait ContractStakeModule {
         let num_nodes = node_ids.len();
 
         let stake = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
-        self.user_data().transform_user_stake_asc(UserStakeState::Inactive, UserStakeState::PendingActivation, &stake)?;
-
+        let mut stake_supply = stake.clone();
+        self.user_data().convert_user_stake_asc(UserStakeState::Inactive, UserStakeState::PendingActivation, &mut stake_supply);
+        if stake_supply > 0 {
+            return Err("not enough inactive stake");
+        }
+        
         // send all stake to auction contract
         let auction_contract_addr = self.settings().getAuctionContractAddress();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
@@ -125,7 +129,7 @@ pub trait ContractStakeModule {
             node_ids: Vec<usize>, // #[callback_arg]
             call_result: AsyncCallResult<()>) -> Result<(), &str> {
 
-        let stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
+        let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
 
         match call_result {
             AsyncCallResult::Ok(()) => {
@@ -134,7 +138,7 @@ pub trait ContractStakeModule {
                 self.rewards().computeAllRewards();
 
                 // set user stake to Active
-                self.user_data().transform_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::Active, &stake_sent)?;
+                self.user_data().convert_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::Active, &mut stake_sent);
 
                 // set nodes to Active
                 for &node_id in node_ids.iter() {
@@ -146,7 +150,7 @@ pub trait ContractStakeModule {
             },
             AsyncCallResult::Err(error) => {
                 // revert user stake to Inactive
-                self.user_data().transform_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::Inactive, &stake_sent)?;
+                self.user_data().convert_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::Inactive, &mut stake_sent);
 
                 // revert nodes to Inactive
                 for &node_id in node_ids.iter() {
@@ -201,14 +205,17 @@ pub trait ContractStakeModule {
         let mut stake_to_deactivate = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
         if let Some(requester_id) = opt_requester_id {
             // if requested by a user, that user has priority
-            stake_to_deactivate = self.user_data().transform_user_stake(
+            self.user_data().convert_user_stake(
                 requester_id,
                 UserStakeState::Active, UserStakeState::PendingDeactivation,
-                stake_to_deactivate);
+                &mut stake_to_deactivate);
         }
-        self.user_data().transform_user_stake_desc(
+        self.user_data().convert_user_stake_desc(
             UserStakeState::Active, UserStakeState::PendingDeactivation,
-            &stake_to_deactivate)?;
+            &mut stake_to_deactivate);
+        if stake_to_deactivate > 0 {
+            return Err("not enough active stake");
+        }
 
         // send unstake command to Auction SC
         let auction_contract_addr = self.settings().getAuctionContractAddress();
@@ -227,12 +234,12 @@ pub trait ContractStakeModule {
             node_ids: Vec<usize>, // #[callback_arg]
             call_result: AsyncCallResult<()>) -> Result<(), &str> {
 
-        let stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
+        let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
 
         match call_result {
             AsyncCallResult::Ok(()) => {
                 // set user stake to UnBondPeriod
-                self.user_data().transform_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::UnBondPeriod, &stake_sent)?;
+                self.user_data().convert_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::UnBondPeriod, &mut stake_sent);
 
                 // set nodes to UnBondPeriod + save current block nonce
                 let bl_nonce = self.get_block_nonce();
@@ -246,7 +253,7 @@ pub trait ContractStakeModule {
             },
             AsyncCallResult::Err(error) => {
                 // revert user stake to Active
-                self.user_data().transform_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::Active, &stake_sent)?;
+                self.user_data().convert_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::Active, &mut stake_sent);
 
                 // revert nodes to Active
                 for &node_id in node_ids.iter() {
@@ -290,8 +297,11 @@ pub trait ContractStakeModule {
             self.node_config()._set_node_state(node_id, NodeState::PendingUnBond);
         }
 
-        let stake = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
-        self.user_data().transform_user_stake_desc(UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond, &stake)?;
+        let mut stake_supply = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
+        self.user_data().convert_user_stake_desc(UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond, &mut stake_supply);
+        if stake_supply > 0 {
+            return Err("not enough stake in unbond period");
+        }
         
         // send unbond command to Auction SC
         let auction_contract_addr = self.settings().getAuctionContractAddress();
@@ -310,13 +320,13 @@ pub trait ContractStakeModule {
             node_ids: Vec<usize>, // #[callback_arg]
             call_result: AsyncCallResult<()>) -> Result<(), &str> {
 
-        let stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
+        let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
 
         match call_result {
             AsyncCallResult::Ok(()) => {
                 // set user stake to Inactive
                 // TODO: make sure delegators with stake for sale get the stake first
-                self.user_data().transform_user_stake_desc(UserStakeState::PendingUnBond, UserStakeState::Inactive, &stake_sent)?;
+                self.user_data().convert_user_stake_desc(UserStakeState::PendingUnBond, UserStakeState::Inactive, &mut stake_sent);
 
                 // set nodes to Inactive + reset unstake nonce since it is no longer needed
                 for &node_id in node_ids.iter() {
@@ -329,7 +339,7 @@ pub trait ContractStakeModule {
             },
             AsyncCallResult::Err(error) => {
                 // revert user stake to Inactive
-                self.user_data().transform_user_stake_desc(UserStakeState::PendingUnBond, UserStakeState::UnBondPeriod, &stake_sent)?;
+                self.user_data().convert_user_stake_desc(UserStakeState::PendingUnBond, UserStakeState::UnBondPeriod, &mut stake_sent);
 
                 // revert nodes to Inactive
                 for &node_id in node_ids.iter() {
