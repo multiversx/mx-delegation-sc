@@ -62,7 +62,7 @@ pub trait UserStakeModule {
 
         // auto-activation, if enabled
         if self.settings().isAutoActivationEnabled() {
-            self.node_activation()._perform_activate_auto()?;
+            self.node_activation()._perform_stake_max_nodes()?;
         }
         
 
@@ -74,7 +74,7 @@ pub trait UserStakeModule {
 
     // UNSTAKE
 
-    fn unStake(&self, amount: BigUint) -> Result<(), &str> {
+    fn withdrawInactiveStake(&self, amount: BigUint) -> Result<(), &str> {
         if amount == 0 {
             return Ok(());
         }

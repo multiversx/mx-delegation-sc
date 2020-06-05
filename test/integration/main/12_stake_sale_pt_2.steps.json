@@ -15,7 +15,7 @@
                 "from": "''delegator_1___________________s1",
                 "to": "''delegation_contract___________s1",
                 "value": "0",
-                "function": "offerStakeForSale",
+                "function": "announceUnStake",
                 "arguments": [
                     "113,000,000,000,000"
                 ],

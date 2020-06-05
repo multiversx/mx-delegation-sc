@@ -27,7 +27,7 @@ pub trait StakeSaleModule {
     /// Creates a stake offer. Overwrites any previous stake offer.
     /// Once a stake offer is up, it can be bought by anyone on a first come first served basis.
     /// Cannot be paused, because this is also part of the mechanism of forceUnstake, which the owner cannot veto.
-    fn offerStakeForSale(&self, amount: BigUint) -> Result<(), &str> {
+    fn announceUnStake(&self, amount: BigUint) -> Result<(), &str> {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);
         if user_id == 0 {

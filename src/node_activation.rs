@@ -37,7 +37,7 @@ pub trait ContractStakeModule {
 
 
     /// Owner activates specific nodes.
-    fn activateNodes(&self,
+    fn stakeNodes(&self,
             #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
 
         if !self.settings()._owner_called() {
@@ -57,22 +57,22 @@ pub trait ContractStakeModule {
             self.node_config()._set_node_state(node_id, NodeState::PendingActivation);
         }
 
-        self._perform_activate_nodes(node_ids, bls_keys_signatures)
+        self._perform_stake_nodes(node_ids, bls_keys_signatures)
     }
 
-    /// Activate as many nodes as necessary to activate the maximum possible stake.
+    /// Stake as many nodes as necessary to activate the maximum possible stake.
     /// Anyone can call if auto activation is enabled.
-    /// Error if auto activation is disabled.
-    fn activateAuto(&self) -> Result<(), &'static str> {
-        if !self.settings().isAutoActivationEnabled() {
+    /// Error if auto activation is disabled (except owner, who can always call).
+    fn stakeMaxNodes(&self) -> Result<(), &'static str> {
+        if !self.settings().isAutoActivationEnabled() && !self.settings()._owner_called() {
             return Err("auto activation disabled");
         }
 
-        self._perform_activate_auto()
+        self._perform_stake_max_nodes()
     }
 
     #[private]
-    fn _perform_activate_auto(&self) -> Result<(), &'static str> {
+    fn _perform_stake_max_nodes(&self) -> Result<(), &'static str> {
 
         let mut inactive_stake = self.user_data()._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
         let stake_per_node = self.node_config().getStakePerNode();
@@ -96,11 +96,11 @@ pub trait ContractStakeModule {
             return Ok(())
         }
 
-        self._perform_activate_nodes(node_ids, bls_keys_signatures)
+        self._perform_stake_nodes(node_ids, bls_keys_signatures)
     }
 
     #[private]
-    fn _perform_activate_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>) -> Result<(), &'static str> {
+    fn _perform_stake_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>) -> Result<(), &'static str> {
         let num_nodes = node_ids.len();
 
         let stake = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
@@ -171,7 +171,7 @@ pub trait ContractStakeModule {
     /// Unstakes from the auction smart contract.
     /// The contract will stop receiving rewards, but stake cannot be yet reclaimed.
     /// This operation is performed by the owner.
-    fn deactivateNodes(&self,
+    fn unStakeNodes(&self,
             #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
 
         if !self.settings()._owner_called() {
@@ -188,11 +188,11 @@ pub trait ContractStakeModule {
             self.node_config()._set_node_state(node_id, NodeState::PendingDeactivation);
         }
 
-        self._perform_deactivate_nodes(None, node_ids, bls_keys)
+        self._perform_unstake_nodes(None, node_ids, bls_keys)
     }
 
     #[private]
-    fn _perform_deactivate_nodes(&self,
+    fn _perform_unstake_nodes(&self,
             opt_requester_id: Option<usize>,
             node_ids: Vec<usize>,
             bls_keys: Vec<BLSKey>) -> Result<(), &str> {
@@ -389,7 +389,7 @@ pub trait ContractStakeModule {
             i -= 1;
         }
  
-        self._perform_deactivate_nodes(Some(user_id), node_ids, bls_keys)
+        self._perform_unstake_nodes(Some(user_id), node_ids, bls_keys)
     }
 
 }
