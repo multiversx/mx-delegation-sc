@@ -75,6 +75,10 @@
         },
         {
             "step": "externalSteps",
+            "path": "../main/10x_unbond_nodes_too_soon.steps.json"
+        },
+        {
+            "step": "externalSteps",
             "path": "../main/10_unbond_nodes.steps.json"
         },
         {

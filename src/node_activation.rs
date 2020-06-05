@@ -231,22 +231,24 @@ pub trait ContractStakeModule {
 
         match call_result {
             AsyncCallResult::Ok(()) => {
-                // set user stake to Active
+                // set user stake to UnBondPeriod
                 self.user_data().transform_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::UnBondPeriod, &stake_sent)?;
 
-                // set nodes to Active
+                // set nodes to UnBondPeriod + save current block nonce
+                let bl_nonce = self.get_block_nonce();
                 for &node_id in node_ids.iter() {
                     self.node_config()._set_node_state(node_id, NodeState::UnBondPeriod);
+                    self.node_config()._set_node_bl_nonce_of_unstake(node_id, bl_nonce);
                 }
 
                 // log event (no data)
                 self.events().deactivation_ok_event(());
             },
             AsyncCallResult::Err(error) => {
-                // revert user stake to Inactive
+                // revert user stake to Active
                 self.user_data().transform_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::Active, &stake_sent)?;
 
-                // revert nodes to Inactive
+                // revert nodes to Active
                 for &node_id in node_ids.iter() {
                     self.node_config()._set_node_state(node_id, NodeState::Active);
                 }
@@ -263,16 +265,28 @@ pub trait ContractStakeModule {
 
     /// Claims unstaked stake from the auction smart contract.
     /// This operation can be executed by anyone (note that it might cost much gas).
-    fn unBond(&self,
+    fn unBondNodes(&self,
             #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
+
+        let bl_nonce = self.get_block_nonce();
+        let n_blocks_before_unbond = self.settings().getNumBlocksBeforeUnBond();
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
             let node_id = self.node_config().getNodeId(&bls_key);
-            node_ids.push(node_id);
+
+            // check state
             if self.node_config()._get_node_state(node_id) != NodeState::UnBondPeriod {
                 return Err("node not in unbond period");
             }
+
+            // check that enough blocks passed
+            let block_nonce_of_unstake = self.node_config()._get_node_bl_nonce_of_unstake(node_id);
+            if bl_nonce <= block_nonce_of_unstake + n_blocks_before_unbond {
+                return Err("too soon to unbond node");
+            }
+
+            node_ids.push(node_id);
             self.node_config()._set_node_state(node_id, NodeState::PendingUnBond);
         }
 
@@ -300,13 +314,14 @@ pub trait ContractStakeModule {
 
         match call_result {
             AsyncCallResult::Ok(()) => {
-                // set user stake to Active
+                // set user stake to Inactive
                 // TODO: make sure delegators with stake for sale get the stake first
                 self.user_data().transform_user_stake_desc(UserStakeState::PendingUnBond, UserStakeState::Inactive, &stake_sent)?;
 
-                // set nodes to Inactive
+                // set nodes to Inactive + reset unstake nonce since it is no longer needed
                 for &node_id in node_ids.iter() {
                     self.node_config()._set_node_state(node_id, NodeState::Inactive);
+                    self.node_config()._set_node_bl_nonce_of_unstake(node_id, 0);
                 }
 
                 // log event (no data)
@@ -344,7 +359,7 @@ pub trait ContractStakeModule {
         }
 
         let block_nonce_of_stake_offer = self.user_data()._get_user_bl_nonce_of_stake_offer(user_id);
-        let n_blocks_before_force_unstake = self.settings().getNonceDiffBeforeForceUnstake();
+        let n_blocks_before_force_unstake = self.settings().getNumBlocksBeforeForceUnstake();
         if self.get_block_nonce() <= block_nonce_of_stake_offer + n_blocks_before_force_unstake {
             return Err("too soon to call forceUnstake");
         }

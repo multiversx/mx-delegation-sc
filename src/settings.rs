@@ -79,7 +79,7 @@ pub trait SettingsModule {
     /// from when the put up the stake for sale and the moment they can force global unstaking.
     #[view]
     #[storage_get("n_blocks_before_force_unstake")]
-    fn getNonceDiffBeforeForceUnstake(&self) -> u64;
+    fn getNumBlocksBeforeForceUnstake(&self) -> u64;
 
     #[private]
     #[storage_set("n_blocks_before_force_unstake")]
@@ -90,7 +90,7 @@ pub trait SettingsModule {
     /// The auction SC cannot be cheated by setting this field lower, unbond will fail anyway if attempted too early.
     #[view]
     #[storage_get("n_blocks_before_unbond")]
-    fn getNonceDiffBeforeUnBond(&self) -> u64;
+    fn getNumBlocksBeforeUnBond(&self) -> u64;
 
     #[private]
     #[storage_set("n_blocks_before_unbond")]

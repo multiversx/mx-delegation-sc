@@ -181,19 +181,19 @@ pub trait NodeModule {
 
     /// Block timestamp when unbond happened. 0 if not in unbond period.
     #[private]
-    #[storage_get("node_unbond_time")]
-    fn _get_node_unbond_time(&self, node_id: usize) -> u64;
+    #[storage_get("node_bl_nonce_of_unstake")]
+    fn _get_node_bl_nonce_of_unstake(&self, node_id: usize) -> u64;
 
     #[private]
-    #[storage_set("node_unbond_time")]
-    fn _set_node_unbond_time(&self, node_id: usize, unbond_time: u64);
+    #[storage_set("node_bl_nonce_of_unstake")]
+    fn _set_node_bl_nonce_of_unstake(&self, node_id: usize, bl_nonce_of_unstake: u64);
 
-    fn getNodeUnbondTime(&self, bls_key: BLSKey) -> u64 {
+    fn getNodeBlockNonceOfUnstake(&self, bls_key: BLSKey) -> u64 {
         let node_id = self.getNodeId(&bls_key);
         if node_id == 0 {
             0
         } else {
-            self._get_node_unbond_time(node_id)
+            self._get_node_bl_nonce_of_unstake(node_id)
         }
     }
 

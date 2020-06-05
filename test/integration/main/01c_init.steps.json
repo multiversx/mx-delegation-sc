@@ -23,12 +23,12 @@
         },
         {
             "step": "scCall",
-            "txId": "getNonceDiffBeforeForceUnstake",
+            "txId": "getNumBlocksBeforeForceUnstake",
             "tx": {
                 "from": "''node_address__________________s1",
                 "to": "''delegation_contract___________s1",
                 "value": "0",
-                "function": "getNonceDiffBeforeForceUnstake",
+                "function": "getNumBlocksBeforeForceUnstake",
                 "arguments": [],
                 "gasLimit": "1,000,000",
                 "gasPrice": "0"
@@ -43,12 +43,12 @@
         },
         {
             "step": "scCall",
-            "txId": "getNonceDiffBeforeUnBond",
+            "txId": "getNumBlocksBeforeUnBond",
             "tx": {
                 "from": "''node_address__________________s1",
                 "to": "''delegation_contract___________s1",
                 "value": "0",
-                "function": "getNonceDiffBeforeUnBond",
+                "function": "getNumBlocksBeforeUnBond",
                 "arguments": [],
                 "gasLimit": "1,000,000",
                 "gasPrice": "0"

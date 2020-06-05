@@ -31,6 +31,30 @@
         },
         {
             "step": "scCall",
+            "txId": "getNodeBlockNonceOfUnstake",
+            "tx": {
+                "from": "''someone_______________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "getNodeBlockNonceOfUnstake",
+                "arguments": [
+                    "''bls_key_3_______________________________________________________________________________________"
+                ],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [
+                    "321000"
+                ],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
             "txId": "check-stake-by-type-9_total",
             "tx": {
                 "from": "''someone_______________________s1",
