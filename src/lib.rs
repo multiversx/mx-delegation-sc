@@ -8,8 +8,11 @@
 pub mod auction_proxy;
 pub mod bls_key;
 pub mod node_state;
+pub mod unbond_queue;
 pub mod user_stake_state;
 pub mod util;
+
+use crate::unbond_queue::*;
 
 // modules
 pub mod events;
@@ -96,10 +99,12 @@ pub trait Delegation {
 
     #[callback]
     fn auction_unStake_callback(&self,
+            #[callback_arg] opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>,
             #[callback_arg] node_ids: Vec<usize>,
             call_result: AsyncCallResult<()>) {
 
         let _ = self.node_activation().auction_unStake_callback(
+            opt_unbond_queue_entry,
             node_ids,
             call_result);
     }

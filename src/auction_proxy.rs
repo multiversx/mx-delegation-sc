@@ -1,8 +1,8 @@
 
 imports!();
 
-use super::*;
-use super::bls_key::*;
+use crate::bls_key::*;
+use crate::unbond_queue::*;
 
 #[elrond_wasm_derive::callable(AuctionProxy)]
 pub trait Auction {
@@ -16,6 +16,7 @@ pub trait Auction {
 
     #[callback(auction_unStake_callback)]
     fn unStake(&self,
+        #[callback_arg] opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>,
         #[callback_arg] node_ids: Vec<usize>,
         #[var_args] bls_keys_signatures: Vec<BLSKey>);
 

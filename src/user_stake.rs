@@ -1,5 +1,6 @@
 
 use crate::user_stake_state::*;
+use crate::unbond_queue::*;
 
 use crate::events::*;
 use crate::node_config::*;
@@ -62,7 +63,7 @@ pub trait UserStakeModule {
 
         // auto-activation, if enabled
         if self.settings().isAutoActivationEnabled() {
-            self.node_activation()._perform_stake_max_nodes()?;
+            self.node_activation()._perform_stake_all_available()?;
         }
         
 
@@ -72,7 +73,7 @@ pub trait UserStakeModule {
         Ok(())
     }
 
-    // UNSTAKE
+    // WITHDRAW INACTIVE
 
     fn withdrawInactiveStake(&self, amount: BigUint) -> Result<(), &str> {
         if amount == 0 {
@@ -82,17 +83,84 @@ pub trait UserStakeModule {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);
         if user_id == 0 {
-            return Err("only delegators can unstake");
+            return Err("only delegators can withdraw inactive stake");
         }
 
-        // check that there is enough inactive stake & save decreased stake
-        let ok = self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &amount);
-        if !ok {
-            return Err("cannot unstake more than was staked");
+        let withdraw_stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
+        if &amount <= &withdraw_stake {
+            // first withdraw from unavailable inactive stake
+            self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
+        } else {
+            let remaining = &amount - &withdraw_stake;
+            // let inactive_stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::Inactive);
+            let enough = self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &remaining);
+            if !enough {
+                return Err("cannot withdraw more than inactive stake");
+            }
         }
 
         // send stake to delegator
-        self.send_tx(&caller, &amount, "delegation unstake");
+        self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
+
+        // log
+        self.events().unstake_event(&caller, &amount);
+
+        Ok(())
+    }
+
+    /// Delegators can force some or all nodes to unstake
+    /// if they put up stake for sale and no-one has bought it for long enough.
+    /// This operation can be performed by any delegator.
+    fn unStake(&self) -> Result<(), &str> {
+        let user_id = self.user_data().getUserId(&self.get_caller());
+        if user_id == 0 {
+            return Err("only delegators can call unStake");
+        }
+
+        let stake_for_sale = self.user_data()._get_user_stake_for_sale(user_id);
+        if stake_for_sale == 0 {
+            return Err("only delegators that have announced unStake can call unStake");
+        }
+
+        let block_nonce_of_stake_offer = self.user_data()._get_user_bl_nonce_of_stake_offer(user_id);
+        let n_blocks_before_force_unstake = self.settings().getNumBlocksBeforeForceUnstake();
+        if self.get_block_nonce() <= block_nonce_of_stake_offer + n_blocks_before_force_unstake {
+            return Err("too soon to call unStake");
+        }
+
+        // find nodes to unstake
+        let (node_ids, bls_keys) = self.node_config()._find_nodes_for_unstake(&stake_for_sale);
+        
+        let unbond_queue_entry = UnbondQueueItem {
+            user_id: user_id,
+            amount: stake_for_sale,
+        };
+        self.node_activation()._perform_unstake_nodes(Some(unbond_queue_entry), node_ids, bls_keys)
+    }
+
+    fn unBond(&self) -> Result<(), &str> {
+        let caller = self.get_caller();
+        let user_id = self.user_data().getUserId(&caller);
+        if user_id == 0 {
+            return Err("only delegators can withdraw inactive stake");
+        }
+
+        let mut amount = BigUint::zero();
+        let withdraw_stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
+        if withdraw_stake > 0 {
+            // unavailable inactive stake
+            amount += &withdraw_stake;
+            self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
+        }
+        let inactive_stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::Inactive);
+        if inactive_stake > 0 {
+            // regular inactive stake
+            amount += &inactive_stake;
+            self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &inactive_stake);
+        }
+
+        // send stake to delegator
+        self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
 
         // log
         self.events().unstake_event(&caller, &amount);

@@ -62,7 +62,7 @@
                 "value": "1",
                 "function": "stake",
                 "arguments": [],
-                "gasLimit": "1,000,000",
+                "gasLimit": "2,000,000",
                 "gasPrice": "0"
             },
             "expect": {
@@ -87,7 +87,7 @@
                 "from": "''node_address__________________s1",
                 "to": "''delegation_contract___________s1",
                 "value": "0",
-                "function": "stakeMaxNodes",
+                "function": "stakeAllAvailable",
                 "arguments": [],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"

@@ -132,15 +132,15 @@
         },
         {
             "step": "externalSteps",
-            "path": "14x_force_unstake_too_soon.steps.json"
+            "path": "14x_unstake_too_soon.steps.json"
         },
         {
             "step": "externalSteps",
-            "path": "14_force_unstake.steps.json"
+            "path": "14_unstake.steps.json"
         },
         {
             "step": "externalSteps",
-            "path": "14c_check_force_unstake.steps.json"
+            "path": "14c_check_unstake.steps.json"
         }
     ]
 }

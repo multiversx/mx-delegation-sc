@@ -1,6 +1,7 @@
 imports!();
 
 use crate::user_stake_state::*;
+use crate::unbond_queue::*;
 
 // Groups together data per delegator from the storage.
 pub struct UserData<BigUint> {
@@ -123,6 +124,17 @@ pub trait UserDataModule {
             BigUint::zero()
         } else {
             self._get_user_stake_of_type(user_id, UserStakeState::Active)
+        }
+    }
+
+    #[view]
+    fn getUserInactiveStake(&self, user_address: Address) -> BigUint {
+        let user_id = self.getUserId(&user_address);
+        if user_id == 0 {
+            BigUint::zero()
+        } else {
+            self._get_user_stake_of_type(user_id, UserStakeState::Inactive) +
+            self._get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly)
         }
     }
 
@@ -302,4 +314,13 @@ pub trait UserDataModule {
         }
     }
 
+    #[view]
+    #[storage_get("unbond_queue")]
+    fn getUnbondQueue(&self) -> Vec<UnbondQueueItem<BigUint>>;
+
+    #[private]
+    #[storage_set("unbond_queue")]
+    fn _set_unbond_queue(&self, unbond_queue: &[UnbondQueueItem<BigUint>]);
+
+    
 }

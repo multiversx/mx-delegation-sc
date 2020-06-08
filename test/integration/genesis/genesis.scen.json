@@ -107,15 +107,15 @@
         },
         {
             "step": "externalSteps",
-            "path": "../main/14x_force_unstake_too_soon.steps.json"
+            "path": "../main/14x_unstake_too_soon.steps.json"
         },
         {
             "step": "externalSteps",
-            "path": "../main/14_force_unstake.steps.json"
+            "path": "../main/14_unstake.steps.json"
         },
         {
             "step": "externalSteps",
-            "path": "../main/14c_check_force_unstake.steps.json"
+            "path": "../main/14c_check_unstake.steps.json"
         }
     ]
 }

@@ -3,7 +3,7 @@
     "steps": [
         {
             "step": "scCall",
-            "txId": "check-node_state-4_1",
+            "txId": "9c-unstake-check-before-nodes",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
