@@ -146,6 +146,29 @@
                 "gas": "*",
                 "refund": "*"
             }
+        },
+        {
+            "step": "scCall",
+            "txId": "14-getUnbondQueue",
+            "comment": "how to read: (1 element) user_id: 2, amount len: 6, amount: 112,000,000,000,000",
+            "tx": {
+                "from": "''someone_______________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "getUnbondQueue",
+                "arguments": [],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [
+                    "0x00000002|0x00000006|112,000,000,000,000"
+                ],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
         }
     ]
 }

@@ -369,8 +369,9 @@ pub trait ContractStakeModule {
         Ok(())
     }
 
-    #[private]
-    fn _perform_unbond_all_available(&self) -> Result<(), &'static str> {
+    /// Calls unbond for all nodes that are in the unbond period and are due.
+    /// Anyone can call if they are willing to pay the gas.
+    fn unBondAllAvailable(&self) -> Result<(), &'static str> {
         let mut node_id = self.node_config().getNumNodes();
         let mut node_ids = Vec::<usize>::new();
         let mut bls_keys = Vec::<BLSKey>::new();

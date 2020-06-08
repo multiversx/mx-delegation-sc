@@ -141,6 +141,14 @@
         {
             "step": "externalSteps",
             "path": "14c_check_unstake.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "15_unbond_all.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "15c_check_unbond.steps.json"
         }
     ]
 }
