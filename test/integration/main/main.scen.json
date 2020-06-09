@@ -149,6 +149,10 @@
         {
             "step": "externalSteps",
             "path": "15c_check_unbond.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "16_withdraw.steps.json"
         }
     ]
 }

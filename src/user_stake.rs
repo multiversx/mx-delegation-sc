@@ -89,10 +89,10 @@ pub trait UserStakeModule {
         let withdraw_stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
         if &amount <= &withdraw_stake {
             // first withdraw from unavailable inactive stake
-            self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
+            self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &amount);
         } else {
+            self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
             let remaining = &amount - &withdraw_stake;
-            // let inactive_stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::Inactive);
             let enough = self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &remaining);
             if !enough {
                 return Err("cannot withdraw more than inactive stake");
