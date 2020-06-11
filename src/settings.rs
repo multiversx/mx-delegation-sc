@@ -1,5 +1,6 @@
 
 use crate::user_data::*;
+use crate::node_config::*;
 
 /// Validator reward destination will always be user with id 1.
 /// This can also count as a delegator (if the owner adds stake into the contract) or not.
@@ -15,10 +16,14 @@ pub trait SettingsModule {
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
 
+    #[module(NodeConfigModuleImpl)]
+    fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, BigUint>;
+
     /// This is the contract constructor, called only once when the contract is deployed.
     /// 
     fn init(&self,
         auction_contract_addr: &Address,
+        service_fee_per_10000: usize,
         n_blocks_before_force_unstake: u64,
         n_blocks_before_unbond: u64,
     ) -> Result<(), &str> {
@@ -31,6 +36,7 @@ pub trait SettingsModule {
         self.user_data()._set_num_users(1);
 
         self._set_auction_addr(&auction_contract_addr);
+        self.node_config().setServiceFee(service_fee_per_10000)?;
 
         self._set_n_blocks_before_force_unstake(n_blocks_before_force_unstake);
         self._set_n_blocks_before_unbond(n_blocks_before_unbond);

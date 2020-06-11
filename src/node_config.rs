@@ -42,7 +42,7 @@ pub trait NodeModule {
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    fn setServiceFee(&self, service_fee_per_10000: usize) -> Result<(), &str> {
+    fn setServiceFee(&self, service_fee_per_10000: usize) -> Result<(), &'static str> {
         if !self.settings()._owner_called() {
             return Err("only owner can change service fee"); 
         }

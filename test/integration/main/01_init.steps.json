@@ -67,6 +67,7 @@
                 "contractCode": "file:../../delegation.wasm",
                 "arguments": [
                     "''auction_contract______________s1",
+                    "1",
                     "50",
                     "60"
                 ],
