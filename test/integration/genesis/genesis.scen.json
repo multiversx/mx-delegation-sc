@@ -119,11 +119,15 @@
         },
         {
             "step": "externalSteps",
-            "path": "15_unbond_all.steps.json"
+            "path": "../main/15_unbond_all.steps.json"
         },
         {
             "step": "externalSteps",
-            "path": "15c_check_unbond.steps.json"
+            "path": "../main/15c_check_unbond.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../main/16_withdraw.steps.json"
         }
     ]
 }
