@@ -24,4 +24,8 @@ pub trait Auction {
     fn unBond(&self,
         #[callback_arg] node_ids: Vec<usize>,
         #[var_args] bls_keys_signatures: Vec<BLSKey>);
+
+    #[callback(auction_claim_callback)]
+    fn claim(&self,
+        #[callback_arg] node_ids: Vec<usize>);
 }

@@ -121,5 +121,16 @@ pub trait Delegation {
             call_result).unwrap();
             // TODO: replace unwrap with typical Result handling
     }
+
+    #[callback]
+    fn auction_claim_callback(&self,
+            #[callback_arg] node_ids: Vec<usize>,
+            call_result: AsyncCallResult<()>) {
+
+        self.node_activation().auction_claim_callback(
+            node_ids,
+            call_result).unwrap();
+            // TODO: replace unwrap with typical Result handling
+    }
     
 }

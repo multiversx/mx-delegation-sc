@@ -34,6 +34,14 @@
         {
             "step": "externalSteps",
             "path": "../stake_partial_err/04c_activate_partial.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../stake_partial_err/05_claim_failed.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "../stake_partial_err/05c_claim_failed.steps.json"
         }
     ]
 }

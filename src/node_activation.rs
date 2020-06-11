@@ -552,4 +552,61 @@ pub trait ContractStakeModule {
         Ok(())
     }
 
+    // CLAIM FAILED STAKE
+
+    /// Claims unstaked stake from the auction smart contract.
+    /// This operation can be executed by anyone (note that it might cost much gas).
+    fn claimFailedStake(&self) -> Result<(), &str> {
+        if !self.settings()._owner_called() {
+            return Err("only owner can activate nodes individually"); 
+        }
+
+        let mut node_id = self.node_config().getNumNodes();
+        let mut node_ids = Vec::<usize>::new();
+        while node_id >= 1 {
+            if self.node_config()._get_node_state(node_id) == NodeState::ActivationFailed {
+                node_ids.push(node_id);
+            }
+            node_id -= 1;
+        }
+
+        if node_ids.len() == 0 {
+            return Ok(())
+        }
+
+        // send claim command to Auction SC
+        let auction_contract_addr = self.settings().getAuctionContractAddress();
+        let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
+        auction_contract.claim(node_ids);
+
+        Ok(())
+    }
+
+    /// Set nodes and stake to inactive, but only after call to auction claim completed.
+    /// #[callback] can only be declared in lib.rs for the moment.
+    #[private]
+    fn auction_claim_callback(&self,
+            node_ids: Vec<usize>, // #[callback_arg]
+            call_result: AsyncCallResult<()>) -> Result<(), &str> {
+
+        match call_result {
+            AsyncCallResult::Ok(()) => {
+                // set nodes to Inactive
+                for &node_id in node_ids.iter() {
+                    self.node_config()._set_node_state(node_id, NodeState::Inactive);
+                }
+
+                // revert user stake to Inctive
+                let mut failed_stake = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
+                self.user_data().convert_user_stake_desc(
+                    UserStakeState::ActivationFailed, UserStakeState::Inactive, 
+                    &mut failed_stake);
+            },
+            AsyncCallResult::Err(_) => {
+            }
+        }
+
+        Ok(())
+    }
+
 }
