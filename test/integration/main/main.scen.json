@@ -1,5 +1,5 @@
 {
-    "name": "init",
+    "name": "main scenario, happy path",
     "steps": [
         {
             "step": "externalSteps",

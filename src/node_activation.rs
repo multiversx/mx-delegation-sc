@@ -174,13 +174,13 @@ pub trait ContractStakeModule {
             return Ok(());
         }
 
-        // revert user stake to Inactive
+        // set user stake to ActivationFailed
         let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
-        self.user_data().convert_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::Inactive, &mut stake_sent);
+        self.user_data().convert_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::ActivationFailed, &mut stake_sent);
 
-        // revert nodes to Inactive
+        // set nodes to ActivationFailed
         for &node_id in node_ids.iter() {
-            self.node_config()._set_node_state(node_id, NodeState::Inactive);
+            self.node_config()._set_node_state(node_id, NodeState::ActivationFailed);
         }
 
         // log failure event (no data)

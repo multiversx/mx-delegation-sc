@@ -45,4 +45,10 @@ pub trait AuctionMockStorage {
     #[storage_get("staking_failure")]
     fn _is_staking_failure(&self) -> bool;
 
+    #[storage_set("bls_deliberate_error")]
+    fn setBlsDeliberateError(&self, bls_key: &Vec<u8>, err_code: u8);
+
+    #[storage_get("bls_deliberate_error")]
+    fn getBlsDeliberateError(&self, bls_key: &Vec<u8>) -> u8;
+
 }

@@ -148,6 +148,7 @@ pub trait UserDataModule {
         result.push(self._get_user_stake_of_type(user_id, UserStakeState::UnBondPeriod));
         result.push(self._get_user_stake_of_type(user_id, UserStakeState::PendingUnBond));
         result.push(self._get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly));
+        result.push(self._get_user_stake_of_type(user_id, UserStakeState::ActivationFailed));
         result
     }
 
@@ -157,6 +158,7 @@ pub trait UserDataModule {
         let user_id = self.getUserId(&user_address);
         if user_id == 0 {
             let mut result = Vec::<BigUint>::with_capacity(7);
+            result.push(BigUint::zero());
             result.push(BigUint::zero());
             result.push(BigUint::zero());
             result.push(BigUint::zero());
