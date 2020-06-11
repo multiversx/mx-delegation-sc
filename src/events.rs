@@ -14,19 +14,19 @@ pub trait EventsModule {
     fn activation_ok_event(&self, _data: ());
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000004")]
-    fn activation_fail_event(&self, _reason: Vec<u8>);
+    fn activation_fail_event(&self, _reason: &[u8]);
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000005")]
     fn deactivation_ok_event(&self, _data: ());
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000006")]
-    fn deactivation_fail_event(&self, _reason: Vec<u8>);
+    fn deactivation_fail_event(&self, _reason: &[u8]);
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000007")]
     fn unBond_ok_event(&self, _data: ());
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000008")]
-    fn unBond_fail_event(&self, _reason: Vec<u8>);
+    fn unBond_fail_event(&self, _reason: &[u8]);
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000009")]
     fn purchase_stake_event(&self, seller: &Address, buyer: &Address, amount: &BigUint);

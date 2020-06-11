@@ -44,7 +44,7 @@ pub trait UserDataModule {
 
     /// Yields how accounts are registered in the contract.
     /// Note that not all of them must have stakes greater than zero.
-    #[view]
+    #[private]
     #[storage_set("num_users")]
     fn _set_num_users(&self, num_users: usize);
 
@@ -152,7 +152,7 @@ pub trait UserDataModule {
     }
 
     #[view]
-    fn getUserStakeByType(&self, user_address: &Address) -> Vec<BigUint> {
+    fn getUserStakeByType(&self, user_address: &Address) -> MultiResultVec<BigUint> {
         // TODO: replace result type with something based on tuples
         let user_id = self.getUserId(&user_address);
         if user_id == 0 {
@@ -171,7 +171,7 @@ pub trait UserDataModule {
     }
 
     #[view]
-    fn getTotalStakeByType(&self) -> Vec<BigUint> {
+    fn getTotalStakeByType(&self) -> MultiResultVec<BigUint> {
         self._get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 

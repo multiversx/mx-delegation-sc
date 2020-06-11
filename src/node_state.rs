@@ -25,6 +25,9 @@ pub enum NodeState {
     /// Node completely removed from the delegation contract.
     /// TODO: properly remove nodes instead of just flagging them.
     Removed,
+
+    /// Node stake was sent to the auction SC, but the transaction failed for the node.
+    ActivationFailed,
 }
 
 impl NodeState {
@@ -37,6 +40,7 @@ impl NodeState {
             NodeState::UnBondPeriod => 4,
             NodeState::PendingUnBond => 5,
             NodeState::Removed => 6,
+            NodeState::ActivationFailed => 7,
         }
     }
 
@@ -49,6 +53,7 @@ impl NodeState {
             4 => Ok(NodeState::UnBondPeriod),
             5 => Ok(NodeState::PendingUnBond),
             6 => Ok(NodeState::Removed),
+            7 => Ok(NodeState::ActivationFailed),
             _ => Err(DeError::InvalidValue),
         }
     }

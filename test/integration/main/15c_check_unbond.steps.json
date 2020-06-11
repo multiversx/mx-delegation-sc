@@ -150,7 +150,6 @@
         {
             "step": "scCall",
             "txId": "14-getUnbondQueue",
-            "comment": "not ok: should return empty resut, not no result. Will get fixed after MultiResult feature is added",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
@@ -161,7 +160,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "out": [],
+                "out": [ "" ],
                 "status": "",
                 "logs": [],
                 "gas": "*",

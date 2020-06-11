@@ -26,6 +26,9 @@ pub enum UserStakeState {
 
     /// Stake inactive, and also cannot be activated. Can only be withdrawn by delegator.
     WithdrawOnly,
+
+    /// Node stake was sent to the auction SC, but the transaction failed for the node.
+    ActivationFailed,
 }
 
 impl UserStakeState {
@@ -38,6 +41,7 @@ impl UserStakeState {
             UserStakeState::UnBondPeriod => 4,
             UserStakeState::PendingUnBond => 5,
             UserStakeState::WithdrawOnly => 6,
+            UserStakeState::ActivationFailed => 7,
         }
     }
 
@@ -50,6 +54,7 @@ impl UserStakeState {
             4 => Ok(UserStakeState::UnBondPeriod),
             5 => Ok(UserStakeState::PendingUnBond),
             6 => Ok(UserStakeState::WithdrawOnly),
+            7 => Ok(UserStakeState::ActivationFailed),
             _ => Err(DeError::InvalidValue),
         }
     }
