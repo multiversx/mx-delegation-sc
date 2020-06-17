@@ -182,6 +182,12 @@ pub trait UserDataModule {
         self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Active)
     }
 
+    #[view]
+    fn getTotalInactiveStake(&self) -> BigUint {
+        self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive) +
+        self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::WithdrawOnly)
+    }
+
     /// Claiming rewards has 2 steps:
     /// 1. computing the delegator rewards out of the total rewards, and
     /// 2. sending those rewards to the delegator address. 
