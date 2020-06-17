@@ -134,6 +134,20 @@ pub trait RewardsModule {
         user_data.unclaimed_rewards
     }
 
+    /// Utility readonly function to check how many unclaimed rewards currently reside in the contract.
+    #[view]
+    fn getTotalUnclaimedRewards(&self) -> BigUint {
+        let num_nodes = self.user_data().getNumUsers();
+        let mut sum_unclaimed = BigUint::zero();
+        
+        for user_id in 1..(num_nodes+1) {
+            let user_data = self._load_user_data_update_rewards(user_id);
+            sum_unclaimed += user_data.unclaimed_rewards;
+        }
+
+        sum_unclaimed
+    }
+
     /// Retrieve those rewards to which the caller is entitled.
     /// Will send:
     /// - new rewards
