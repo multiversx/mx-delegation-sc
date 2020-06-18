@@ -96,16 +96,6 @@ pub trait StakeSaleModule {
             }
         })?;
 
-        // compute seller rewards
-        let seller_data = self.rewards()._load_user_data_update_rewards(seller_id);
-        self.user_data().store_user_data(seller_id, &seller_data);
-
-        // decrease stake of seller
-        let enough = self.user_data()._decrease_user_stake_of_type(seller_id, UserStakeState::Active, &payment);
-        if !enough {
-            return Err("payment exceeds seller active stake");
-        }
-
         // get buyer id or create buyer
         let caller = self.get_caller();
         let mut buyer_id = self.user_data().getUserId(&caller);
@@ -114,9 +104,21 @@ pub trait StakeSaleModule {
             self.user_data()._set_user_id(&caller, buyer_id);
         }
 
-        // compute buyer rewards
+        // compute rewards (must happen before transferring stake):
+        // for seller
+        let seller_data = self.rewards()._load_user_data_update_rewards(seller_id);
+        self.user_data().store_user_data(seller_id, &seller_data);
+
+        // for buyer
         let buyer_data = self.rewards()._load_user_data_update_rewards(buyer_id);
         self.user_data().store_user_data(buyer_id, &buyer_data);
+
+        // transfer stake:
+        // decrease stake of seller
+        let enough = self.user_data()._decrease_user_stake_of_type(seller_id, UserStakeState::Active, &payment);
+        if !enough {
+            return Err("payment exceeds seller active stake");
+        }
 
         // increase stake of buyer
         self.user_data()._increase_user_stake_of_type(buyer_id, UserStakeState::Active, &payment);
