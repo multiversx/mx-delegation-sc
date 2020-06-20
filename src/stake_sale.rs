@@ -27,17 +27,17 @@ pub trait StakeSaleModule {
     /// Creates a stake offer. Overwrites any previous stake offer.
     /// Once a stake offer is up, it can be bought by anyone on a first come first served basis.
     /// Cannot be paused, because this is also part of the unStake mechanism, which the owner cannot veto.
-    fn announceUnStake(&self, amount: BigUint) -> Result<(), &str> {
+    fn announceUnStake(&self, amount: BigUint) -> Result<(), SCError> {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);
         if user_id == 0 {
-            return Err("only delegators can offer stake for sale")
+            return sc_error!("only delegators can offer stake for sale")
         }
 
         // get active stake
         let stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::Active);
         if &amount > &stake {
-            return Err("cannot offer more than the user active stake")
+            return sc_error!("cannot offer more than the user active stake")
         }
 
         // store offer
@@ -71,9 +71,9 @@ pub trait StakeSaleModule {
     /// Note: the price of 1 staked ERD must always be 1 "free" ERD, from outside the contract.
     /// The payment for the stake does not stay in the contract, it gets forwarded immediately to the seller.
     #[payable]
-    fn purchaseStake(&self, seller: Address, #[payment] payment: BigUint) -> Result<(), &str> {
+    fn purchaseStake(&self, seller: Address, #[payment] payment: BigUint) -> Result<(), SCError> {
         if self.pause().isStakeSalePaused() {
-            return Err("stake sale paused");
+            return sc_error!("stake sale paused");
         }
 
         if payment == 0 {
@@ -83,13 +83,13 @@ pub trait StakeSaleModule {
         // get seller id
         let seller_id = self.user_data().getUserId(&seller);
         if seller_id == 0 {
-            return Err("unknown seller")
+            return sc_error!("unknown seller")
         }
 
         // decrease stake for sale
         self.user_data()._update_user_stake_for_sale(seller_id, |stake_for_sale| {
             if &payment > &*stake_for_sale {
-                Err("payment exceeds stake offered")
+                sc_error!("payment exceeds stake offered")
             } else {
                 *stake_for_sale -= &payment;
                 Ok(())
@@ -117,7 +117,7 @@ pub trait StakeSaleModule {
         // decrease stake of seller
         let enough = self.user_data()._decrease_user_stake_of_type(seller_id, UserStakeState::Active, &payment);
         if !enough {
-            return Err("payment exceeds seller active stake");
+            return sc_error!("payment exceeds seller active stake");
         }
 
         // increase stake of buyer

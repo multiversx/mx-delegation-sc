@@ -1,6 +1,5 @@
-use elrond_wasm::Vec;
 use elrond_wasm::esd_light::*;
-use elrond_wasm::H256;
+imports!();
 
 // BLS keys have 96 bytes, signatures only 32
 pub const BLS_KEY_BYTE_LENGTH: usize = 96;
@@ -14,9 +13,9 @@ impl BLSKey {
         self.0.to_vec()
     }
 
-    pub fn from_bytes(bytes: &Vec<u8>) -> Result<Self, &'static str> {
+    pub fn from_bytes(bytes: &Vec<u8>) -> Result<Self, SCError> {
         if bytes.len() != BLS_KEY_BYTE_LENGTH {
-            return Err("bad BLS key length");
+            return sc_error!("bad BLS key length");
         }
         let mut arr = [0u8; BLS_KEY_BYTE_LENGTH];
         for (i, &b) in bytes.iter().enumerate() {

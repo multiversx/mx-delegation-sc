@@ -26,7 +26,7 @@ pub trait SettingsModule {
         service_fee_per_10000: usize,
         n_blocks_before_force_unstake: u64,
         n_blocks_before_unbond: u64,
-    ) -> Result<(), &str> {
+    ) -> Result<(), SCError> {
 
         let owner = self.get_caller();
         self._set_owner(&owner);
@@ -110,17 +110,17 @@ pub trait SettingsModule {
     #[storage_set("auto_activation_enabled")]
     fn _set_auto_activation_enabled(&self, auto_activation_enabled: bool);
 
-    fn enableAutoActivation(&self) -> Result<(), &str>{
+    fn enableAutoActivation(&self) -> Result<(), SCError>{
         if self.get_caller() != self.getContractOwner() {
-            return Err("only owner can enable auto activation");
+            return sc_error!("only owner can enable auto activation");
         }
         self._set_auto_activation_enabled(true);
         Ok(())
     }
 
-    fn disableAutoActivation(&self) -> Result<(), &str>{
+    fn disableAutoActivation(&self) -> Result<(), SCError>{
         if self.get_caller() != self.getContractOwner() {
-            return Err("only owner can disable auto activation");
+            return sc_error!("only owner can disable auto activation");
         }
         self._set_auto_activation_enabled(false);
         Ok(())

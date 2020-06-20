@@ -19,18 +19,18 @@ pub trait PauseModule {
     #[storage_set("staking_paused")]
     fn _set_staking_paused(&self, staking_paused: bool);
 
-    fn pauseStaking(&self) -> Result<(), &str>{
+    fn pauseStaking(&self) -> Result<(), SCError>{
         if !self.settings()._owner_called() {
-            return Err("only owner can pause staking");
+            return sc_error!("only owner can pause staking");
         }
         self._set_staking_paused(true);
         // TODO: event
         Ok(())
     }
 
-    fn unpauseStaking(&self) -> Result<(), &str>{
+    fn unpauseStaking(&self) -> Result<(), SCError>{
         if !self.settings()._owner_called() {
-            return Err("only owner can unpause staking");
+            return sc_error!("only owner can unpause staking");
         }
         self._set_staking_paused(false);
         // TODO: event
@@ -45,18 +45,18 @@ pub trait PauseModule {
     #[storage_set("stake_sale_paused")]
     fn _set_stake_sale_paused(&self, stake_sale_paused: bool);
 
-    fn pauseStakeSale(&self) -> Result<(), &str>{
+    fn pauseStakeSale(&self) -> Result<(), SCError>{
         if !self.settings()._owner_called() {
-            return Err("only owner can pause stake sale");
+            return sc_error!("only owner can pause stake sale");
         }
         self._set_stake_sale_paused(true);
         // TODO: event
         Ok(())
     }
 
-    fn unpauseStakeSale(&self) -> Result<(), &str>{
+    fn unpauseStakeSale(&self) -> Result<(), SCError>{
         if !self.settings()._owner_called() {
-            return Err("only owner can unpause stake sale");
+            return sc_error!("only owner can unpause stake sale");
         }
         self._set_stake_sale_paused(false);
         // TODO: event

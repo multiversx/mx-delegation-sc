@@ -22,16 +22,16 @@ pub trait AuctionMock {
     fn stake(&self,
             num_nodes: usize,
             #[multi(2*num_nodes)] bls_keys_signatures: Vec<Vec<u8>>,
-            #[payment] payment: &BigUint) -> Result<MultiResultVec<Vec<u8>>, &str> {
+            #[payment] payment: &BigUint) -> Result<MultiResultVec<Vec<u8>>, SCError> {
 
         if self.storage()._is_staking_failure() {
-            return Err("auction smart contract deliberate error");
+            return sc_error!("auction smart contract deliberate error");
         }
 
         let mut new_num_nodes = self.storage()._get_num_nodes();
         let expected_payment = BigUint::from(num_nodes) * self.storage()._get_stake_per_node();
         if payment != &expected_payment {
-            return Err("incorrect payment to auction mock");
+            return sc_error!("incorrect payment to auction mock");
         }
 
         let mut result_err_data: MultiResultVec<Vec<u8>> = Vec::new();
@@ -55,10 +55,10 @@ pub trait AuctionMock {
     }
 
     fn unStake(&self,
-            #[var_args] bls_keys: Vec<Vec<u8>>) -> Result<MultiResultVec<Vec<u8>>, &str> {
+            #[var_args] bls_keys: Vec<Vec<u8>>) -> Result<MultiResultVec<Vec<u8>>, SCError> {
 
         if self.storage()._is_staking_failure() {
-            return Err("auction smart contract deliberate error");
+            return sc_error!("auction smart contract deliberate error");
         }
 
         let mut result_err_data: MultiResultVec<Vec<u8>> = Vec::new();
@@ -76,10 +76,10 @@ pub trait AuctionMock {
     }
 
     fn unBond(&self,
-            #[var_args] bls_keys: Vec<Vec<u8>>) -> Result<MultiResultVec<Vec<u8>>, &str> {
+            #[var_args] bls_keys: Vec<Vec<u8>>) -> Result<MultiResultVec<Vec<u8>>, SCError> {
 
         if self.storage()._is_staking_failure() {
-            return Err("auction smart contract deliberate error");
+            return sc_error!("auction smart contract deliberate error");
         }
 
         let mut result_err_data: MultiResultVec<Vec<u8>> = Vec::new();
@@ -99,7 +99,7 @@ pub trait AuctionMock {
         Ok(result_err_data)
     }
 
-    fn claim(&self) -> Result<(), &str> {
+    fn claim(&self) -> Result<(), SCError> {
         Ok(())
     }
 }

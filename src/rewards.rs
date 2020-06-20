@@ -152,11 +152,11 @@ pub trait RewardsModule {
     /// Will send:
     /// - new rewards
     /// - rewards that were previously computed but not sent
-    fn claimRewards(&self) -> Result<(), &str> {
+    fn claimRewards(&self) -> Result<(), SCError> {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);
         if user_id == 0 {
-            return Err("unknown caller")
+            return sc_error!("unknown caller")
         }
 
         let mut user_data = self._load_user_data_update_rewards(user_id);

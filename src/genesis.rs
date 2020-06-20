@@ -30,18 +30,18 @@ pub trait GenesisModule {
 
     /// Function to be used only during genesis block.
     /// Cannot perform payments during genesis block, so we update state but not the balance.
-    fn stakeGenesis(&self, stake: BigUint) -> Result<(), &str> {
+    fn stakeGenesis(&self, stake: BigUint) -> Result<(), SCError> {
         if self.get_block_nonce() > 0 {
-            return Err("genesis block only")
+            return sc_error!("genesis block only")
         }
         self.user_stake()._process_stake(stake)
     }
 
     /// Function to be used only once, during genesis block.
     /// Cannot perform payments during genesis block, so we update state but do not receive or send funds.
-    fn activateGenesis(&self) -> Result<(), &str> {
+    fn activateGenesis(&self) -> Result<(), SCError> {
         if self.get_block_nonce() > 0 {
-            return Err("genesis block only")
+            return sc_error!("genesis block only")
         }
 
         // set nodes to Active, and count how many not deleted
@@ -55,7 +55,7 @@ pub trait GenesisModule {
                 },
                 NodeState::Removed => {},
                 _ => {
-                    return Err("cannot activate twice during genesis");
+                    return sc_error!("cannot activate twice during genesis");
                 },
             }
         }
@@ -64,13 +64,13 @@ pub trait GenesisModule {
         let stake_required_by_nodes = BigUint::from(num_inactive_nodes) * self.node_config().getStakePerNode();
         let mut total_inactive_stake = self.user_data()._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
         if stake_required_by_nodes != total_inactive_stake {
-            return Err("stake required by nodes must match total user stake at genesis");
+            return sc_error!("stake required by nodes must match total user stake at genesis");
         }
 
         // convert all user inactive stake to active stake
         self.user_data().convert_user_stake_asc(UserStakeState::Inactive, UserStakeState::Active, &mut total_inactive_stake);
         if total_inactive_stake > 0 {
-            return Err("not enough active stake");
+            return sc_error!("not enough active stake");
         }
 
         // log event (no data)

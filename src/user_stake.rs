@@ -34,9 +34,9 @@ pub trait UserStakeModule {
     fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
 
     #[payable]
-    fn stake(&self, #[payment] payment: BigUint) -> Result<(), &str> {
+    fn stake(&self, #[payment] payment: BigUint) -> Result<(), SCError> {
         if self.pause().isStakingPaused() {
-            return Err("staking paused");
+            return sc_error!("staking paused");
         }
         
         if payment == 0 {
@@ -47,7 +47,7 @@ pub trait UserStakeModule {
     }
 
     #[private]
-    fn _process_stake(&self, payment: BigUint) -> Result<(), &'static str> {
+    fn _process_stake(&self, payment: BigUint) -> Result<(), SCError> {
         // get user id or create user
         // we use user id as an intermediate identifier between user address and data,
         // because we might at some point need to iterate over all user data
@@ -75,7 +75,7 @@ pub trait UserStakeModule {
 
     // WITHDRAW INACTIVE
 
-    fn withdrawInactiveStake(&self, amount: BigUint) -> Result<(), &str> {
+    fn withdrawInactiveStake(&self, amount: BigUint) -> Result<(), SCError> {
         if amount == 0 {
             return Ok(());
         }
@@ -83,7 +83,7 @@ pub trait UserStakeModule {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);
         if user_id == 0 {
-            return Err("only delegators can withdraw inactive stake");
+            return sc_error!("only delegators can withdraw inactive stake");
         }
 
         // first withdraw from unavailable inactive stake
@@ -96,7 +96,7 @@ pub trait UserStakeModule {
             let remaining = &amount - &withdraw_stake;
             let enough = self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &remaining);
             if !enough {
-                return Err("cannot withdraw more than inactive stake");
+                return sc_error!("cannot withdraw more than inactive stake");
             }
         }
 
@@ -112,21 +112,21 @@ pub trait UserStakeModule {
     /// Delegators can force some or all nodes to unstake
     /// if they put up stake for sale and no-one has bought it for long enough.
     /// This operation can be performed by any delegator.
-    fn unStake(&self) -> Result<(), &str> {
+    fn unStake(&self) -> Result<(), SCError> {
         let user_id = self.user_data().getUserId(&self.get_caller());
         if user_id == 0 {
-            return Err("only delegators can call unStake");
+            return sc_error!("only delegators can call unStake");
         }
 
         let stake_for_sale = self.user_data()._get_user_stake_for_sale(user_id);
         if stake_for_sale == 0 {
-            return Err("only delegators that have announced unStake can call unStake");
+            return sc_error!("only delegators that have announced unStake can call unStake");
         }
 
         let block_nonce_of_stake_offer = self.user_data()._get_user_bl_nonce_of_stake_offer(user_id);
         let n_blocks_before_force_unstake = self.settings().getNumBlocksBeforeForceUnstake();
         if self.get_block_nonce() <= block_nonce_of_stake_offer + n_blocks_before_force_unstake {
-            return Err("too soon to call unStake");
+            return sc_error!("too soon to call unStake");
         }
 
         // find nodes to unstake
@@ -139,11 +139,11 @@ pub trait UserStakeModule {
         self.node_activation()._perform_unstake_nodes(Some(unbond_queue_entry), node_ids, bls_keys)
     }
 
-    fn unBond(&self) -> Result<(), &str> {
+    fn unBond(&self) -> Result<(), SCError> {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);
         if user_id == 0 {
-            return Err("only delegators can withdraw inactive stake");
+            return sc_error!("only delegators can withdraw inactive stake");
         }
 
         let mut amount = BigUint::zero();

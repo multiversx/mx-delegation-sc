@@ -42,18 +42,18 @@ pub trait NodeModule {
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    fn setServiceFee(&self, service_fee_per_10000: usize) -> Result<(), &'static str> {
+    fn setServiceFee(&self, service_fee_per_10000: usize) -> Result<(), SCError> {
         if !self.settings()._owner_called() {
-            return Err("only owner can change service fee"); 
+            return sc_error!("only owner can change service fee"); 
         }
 
         if service_fee_per_10000 > SERVICE_FEE_DENOMINATOR {
-            return Err("node share out of range");
+            return sc_error!("node share out of range");
         }
 
         // check that all nodes idle
         if !self.allNodesIdle() {
-            return Err("cannot change service fee while at least one node is active");
+            return sc_error!("cannot change service fee while at least one node is active");
         }
 
         self._set_service_fee(service_fee_per_10000);
@@ -72,14 +72,14 @@ pub trait NodeModule {
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    fn setStakePerNode(&self, node_activation: &BigUint) -> Result<(), &str> {
+    fn setStakePerNode(&self, node_activation: &BigUint) -> Result<(), SCError> {
         if !self.settings()._owner_called() {
-            return Err("only owner can change stake per node"); 
+            return sc_error!("only owner can change stake per node"); 
         }
 
         // check that all nodes idle
         if !self.allNodesIdle() {
-            return Err("cannot change stake per node while at least one node is active");
+            return sc_error!("cannot change stake per node while at least one node is active");
         }
 
         self._set_stake_per_node(&node_activation);
@@ -204,15 +204,15 @@ pub trait NodeModule {
     /// Important: it has to be called BEFORE setting the BLS keys.
     fn addNodes(&self, 
             #[var_args] bls_keys_signatures: Vec<Vec<u8>>)
-        -> Result<(), &str> {
+        -> Result<(), SCError> {
 
         if !self.settings()._owner_called() {
-            return Err("only owner can add nodes"); 
+            return sc_error!("only owner can add nodes"); 
         }
 
         let mut num_nodes = self.getNumNodes();
         if bls_keys_signatures.len() % 2 != 0 {
-            return Err("even number of arguments expected"); 
+            return sc_error!("even number of arguments expected"); 
         }
 
         // TODO: handle arguments more elegantly,
@@ -231,12 +231,12 @@ pub trait NodeModule {
                 } else if self._get_node_state(node_id) == NodeState::Removed {
                     self._set_node_state(node_id, NodeState::Inactive);
                 } else {
-                    return Err("node already registered"); 
+                    return sc_error!("node already registered"); 
                 }
             } else {
                 // check signature lengths
                 if arg.len() != BLS_SIGNATURE_BYTE_LENGTH {
-                    return Err("wrong size BLS signature");
+                    return sc_error!("wrong size BLS signature");
                 }
                 let signature = BLSSignature::from_slice(arg.as_slice());
                 self._set_node_signature(node_id, signature)
@@ -247,18 +247,18 @@ pub trait NodeModule {
         Ok(())
     }
 
-    fn removeNodes(&self, #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), &str> {
+    fn removeNodes(&self, #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), SCError> {
         if !self.settings()._owner_called() {
-            return Err("only owner can remove nodes"); 
+            return sc_error!("only owner can remove nodes"); 
         }
 
         for bls_key in bls_keys.iter() {
             let node_id = self.getNodeId(bls_key);
             if node_id == 0 {
-                return Err("node not registered");
+                return sc_error!("node not registered");
             }
             if self._get_node_state(node_id) != NodeState::Inactive {
-                return Err("only inactive nodes can be removed");
+                return sc_error!("only inactive nodes can be removed");
             }
             self._set_node_state(node_id, NodeState::Removed);
         }
@@ -293,14 +293,14 @@ pub trait NodeModule {
     fn _split_node_ids_by_err(&self, 
             mut node_ids: Vec<usize>, 
             node_fail_map_raw: VarArgs<Vec<u8>>)
-        -> Result<(Vec<usize>, Vec<usize>), &'static str> {
+        -> Result<(Vec<usize>, Vec<usize>), SCError> {
 
         if node_fail_map_raw.len() == 0 {
             return Ok((node_ids, Vec::with_capacity(0)));
         }
 
         if node_fail_map_raw.len() % 2 != 0 {
-            return Err("even number of arguments expected in auction callback");
+            return sc_error!("even number of arguments expected in auction callback");
         }
 
         let mut failed_node_ids: Vec<usize> = Vec::new();
@@ -312,7 +312,7 @@ pub trait NodeModule {
                 node_id = self.getNodeId(&bls_key); 
             } else {
                 if arg.len() != 1 {
-                    return Err("node status expected as one byte");
+                    return sc_error!("node status expected as one byte");
                 }
                 if arg[0] > 0 {
                     // error
