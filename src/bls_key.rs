@@ -33,7 +33,7 @@ impl Encode for BLSKey {
 }
 
 impl Decode for BLSKey {
-    fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+    fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         let mut arr = [0u8; BLS_KEY_BYTE_LENGTH];
         input.read_into(&mut arr)?;
         Ok(BLSKey(arr))

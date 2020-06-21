@@ -21,7 +21,7 @@ where BigUint: Encode + Decode
 impl<BigUint> Decode for UnbondQueueItem<BigUint>
 where BigUint: Encode + Decode
 {
-    fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+    fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         Ok(UnbondQueueItem{
             user_id: usize::dep_decode(input)?,
             amount: BigUint::dep_decode(input)?,

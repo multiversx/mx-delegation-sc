@@ -45,7 +45,7 @@ impl UserStakeState {
         }
     }
 
-    fn from_u8(v: u8) -> Result<Self, DeError> {
+    fn from_u8(v: u8) -> Result<Self, DecodeError> {
         match v {
             0 => Ok(UserStakeState::Inactive),
             1 => Ok(UserStakeState::PendingActivation),
@@ -55,7 +55,7 @@ impl UserStakeState {
             5 => Ok(UserStakeState::PendingUnBond),
             6 => Ok(UserStakeState::WithdrawOnly),
             7 => Ok(UserStakeState::ActivationFailed),
-            _ => Err(DeError::InvalidValue),
+            _ => Err(DecodeError::InvalidValue),
         }
     }
 }
@@ -74,12 +74,12 @@ impl Encode for UserStakeState {
 
 impl Decode for UserStakeState {
 	#[inline]
-	fn top_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+	fn top_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         UserStakeState::from_u8(u8::top_decode(input)?)
     }
     
     #[inline]
-	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         UserStakeState::from_u8(u8::dep_decode(input)?)
     }
 }

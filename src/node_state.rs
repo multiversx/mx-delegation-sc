@@ -44,7 +44,7 @@ impl NodeState {
         }
     }
 
-    fn from_u8(v: u8) -> Result<Self, DeError> {
+    fn from_u8(v: u8) -> Result<Self, DecodeError> {
         match v {
             0 => Ok(NodeState::Inactive),
             1 => Ok(NodeState::PendingActivation),
@@ -54,7 +54,7 @@ impl NodeState {
             5 => Ok(NodeState::PendingUnBond),
             6 => Ok(NodeState::Removed),
             7 => Ok(NodeState::ActivationFailed),
-            _ => Err(DeError::InvalidValue),
+            _ => Err(DecodeError::InvalidValue),
         }
     }
 }
@@ -73,12 +73,12 @@ impl Encode for NodeState {
 
 impl Decode for NodeState {
 	#[inline]
-	fn top_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+	fn top_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         NodeState::from_u8(u8::top_decode(input)?)
     }
     
     #[inline]
-	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         NodeState::from_u8(u8::dep_decode(input)?)
     }
 }
