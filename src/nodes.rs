@@ -82,8 +82,13 @@ pub trait NodeModule {
     /// Will yield multiple results, one result for each BLS key.
     /// Note: in storage they get concatenated and stored under a single key.
     #[view]
+    fn getBlsKeys(&self) -> MultiResultVec<BLSKey> {
+        self._get_bls_keys().into()
+    }
+
+    #[private]
     #[storage_get("bls_keys")]
-    fn getBlsKeys(&self) -> Vec<BLSKey>;
+    fn _get_bls_keys(&self) -> Vec<BLSKey>;
 
     #[private]
     #[storage_set("bls_keys")]

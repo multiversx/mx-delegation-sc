@@ -46,7 +46,7 @@ impl StakeState {
         }
     }
 
-    fn from_u8(v: u8) -> Result<Self, DeError> {
+    fn from_u8(v: u8) -> Result<Self, DecodeError> {
         match v {
             0 => Ok(StakeState::OpenForStaking),
             1 => Ok(StakeState::PendingActivation),
@@ -54,7 +54,7 @@ impl StakeState {
             3 => Ok(StakeState::PendingDectivation),
             4 => Ok(StakeState::UnBondPeriod),
             5 => Ok(StakeState::PendingUnBond),
-            _ => Err(DeError::InvalidValue),
+            _ => Err(DecodeError::InvalidValue),
         }
     }
 }
@@ -73,12 +73,12 @@ impl Encode for StakeState {
 
 impl Decode for StakeState {
 	#[inline]
-	fn top_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+	fn top_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         StakeState::from_u8(u8::top_decode(input)?)
     }
     
     #[inline]
-	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DeError> {
+	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         StakeState::from_u8(u8::dep_decode(input)?)
     }
 }
