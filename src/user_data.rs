@@ -139,41 +139,40 @@ pub trait UserDataModule {
     }
 
     #[private]
-    fn _get_user_stake_by_type(&self, user_id: usize) -> MultiResultVec<BigUint> {
-        let mut result = Vec::<BigUint>::with_capacity(7);
-        result.push(self._get_user_stake_of_type(user_id, UserStakeState::Inactive));
-        result.push(self._get_user_stake_of_type(user_id, UserStakeState::PendingActivation));
-        result.push(self._get_user_stake_of_type(user_id, UserStakeState::Active));
-        result.push(self._get_user_stake_of_type(user_id, UserStakeState::PendingDeactivation));
-        result.push(self._get_user_stake_of_type(user_id, UserStakeState::UnBondPeriod));
-        result.push(self._get_user_stake_of_type(user_id, UserStakeState::PendingUnBond));
-        result.push(self._get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly));
-        result.push(self._get_user_stake_of_type(user_id, UserStakeState::ActivationFailed));
-        result.into()
+    fn _get_user_stake_by_type(&self, user_id: usize) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+        (
+            self._get_user_stake_of_type(user_id, UserStakeState::Inactive),
+            self._get_user_stake_of_type(user_id, UserStakeState::PendingActivation),
+            self._get_user_stake_of_type(user_id, UserStakeState::Active),
+            self._get_user_stake_of_type(user_id, UserStakeState::PendingDeactivation),
+            self._get_user_stake_of_type(user_id, UserStakeState::UnBondPeriod),
+            self._get_user_stake_of_type(user_id, UserStakeState::PendingUnBond),
+            self._get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly),
+            self._get_user_stake_of_type(user_id, UserStakeState::ActivationFailed),
+        ).into()
     }
 
     #[view]
-    fn getUserStakeByType(&self, user_address: &Address) -> MultiResultVec<BigUint> {
-        // TODO: replace result type with something based on tuples
+    fn getUserStakeByType(&self, user_address: &Address) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         let user_id = self.getUserId(&user_address);
         if user_id == 0 {
-            let mut result = Vec::<BigUint>::with_capacity(7);
-            result.push(BigUint::zero());
-            result.push(BigUint::zero());
-            result.push(BigUint::zero());
-            result.push(BigUint::zero());
-            result.push(BigUint::zero());
-            result.push(BigUint::zero());
-            result.push(BigUint::zero());
-            result.push(BigUint::zero());
-            result.into()
+            (
+                BigUint::zero(),
+                BigUint::zero(),
+                BigUint::zero(),
+                BigUint::zero(),
+                BigUint::zero(),
+                BigUint::zero(),
+                BigUint::zero(),
+                BigUint::zero(),
+            ).into()
         } else {
             self._get_user_stake_by_type(user_id)
         }
     }
 
     #[view]
-    fn getTotalStakeByType(&self) -> MultiResultVec<BigUint> {
+    fn getTotalStakeByType(&self) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         self._get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 
