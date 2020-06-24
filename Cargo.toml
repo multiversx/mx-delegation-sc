@@ -1,6 +1,6 @@
 [package]
 name = "sc-delegation-rs"
-version = "0.3.0"
+version = "0.3.4"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 

@@ -38,9 +38,6 @@ use crate::unexpected::*;
 use crate::user_data::*;
 use crate::settings::*;
 
-// increment this whenever changing the contract
-const VERSION: &[u8] = b"0.3.3";
-
 imports!();
 
 #[elrond_wasm_derive::contract(DelegationImpl)]
@@ -48,8 +45,8 @@ pub trait Delegation {
 
     // METADATA
 
-    fn version(&self) -> Vec<u8> {
-        VERSION.to_vec()
+    fn version(&self) -> &'static str {
+        env!("CARGO_PKG_VERSION")
     }
 
     // MODULES
