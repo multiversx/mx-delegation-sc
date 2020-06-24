@@ -124,12 +124,12 @@ pub trait NodeModule {
     fn _set_node_signature(&self, node_id: usize, node_signature: BLSSignature);
 
     #[view]
-    fn getNodeSignature(&self, bls_key: BLSKey) -> Option<BLSSignature> {
+    fn getNodeSignature(&self, bls_key: BLSKey) -> OptionalResult<BLSSignature> {
         let node_id = self.getNodeId(&bls_key);
         if node_id == 0 {
-            None
+            OptionalResult::None
         } else {
-            Some(self._get_node_signature(node_id))
+            OptionalResult::Some(self._get_node_signature(node_id))
         }
     }
 
@@ -178,7 +178,7 @@ pub trait NodeModule {
             let state = self._get_node_state(i);
             result.push([state.to_u8()].to_vec());
         }
-        result
+        result.into()
     }
 
     /// Block timestamp when unbond happened. 0 if not in unbond period.

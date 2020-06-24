@@ -139,7 +139,7 @@ pub trait UserDataModule {
     }
 
     #[private]
-    fn _get_user_stake_by_type(&self, user_id: usize) -> Vec<BigUint> {
+    fn _get_user_stake_by_type(&self, user_id: usize) -> MultiResultVec<BigUint> {
         let mut result = Vec::<BigUint>::with_capacity(7);
         result.push(self._get_user_stake_of_type(user_id, UserStakeState::Inactive));
         result.push(self._get_user_stake_of_type(user_id, UserStakeState::PendingActivation));
@@ -149,7 +149,7 @@ pub trait UserDataModule {
         result.push(self._get_user_stake_of_type(user_id, UserStakeState::PendingUnBond));
         result.push(self._get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly));
         result.push(self._get_user_stake_of_type(user_id, UserStakeState::ActivationFailed));
-        result
+        result.into()
     }
 
     #[view]
@@ -166,7 +166,7 @@ pub trait UserDataModule {
             result.push(BigUint::zero());
             result.push(BigUint::zero());
             result.push(BigUint::zero());
-            result
+            result.into()
         } else {
             self._get_user_stake_by_type(user_id)
         }

@@ -34,7 +34,7 @@ pub trait AuctionMock {
             return sc_error!("incorrect payment to auction mock");
         }
 
-        let mut result_err_data: MultiResultVec<Vec<u8>> = Vec::new();
+        let mut result_err_data: Vec<Vec<u8>> = Vec::new();
         for n in 0..num_nodes {
             new_num_nodes += 1;
             let bls_key = &bls_keys_signatures[2*n];
@@ -51,7 +51,7 @@ pub trait AuctionMock {
 
         self.storage()._set_num_nodes(new_num_nodes);
 
-        Ok(result_err_data)
+        Ok(result_err_data.into())
     }
 
     fn unStake(&self,
@@ -61,7 +61,7 @@ pub trait AuctionMock {
             return sc_error!("auction smart contract deliberate error");
         }
 
-        let mut result_err_data: MultiResultVec<Vec<u8>> = Vec::new();
+        let mut result_err_data: Vec<Vec<u8>> = Vec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
             self.storage()._set_unStake_bls_key(n, bls_key);
 
@@ -72,7 +72,7 @@ pub trait AuctionMock {
             }
         }
 
-        Ok(result_err_data)
+        Ok(result_err_data.into())
     }
 
     fn unBond(&self,
@@ -82,7 +82,7 @@ pub trait AuctionMock {
             return sc_error!("auction smart contract deliberate error");
         }
 
-        let mut result_err_data: MultiResultVec<Vec<u8>> = Vec::new();
+        let mut result_err_data: Vec<Vec<u8>> = Vec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
             self.storage()._set_unBond_bls_key(n, bls_key);
 
@@ -96,7 +96,7 @@ pub trait AuctionMock {
         let unbond_stake = BigUint::from(bls_keys.len()) * self.storage()._get_stake_per_node();
         self.send_tx(&self.get_caller(), &unbond_stake, "unbond stake");
 
-        Ok(result_err_data)
+        Ok(result_err_data.into())
     }
 
     fn claim(&self) -> Result<(), SCError> {
