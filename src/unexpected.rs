@@ -34,7 +34,7 @@ pub trait UnexpectedBalanceModule {
         expected_balance += self.rewards().getTotalCumulatedRewards();
         expected_balance -= self.rewards()._get_sent_rewards();
 
-        self.get_own_balance() - expected_balance
+        self.get_sc_balance() - expected_balance
     }
 
     /// Used by owner to extract unexpected balance from contract.
