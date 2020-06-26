@@ -8,6 +8,8 @@ pub const BLS_SIGNATURE_BYTE_LENGTH: usize = 32;
 pub struct BLSKey(pub [u8; BLS_KEY_BYTE_LENGTH]);
 pub type BLSSignature = H256;
 
+pub type BLSStatusMultiArg = MultiArg2<BLSKey, i32>;
+
 impl BLSKey {
     pub fn to_vec(&self) -> Vec<u8> {
         self.0.to_vec()

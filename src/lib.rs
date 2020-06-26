@@ -13,6 +13,7 @@ pub mod user_stake_state;
 pub mod util;
 
 use crate::unbond_queue::*;
+use crate::bls_key::*;
 
 // modules
 pub mod events;
@@ -87,7 +88,7 @@ pub trait Delegation {
     #[callback]
     fn auction_stake_callback(&self,
             #[callback_arg] node_ids: Vec<usize>,
-            call_result: AsyncCallResult<VarArgs<Vec<u8>>>) {
+            call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
 
         self.node_activation().auction_stake_callback(
             node_ids,
@@ -99,7 +100,7 @@ pub trait Delegation {
     fn auction_unStake_callback(&self,
             #[callback_arg] opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>,
             #[callback_arg] node_ids: Vec<usize>,
-            call_result: AsyncCallResult<VarArgs<Vec<u8>>>) {
+            call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
 
         self.node_activation().auction_unStake_callback(
             opt_unbond_queue_entry,
@@ -111,7 +112,7 @@ pub trait Delegation {
     #[callback]
     fn auction_unBond_callback(&self,
             #[callback_arg] node_ids: Vec<usize>,
-            call_result: AsyncCallResult<VarArgs<Vec<u8>>>) {
+            call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
 
         self.node_activation().auction_unBond_callback(
             node_ids,

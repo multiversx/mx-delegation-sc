@@ -199,11 +199,8 @@ pub trait NodeModule {
         }
     }
 
-    /// The number of nodes that will run with the contract stake is configured by the owner.
-    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    /// Important: it has to be called BEFORE setting the BLS keys.
     fn addNodes(&self, 
-            #[var_args] bls_keys_signatures: Vec<Vec<u8>>)
+            #[var_args] bls_keys_signatures: VarArgs<Vec<u8>>)
         -> Result<(), SCError> {
 
         if !self.settings()._owner_called() {
@@ -247,7 +244,7 @@ pub trait NodeModule {
         Ok(())
     }
 
-    fn removeNodes(&self, #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), SCError> {
+    fn removeNodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
         if !self.settings()._owner_called() {
             return sc_error!("only owner can remove nodes"); 
         }
@@ -292,38 +289,22 @@ pub trait NodeModule {
     #[private]
     fn _split_node_ids_by_err(&self, 
             mut node_ids: Vec<usize>, 
-            node_fail_map_raw: VarArgs<Vec<u8>>)
-        -> Result<(Vec<usize>, Vec<usize>), SCError> {
-
-        if node_fail_map_raw.len() == 0 {
-            return Ok((node_ids, Vec::with_capacity(0)));
-        }
-
-        if node_fail_map_raw.len() % 2 != 0 {
-            return sc_error!("even number of arguments expected in auction callback");
-        }
+            node_status_args: VarArgs<BLSStatusMultiArg>)
+        -> (Vec<usize>, Vec<usize>) {
 
         let mut failed_node_ids: Vec<usize> = Vec::new();
-
-        let mut node_id = 0usize;
-        for (i, arg) in node_fail_map_raw.iter().enumerate() {
-            if i % 2 == 0 {
-                let bls_key = BLSKey::from_bytes(arg)?;
-                node_id = self.getNodeId(&bls_key); 
-            } else {
-                if arg.len() != 1 {
-                    return sc_error!("node status expected as one byte");
-                }
-                if arg[0] > 0 {
-                    // error
-                    if let Some(pos) = node_ids.iter().position(|x| *x == node_id) {
-                        node_ids.swap_remove(pos);
-                        failed_node_ids.push(node_id);
-                    }
+        for arg in node_status_args.into_vec().into_iter() {
+            let (bls_key, status) = arg.into_tuple();
+            if status != 0 {
+                let node_id = self.getNodeId(&bls_key);
+                // move node from ok nodes to failed ones
+                if let Some(pos) = node_ids.iter().position(|x| *x == node_id) {
+                    node_ids.swap_remove(pos);
+                    failed_node_ids.push(node_id);
                 }
             }
         }
 
-        Ok((node_ids, failed_node_ids))
+        (node_ids, failed_node_ids)
     }
 }

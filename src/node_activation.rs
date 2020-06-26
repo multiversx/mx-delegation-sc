@@ -39,7 +39,7 @@ pub trait ContractStakeModule {
 
     /// Owner activates specific nodes.
     fn stakeNodes(&self,
-            #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), SCError> {
+            #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
         if !self.settings()._owner_called() {
             return sc_error!("only owner can activate nodes individually"); 
@@ -127,11 +127,11 @@ pub trait ContractStakeModule {
     #[private]
     fn auction_stake_callback(&self, 
             node_ids: Vec<usize>, // #[callback_arg]
-            call_result: AsyncCallResult<VarArgs<Vec<u8>>>) -> Result<(), SCError> {
+            call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) -> Result<(), SCError> {
 
         match call_result {
-            AsyncCallResult::Ok(node_fail_map_raw) => {
-                let (node_ids_ok, node_ids_fail) = self.node_config()._split_node_ids_by_err(node_ids, node_fail_map_raw)?;
+            AsyncCallResult::Ok(node_status_args) => {
+                let (node_ids_ok, node_ids_fail) = self.node_config()._split_node_ids_by_err(node_ids, node_status_args);
                 self.auction_stake_callback_ok(node_ids_ok)?;
                 self.auction_stake_callback_fail(node_ids_fail, &b"staking failed for some nodes"[..])?;
                 Ok(())
@@ -195,7 +195,7 @@ pub trait ContractStakeModule {
     /// The nodes will stop receiving rewards, but stake cannot be yet reclaimed.
     /// This operation is performed by the owner.
     fn unStakeNodes(&self,
-            #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), SCError> {
+            #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
         if !self.settings()._owner_called() {
             return sc_error!("only owner can deactivate nodes individually"); 
@@ -207,7 +207,7 @@ pub trait ContractStakeModule {
             node_ids.push(node_id);
         }
 
-        self._perform_unstake_nodes(None, node_ids, bls_keys)
+        self._perform_unstake_nodes(None, node_ids, bls_keys.into_vec())
     }
 
     #[private]
@@ -261,11 +261,11 @@ pub trait ContractStakeModule {
     fn auction_unStake_callback(&self, 
             opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>, // #[callback_arg]
             node_ids: Vec<usize>, // #[callback_arg]
-            call_result: AsyncCallResult<VarArgs<Vec<u8>>>) -> Result<(), SCError> {
+            call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) -> Result<(), SCError> {
 
         match call_result {
-            AsyncCallResult::Ok(node_fail_map_raw) => {
-                let (node_ids_ok, node_ids_fail) = self.node_config()._split_node_ids_by_err(node_ids, node_fail_map_raw)?;
+            AsyncCallResult::Ok(node_status_args) => {
+                let (node_ids_ok, node_ids_fail) = self.node_config()._split_node_ids_by_err(node_ids, node_status_args);
                 self.auction_unStake_callback_ok(opt_unbond_queue_entry, node_ids_ok)?;
                 self.auction_unStake_callback_fail(node_ids_fail, &b"unstaking failed for some nodes"[..])?;
                 Ok(())
@@ -341,7 +341,7 @@ pub trait ContractStakeModule {
     /// Claims unstaked stake from the auction smart contract.
     /// This operation can be executed by anyone (note that it might cost much gas).
     fn unBondNodes(&self,
-            #[var_args] bls_keys: Vec<BLSKey>) -> Result<(), SCError> {
+            #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
         let bl_nonce = self.get_block_nonce();
         let n_blocks_before_unbond = self.settings().getNumBlocksBeforeUnBond();
@@ -365,7 +365,7 @@ pub trait ContractStakeModule {
             self.node_config()._set_node_state(node_id, NodeState::PendingUnBond);
         }
 
-        self._perform_unbond(None, node_ids, bls_keys)
+        self._perform_unbond(None, node_ids, bls_keys.into_vec())
     }
 
     #[private]
@@ -450,11 +450,11 @@ pub trait ContractStakeModule {
     #[private]
     fn auction_unBond_callback(&self, 
         node_ids: Vec<usize>, // #[callback_arg]
-        call_result: AsyncCallResult<VarArgs<Vec<u8>>>) -> Result<(), SCError> {
+        call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) -> Result<(), SCError> {
 
         match call_result {
-            AsyncCallResult::Ok(node_fail_map_raw) => {
-                let (node_ids_ok, node_ids_fail) = self.node_config()._split_node_ids_by_err(node_ids, node_fail_map_raw)?;
+            AsyncCallResult::Ok(node_status_args) => {
+                let (node_ids_ok, node_ids_fail) = self.node_config()._split_node_ids_by_err(node_ids, node_status_args);
                 self.auction_unBond_callback_ok(node_ids_ok)?;
                 self.auction_unBond_callback_fail(node_ids_fail, &b"unbonding failed for some nodes"[..])?;
                 Ok(())
