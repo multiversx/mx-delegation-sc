@@ -32,11 +32,9 @@ pub trait RewardsModule {
 
 
 
-    #[private]
     #[storage_get("sent_rewards")]
     fn _get_sent_rewards(&self) -> BigUint;
 
-    #[private]
     #[storage_set("sent_rewards")]
     fn _set_sent_rewards(&self, sent_rewards: &BigUint);
 
@@ -53,7 +51,6 @@ pub trait RewardsModule {
     }
 
     /// The account running the nodes is entitled to (service_fee / NODE_DENOMINATOR) * rewards.
-    #[private]
     fn _service_fee_reward(&self, tot_rewards: &BigUint) -> BigUint {
         let mut node_rewards = tot_rewards * &self.node_config().getServiceFee();
         node_rewards /= BigUint::from(SERVICE_FEE_DENOMINATOR);
@@ -61,7 +58,6 @@ pub trait RewardsModule {
     }
 
     /// Does not update storage, only returns the updated user data object.
-    #[private]
     fn _load_user_data_update_rewards(&self, user_id: usize) -> UserData<BigUint> {
         let mut user_data = self.user_data()._load_user_data(user_id);
 
@@ -99,6 +95,7 @@ pub trait RewardsModule {
     /// Computes rewards for all delegators and the node.
     /// Updates storage.
     /// Could cost a lot of gas.
+    #[endpoint]
     fn computeAllRewards(&self) {
         let num_nodes = self.user_data().getNumUsers();
         let mut sum_unclaimed = BigUint::zero();
@@ -152,6 +149,7 @@ pub trait RewardsModule {
     /// Will send:
     /// - new rewards
     /// - rewards that were previously computed but not sent
+    #[endpoint]
     fn claimRewards(&self) -> Result<(), SCError> {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);
@@ -171,7 +169,6 @@ pub trait RewardsModule {
         Ok(())
     }
 
-    #[private]
     fn send_rewards(&self, to: &Address, amount: &BigUint) {
         // send funds
         self.send_tx(to, amount, "delegation claim");

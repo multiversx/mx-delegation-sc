@@ -38,6 +38,7 @@ pub trait UnexpectedBalanceModule {
     }
 
     /// Used by owner to extract unexpected balance from contract.
+    #[endpoint]
     fn withdrawUnexpectedBalance(&self) -> Result<(), SCError> {
         let caller = self.get_caller();
         if &caller != &self.settings().getContractOwner() {

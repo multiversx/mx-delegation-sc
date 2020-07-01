@@ -20,7 +20,7 @@ pub trait SettingsModule {
     fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, BigUint>;
 
     /// This is the contract constructor, called only once when the contract is deployed.
-    /// 
+    #[init]
     fn init(&self,
         auction_contract_addr: &Address,
         service_fee_per_10000: usize,
@@ -49,11 +49,9 @@ pub trait SettingsModule {
     #[storage_get("owner")]
     fn getContractOwner(&self) -> Address;
 
-    #[private]
     #[storage_set("owner")]
     fn _set_owner(&self, owner: &Address);
 
-    #[private]
     fn _owner_called(&self) -> bool {
         self.get_caller() == self.getContractOwner()
     }
@@ -64,7 +62,6 @@ pub trait SettingsModule {
     #[storage_get("node_rewards_addr")]
     fn getNodeRewardDestination(&self) -> Address;
 
-    #[private]
     #[storage_set("node_rewards_addr")]
     fn _set_node_reward_destination(&self, nrd: &Address);
 
@@ -74,7 +71,6 @@ pub trait SettingsModule {
     #[storage_get("auction_addr")]
     fn getAuctionContractAddress(&self) -> Address;
 
-    #[private]
     #[storage_set("auction_addr")]
     fn _set_auction_addr(&self, auction_addr: &Address);
 
@@ -87,7 +83,6 @@ pub trait SettingsModule {
     #[storage_get("n_blocks_before_force_unstake")]
     fn getNumBlocksBeforeForceUnstake(&self) -> u64;
 
-    #[private]
     #[storage_set("n_blocks_before_force_unstake")]
     fn _set_n_blocks_before_force_unstake(&self, n_blocks_before_force_unstake: u64);
 
@@ -98,7 +93,6 @@ pub trait SettingsModule {
     #[storage_get("n_blocks_before_unbond")]
     fn getNumBlocksBeforeUnBond(&self) -> u64;
 
-    #[private]
     #[storage_set("n_blocks_before_unbond")]
     fn _set_n_blocks_before_unbond(&self, n_blocks_before_unbond: u64);
 
@@ -106,10 +100,10 @@ pub trait SettingsModule {
     #[storage_get("auto_activation_enabled")]
     fn isAutoActivationEnabled(&self) -> bool;
 
-    #[private]
     #[storage_set("auto_activation_enabled")]
     fn _set_auto_activation_enabled(&self, auto_activation_enabled: bool);
 
+    #[endpoint]
     fn enableAutoActivation(&self) -> Result<(), SCError>{
         if self.get_caller() != self.getContractOwner() {
             return sc_error!("only owner can enable auto activation");
@@ -118,6 +112,7 @@ pub trait SettingsModule {
         Ok(())
     }
 
+    #[endpoint]
     fn disableAutoActivation(&self) -> Result<(), SCError>{
         if self.get_caller() != self.getContractOwner() {
             return sc_error!("only owner can disable auto activation");

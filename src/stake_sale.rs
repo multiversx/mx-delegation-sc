@@ -27,6 +27,7 @@ pub trait StakeSaleModule {
     /// Creates a stake offer. Overwrites any previous stake offer.
     /// Once a stake offer is up, it can be bought by anyone on a first come first served basis.
     /// Cannot be paused, because this is also part of the unStake mechanism, which the owner cannot veto.
+    #[endpoint]
     fn announceUnStake(&self, amount: BigUint) -> Result<(), SCError> {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);
@@ -71,6 +72,7 @@ pub trait StakeSaleModule {
     /// Note: the price of 1 staked ERD must always be 1 "free" ERD, from outside the contract.
     /// The payment for the stake does not stay in the contract, it gets forwarded immediately to the seller.
     #[payable]
+    #[endpoint]
     fn purchaseStake(&self, seller: Address, #[payment] payment: BigUint) -> Result<(), SCError> {
         if self.pause().isStakeSalePaused() {
             return sc_error!("stake sale paused");

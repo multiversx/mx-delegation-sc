@@ -15,10 +15,12 @@ pub trait AuctionMock {
     #[module(AuctionMockStorageImpl)]
     fn storage(&self) -> AuctionMockStorageImpl<T, BigInt, BigUint>;
 
+    #[init]
     fn init(&self) {
     }
 
     #[payable]
+    #[endpoint]
     fn stake(&self,
             num_nodes: usize,
             #[multi(2*num_nodes)] bls_keys_signatures_args: VarArgs<Vec<u8>>,
@@ -56,6 +58,7 @@ pub trait AuctionMock {
         Ok(result_err_data.into())
     }
 
+    #[endpoint]
     fn unStake(&self,
             #[var_args] bls_keys: VarArgs<Vec<u8>>) -> Result<MultiResultVec<Vec<u8>>, SCError> {
 
@@ -77,6 +80,7 @@ pub trait AuctionMock {
         Ok(result_err_data.into())
     }
 
+    #[endpoint]
     fn unBond(&self,
             #[var_args] bls_keys: VarArgs<Vec<u8>>) -> Result<MultiResultVec<Vec<u8>>, SCError> {
 
@@ -101,6 +105,7 @@ pub trait AuctionMock {
         Ok(result_err_data.into())
     }
 
+    #[endpoint]
     fn claim(&self) -> Result<(), SCError> {
         Ok(())
     }

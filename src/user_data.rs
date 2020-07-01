@@ -30,26 +30,23 @@ pub trait UserDataModule {
     /// This is a mapping from delegator address to delegator id.
     /// The key is the bytes "user_id" concatenated with their public key.
     /// The value is the user id.
+    #[view]
     #[storage_get("user_id")]
     fn getUserId(&self, address: &Address) -> usize;
 
-    #[private]
     #[storage_set("user_id")]
     fn _set_user_id(&self, address: &Address, user_id: usize);
 
     /// Nr delegators + 1 (the node address)
-    #[private]
     #[storage_get("num_users")]
     fn getNumUsers(&self) -> usize;
 
     /// Yields how accounts are registered in the contract.
     /// Note that not all of them must have stakes greater than zero.
-    #[private]
     #[storage_set("num_users")]
     fn _set_num_users(&self, num_users: usize);
 
     // creates new user id
-    #[private]
     fn new_user(&self) -> usize {
         let mut num_users = self.getNumUsers();
         num_users += 1;
@@ -58,24 +55,19 @@ pub trait UserDataModule {
     }
 
     /// How much a delegator has staked.
-    #[private]
     #[storage_get("u_stake_totl")]
     fn _get_user_total_stake(&self, user_id: usize) -> BigUint;
 
-    #[private]
     #[storage_set("u_stake_totl")]
     fn _set_user_total_stake(&self, user_id: usize, user_total_stake: &BigUint);
 
     /// How much of a delegator's has been sent to the auction SC.
-    #[private]
     #[storage_get("u_stake_type")]
     fn _get_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState) -> BigUint;
 
-    #[private]
     #[storage_set("u_stake_type")]
     fn _set_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, stake: &BigUint);
 
-    #[private]
     fn _increase_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, amount: &BigUint) {
         let mut user_st_value = self._get_user_stake_of_type(user_id, stake_type);
         let mut total_st_value = self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type);
@@ -88,7 +80,6 @@ pub trait UserDataModule {
         self._set_user_total_stake(user_id, &user_total);
     }
 
-    #[private]
     fn _decrease_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, amount: &BigUint) -> bool {
         let mut user_st_value = self._get_user_stake_of_type(user_id, stake_type);
         if amount > &user_st_value {
@@ -138,7 +129,6 @@ pub trait UserDataModule {
         }
     }
 
-    #[private]
     fn _get_user_stake_by_type(&self, user_id: usize) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         (
             self._get_user_stake_of_type(user_id, UserStakeState::Inactive),
@@ -193,11 +183,9 @@ pub trait UserDataModule {
     /// This field keeps track of rewards that went through step 1 but not 2,
     /// i.e. were computed and deducted from the total rewards, but not yet "physically" sent to the user.
     /// The unclaimed stake still resides in the contract.
-    #[private]
     #[storage_get("u_rew_unclmd")]
     fn _get_user_rew_unclaimed(&self, user_id: usize) -> BigUint;
 
-    #[private]
     #[storage_set("u_rew_unclmd")]
     fn _set_user_rew_unclaimed(&self, user_id: usize, user_rew_unclaimed: &BigUint);
 
@@ -208,26 +196,21 @@ pub trait UserDataModule {
     /// when the user last claimed their own personal rewards.
     /// If zero, it means the user never claimed any rewards.
     /// If equal to getTotalCumulatedRewards, it means the user claimed everything there is for him/her.
-    #[private]
     #[storage_get("u_rew_checkp")]
     fn _get_user_rew_checkpoint(&self, user_id: usize) -> BigUint;
 
-    #[private]
     #[storage_set("u_rew_checkp")]
     fn _set_user_rew_checkpoint(&self, user_id: usize, user_rew_checkpoint: &BigUint);
 
     /// Users can trade stake. To do so, a user must first offer stake for sale.
     /// This field keeps track of how much stake each user has offered for sale.
-    #[private]
     #[storage_get("u_stake_sale")]
     fn _get_user_stake_for_sale(&self, user_id: usize) -> BigUint;
 
-    #[private]
     #[storage_set("u_stake_sale")]
     fn _set_user_stake_for_sale(&self, user_id: usize, user_stake_for_sale: &BigUint);
 
     // TODO: auto-generate
-    #[private]
     fn _update_user_stake_for_sale<F, R>(&self, user_id: usize, f: F) -> R
     where F: Fn(&mut BigUint) -> R
     {
@@ -238,7 +221,6 @@ pub trait UserDataModule {
     }
 
     /// Loads the entire UserData object from storage.
-    #[private]
     fn _load_user_data(&self, user_id: usize) -> UserData<BigUint> {
         let u_rew_checkp = self._get_user_rew_checkpoint(user_id);
         let u_rew_unclmd = self._get_user_rew_unclaimed(user_id);
@@ -252,7 +234,6 @@ pub trait UserDataModule {
     }
 
     /// Saves a UserData object to storage.
-    #[private]
     fn store_user_data(&self, user_id: usize, data: &UserData<BigUint>) {
         self._set_user_rew_checkpoint(user_id, &data.reward_checkpoint);
         self._set_user_rew_unclaimed(user_id, &data.unclaimed_rewards);
@@ -261,15 +242,12 @@ pub trait UserDataModule {
 
     /// Block timestamp of when the user offered stake for sale.
     /// Note: not part of the UserData struct because it is not needed as often.
-    #[private]
     #[storage_get("u_stake_toff")]
     fn _get_user_bl_nonce_of_stake_offer(&self, user_id: usize) -> u64;
 
-    #[private]
     #[storage_set("u_stake_toff")]
     fn _set_user_bl_nonce_of_stake_offer(&self, user_id: usize, bl_nonce_of_stake_offer: u64);
 
-    #[private]
     fn convert_user_stake(&self, user_id: usize, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
         let mut user_stake_old_type = self._get_user_stake_of_type(user_id, old_type);
         let mut user_stake_new_type = self._get_user_stake_of_type(user_id, new_type);
@@ -298,7 +276,6 @@ pub trait UserDataModule {
     /// within the limit of total_supply.
     /// Argument total_supply decreases in the process.
     /// Walking in increasing user id order, so older users get picked first.
-    #[private]
     fn convert_user_stake_asc(&self, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
         let num_users = self.getNumUsers();
         let mut i = 1usize;
@@ -312,7 +289,6 @@ pub trait UserDataModule {
     /// within the limit of total_supply.
     /// Argument total_supply decreases in the process.
     /// Walking in decreasing user id order, so newer users get picked first.
-    #[private]
     fn convert_user_stake_desc(&self, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
         let mut i = self.getNumUsers();
         while i > 0 && *total_supply > 0 {
@@ -325,7 +301,6 @@ pub trait UserDataModule {
     #[storage_get("unbond_queue")]
     fn getUnbondQueue(&self) -> Vec<UnbondQueueItem<BigUint>>;
 
-    #[private]
     #[storage_set("unbond_queue")]
     fn _set_unbond_queue(&self, unbond_queue: &[UnbondQueueItem<BigUint>]);
 

@@ -34,6 +34,7 @@ pub trait UserStakeModule {
     fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
 
     #[payable]
+    #[endpoint]
     fn stake(&self, #[payment] payment: BigUint) -> Result<(), SCError> {
         if self.pause().isStakingPaused() {
             return sc_error!("staking paused");
@@ -46,7 +47,6 @@ pub trait UserStakeModule {
         self._process_stake(payment)
     }
 
-    #[private]
     fn _process_stake(&self, payment: BigUint) -> Result<(), SCError> {
         // get user id or create user
         // we use user id as an intermediate identifier between user address and data,
@@ -75,6 +75,7 @@ pub trait UserStakeModule {
 
     // WITHDRAW INACTIVE
 
+    #[endpoint]
     fn withdrawInactiveStake(&self, amount: BigUint) -> Result<(), SCError> {
         if amount == 0 {
             return Ok(());
@@ -112,6 +113,7 @@ pub trait UserStakeModule {
     /// Delegators can force some or all nodes to unstake
     /// if they put up stake for sale and no-one has bought it for long enough.
     /// This operation can be performed by any delegator.
+    #[endpoint]
     fn unStake(&self) -> Result<(), SCError> {
         let user_id = self.user_data().getUserId(&self.get_caller());
         if user_id == 0 {
@@ -139,6 +141,7 @@ pub trait UserStakeModule {
         self.node_activation()._perform_unstake_nodes(Some(unbond_queue_entry), node_ids, bls_keys)
     }
 
+    #[endpoint]
     fn unBond(&self) -> Result<(), SCError> {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);

@@ -15,10 +15,10 @@ pub trait PauseModule {
     #[storage_get("staking_paused")]
     fn isStakingPaused(&self) -> bool;
 
-    #[private]
     #[storage_set("staking_paused")]
     fn _set_staking_paused(&self, staking_paused: bool);
 
+    #[endpoint]
     fn pauseStaking(&self) -> Result<(), SCError>{
         if !self.settings()._owner_called() {
             return sc_error!("only owner can pause staking");
@@ -28,6 +28,7 @@ pub trait PauseModule {
         Ok(())
     }
 
+    #[endpoint]
     fn unpauseStaking(&self) -> Result<(), SCError>{
         if !self.settings()._owner_called() {
             return sc_error!("only owner can unpause staking");
@@ -41,10 +42,10 @@ pub trait PauseModule {
     #[storage_get("stake_sale_paused")]
     fn isStakeSalePaused(&self) -> bool;
 
-    #[private]
     #[storage_set("stake_sale_paused")]
     fn _set_stake_sale_paused(&self, stake_sale_paused: bool);
 
+    #[endpoint]
     fn pauseStakeSale(&self) -> Result<(), SCError>{
         if !self.settings()._owner_called() {
             return sc_error!("only owner can pause stake sale");
@@ -54,6 +55,7 @@ pub trait PauseModule {
         Ok(())
     }
 
+    #[endpoint]
     fn unpauseStakeSale(&self) -> Result<(), SCError>{
         if !self.settings()._owner_called() {
             return sc_error!("only owner can unpause stake sale");

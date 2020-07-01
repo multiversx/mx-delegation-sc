@@ -36,12 +36,12 @@ pub trait NodeModule {
     #[storage_get("service_fee")]
     fn getServiceFee(&self) -> BigUint;
 
-    #[private]
     #[storage_set("service_fee")]
     fn _set_service_fee(&self, service_fee: usize);
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
+    #[endpoint]
     fn setServiceFee(&self, service_fee_per_10000: usize) -> Result<(), SCError> {
         if !self.settings()._owner_called() {
             return sc_error!("only owner can change service fee"); 
@@ -66,12 +66,12 @@ pub trait NodeModule {
     #[storage_get("stake_per_node")]
     fn getStakePerNode(&self) -> BigUint;
 
-    #[private]
     #[storage_set("stake_per_node")]
     fn _set_stake_per_node(&self, spn: &BigUint);
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
+    #[endpoint]
     fn setStakePerNode(&self, node_activation: &BigUint) -> Result<(), SCError> {
         if !self.settings()._owner_called() {
             return sc_error!("only owner can change stake per node"); 
@@ -91,7 +91,6 @@ pub trait NodeModule {
     #[storage_get("num_nodes")]
     fn getNumNodes(&self) -> usize;
 
-    #[private]
     #[storage_set("num_nodes")]
     fn _set_num_nodes(&self, num_nodes: usize);
 
@@ -103,23 +102,18 @@ pub trait NodeModule {
     #[storage_get("node_bls_to_id")]
     fn getNodeId(&self, bls_key: &BLSKey) -> usize;
 
-    #[private]
     #[storage_set("node_bls_to_id")]
     fn _set_node_bls_to_id(&self, bls_key: &BLSKey, node_id: usize);
 
-    #[private]
     #[storage_get("node_id_to_bls")]
     fn _get_node_id_to_bls(&self, node_id: usize) -> BLSKey;
 
-    #[private]
     #[storage_set("node_id_to_bls")]
     fn _set_node_id_to_bls(&self, node_id: usize, bls_key: &BLSKey);
 
-    #[private]
     #[storage_get("node_signature")]
     fn _get_node_signature(&self, node_id: usize) -> BLSSignature;
 
-    #[private]
     #[storage_set("node_signature")]
     fn _set_node_signature(&self, node_id: usize, node_signature: BLSSignature);
 
@@ -134,11 +128,9 @@ pub trait NodeModule {
     }
 
     /// Current state of node: inactive, active, deleted, etc.
-    #[private]
     #[storage_get("node_state")]
     fn _get_node_state(&self, node_id: usize) -> NodeState;
 
-    #[private]
     #[storage_set("node_state")]
     fn _set_node_state(&self, node_id: usize, node_state: NodeState);
 
@@ -182,14 +174,13 @@ pub trait NodeModule {
     }
 
     /// Block timestamp when unbond happened. 0 if not in unbond period.
-    #[private]
     #[storage_get("node_bl_nonce_of_unstake")]
     fn _get_node_bl_nonce_of_unstake(&self, node_id: usize) -> u64;
 
-    #[private]
     #[storage_set("node_bl_nonce_of_unstake")]
     fn _set_node_bl_nonce_of_unstake(&self, node_id: usize, bl_nonce_of_unstake: u64);
 
+    #[view]
     fn getNodeBlockNonceOfUnstake(&self, bls_key: BLSKey) -> u64 {
         let node_id = self.getNodeId(&bls_key);
         if node_id == 0 {
@@ -199,6 +190,7 @@ pub trait NodeModule {
         }
     }
 
+    #[endpoint]
     fn addNodes(&self, 
             #[var_args] bls_keys_signatures: VarArgs<Vec<u8>>)
         -> Result<(), SCError> {
@@ -244,6 +236,7 @@ pub trait NodeModule {
         Ok(())
     }
 
+    #[endpoint]
     fn removeNodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
         if !self.settings()._owner_called() {
             return sc_error!("only owner can remove nodes"); 
@@ -266,7 +259,6 @@ pub trait NodeModule {
     /// Called when a user decides to forcefully unstake own share.
     /// Finds enough nodes to cover requested stake.
     /// Both node ids and node BLS keys are required, separately.
-    #[private]
     fn _find_nodes_for_unstake(&self, requested_stake: &BigUint) -> (Vec<usize>, Vec<BLSKey>) {
 
         let mut node_ids: Vec<usize> = Vec::new();
@@ -286,7 +278,6 @@ pub trait NodeModule {
         (node_ids, bls_keys)
     }
 
-    #[private]
     fn _split_node_ids_by_err(&self, 
             mut node_ids: Vec<usize>, 
             node_status_args: VarArgs<BLSStatusMultiArg>)

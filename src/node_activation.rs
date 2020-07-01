@@ -38,6 +38,7 @@ pub trait ContractStakeModule {
 
 
     /// Owner activates specific nodes.
+    #[endpoint]
     fn stakeNodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
@@ -64,6 +65,7 @@ pub trait ContractStakeModule {
     /// Stake as many nodes as necessary to activate the maximum possible stake.
     /// Anyone can call if auto activation is enabled.
     /// Error if auto activation is disabled (except owner, who can always call).
+    #[endpoint]
     fn stakeAllAvailable(&self) -> Result<(), SCError> {
         if !self.settings().isAutoActivationEnabled() && !self.settings()._owner_called() {
             return sc_error!("auto activation disabled");
@@ -72,7 +74,6 @@ pub trait ContractStakeModule {
         self._perform_stake_all_available()
     }
 
-    #[private]
     fn _perform_stake_all_available(&self) -> Result<(), SCError> {
         let mut inactive_stake = self.user_data()._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
         let stake_per_node = self.node_config().getStakePerNode();
@@ -99,7 +100,6 @@ pub trait ContractStakeModule {
         self._perform_stake_nodes(node_ids, bls_keys_signatures)
     }
 
-    #[private]
     fn _perform_stake_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>) -> Result<(), SCError> {
         let num_nodes = node_ids.len();
 
@@ -116,7 +116,7 @@ pub trait ContractStakeModule {
         auction_contract.stake(
             node_ids, // callback arg
             num_nodes,
-            bls_keys_signatures,
+            bls_keys_signatures.into(),
             &stake);
 
         Ok(())
@@ -124,7 +124,6 @@ pub trait ContractStakeModule {
 
     /// Only finalize activation if we got confirmation from the auction contract.
     /// #[callback] can only be declared in lib.rs for the moment.
-    #[private]
     fn auction_stake_callback(&self, 
             node_ids: Vec<usize>, // #[callback_arg]
             call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) -> Result<(), SCError> {
@@ -142,7 +141,6 @@ pub trait ContractStakeModule {
         }
     }
 
-    #[private]
     fn auction_stake_callback_ok(&self, node_ids: Vec<usize>) -> Result<(), SCError> {
         if node_ids.len() == 0 {
             return Ok(());
@@ -168,7 +166,6 @@ pub trait ContractStakeModule {
         Ok(())
     }
 
-    #[private]
     fn auction_stake_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> Result<(), SCError> {
         if node_ids.len() == 0 {
             return Ok(());
@@ -194,6 +191,7 @@ pub trait ContractStakeModule {
     /// Unstakes from the auction smart contract.
     /// The nodes will stop receiving rewards, but stake cannot be yet reclaimed.
     /// This operation is performed by the owner.
+    #[endpoint]
     fn unStakeNodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
@@ -210,7 +208,6 @@ pub trait ContractStakeModule {
         self._perform_unstake_nodes(None, node_ids, bls_keys.into_vec())
     }
 
-    #[private]
     fn _perform_unstake_nodes(&self,
             opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>,
             node_ids: Vec<usize>,
@@ -250,14 +247,13 @@ pub trait ContractStakeModule {
         auction_contract.unStake(
             opt_unbond_queue_entry,
             node_ids,
-            bls_keys);
+            bls_keys.into());
 
         Ok(())
     }
 
     /// Only finalize deactivation if we got confirmation from the auction contract.
     /// #[callback] can only be declared in lib.rs for the moment.
-    #[private]
     fn auction_unStake_callback(&self, 
             opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>, // #[callback_arg]
             node_ids: Vec<usize>, // #[callback_arg]
@@ -276,7 +272,6 @@ pub trait ContractStakeModule {
         }
     }
 
-    #[private]
     fn auction_unStake_callback_ok(&self, 
             opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>, 
             node_ids: Vec<usize>) -> Result<(), SCError> {
@@ -315,7 +310,6 @@ pub trait ContractStakeModule {
         Ok(())
     }
 
-    #[private]
     fn auction_unStake_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> Result<(), SCError> {
         if node_ids.len() == 0 {
             return Ok(());
@@ -340,6 +334,7 @@ pub trait ContractStakeModule {
 
     /// Claims unstaked stake from the auction smart contract.
     /// This operation can be executed by anyone (note that it might cost much gas).
+    #[endpoint]
     fn unBondNodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
@@ -368,7 +363,6 @@ pub trait ContractStakeModule {
         self._perform_unbond(None, node_ids, bls_keys.into_vec())
     }
 
-    #[private]
     fn _perform_unbond(&self,
         _opt_requester_id: Option<usize>,
         node_ids: Vec<usize>,
@@ -412,13 +406,14 @@ pub trait ContractStakeModule {
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
         auction_contract.unBond(
             node_ids,
-            bls_keys);
+            bls_keys.into());
 
         Ok(())
     }
 
     /// Calls unbond for all nodes that are in the unbond period and are due.
     /// Anyone can call if they are willing to pay the gas.
+    #[endpoint]
     fn unBondAllAvailable(&self) -> Result<(), SCError> {
         let mut node_id = self.node_config().getNumNodes();
         let mut node_ids = Vec::<usize>::new();
@@ -447,7 +442,6 @@ pub trait ContractStakeModule {
 
     /// Only finalize deactivation if we got confirmation from the auction contract.
     /// #[callback] can only be declared in lib.rs for the moment.
-    #[private]
     fn auction_unBond_callback(&self, 
         node_ids: Vec<usize>, // #[callback_arg]
         call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) -> Result<(), SCError> {
@@ -465,7 +459,6 @@ pub trait ContractStakeModule {
         }
     }
 
-    #[private]
     fn auction_unBond_callback_ok(&self, node_ids: Vec<usize>) -> Result<(), SCError> {
         if node_ids.len() == 0 {
             return Ok(());
@@ -529,7 +522,6 @@ pub trait ContractStakeModule {
         Ok(())
     }
 
-    #[private]
     fn auction_unBond_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> Result<(), SCError> {
         if node_ids.len() == 0 {
             return Ok(());
@@ -556,6 +548,7 @@ pub trait ContractStakeModule {
 
     /// Claims unstaked stake from the auction smart contract.
     /// This operation can be executed by anyone (note that it might cost much gas).
+    #[endpoint]
     fn claimFailedStake(&self) -> Result<(), SCError> {
         if !self.settings()._owner_called() {
             return sc_error!("only owner can activate nodes individually"); 
@@ -584,7 +577,6 @@ pub trait ContractStakeModule {
 
     /// Set nodes and stake to inactive, but only after call to auction claim completed.
     /// #[callback] can only be declared in lib.rs for the moment.
-    #[private]
     fn auction_claim_callback(&self,
             node_ids: Vec<usize>, // #[callback_arg]
             call_result: AsyncCallResult<()>) -> Result<(), SCError> {
