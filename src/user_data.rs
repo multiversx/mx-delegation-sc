@@ -38,6 +38,7 @@ pub trait UserDataModule {
     fn _set_user_id(&self, address: &Address, user_id: usize);
 
     /// Nr delegators + 1 (the node address)
+    #[view]
     #[storage_get("num_users")]
     fn getNumUsers(&self) -> usize;
 
