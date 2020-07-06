@@ -29,17 +29,17 @@ pub trait UnexpectedBalanceModule {
     /// This can come from someone accidentally sending ERD to the contract via direct transfer.
     #[view]
     fn getUnexpectedBalance(&self) -> BigUint {
-        let mut expected_balance = self.user_data()._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
-        expected_balance += self.user_data()._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::WithdrawOnly);
+        let mut expected_balance = self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
+        expected_balance += self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::WithdrawOnly);
         expected_balance += self.rewards().getTotalCumulatedRewards();
-        expected_balance -= self.rewards()._get_sent_rewards();
+        expected_balance -= self.rewards().get_sent_rewards();
 
         self.get_sc_balance() - expected_balance
     }
 
     /// Used by owner to extract unexpected balance from contract.
-    #[endpoint]
-    fn withdrawUnexpectedBalance(&self) -> Result<(), SCError> {
+    #[endpoint(withdrawUnexpectedBalance)]
+    fn withdraw_unexpected_balance(&self) -> Result<(), SCError> {
         let caller = self.get_caller();
         if &caller != &self.settings().getContractOwner() {
             return sc_error!("only owner can withdraw unexpected balance");

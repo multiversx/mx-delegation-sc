@@ -29,17 +29,17 @@ pub trait SettingsModule {
     ) -> Result<(), SCError> {
 
         let owner = self.get_caller();
-        self._set_owner(&owner);
+        self.set_owner(&owner);
 
-        self._set_node_reward_destination(&owner);
-        self.user_data()._set_user_id(&owner, OWNER_USER_ID); // node reward destination will be user #1
-        self.user_data()._set_num_users(1);
+        self.set_node_reward_destination(&owner);
+        self.user_data().set_user_id(&owner, OWNER_USER_ID); // node reward destination will be user #1
+        self.user_data().set_num_users(1);
 
-        self._set_auction_addr(&auction_contract_addr);
-        self.node_config().setServiceFee(service_fee_per_10000)?;
+        self.set_auction_addr(&auction_contract_addr);
+        self.node_config().set_service_fee_endpoint(service_fee_per_10000)?;
 
-        self._set_n_blocks_before_force_unstake(n_blocks_before_force_unstake);
-        self._set_n_blocks_before_unbond(n_blocks_before_unbond);
+        self.set_n_blocks_before_force_unstake(n_blocks_before_force_unstake);
+        self.set_n_blocks_before_unbond(n_blocks_before_unbond);
 
         Ok(())
     }
@@ -50,9 +50,9 @@ pub trait SettingsModule {
     fn getContractOwner(&self) -> Address;
 
     #[storage_set("owner")]
-    fn _set_owner(&self, owner: &Address);
+    fn set_owner(&self, owner: &Address);
 
-    fn _owner_called(&self) -> bool {
+    fn owner_called(&self) -> bool {
         self.get_caller() == self.getContractOwner()
     }
 
@@ -63,7 +63,7 @@ pub trait SettingsModule {
     fn getNodeRewardDestination(&self) -> Address;
 
     #[storage_set("node_rewards_addr")]
-    fn _set_node_reward_destination(&self, nrd: &Address);
+    fn set_node_reward_destination(&self, nrd: &Address);
 
     /// Yields the address of the contract with which staking will be performed.
     /// This address is standard in the protocol, but it is saved in storage to avoid hardcoding it.
@@ -72,7 +72,7 @@ pub trait SettingsModule {
     fn getAuctionContractAddress(&self) -> Address;
 
     #[storage_set("auction_addr")]
-    fn _set_auction_addr(&self, auction_addr: &Address);
+    fn set_auction_addr(&self, auction_addr: &Address);
 
 
     /// Delegators can force the entire contract to unstake
@@ -84,7 +84,7 @@ pub trait SettingsModule {
     fn getNumBlocksBeforeForceUnstake(&self) -> u64;
 
     #[storage_set("n_blocks_before_force_unstake")]
-    fn _set_n_blocks_before_force_unstake(&self, n_blocks_before_force_unstake: u64);
+    fn set_n_blocks_before_force_unstake(&self, n_blocks_before_force_unstake: u64);
 
     /// Minimum number of n_blocks between unstake and unbond.
     /// This mirrors the minimum unbonding period in the auction SC. 
@@ -94,30 +94,30 @@ pub trait SettingsModule {
     fn getNumBlocksBeforeUnBond(&self) -> u64;
 
     #[storage_set("n_blocks_before_unbond")]
-    fn _set_n_blocks_before_unbond(&self, n_blocks_before_unbond: u64);
+    fn set_n_blocks_before_unbond(&self, n_blocks_before_unbond: u64);
 
     #[view]
     #[storage_get("auto_activation_enabled")]
     fn isAutoActivationEnabled(&self) -> bool;
 
     #[storage_set("auto_activation_enabled")]
-    fn _set_auto_activation_enabled(&self, auto_activation_enabled: bool);
+    fn set_auto_activation_enabled(&self, auto_activation_enabled: bool);
 
-    #[endpoint]
-    fn enableAutoActivation(&self) -> Result<(), SCError>{
+    #[endpoint(enableAutoActivation)]
+    fn enable_auto_activation(&self) -> Result<(), SCError>{
         if self.get_caller() != self.getContractOwner() {
             return sc_error!("only owner can enable auto activation");
         }
-        self._set_auto_activation_enabled(true);
+        self.set_auto_activation_enabled(true);
         Ok(())
     }
 
-    #[endpoint]
-    fn disableAutoActivation(&self) -> Result<(), SCError>{
+    #[endpoint(disableAutoActivation)]
+    fn disable_auto_activation(&self) -> Result<(), SCError>{
         if self.get_caller() != self.getContractOwner() {
             return sc_error!("only owner can disable auto activation");
         }
-        self._set_auto_activation_enabled(false);
+        self.set_auto_activation_enabled(false);
         Ok(())
     }
 
@@ -132,7 +132,7 @@ pub trait SettingsModule {
 
     #[view(setMinimumStake)]
     fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> Result<(), SCError> {
-        if !self._owner_called() {
+        if !self.owner_called() {
             return sc_error!("only owner can set minimum stake");
         }
         self.set_minimum_stake(minimum_stake);
