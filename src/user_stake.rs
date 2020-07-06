@@ -36,7 +36,7 @@ pub trait UserStakeModule {
     #[payable]
     #[endpoint]
     fn stake(&self, #[payment] payment: BigUint) -> Result<(), SCError> {
-        if self.pause().isStakingPaused() {
+        if self.pause().is_staking_paused() {
             return sc_error!("staking paused");
         }
         
@@ -52,7 +52,7 @@ pub trait UserStakeModule {
         // we use user id as an intermediate identifier between user address and data,
         // because we might at some point need to iterate over all user data
         let caller = self.get_caller();
-        let mut user_id = self.user_data().getUserId(&caller);
+        let mut user_id = self.user_data().get_user_id(&caller);
         if user_id == 0 {
             user_id = self.user_data().new_user();
             self.user_data().set_user_id(&caller, user_id);
@@ -63,7 +63,7 @@ pub trait UserStakeModule {
         self.user_data().validate_total_user_stake(user_id)?;
 
         // auto-activation, if enabled
-        if self.settings().isAutoActivationEnabled() {
+        if self.settings().is_auto_activation_enabled() {
             self.node_activation().perform_stake_all_available()?;
         }
         
@@ -83,7 +83,7 @@ pub trait UserStakeModule {
         }
 
         let caller = self.get_caller();
-        let user_id = self.user_data().getUserId(&caller);
+        let user_id = self.user_data().get_user_id(&caller);
         if user_id == 0 {
             return sc_error!("only delegators can withdraw inactive stake");
         }
@@ -117,7 +117,7 @@ pub trait UserStakeModule {
     /// This operation can be performed by any delegator.
     #[endpoint(unStake)]
     fn unstake_endpoint(&self) -> Result<(), SCError> {
-        let user_id = self.user_data().getUserId(&self.get_caller());
+        let user_id = self.user_data().get_user_id(&self.get_caller());
         if user_id == 0 {
             return sc_error!("only delegators can call unStake");
         }
@@ -128,7 +128,7 @@ pub trait UserStakeModule {
         }
 
         let block_nonce_of_stake_offer = self.user_data().get_user_bl_nonce_of_stake_offer(user_id);
-        let n_blocks_before_force_unstake = self.settings().getNumBlocksBeforeForceUnstake();
+        let n_blocks_before_force_unstake = self.settings().get_n_blocks_before_force_unstake();
         if self.get_block_nonce() <= block_nonce_of_stake_offer + n_blocks_before_force_unstake {
             return sc_error!("too soon to call unStake");
         }
@@ -146,7 +146,7 @@ pub trait UserStakeModule {
     #[endpoint(unBond)]
     fn unbond_endpoint(&self) -> Result<(), SCError> {
         let caller = self.get_caller();
-        let user_id = self.user_data().getUserId(&caller);
+        let user_id = self.user_data().get_user_id(&caller);
         if user_id == 0 {
             return sc_error!("only delegators can withdraw inactive stake");
         }

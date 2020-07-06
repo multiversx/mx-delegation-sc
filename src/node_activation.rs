@@ -49,7 +49,7 @@ pub trait ContractStakeModule {
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         let mut bls_keys_signatures = Vec::<Vec<u8>>::with_capacity(2 * bls_keys.len());
         for bls_key in bls_keys.iter() {
-            let node_id = self.node_config().getNodeId(&bls_key);
+            let node_id = self.node_config().get_node_id(&bls_key);
             node_ids.push(node_id);
             bls_keys_signatures.push(bls_key.to_vec());
             bls_keys_signatures.push(self.node_config().get_node_signature(node_id).to_vec());
@@ -67,7 +67,7 @@ pub trait ContractStakeModule {
     /// Error if auto activation is disabled (except owner, who can always call).
     #[endpoint(stakeAllAvailable)]
     fn stake_all_available(&self) -> Result<(), SCError> {
-        if !self.settings().isAutoActivationEnabled() && !self.settings().owner_called() {
+        if !self.settings().is_auto_activation_enabled() && !self.settings().owner_called() {
             return sc_error!("auto activation disabled");
         }
 
@@ -76,8 +76,8 @@ pub trait ContractStakeModule {
 
     fn perform_stake_all_available(&self) -> Result<(), SCError> {
         let mut inactive_stake = self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
-        let stake_per_node = self.node_config().getStakePerNode();
-        let num_nodes = self.node_config().getNumNodes();
+        let stake_per_node = self.node_config().get_stake_per_node();
+        let num_nodes = self.node_config().get_num_nodes();
         let mut node_id = 1;
         let mut node_ids = Vec::<usize>::new();
         let mut bls_keys_signatures = Vec::<Vec<u8>>::new();
@@ -103,7 +103,7 @@ pub trait ContractStakeModule {
     fn perform_stake_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>) -> Result<(), SCError> {
         let num_nodes = node_ids.len();
 
-        let stake = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
+        let stake = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
         let mut stake_supply = stake.clone();
         self.user_data().convert_user_stake_asc(UserStakeState::Inactive, UserStakeState::PendingActivation, &mut stake_supply);
         if stake_supply > 0 {
@@ -111,7 +111,7 @@ pub trait ContractStakeModule {
         }
         
         // send all stake to auction contract
-        let auction_contract_addr = self.settings().getAuctionContractAddress();
+        let auction_contract_addr = self.settings().get_auction_contract_address();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
         auction_contract.stake(
             node_ids, // callback arg
@@ -151,7 +151,7 @@ pub trait ContractStakeModule {
         self.rewards().compute_all_rewards();
 
         // set user stake to Active
-        let mut stake_activated = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
+        let mut stake_activated = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
         self.user_data().convert_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::Active, &mut stake_activated);
 
         // set nodes to Active
@@ -172,7 +172,7 @@ pub trait ContractStakeModule {
         }
 
         // set user stake to ActivationFailed
-        let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
+        let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
         self.user_data().convert_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::ActivationFailed, &mut stake_sent);
 
         // set nodes to ActivationFailed
@@ -201,7 +201,7 @@ pub trait ContractStakeModule {
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
-            let node_id = self.node_config().getNodeId(&bls_key);
+            let node_id = self.node_config().get_node_id(&bls_key);
             node_ids.push(node_id);
         }
 
@@ -226,7 +226,7 @@ pub trait ContractStakeModule {
         }
 
         // convert user stake to PendingDeactivation
-        let mut stake_to_deactivate = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
+        let mut stake_to_deactivate = BigUint::from(bls_keys.len()) * self.node_config().get_stake_per_node();
         if let Some(unbond_queue_entry) = &opt_unbond_queue_entry {
             // if requested by a user, that user has priority
             self.user_data().convert_user_stake(
@@ -242,7 +242,7 @@ pub trait ContractStakeModule {
         }
 
         // send unstake command to Auction SC
-        let auction_contract_addr = self.settings().getAuctionContractAddress();
+        let auction_contract_addr = self.settings().get_auction_contract_address();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
         auction_contract.unStake(
             opt_unbond_queue_entry,
@@ -281,7 +281,7 @@ pub trait ContractStakeModule {
         }
 
         // set user stake to UnBondPeriod
-        let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
+        let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
         self.user_data().convert_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::UnBondPeriod, &mut stake_sent);
 
         // (if requested by a user) save unstake data for the user 
@@ -291,7 +291,7 @@ pub trait ContractStakeModule {
             self.user_data().set_user_bl_nonce_of_stake_offer(unbond_queue_entry.user_id, 0);
 
             // add entry to unbond queue 
-            let mut unbond_queue = self.user_data().getUnbondQueue();
+            let mut unbond_queue = self.user_data().get_unbond_queue();
             unbond_queue.push(unbond_queue_entry);
             self.user_data().set_unbond_queue(unbond_queue.as_slice());
         }
@@ -316,7 +316,7 @@ pub trait ContractStakeModule {
         }
 
         // revert user stake to Active
-        let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
+        let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
         self.user_data().convert_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::Active, &mut stake_sent);
 
         // revert nodes to Active
@@ -339,11 +339,11 @@ pub trait ContractStakeModule {
             #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
         let bl_nonce = self.get_block_nonce();
-        let n_blocks_before_unbond = self.settings().getNumBlocksBeforeUnBond();
+        let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
-            let node_id = self.node_config().getNodeId(&bls_key);
+            let node_id = self.node_config().get_node_id(&bls_key);
 
             // check state
             if self.node_config().get_node_state(node_id) != NodeState::UnBondPeriod {
@@ -372,8 +372,8 @@ pub trait ContractStakeModule {
         // but only the amounts of first entries that don't exceed the available stake
         // here we only peek in the queue, we do not pop out of it
         // TODO: find a more elegant way to write this!!!
-        let mut stake_to_unbond = BigUint::from(bls_keys.len()) * self.node_config().getStakePerNode();
-        let mut unbond_queue = self.user_data().getUnbondQueue();
+        let mut stake_to_unbond = BigUint::from(bls_keys.len()) * self.node_config().get_stake_per_node();
+        let mut unbond_queue = self.user_data().get_unbond_queue();
         let mut i = 0usize;
         while i < unbond_queue.len() && stake_to_unbond > 0 {
             let elem = &mut unbond_queue[i];
@@ -402,7 +402,7 @@ pub trait ContractStakeModule {
         }
         
         // send unbond command to Auction SC
-        let auction_contract_addr = self.settings().getAuctionContractAddress();
+        let auction_contract_addr = self.settings().get_auction_contract_address();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
         auction_contract.unBond(
             node_ids,
@@ -415,11 +415,11 @@ pub trait ContractStakeModule {
     /// Anyone can call if they are willing to pay the gas.
     #[endpoint(unBondAllAvailable)]
     fn unbond_all_available(&self) -> Result<(), SCError> {
-        let mut node_id = self.node_config().getNumNodes();
+        let mut node_id = self.node_config().get_num_nodes();
         let mut node_ids = Vec::<usize>::new();
         let mut bls_keys = Vec::<BLSKey>::new();
         let bl_nonce = self.get_block_nonce();
-        let n_blocks_before_unbond = self.settings().getNumBlocksBeforeUnBond();
+        let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
         while node_id >= 1 {
             if self.node_config().get_node_state(node_id) == NodeState::UnBondPeriod {
                 let bl_nonce_of_unstake = self.node_config().get_node_bl_nonce_of_unstake(node_id);
@@ -474,8 +474,8 @@ pub trait ContractStakeModule {
         // but only the amounts of first entries that don't exceed the available stake
         // pop from the queue
         // TODO: find a more elegant way to write this!!! (without affecting performance)
-        let mut stake_to_unbond = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
-        let mut unbond_queue = self.user_data().getUnbondQueue();
+        let mut stake_to_unbond = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+        let mut unbond_queue = self.user_data().get_unbond_queue();
         let mut i = 0usize;
         while i < unbond_queue.len() && stake_to_unbond > 0 {
             let elem = &mut unbond_queue[i];
@@ -528,7 +528,7 @@ pub trait ContractStakeModule {
         }
         
         // revert user stake to UnBondPeriod
-        let mut stake_that_failed_unbond = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
+        let mut stake_that_failed_unbond = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
         self.user_data().convert_user_stake_desc(
             UserStakeState::PendingUnBond, UserStakeState::UnBondPeriod, 
             &mut stake_that_failed_unbond);
@@ -554,7 +554,7 @@ pub trait ContractStakeModule {
             return sc_error!("only owner can activate nodes individually"); 
         }
 
-        let mut node_id = self.node_config().getNumNodes();
+        let mut node_id = self.node_config().get_num_nodes();
         let mut node_ids = Vec::<usize>::new();
         while node_id >= 1 {
             if self.node_config().get_node_state(node_id) == NodeState::ActivationFailed {
@@ -568,7 +568,7 @@ pub trait ContractStakeModule {
         }
 
         // send claim command to Auction SC
-        let auction_contract_addr = self.settings().getAuctionContractAddress();
+        let auction_contract_addr = self.settings().get_auction_contract_address();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
         auction_contract.claim(node_ids);
 
@@ -589,7 +589,7 @@ pub trait ContractStakeModule {
                 }
 
                 // revert user stake to Inctive
-                let mut failed_stake = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
+                let mut failed_stake = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
                 self.user_data().convert_user_stake_desc(
                     UserStakeState::ActivationFailed, UserStakeState::Inactive, 
                     &mut failed_stake);

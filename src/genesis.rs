@@ -47,7 +47,7 @@ pub trait GenesisModule {
         }
 
         // set nodes to Active, and count how many not deleted
-        let num_nodes = self.node_config().getNumNodes();
+        let num_nodes = self.node_config().get_num_nodes();
         let mut num_inactive_nodes = 0usize;
         for node_id in 1..num_nodes+1 {
             match self.node_config().get_node_state(node_id) {
@@ -63,7 +63,7 @@ pub trait GenesisModule {
         }
 
         // validate that node stake and user stake match
-        let stake_required_by_nodes = BigUint::from(num_inactive_nodes) * self.node_config().getStakePerNode();
+        let stake_required_by_nodes = BigUint::from(num_inactive_nodes) * self.node_config().get_stake_per_node();
         let mut total_inactive_stake = self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
         if stake_required_by_nodes != total_inactive_stake {
             return sc_error!("stake required by nodes must match total user stake at genesis");

@@ -30,7 +30,7 @@ pub trait StakeSaleModule {
     #[endpoint(announceUnStake)]
     fn announce_unstake(&self, amount: BigUint) -> Result<(), SCError> {
         let caller = self.get_caller();
-        let user_id = self.user_data().getUserId(&caller);
+        let user_id = self.user_data().get_user_id(&caller);
         if user_id == 0 {
             return sc_error!("only delegators can offer stake for sale")
         }
@@ -49,18 +49,18 @@ pub trait StakeSaleModule {
     }
 
     /// Check if a user is willing to sell stake, and how much.
-    #[view]
-    fn getStakeForSale(&self, user: Address) -> BigUint {
-        let user_id = self.user_data().getUserId(&user);
+    #[view(getStakeForSale)]
+    fn get_stake_for_sale(&self, user: Address) -> BigUint {
+        let user_id = self.user_data().get_user_id(&user);
         if user_id == 0 {
             return BigUint::zero()
         }
         self.user_data().get_user_stake_for_sale(user_id)
     }
 
-    #[view]
-    fn getTimeOfStakeOffer(&self, user: Address) -> u64 {
-        let user_id = self.user_data().getUserId(&user);
+    #[view(getTimeOfStakeOffer)]
+    fn get_time_of_stake_offer(&self, user: Address) -> u64 {
+        let user_id = self.user_data().get_user_id(&user);
         if user_id == 0 {
             return 0
         }
@@ -83,7 +83,7 @@ pub trait StakeSaleModule {
         }
 
         // get seller id
-        let seller_id = self.user_data().getUserId(&seller);
+        let seller_id = self.user_data().get_user_id(&seller);
         if seller_id == 0 {
             return sc_error!("unknown seller")
         }
@@ -100,7 +100,7 @@ pub trait StakeSaleModule {
 
         // get buyer id or create buyer
         let caller = self.get_caller();
-        let mut buyer_id = self.user_data().getUserId(&caller);
+        let mut buyer_id = self.user_data().get_user_id(&caller);
         if buyer_id == 0 {
             buyer_id = self.user_data().new_user();
             self.user_data().set_user_id(&caller, buyer_id);
