@@ -37,13 +37,13 @@ pub trait NodeModule {
     fn getServiceFee(&self) -> BigUint;
 
     #[storage_set("service_fee")]
-    fn _set_service_fee(&self, service_fee: usize);
+    fn set_service_fee(&self, service_fee: usize);
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint]
     fn setServiceFee(&self, service_fee_per_10000: usize) -> Result<(), SCError> {
-        if !self.settings()._owner_called() {
+        if !self.settings().owner_called() {
             return sc_error!("only owner can change service fee"); 
         }
 
@@ -56,7 +56,7 @@ pub trait NodeModule {
             return sc_error!("cannot change service fee while at least one node is active");
         }
 
-        self._set_service_fee(service_fee_per_10000);
+        self.set_service_fee(service_fee_per_10000);
         Ok(())
     }
     
@@ -67,13 +67,13 @@ pub trait NodeModule {
     fn getStakePerNode(&self) -> BigUint;
 
     #[storage_set("stake_per_node")]
-    fn _set_stake_per_node(&self, spn: &BigUint);
+    fn set_stake_per_node(&self, spn: &BigUint);
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint]
     fn setStakePerNode(&self, node_activation: &BigUint) -> Result<(), SCError> {
-        if !self.settings()._owner_called() {
+        if !self.settings().owner_called() {
             return sc_error!("only owner can change stake per node"); 
         }
 
@@ -82,7 +82,7 @@ pub trait NodeModule {
             return sc_error!("cannot change stake per node while at least one node is active");
         }
 
-        self._set_stake_per_node(&node_activation);
+        self.set_stake_per_node(&node_activation);
         Ok(())
     }
     
@@ -92,7 +92,7 @@ pub trait NodeModule {
     fn getNumNodes(&self) -> usize;
 
     #[storage_set("num_nodes")]
-    fn _set_num_nodes(&self, num_nodes: usize);
+    fn set_num_nodes(&self, num_nodes: usize);
 
     /// Each node gets a node id. This is in order to be able to iterate over their data.
     /// This is a mapping from node BLS key to node id.
@@ -103,19 +103,19 @@ pub trait NodeModule {
     fn getNodeId(&self, bls_key: &BLSKey) -> usize;
 
     #[storage_set("node_bls_to_id")]
-    fn _set_node_bls_to_id(&self, bls_key: &BLSKey, node_id: usize);
+    fn set_node_bls_to_id(&self, bls_key: &BLSKey, node_id: usize);
 
     #[storage_get("node_id_to_bls")]
-    fn _get_node_id_to_bls(&self, node_id: usize) -> BLSKey;
+    fn get_node_id_to_bls(&self, node_id: usize) -> BLSKey;
 
     #[storage_set("node_id_to_bls")]
-    fn _set_node_id_to_bls(&self, node_id: usize, bls_key: &BLSKey);
+    fn set_node_id_to_bls(&self, node_id: usize, bls_key: &BLSKey);
 
     #[storage_get("node_signature")]
-    fn _get_node_signature(&self, node_id: usize) -> BLSSignature;
+    fn get_node_signature(&self, node_id: usize) -> BLSSignature;
 
     #[storage_set("node_signature")]
-    fn _set_node_signature(&self, node_id: usize, node_signature: BLSSignature);
+    fn set_node_signature(&self, node_id: usize, node_signature: BLSSignature);
 
     #[view]
     fn getNodeSignature(&self, bls_key: BLSKey) -> OptionalResult<BLSSignature> {
@@ -123,16 +123,16 @@ pub trait NodeModule {
         if node_id == 0 {
             OptionalResult::None
         } else {
-            OptionalResult::Some(self._get_node_signature(node_id))
+            OptionalResult::Some(self.get_node_signature(node_id))
         }
     }
 
     /// Current state of node: inactive, active, deleted, etc.
     #[storage_get("node_state")]
-    fn _get_node_state(&self, node_id: usize) -> NodeState;
+    fn get_node_state(&self, node_id: usize) -> NodeState;
 
     #[storage_set("node_state")]
-    fn _set_node_state(&self, node_id: usize, node_state: NodeState);
+    fn set_node_state(&self, node_id: usize, node_state: NodeState);
 
     #[view]
     fn getNodeState(&self, bls_key: BLSKey) -> NodeState {
@@ -140,7 +140,7 @@ pub trait NodeModule {
         if node_id == 0 {
             NodeState::Removed
         } else {
-            self._get_node_state(node_id)
+            self.get_node_state(node_id)
         }
     }
 
@@ -150,7 +150,7 @@ pub trait NodeModule {
     fn allNodesIdle(&self) -> bool {
         let mut i = self.getNumNodes();
         while i > 0 {
-            let node_state = self._get_node_state(i);
+            let node_state = self.get_node_state(i);
             if node_state != NodeState::Inactive && node_state != NodeState::Removed {
                 return false;
             }
@@ -165,9 +165,9 @@ pub trait NodeModule {
         let num_nodes = self.getNumNodes();
         let mut result: Vec<Vec<u8>> = Vec::new();
         for i in 1..num_nodes+1 {
-            let bls = self._get_node_id_to_bls(i);
+            let bls = self.get_node_id_to_bls(i);
             result.push(bls.to_vec());
-            let state = self._get_node_state(i);
+            let state = self.get_node_state(i);
             result.push([state.to_u8()].to_vec());
         }
         result.into()
@@ -175,10 +175,10 @@ pub trait NodeModule {
 
     /// Block timestamp when unbond happened. 0 if not in unbond period.
     #[storage_get("node_bl_nonce_of_unstake")]
-    fn _get_node_bl_nonce_of_unstake(&self, node_id: usize) -> u64;
+    fn get_node_bl_nonce_of_unstake(&self, node_id: usize) -> u64;
 
     #[storage_set("node_bl_nonce_of_unstake")]
-    fn _set_node_bl_nonce_of_unstake(&self, node_id: usize, bl_nonce_of_unstake: u64);
+    fn set_node_bl_nonce_of_unstake(&self, node_id: usize, bl_nonce_of_unstake: u64);
 
     #[view]
     fn getNodeBlockNonceOfUnstake(&self, bls_key: BLSKey) -> u64 {
@@ -186,7 +186,7 @@ pub trait NodeModule {
         if node_id == 0 {
             0
         } else {
-            self._get_node_bl_nonce_of_unstake(node_id)
+            self.get_node_bl_nonce_of_unstake(node_id)
         }
     }
 
@@ -195,7 +195,7 @@ pub trait NodeModule {
             #[var_args] bls_keys_signatures: VarArgs<Vec<u8>>)
         -> Result<(), SCError> {
 
-        if !self.settings()._owner_called() {
+        if !self.settings().owner_called() {
             return sc_error!("only owner can add nodes"); 
         }
 
@@ -214,11 +214,11 @@ pub trait NodeModule {
                 if node_id == 0 {
                     num_nodes += 1;
                     node_id = num_nodes;
-                    self._set_node_bls_to_id(&bls_key, node_id);
-                    self._set_node_id_to_bls(node_id, &bls_key);
-                    self._set_node_state(node_id, NodeState::Inactive);
-                } else if self._get_node_state(node_id) == NodeState::Removed {
-                    self._set_node_state(node_id, NodeState::Inactive);
+                    self.set_node_bls_to_id(&bls_key, node_id);
+                    self.set_node_id_to_bls(node_id, &bls_key);
+                    self.set_node_state(node_id, NodeState::Inactive);
+                } else if self.get_node_state(node_id) == NodeState::Removed {
+                    self.set_node_state(node_id, NodeState::Inactive);
                 } else {
                     return sc_error!("node already registered"); 
                 }
@@ -228,17 +228,17 @@ pub trait NodeModule {
                     return sc_error!("wrong size BLS signature");
                 }
                 let signature = BLSSignature::from_slice(arg.as_slice());
-                self._set_node_signature(node_id, signature)
+                self.set_node_signature(node_id, signature)
             }
         }
        
-        self._set_num_nodes(num_nodes);
+        self.set_num_nodes(num_nodes);
         Ok(())
     }
 
     #[endpoint]
     fn removeNodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
-        if !self.settings()._owner_called() {
+        if !self.settings().owner_called() {
             return sc_error!("only owner can remove nodes"); 
         }
 
@@ -247,10 +247,10 @@ pub trait NodeModule {
             if node_id == 0 {
                 return sc_error!("node not registered");
             }
-            if self._get_node_state(node_id) != NodeState::Inactive {
+            if self.get_node_state(node_id) != NodeState::Inactive {
                 return sc_error!("only inactive nodes can be removed");
             }
-            self._set_node_state(node_id, NodeState::Removed);
+            self.set_node_state(node_id, NodeState::Removed);
         }
 
         Ok(())
@@ -259,7 +259,7 @@ pub trait NodeModule {
     /// Called when a user decides to forcefully unstake own share.
     /// Finds enough nodes to cover requested stake.
     /// Both node ids and node BLS keys are required, separately.
-    fn _find_nodes_for_unstake(&self, requested_stake: &BigUint) -> (Vec<usize>, Vec<BLSKey>) {
+    fn find_nodes_for_unstake(&self, requested_stake: &BigUint) -> (Vec<usize>, Vec<BLSKey>) {
 
         let mut node_ids: Vec<usize> = Vec::new();
         let mut bls_keys: Vec<BLSKey> = Vec::new();
@@ -267,10 +267,10 @@ pub trait NodeModule {
         let mut node_stake = BigUint::zero();
         let stake_per_node = self.getStakePerNode();
         while i > 0 && &node_stake < requested_stake {
-            if let NodeState::Active = self._get_node_state(i) {
+            if let NodeState::Active = self.get_node_state(i) {
                 node_stake += &stake_per_node;
                 node_ids.push(i);
-                bls_keys.push(self._get_node_id_to_bls(i));
+                bls_keys.push(self.get_node_id_to_bls(i));
             }
             i -= 1;
         }
@@ -278,7 +278,7 @@ pub trait NodeModule {
         (node_ids, bls_keys)
     }
 
-    fn _split_node_ids_by_err(&self, 
+    fn split_node_ids_by_err(&self, 
             mut node_ids: Vec<usize>, 
             node_status_args: VarArgs<BLSStatusMultiArg>)
         -> (Vec<usize>, Vec<usize>) {

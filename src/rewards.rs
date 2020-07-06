@@ -33,10 +33,10 @@ pub trait RewardsModule {
 
 
     #[storage_get("sent_rewards")]
-    fn _get_sent_rewards(&self) -> BigUint;
+    fn get_sent_rewards(&self) -> BigUint;
 
     #[storage_set("sent_rewards")]
-    fn _set_sent_rewards(&self, sent_rewards: &BigUint);
+    fn set_sent_rewards(&self, sent_rewards: &BigUint);
 
     /// Yields all the rewards received by the contract since its creation.
     /// This value is monotonously increasing - it can never decrease.
@@ -51,15 +51,15 @@ pub trait RewardsModule {
     }
 
     /// The account running the nodes is entitled to (service_fee / NODE_DENOMINATOR) * rewards.
-    fn _service_fee_reward(&self, tot_rewards: &BigUint) -> BigUint {
+    fn service_fee_reward(&self, tot_rewards: &BigUint) -> BigUint {
         let mut node_rewards = tot_rewards * &self.node_config().getServiceFee();
         node_rewards /= BigUint::from(SERVICE_FEE_DENOMINATOR);
         node_rewards
     }
 
     /// Does not update storage, only returns the updated user data object.
-    fn _load_user_data_update_rewards(&self, user_id: usize) -> UserData<BigUint> {
-        let mut user_data = self.user_data()._load_user_data(user_id);
+    fn load_user_data_update_rewards(&self, user_id: usize) -> UserData<BigUint> {
+        let mut user_data = self.user_data().load_user_data(user_id);
 
         // new rewards are what was added since the last time rewards were computed
         let tot_cumul_rewards = self.getTotalCumulatedRewards();
@@ -69,7 +69,7 @@ pub trait RewardsModule {
         }
 
         // the owner is entitled to: new rewards * service_fee / NODE_DENOMINATOR
-        let service_fee = self._service_fee_reward(&tot_new_rewards);
+        let service_fee = self.service_fee_reward(&tot_new_rewards);
         
         // update node rewards, if applicable
         if user_id == OWNER_USER_ID {
@@ -103,18 +103,18 @@ pub trait RewardsModule {
         // user 1 is the node and from 2 on are the other delegators,
         // but _load_user_data_update_rewards handles them all
         for user_id in 1..(num_nodes+1) {
-            let user_data = self._load_user_data_update_rewards(user_id);
+            let user_data = self.load_user_data_update_rewards(user_id);
             self.user_data().store_user_data(user_id, &user_data);
             sum_unclaimed += user_data.unclaimed_rewards;
         }
 
         // divisions are inexact so a small remainder can remain after distributing rewards
         // give it to the validator user, to keep things clear
-        let remainder = self.getTotalCumulatedRewards() - sum_unclaimed - self._get_sent_rewards();
+        let remainder = self.getTotalCumulatedRewards() - sum_unclaimed - self.get_sent_rewards();
         if remainder > 0 {
-            let mut node_unclaimed = self.user_data()._get_user_rew_unclaimed(OWNER_USER_ID);
+            let mut node_unclaimed = self.user_data().get_user_rew_unclaimed(OWNER_USER_ID);
             node_unclaimed += &remainder;
-            self.user_data()._set_user_rew_unclaimed(OWNER_USER_ID, &node_unclaimed);
+            self.user_data().set_user_rew_unclaimed(OWNER_USER_ID, &node_unclaimed);
         }
     }
 
@@ -127,7 +127,7 @@ pub trait RewardsModule {
             return BigUint::zero()
         }
 
-        let user_data = self._load_user_data_update_rewards(user_id);
+        let user_data = self.load_user_data_update_rewards(user_id);
         user_data.unclaimed_rewards
     }
 
@@ -138,7 +138,7 @@ pub trait RewardsModule {
         let mut sum_unclaimed = BigUint::zero();
         
         for user_id in 1..(num_nodes+1) {
-            let user_data = self._load_user_data_update_rewards(user_id);
+            let user_data = self.load_user_data_update_rewards(user_id);
             sum_unclaimed += user_data.unclaimed_rewards;
         }
 
@@ -157,7 +157,7 @@ pub trait RewardsModule {
             return sc_error!("unknown caller")
         }
 
-        let mut user_data = self._load_user_data_update_rewards(user_id);
+        let mut user_data = self.load_user_data_update_rewards(user_id);
 
         if user_data.unclaimed_rewards > 0 {
             self.send_rewards(&caller, &user_data.unclaimed_rewards);
@@ -174,9 +174,9 @@ pub trait RewardsModule {
         self.send_tx(to, amount, "delegation claim");
 
         // increment globally sent funds
-        let mut sent_rewards = self._get_sent_rewards();
+        let mut sent_rewards = self.get_sent_rewards();
         sent_rewards += amount;
-        self._set_sent_rewards(&sent_rewards);
+        self.set_sent_rewards(&sent_rewards);
     }
 
 }

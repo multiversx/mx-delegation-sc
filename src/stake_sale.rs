@@ -36,14 +36,14 @@ pub trait StakeSaleModule {
         }
 
         // get active stake
-        let stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::Active);
+        let stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Active);
         if &amount > &stake {
             return sc_error!("cannot offer more than the user active stake")
         }
 
         // store offer
-        self.user_data()._set_user_stake_for_sale(user_id, &amount);
-        self.user_data()._set_user_bl_nonce_of_stake_offer(user_id, self.get_block_nonce());
+        self.user_data().set_user_stake_for_sale(user_id, &amount);
+        self.user_data().set_user_bl_nonce_of_stake_offer(user_id, self.get_block_nonce());
 
         Ok(())
     }
@@ -55,7 +55,7 @@ pub trait StakeSaleModule {
         if user_id == 0 {
             return BigUint::zero()
         }
-        self.user_data()._get_user_stake_for_sale(user_id)
+        self.user_data().get_user_stake_for_sale(user_id)
     }
 
     #[view]
@@ -64,7 +64,7 @@ pub trait StakeSaleModule {
         if user_id == 0 {
             return 0
         }
-        self.user_data()._get_user_bl_nonce_of_stake_offer(user_id)
+        self.user_data().get_user_bl_nonce_of_stake_offer(user_id)
     }
 
     /// User-to-user purchase of stake.
@@ -89,7 +89,7 @@ pub trait StakeSaleModule {
         }
 
         // decrease stake for sale
-        self.user_data()._update_user_stake_for_sale(seller_id, |stake_for_sale| {
+        self.user_data().update_user_stake_for_sale(seller_id, |stake_for_sale| {
             if &payment > &*stake_for_sale {
                 sc_error!("payment exceeds stake offered")
             } else {
@@ -103,27 +103,27 @@ pub trait StakeSaleModule {
         let mut buyer_id = self.user_data().getUserId(&caller);
         if buyer_id == 0 {
             buyer_id = self.user_data().new_user();
-            self.user_data()._set_user_id(&caller, buyer_id);
+            self.user_data().set_user_id(&caller, buyer_id);
         }
 
         // compute rewards (must happen before transferring stake):
         // for seller
-        let seller_data = self.rewards()._load_user_data_update_rewards(seller_id);
+        let seller_data = self.rewards().load_user_data_update_rewards(seller_id);
         self.user_data().store_user_data(seller_id, &seller_data);
 
         // for buyer
-        let buyer_data = self.rewards()._load_user_data_update_rewards(buyer_id);
+        let buyer_data = self.rewards().load_user_data_update_rewards(buyer_id);
         self.user_data().store_user_data(buyer_id, &buyer_data);
 
         // transfer stake:
         // decrease stake of seller
-        let enough = self.user_data()._decrease_user_stake_of_type(seller_id, UserStakeState::Active, &payment);
+        let enough = self.user_data().decrease_user_stake_of_type(seller_id, UserStakeState::Active, &payment);
         if !enough {
             return sc_error!("payment exceeds seller active stake");
         }
 
         // increase stake of buyer
-        self.user_data()._increase_user_stake_of_type(buyer_id, UserStakeState::Active, &payment);
+        self.user_data().increase_user_stake_of_type(buyer_id, UserStakeState::Active, &payment);
 
         // forward payment to seller
         self.send_tx(&seller, &payment, "payment for stake");

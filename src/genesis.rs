@@ -35,7 +35,7 @@ pub trait GenesisModule {
         if self.get_block_nonce() > 0 {
             return sc_error!("genesis block only")
         }
-        self.user_stake()._process_stake(stake)
+        self.user_stake().process_stake(stake)
     }
 
     /// Function to be used only once, during genesis block.
@@ -50,9 +50,9 @@ pub trait GenesisModule {
         let num_nodes = self.node_config().getNumNodes();
         let mut num_inactive_nodes = 0usize;
         for node_id in 1..num_nodes+1 {
-            match self.node_config()._get_node_state(node_id) {
+            match self.node_config().get_node_state(node_id) {
                 NodeState::Inactive => {
-                    self.node_config()._set_node_state(node_id, NodeState::Active);
+                    self.node_config().set_node_state(node_id, NodeState::Active);
                     num_inactive_nodes += 1;
                 },
                 NodeState::Removed => {},
@@ -64,7 +64,7 @@ pub trait GenesisModule {
 
         // validate that node stake and user stake match
         let stake_required_by_nodes = BigUint::from(num_inactive_nodes) * self.node_config().getStakePerNode();
-        let mut total_inactive_stake = self.user_data()._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
+        let mut total_inactive_stake = self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
         if stake_required_by_nodes != total_inactive_stake {
             return sc_error!("stake required by nodes must match total user stake at genesis");
         }

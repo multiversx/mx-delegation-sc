@@ -44,10 +44,10 @@ pub trait UserStakeModule {
             return Ok(());
         }
 
-        self._process_stake(payment)
+        self.process_stake(payment)
     }
 
-    fn _process_stake(&self, payment: BigUint) -> Result<(), SCError> {
+    fn process_stake(&self, payment: BigUint) -> Result<(), SCError> {
         // get user id or create user
         // we use user id as an intermediate identifier between user address and data,
         // because we might at some point need to iterate over all user data
@@ -55,15 +55,15 @@ pub trait UserStakeModule {
         let mut user_id = self.user_data().getUserId(&caller);
         if user_id == 0 {
             user_id = self.user_data().new_user();
-            self.user_data()._set_user_id(&caller, user_id);
+            self.user_data().set_user_id(&caller, user_id);
         }
         
         // save increased stake
-        self.user_data()._increase_user_stake_of_type(user_id, UserStakeState::Inactive, &payment);
+        self.user_data().increase_user_stake_of_type(user_id, UserStakeState::Inactive, &payment);
 
         // auto-activation, if enabled
         if self.settings().isAutoActivationEnabled() {
-            self.node_activation()._perform_stake_all_available()?;
+            self.node_activation().perform_stake_all_available()?;
         }
         
 
@@ -88,14 +88,14 @@ pub trait UserStakeModule {
         }
 
         // first withdraw from unavailable inactive stake
-        let withdraw_stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
+        let withdraw_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
         if &amount <= &withdraw_stake {
-            self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &amount);
+            self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &amount);
         } else {
             // if that is not enough, retrieve proper inactive stake
-            self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
+            self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
             let remaining = &amount - &withdraw_stake;
-            let enough = self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &remaining);
+            let enough = self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &remaining);
             if !enough {
                 return sc_error!("cannot withdraw more than inactive stake");
             }
@@ -120,25 +120,25 @@ pub trait UserStakeModule {
             return sc_error!("only delegators can call unStake");
         }
 
-        let stake_for_sale = self.user_data()._get_user_stake_for_sale(user_id);
+        let stake_for_sale = self.user_data().get_user_stake_for_sale(user_id);
         if stake_for_sale == 0 {
             return sc_error!("only delegators that have announced unStake can call unStake");
         }
 
-        let block_nonce_of_stake_offer = self.user_data()._get_user_bl_nonce_of_stake_offer(user_id);
+        let block_nonce_of_stake_offer = self.user_data().get_user_bl_nonce_of_stake_offer(user_id);
         let n_blocks_before_force_unstake = self.settings().getNumBlocksBeforeForceUnstake();
         if self.get_block_nonce() <= block_nonce_of_stake_offer + n_blocks_before_force_unstake {
             return sc_error!("too soon to call unStake");
         }
 
         // find nodes to unstake
-        let (node_ids, bls_keys) = self.node_config()._find_nodes_for_unstake(&stake_for_sale);
+        let (node_ids, bls_keys) = self.node_config().find_nodes_for_unstake(&stake_for_sale);
         
         let unbond_queue_entry = UnbondQueueItem {
             user_id: user_id,
             amount: stake_for_sale,
         };
-        self.node_activation()._perform_unstake_nodes(Some(unbond_queue_entry), node_ids, bls_keys)
+        self.node_activation().perform_unstake_nodes(Some(unbond_queue_entry), node_ids, bls_keys)
     }
 
     #[endpoint]
@@ -150,17 +150,17 @@ pub trait UserStakeModule {
         }
 
         let mut amount = BigUint::zero();
-        let withdraw_stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
+        let withdraw_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
         if withdraw_stake > 0 {
             // unavailable inactive stake
             amount += &withdraw_stake;
-            self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
+            self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
         }
-        let inactive_stake = self.user_data()._get_user_stake_of_type(user_id, UserStakeState::Inactive);
+        let inactive_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Inactive);
         if inactive_stake > 0 {
             // regular inactive stake
             amount += &inactive_stake;
-            self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &inactive_stake);
+            self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &inactive_stake);
         }
 
         // send stake to delegator

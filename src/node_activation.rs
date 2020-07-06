@@ -42,7 +42,7 @@ pub trait ContractStakeModule {
     fn stakeNodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
-        if !self.settings()._owner_called() {
+        if !self.settings().owner_called() {
             return sc_error!("only owner can activate nodes individually"); 
         }
 
@@ -52,14 +52,14 @@ pub trait ContractStakeModule {
             let node_id = self.node_config().getNodeId(&bls_key);
             node_ids.push(node_id);
             bls_keys_signatures.push(bls_key.to_vec());
-            bls_keys_signatures.push(self.node_config()._get_node_signature(node_id).to_vec());
-            if self.node_config()._get_node_state(node_id) != NodeState::Inactive {
+            bls_keys_signatures.push(self.node_config().get_node_signature(node_id).to_vec());
+            if self.node_config().get_node_state(node_id) != NodeState::Inactive {
                 return sc_error!("node not inactive");
             }
-            self.node_config()._set_node_state(node_id, NodeState::PendingActivation);
+            self.node_config().set_node_state(node_id, NodeState::PendingActivation);
         }
 
-        self._perform_stake_nodes(node_ids, bls_keys_signatures)
+        self.perform_stake_nodes(node_ids, bls_keys_signatures)
     }
 
     /// Stake as many nodes as necessary to activate the maximum possible stake.
@@ -67,27 +67,27 @@ pub trait ContractStakeModule {
     /// Error if auto activation is disabled (except owner, who can always call).
     #[endpoint]
     fn stakeAllAvailable(&self) -> Result<(), SCError> {
-        if !self.settings().isAutoActivationEnabled() && !self.settings()._owner_called() {
+        if !self.settings().isAutoActivationEnabled() && !self.settings().owner_called() {
             return sc_error!("auto activation disabled");
         }
 
-        self._perform_stake_all_available()
+        self.perform_stake_all_available()
     }
 
-    fn _perform_stake_all_available(&self) -> Result<(), SCError> {
-        let mut inactive_stake = self.user_data()._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
+    fn perform_stake_all_available(&self) -> Result<(), SCError> {
+        let mut inactive_stake = self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
         let stake_per_node = self.node_config().getStakePerNode();
         let num_nodes = self.node_config().getNumNodes();
         let mut node_id = 1;
         let mut node_ids = Vec::<usize>::new();
         let mut bls_keys_signatures = Vec::<Vec<u8>>::new();
         while node_id <= num_nodes && &inactive_stake >= &stake_per_node {
-            if self.node_config()._get_node_state(node_id) == NodeState::Inactive {
-                self.node_config()._set_node_state(node_id, NodeState::PendingActivation);
+            if self.node_config().get_node_state(node_id) == NodeState::Inactive {
+                self.node_config().set_node_state(node_id, NodeState::PendingActivation);
                 inactive_stake -= &stake_per_node;
                 node_ids.push(node_id);
-                bls_keys_signatures.push(self.node_config()._get_node_id_to_bls(node_id).to_vec());
-                bls_keys_signatures.push(self.node_config()._get_node_signature(node_id).to_vec());
+                bls_keys_signatures.push(self.node_config().get_node_id_to_bls(node_id).to_vec());
+                bls_keys_signatures.push(self.node_config().get_node_signature(node_id).to_vec());
             }
 
             node_id += 1;
@@ -97,10 +97,10 @@ pub trait ContractStakeModule {
             return Ok(())
         }
 
-        self._perform_stake_nodes(node_ids, bls_keys_signatures)
+        self.perform_stake_nodes(node_ids, bls_keys_signatures)
     }
 
-    fn _perform_stake_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>) -> Result<(), SCError> {
+    fn perform_stake_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>) -> Result<(), SCError> {
         let num_nodes = node_ids.len();
 
         let stake = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
@@ -130,7 +130,7 @@ pub trait ContractStakeModule {
 
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
-                let (node_ids_ok, node_ids_fail) = self.node_config()._split_node_ids_by_err(node_ids, node_status_args);
+                let (node_ids_ok, node_ids_fail) = self.node_config().split_node_ids_by_err(node_ids, node_status_args);
                 self.auction_stake_callback_ok(node_ids_ok)?;
                 self.auction_stake_callback_fail(node_ids_fail, &b"staking failed for some nodes"[..])?;
                 Ok(())
@@ -156,7 +156,7 @@ pub trait ContractStakeModule {
 
         // set nodes to Active
         for &node_id in node_ids.iter() {
-            self.node_config()._set_node_state(node_id, NodeState::Active);
+            self.node_config().set_node_state(node_id, NodeState::Active);
         }
         
         // log event (no data)
@@ -177,7 +177,7 @@ pub trait ContractStakeModule {
 
         // set nodes to ActivationFailed
         for &node_id in node_ids.iter() {
-            self.node_config()._set_node_state(node_id, NodeState::ActivationFailed);
+            self.node_config().set_node_state(node_id, NodeState::ActivationFailed);
         }
 
         // log failure event (no data)
@@ -195,7 +195,7 @@ pub trait ContractStakeModule {
     fn unStakeNodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
-        if !self.settings()._owner_called() {
+        if !self.settings().owner_called() {
             return sc_error!("only owner can deactivate nodes individually"); 
         }
 
@@ -205,10 +205,10 @@ pub trait ContractStakeModule {
             node_ids.push(node_id);
         }
 
-        self._perform_unstake_nodes(None, node_ids, bls_keys.into_vec())
+        self.perform_unstake_nodes(None, node_ids, bls_keys.into_vec())
     }
 
-    fn _perform_unstake_nodes(&self,
+    fn perform_unstake_nodes(&self,
             opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>,
             node_ids: Vec<usize>,
             bls_keys: Vec<BLSKey>) -> Result<(), SCError> {
@@ -219,10 +219,10 @@ pub trait ContractStakeModule {
 
         // convert node state to PendingDeactivation
         for &node_id in node_ids.iter() {
-            if self.node_config()._get_node_state(node_id) != NodeState::Active {
+            if self.node_config().get_node_state(node_id) != NodeState::Active {
                 return sc_error!("node not active");
             }
-            self.node_config()._set_node_state(node_id, NodeState::PendingDeactivation);
+            self.node_config().set_node_state(node_id, NodeState::PendingDeactivation);
         }
 
         // convert user stake to PendingDeactivation
@@ -261,7 +261,7 @@ pub trait ContractStakeModule {
 
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
-                let (node_ids_ok, node_ids_fail) = self.node_config()._split_node_ids_by_err(node_ids, node_status_args);
+                let (node_ids_ok, node_ids_fail) = self.node_config().split_node_ids_by_err(node_ids, node_status_args);
                 self.auction_unStake_callback_ok(opt_unbond_queue_entry, node_ids_ok)?;
                 self.auction_unStake_callback_fail(node_ids_fail, &b"unstaking failed for some nodes"[..])?;
                 Ok(())
@@ -287,20 +287,20 @@ pub trait ContractStakeModule {
         // (if requested by a user) save unstake data for the user 
         if let Some(unbond_queue_entry) = opt_unbond_queue_entry {
             // clean up any stake sale offered by the user that requested unstake
-            self.user_data()._set_user_stake_for_sale(unbond_queue_entry.user_id, &BigUint::zero());
-            self.user_data()._set_user_bl_nonce_of_stake_offer(unbond_queue_entry.user_id, 0);
+            self.user_data().set_user_stake_for_sale(unbond_queue_entry.user_id, &BigUint::zero());
+            self.user_data().set_user_bl_nonce_of_stake_offer(unbond_queue_entry.user_id, 0);
 
             // add entry to unbond queue 
             let mut unbond_queue = self.user_data().getUnbondQueue();
             unbond_queue.push(unbond_queue_entry);
-            self.user_data()._set_unbond_queue(unbond_queue.as_slice());
+            self.user_data().set_unbond_queue(unbond_queue.as_slice());
         }
 
         // set nodes to UnBondPeriod + save current block nonce
         let bl_nonce = self.get_block_nonce();
         for &node_id in node_ids.iter() {
-            self.node_config()._set_node_state(node_id, NodeState::UnBondPeriod);
-            self.node_config()._set_node_bl_nonce_of_unstake(node_id, bl_nonce);
+            self.node_config().set_node_state(node_id, NodeState::UnBondPeriod);
+            self.node_config().set_node_bl_nonce_of_unstake(node_id, bl_nonce);
         }
 
         // log event (no data)
@@ -321,7 +321,7 @@ pub trait ContractStakeModule {
 
         // revert nodes to Active
         for &node_id in node_ids.iter() {
-            self.node_config()._set_node_state(node_id, NodeState::Active);
+            self.node_config().set_node_state(node_id, NodeState::Active);
         }
 
         // log failure event (no data)
@@ -346,24 +346,24 @@ pub trait ContractStakeModule {
             let node_id = self.node_config().getNodeId(&bls_key);
 
             // check state
-            if self.node_config()._get_node_state(node_id) != NodeState::UnBondPeriod {
+            if self.node_config().get_node_state(node_id) != NodeState::UnBondPeriod {
                 return sc_error!("node not in unbond period");
             }
 
             // check that enough blocks passed
-            let block_nonce_of_unstake = self.node_config()._get_node_bl_nonce_of_unstake(node_id);
+            let block_nonce_of_unstake = self.node_config().get_node_bl_nonce_of_unstake(node_id);
             if bl_nonce <= block_nonce_of_unstake + n_blocks_before_unbond {
                 return sc_error!("too soon to unbond node");
             }
 
             node_ids.push(node_id);
-            self.node_config()._set_node_state(node_id, NodeState::PendingUnBond);
+            self.node_config().set_node_state(node_id, NodeState::PendingUnBond);
         }
 
-        self._perform_unbond(None, node_ids, bls_keys.into_vec())
+        self.perform_unbond(None, node_ids, bls_keys.into_vec())
     }
 
-    fn _perform_unbond(&self,
+    fn perform_unbond(&self,
         _opt_requester_id: Option<usize>,
         node_ids: Vec<usize>,
         bls_keys: Vec<BLSKey>) -> Result<(), SCError> {
@@ -421,12 +421,12 @@ pub trait ContractStakeModule {
         let bl_nonce = self.get_block_nonce();
         let n_blocks_before_unbond = self.settings().getNumBlocksBeforeUnBond();
         while node_id >= 1 {
-            if self.node_config()._get_node_state(node_id) == NodeState::UnBondPeriod {
-                let bl_nonce_of_unstake = self.node_config()._get_node_bl_nonce_of_unstake(node_id);
+            if self.node_config().get_node_state(node_id) == NodeState::UnBondPeriod {
+                let bl_nonce_of_unstake = self.node_config().get_node_bl_nonce_of_unstake(node_id);
                 if bl_nonce >= bl_nonce_of_unstake + n_blocks_before_unbond {
-                    self.node_config()._set_node_state(node_id, NodeState::PendingUnBond);
+                    self.node_config().set_node_state(node_id, NodeState::PendingUnBond);
                     node_ids.push(node_id);
-                    bls_keys.push(self.node_config()._get_node_id_to_bls(node_id));
+                    bls_keys.push(self.node_config().get_node_id_to_bls(node_id));
                 }
             }
 
@@ -437,7 +437,7 @@ pub trait ContractStakeModule {
             return Ok(())
         }
 
-        self._perform_unbond(None, node_ids, bls_keys)
+        self.perform_unbond(None, node_ids, bls_keys)
     }
 
     /// Only finalize deactivation if we got confirmation from the auction contract.
@@ -448,7 +448,7 @@ pub trait ContractStakeModule {
 
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
-                let (node_ids_ok, node_ids_fail) = self.node_config()._split_node_ids_by_err(node_ids, node_status_args);
+                let (node_ids_ok, node_ids_fail) = self.node_config().split_node_ids_by_err(node_ids, node_status_args);
                 self.auction_unBond_callback_ok(node_ids_ok)?;
                 self.auction_unBond_callback_fail(node_ids_fail, &b"unbonding failed for some nodes"[..])?;
                 Ok(())
@@ -466,8 +466,8 @@ pub trait ContractStakeModule {
 
         // set nodes to Inactive + reset unstake nonce since it is no longer needed
         for &node_id in node_ids.iter() {
-            self.node_config()._set_node_state(node_id, NodeState::Inactive);
-            self.node_config()._set_node_bl_nonce_of_unstake(node_id, 0);
+            self.node_config().set_node_state(node_id, NodeState::Inactive);
+            self.node_config().set_node_bl_nonce_of_unstake(node_id, 0);
         }
 
         // prioritize the users that are in the queue,
@@ -498,7 +498,7 @@ pub trait ContractStakeModule {
             i += 1;
         }
         // slicing the vector is equivalent to pop
-        self.user_data()._set_unbond_queue(&unbond_queue[i..]);
+        self.user_data().set_unbond_queue(&unbond_queue[i..]);
 
         // set remaining stake to Inactive
         if stake_to_unbond > 0 {
@@ -535,7 +535,7 @@ pub trait ContractStakeModule {
 
         // revert nodes to UnBondPeriod
         for &node_id in node_ids.iter() {
-            self.node_config()._set_node_state(node_id, NodeState::UnBondPeriod);
+            self.node_config().set_node_state(node_id, NodeState::UnBondPeriod);
         }
 
         // log failure event (no data)
@@ -550,14 +550,14 @@ pub trait ContractStakeModule {
     /// This operation can be executed by anyone (note that it might cost much gas).
     #[endpoint]
     fn claimFailedStake(&self) -> Result<(), SCError> {
-        if !self.settings()._owner_called() {
+        if !self.settings().owner_called() {
             return sc_error!("only owner can activate nodes individually"); 
         }
 
         let mut node_id = self.node_config().getNumNodes();
         let mut node_ids = Vec::<usize>::new();
         while node_id >= 1 {
-            if self.node_config()._get_node_state(node_id) == NodeState::ActivationFailed {
+            if self.node_config().get_node_state(node_id) == NodeState::ActivationFailed {
                 node_ids.push(node_id);
             }
             node_id -= 1;
@@ -585,7 +585,7 @@ pub trait ContractStakeModule {
             AsyncCallResult::Ok(()) => {
                 // set nodes to Inactive
                 for &node_id in node_ids.iter() {
-                    self.node_config()._set_node_state(node_id, NodeState::Inactive);
+                    self.node_config().set_node_state(node_id, NodeState::Inactive);
                 }
 
                 // revert user stake to Inctive
