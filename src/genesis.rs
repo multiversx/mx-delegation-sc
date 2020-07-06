@@ -30,8 +30,8 @@ pub trait GenesisModule {
 
     /// Function to be used only during genesis block.
     /// Cannot perform payments during genesis block, so we update state but not the balance.
-    #[endpoint]
-    fn stakeGenesis(&self, stake: BigUint) -> Result<(), SCError> {
+    #[endpoint(stakeGenesis)]
+    fn stake_genesis(&self, stake: BigUint) -> Result<(), SCError> {
         if self.get_block_nonce() > 0 {
             return sc_error!("genesis block only")
         }
@@ -40,8 +40,8 @@ pub trait GenesisModule {
 
     /// Function to be used only once, during genesis block.
     /// Cannot perform payments during genesis block, so we update state but do not receive or send funds.
-    #[endpoint]
-    fn activateGenesis(&self) -> Result<(), SCError> {
+    #[endpoint(activateGenesis)]
+    fn activate_genesis(&self) -> Result<(), SCError> {
         if self.get_block_nonce() > 0 {
             return sc_error!("genesis block only")
         }

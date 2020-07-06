@@ -41,8 +41,8 @@ pub trait NodeModule {
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    #[endpoint]
-    fn setServiceFee(&self, service_fee_per_10000: usize) -> Result<(), SCError> {
+    #[endpoint(setServiceFee)]
+    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> Result<(), SCError> {
         if !self.settings().owner_called() {
             return sc_error!("only owner can change service fee"); 
         }
@@ -71,8 +71,8 @@ pub trait NodeModule {
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    #[endpoint]
-    fn setStakePerNode(&self, node_activation: &BigUint) -> Result<(), SCError> {
+    #[endpoint(setStakePerNode)]
+    fn set_stake_per_node_endpoint(&self, node_activation: &BigUint) -> Result<(), SCError> {
         if !self.settings().owner_called() {
             return sc_error!("only owner can change stake per node"); 
         }
@@ -190,8 +190,8 @@ pub trait NodeModule {
         }
     }
 
-    #[endpoint]
-    fn addNodes(&self, 
+    #[endpoint(addNodes)]
+    fn add_nodes(&self, 
             #[var_args] bls_keys_signatures: VarArgs<Vec<u8>>)
         -> Result<(), SCError> {
 
@@ -236,8 +236,8 @@ pub trait NodeModule {
         Ok(())
     }
 
-    #[endpoint]
-    fn removeNodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
+    #[endpoint(removeNodes)]
+    fn remove_nodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
         if !self.settings().owner_called() {
             return sc_error!("only owner can remove nodes"); 
         }

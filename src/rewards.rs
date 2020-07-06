@@ -95,8 +95,8 @@ pub trait RewardsModule {
     /// Computes rewards for all delegators and the node.
     /// Updates storage.
     /// Could cost a lot of gas.
-    #[endpoint]
-    fn computeAllRewards(&self) {
+    #[endpoint(computeAllRewards)]
+    fn compute_all_rewards(&self) {
         let num_nodes = self.user_data().getNumUsers();
         let mut sum_unclaimed = BigUint::zero();
 
@@ -149,8 +149,8 @@ pub trait RewardsModule {
     /// Will send:
     /// - new rewards
     /// - rewards that were previously computed but not sent
-    #[endpoint]
-    fn claimRewards(&self) -> Result<(), SCError> {
+    #[endpoint(claimRewards)]
+    fn claim_rewards(&self) -> Result<(), SCError> {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);
         if user_id == 0 {

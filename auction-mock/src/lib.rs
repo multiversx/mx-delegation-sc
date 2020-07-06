@@ -46,7 +46,7 @@ pub trait AuctionMock {
             let bls_sig = &bls_keys_signatures[2*n+1];
             self.storage().set_stake_bls_signature(new_num_nodes, bls_sig);
 
-            let err_code = self.storage().getBlsDeliberateError(bls_key);
+            let err_code = self.storage().get_bls_deliberate_error(bls_key);
             if err_code > 0 {
                 result_err_data.push(bls_key.clone());
                 result_err_data.push([err_code].to_vec());
@@ -58,8 +58,8 @@ pub trait AuctionMock {
         Ok(result_err_data.into())
     }
 
-    #[endpoint]
-    fn unStake(&self,
+    #[endpoint(unStake)]
+    fn unstake_endpoint(&self,
             #[var_args] bls_keys: VarArgs<Vec<u8>>) -> Result<MultiResultVec<Vec<u8>>, SCError> {
 
         if self.storage().is_staking_failure() {
@@ -70,7 +70,7 @@ pub trait AuctionMock {
         for (n, bls_key) in bls_keys.iter().enumerate() {
             self.storage().set_unStake_bls_key(n, bls_key);
 
-            let err_code = self.storage().getBlsDeliberateError(bls_key);
+            let err_code = self.storage().get_bls_deliberate_error(bls_key);
             if err_code > 0 {
                 result_err_data.push(bls_key.clone());
                 result_err_data.push([err_code].to_vec());
@@ -80,8 +80,8 @@ pub trait AuctionMock {
         Ok(result_err_data.into())
     }
 
-    #[endpoint]
-    fn unBond(&self,
+    #[endpoint(unBond)]
+    fn unbond_endpoint(&self,
             #[var_args] bls_keys: VarArgs<Vec<u8>>) -> Result<MultiResultVec<Vec<u8>>, SCError> {
 
         if self.storage().is_staking_failure() {
@@ -92,7 +92,7 @@ pub trait AuctionMock {
         for (n, bls_key) in bls_keys.iter().enumerate() {
             self.storage().set_unBond_bls_key(n, bls_key);
 
-            let err_code = self.storage().getBlsDeliberateError(bls_key);
+            let err_code = self.storage().get_bls_deliberate_error(bls_key);
             if err_code > 0 {
                 result_err_data.push(bls_key.clone());
                 result_err_data.push([err_code].to_vec());

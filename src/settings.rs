@@ -36,7 +36,7 @@ pub trait SettingsModule {
         self.user_data().set_num_users(1);
 
         self.set_auction_addr(&auction_contract_addr);
-        self.node_config().setServiceFee(service_fee_per_10000)?;
+        self.node_config().set_service_fee_endpoint(service_fee_per_10000)?;
 
         self.set_n_blocks_before_force_unstake(n_blocks_before_force_unstake);
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);
@@ -103,8 +103,8 @@ pub trait SettingsModule {
     #[storage_set("auto_activation_enabled")]
     fn set_auto_activation_enabled(&self, auto_activation_enabled: bool);
 
-    #[endpoint]
-    fn enableAutoActivation(&self) -> Result<(), SCError>{
+    #[endpoint(enableAutoActivation)]
+    fn enable_auto_activation(&self) -> Result<(), SCError>{
         if self.get_caller() != self.getContractOwner() {
             return sc_error!("only owner can enable auto activation");
         }
@@ -112,8 +112,8 @@ pub trait SettingsModule {
         Ok(())
     }
 
-    #[endpoint]
-    fn disableAutoActivation(&self) -> Result<(), SCError>{
+    #[endpoint(disableAutoActivation)]
+    fn disable_auto_activation(&self) -> Result<(), SCError>{
         if self.get_caller() != self.getContractOwner() {
             return sc_error!("only owner can disable auto activation");
         }

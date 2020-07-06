@@ -75,8 +75,8 @@ pub trait UserStakeModule {
 
     // WITHDRAW INACTIVE
 
-    #[endpoint]
-    fn withdrawInactiveStake(&self, amount: BigUint) -> Result<(), SCError> {
+    #[endpoint(withdrawInactiveStake)]
+    fn withdraw_inactive_stake(&self, amount: BigUint) -> Result<(), SCError> {
         if amount == 0 {
             return Ok(());
         }
@@ -113,8 +113,8 @@ pub trait UserStakeModule {
     /// Delegators can force some or all nodes to unstake
     /// if they put up stake for sale and no-one has bought it for long enough.
     /// This operation can be performed by any delegator.
-    #[endpoint]
-    fn unStake(&self) -> Result<(), SCError> {
+    #[endpoint(unStake)]
+    fn unstake_endpoint(&self) -> Result<(), SCError> {
         let user_id = self.user_data().getUserId(&self.get_caller());
         if user_id == 0 {
             return sc_error!("only delegators can call unStake");
@@ -141,8 +141,8 @@ pub trait UserStakeModule {
         self.node_activation().perform_unstake_nodes(Some(unbond_queue_entry), node_ids, bls_keys)
     }
 
-    #[endpoint]
-    fn unBond(&self) -> Result<(), SCError> {
+    #[endpoint(unBond)]
+    fn unbond_endpoint(&self) -> Result<(), SCError> {
         let caller = self.get_caller();
         let user_id = self.user_data().getUserId(&caller);
         if user_id == 0 {

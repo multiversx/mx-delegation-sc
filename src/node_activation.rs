@@ -38,8 +38,8 @@ pub trait ContractStakeModule {
 
 
     /// Owner activates specific nodes.
-    #[endpoint]
-    fn stakeNodes(&self,
+    #[endpoint(stakeNodes)]
+    fn stake_nodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
         if !self.settings().owner_called() {
@@ -65,8 +65,8 @@ pub trait ContractStakeModule {
     /// Stake as many nodes as necessary to activate the maximum possible stake.
     /// Anyone can call if auto activation is enabled.
     /// Error if auto activation is disabled (except owner, who can always call).
-    #[endpoint]
-    fn stakeAllAvailable(&self) -> Result<(), SCError> {
+    #[endpoint(stakeAllAvailable)]
+    fn stake_all_available(&self) -> Result<(), SCError> {
         if !self.settings().isAutoActivationEnabled() && !self.settings().owner_called() {
             return sc_error!("auto activation disabled");
         }
@@ -148,7 +148,7 @@ pub trait ContractStakeModule {
 
         // All rewards need to be recalculated now, 
         // because the rewardable stake changes.
-        self.rewards().computeAllRewards();
+        self.rewards().compute_all_rewards();
 
         // set user stake to Active
         let mut stake_activated = BigUint::from(node_ids.len()) * self.node_config().getStakePerNode();
@@ -191,8 +191,8 @@ pub trait ContractStakeModule {
     /// Unstakes from the auction smart contract.
     /// The nodes will stop receiving rewards, but stake cannot be yet reclaimed.
     /// This operation is performed by the owner.
-    #[endpoint]
-    fn unStakeNodes(&self,
+    #[endpoint(unStakeNodes)]
+    fn unstake_nodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
         if !self.settings().owner_called() {
@@ -215,7 +215,7 @@ pub trait ContractStakeModule {
 
         // All rewards need to be recalculated now, 
         // because the rewardable stake will change shortly.
-        self.rewards().computeAllRewards();
+        self.rewards().compute_all_rewards();
 
         // convert node state to PendingDeactivation
         for &node_id in node_ids.iter() {
@@ -334,8 +334,8 @@ pub trait ContractStakeModule {
 
     /// Claims unstaked stake from the auction smart contract.
     /// This operation can be executed by anyone (note that it might cost much gas).
-    #[endpoint]
-    fn unBondNodes(&self,
+    #[endpoint(unBondNodes)]
+    fn unbond_nodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
 
         let bl_nonce = self.get_block_nonce();
@@ -413,8 +413,8 @@ pub trait ContractStakeModule {
 
     /// Calls unbond for all nodes that are in the unbond period and are due.
     /// Anyone can call if they are willing to pay the gas.
-    #[endpoint]
-    fn unBondAllAvailable(&self) -> Result<(), SCError> {
+    #[endpoint(unBondAllAvailable)]
+    fn unbond_all_available(&self) -> Result<(), SCError> {
         let mut node_id = self.node_config().getNumNodes();
         let mut node_ids = Vec::<usize>::new();
         let mut bls_keys = Vec::<BLSKey>::new();
@@ -548,8 +548,8 @@ pub trait ContractStakeModule {
 
     /// Claims unstaked stake from the auction smart contract.
     /// This operation can be executed by anyone (note that it might cost much gas).
-    #[endpoint]
-    fn claimFailedStake(&self) -> Result<(), SCError> {
+    #[endpoint(claimFailedStake)]
+    fn claim_failed_stake(&self) -> Result<(), SCError> {
         if !self.settings().owner_called() {
             return sc_error!("only owner can activate nodes individually"); 
         }
