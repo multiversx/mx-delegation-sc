@@ -58,7 +58,7 @@ pub trait RewardsModule {
     }
 
     /// Does not update storage, only returns the updated user data object.
-    fn load_user_data_update_rewards(&self, user_id: usize) -> UserData<BigUint> {
+    fn load_user_data_update_rewards(&self, user_id: usize) -> UserRewardData<BigUint> {
         let mut user_data = self.user_data().load_user_data(user_id);
 
         // new rewards are what was added since the last time rewards were computed
