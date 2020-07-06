@@ -31,17 +31,17 @@ pub trait UserDataModule {
     /// This is a mapping from delegator address to delegator id.
     /// The key is the bytes "user_id" concatenated with their public key.
     /// The value is the user id.
-    #[view]
+    #[view(getUserId)]
     #[storage_get("user_id")]
-    fn getUserId(&self, address: &Address) -> usize;
+    fn get_user_id(&self, address: &Address) -> usize;
 
     #[storage_set("user_id")]
     fn set_user_id(&self, address: &Address, user_id: usize);
 
     /// Nr delegators + 1 (the node address)
-    #[view]
+    #[view(getNumUsers)]
     #[storage_get("num_users")]
-    fn getNumUsers(&self) -> usize;
+    fn get_num_users(&self) -> usize;
 
     /// Yields how accounts are registered in the contract.
     /// Note that not all of them must have stakes greater than zero.
@@ -50,7 +50,7 @@ pub trait UserDataModule {
 
     // creates new user id
     fn new_user(&self) -> usize {
-        let mut num_users = self.getNumUsers();
+        let mut num_users = self.get_num_users();
         num_users += 1;
         self.set_num_users(num_users);
         num_users
@@ -88,9 +88,9 @@ pub trait UserDataModule {
     }
 
     /// Yields how much a user has staked in the contract.
-    #[view]
-    fn getUserStake(&self, user_address: Address) -> BigUint {
-        let user_id = self.getUserId(&user_address);
+    #[view(getUserStake)]
+    fn get_user_total_stake_endpoint(&self, user_address: Address) -> BigUint {
+        let user_id = self.get_user_id(&user_address);
         if user_id == 0 {
             BigUint::zero()
         } else {
@@ -98,9 +98,9 @@ pub trait UserDataModule {
         }
     }
 
-    #[view]
-    fn getUserActiveStake(&self, user_address: Address) -> BigUint {
-        let user_id = self.getUserId(&user_address);
+    #[view(getUserActiveStake)]
+    fn get_user_active_stake_endpoint(&self, user_address: Address) -> BigUint {
+        let user_id = self.get_user_id(&user_address);
         if user_id == 0 {
             BigUint::zero()
         } else {
@@ -108,9 +108,9 @@ pub trait UserDataModule {
         }
     }
 
-    #[view]
-    fn getUserInactiveStake(&self, user_address: Address) -> BigUint {
-        let user_id = self.getUserId(&user_address);
+    #[view(getUserInactiveStake)]
+    fn get_user_inactive_stake_endpoint(&self, user_address: Address) -> BigUint {
+        let user_id = self.get_user_id(&user_address);
         if user_id == 0 {
             BigUint::zero()
         } else {
@@ -132,9 +132,9 @@ pub trait UserDataModule {
         ).into()
     }
 
-    #[view]
-    fn getUserStakeByType(&self, user_address: &Address) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
-        let user_id = self.getUserId(&user_address);
+    #[view(getUserStakeByType)]
+    fn get_user_stake_by_type_endpoint(&self, user_address: &Address) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+        let user_id = self.get_user_id(&user_address);
         if user_id == 0 {
             (
                 BigUint::zero(),
@@ -151,18 +151,18 @@ pub trait UserDataModule {
         }
     }
 
-    #[view]
-    fn getTotalStakeByType(&self) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    #[view(getTotalStakeByType)]
+    fn get_total_stake_by_type_endpoint(&self) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 
-    #[view]
-    fn getTotalActiveStake(&self) -> BigUint {
+    #[view(getTotalActiveStake)]
+    fn get_total_active_stake(&self) -> BigUint {
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Active)
     }
 
-    #[view]
-    fn getTotalInactiveStake(&self) -> BigUint {
+    #[view(getTotalInactiveStake)]
+    fn get_total_inactive_stake(&self) -> BigUint {
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive) +
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::WithdrawOnly)
     }
@@ -185,7 +185,7 @@ pub trait UserDataModule {
     /// More specifically, it indicates the cumulated sum of rewards that had arrived in the contract 
     /// when the user last claimed their own personal rewards.
     /// If zero, it means the user never claimed any rewards.
-    /// If equal to getTotalCumulatedRewards, it means the user claimed everything there is for him/her.
+    /// If equal to get_total_cumulated_rewards, it means the user claimed everything there is for him/her.
     #[storage_get("u_rew_checkp")]
     fn get_user_rew_checkpoint(&self, user_id: usize) -> BigUint;
 
@@ -258,7 +258,7 @@ pub trait UserDataModule {
     /// Argument total_supply decreases in the process.
     /// Walking in increasing user id order, so older users get picked first.
     fn convert_user_stake_asc(&self, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
-        let num_users = self.getNumUsers();
+        let num_users = self.get_num_users();
         let mut i = 1usize;
         while i <= num_users && *total_supply > 0 {
             self.convert_user_stake(i, old_type, new_type, total_supply);
@@ -271,16 +271,16 @@ pub trait UserDataModule {
     /// Argument total_supply decreases in the process.
     /// Walking in decreasing user id order, so newer users get picked first.
     fn convert_user_stake_desc(&self, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
-        let mut i = self.getNumUsers();
+        let mut i = self.get_num_users();
         while i > 0 && *total_supply > 0 {
             self.convert_user_stake(i, old_type, new_type, total_supply);
             i -= 1;
         }
     }
 
-    #[view]
+    #[view(getUnbondQueue)]
     #[storage_get("unbond_queue")]
-    fn getUnbondQueue(&self) -> Vec<UnbondQueueItem<BigUint>>;
+    fn get_unbond_queue(&self) -> Vec<UnbondQueueItem<BigUint>>;
 
     #[storage_set("unbond_queue")]
     fn set_unbond_queue(&self, unbond_queue: &[UnbondQueueItem<BigUint>]);

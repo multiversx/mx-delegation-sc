@@ -1,4 +1,6 @@
 
+use crate::user_stake_state::*;
+
 use super::settings::*;
 use crate::events::*;
 use crate::node_config::*;
@@ -45,14 +47,14 @@ pub trait RewardsModule {
     /// Individual rewards are computed based on this value.
     /// For each user we keep a record on what was the value of the historical rewards when they last claimed.
     /// Subtracting that from the current historical rewards yields how much accumulated in the contract since they last claimed.
-    #[view]
-    fn getTotalCumulatedRewards(&self) -> BigUint {
+    #[view(getTotalCumulatedRewards)]
+    fn get_total_cumulated_rewards(&self) -> BigUint {
         self.storage_load_cumulated_validator_reward()
     }
 
     /// The account running the nodes is entitled to (service_fee / NODE_DENOMINATOR) * rewards.
     fn service_fee_reward(&self, tot_rewards: &BigUint) -> BigUint {
-        let mut node_rewards = tot_rewards * &self.node_config().getServiceFee();
+        let mut node_rewards = tot_rewards * &self.node_config().get_service_fee();
         node_rewards /= BigUint::from(SERVICE_FEE_DENOMINATOR);
         node_rewards
     }
@@ -62,7 +64,7 @@ pub trait RewardsModule {
         let mut user_data = self.user_data().load_user_data(user_id);
 
         // new rewards are what was added since the last time rewards were computed
-        let tot_cumul_rewards = self.getTotalCumulatedRewards();
+        let tot_cumul_rewards = self.get_total_cumulated_rewards();
         let tot_new_rewards = &tot_cumul_rewards - &user_data.reward_checkpoint;
         if tot_new_rewards == 0 {
             return user_data; // nothing happened since the last claim
@@ -82,7 +84,7 @@ pub trait RewardsModule {
             // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake
             let mut delegator_new_rewards = tot_new_rewards - service_fee;
             delegator_new_rewards *= &user_data.active_stake;
-            delegator_new_rewards /= &self.user_data().getTotalActiveStake();
+            delegator_new_rewards /= &self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Active);
             user_data.unclaimed_rewards += &delegator_new_rewards;
         }
 
@@ -97,7 +99,7 @@ pub trait RewardsModule {
     /// Could cost a lot of gas.
     #[endpoint(computeAllRewards)]
     fn compute_all_rewards(&self) {
-        let num_nodes = self.user_data().getNumUsers();
+        let num_nodes = self.user_data().get_num_users();
         let mut sum_unclaimed = BigUint::zero();
 
         // user 1 is the node and from 2 on are the other delegators,
@@ -110,7 +112,7 @@ pub trait RewardsModule {
 
         // divisions are inexact so a small remainder can remain after distributing rewards
         // give it to the validator user, to keep things clear
-        let remainder = self.getTotalCumulatedRewards() - sum_unclaimed - self.get_sent_rewards();
+        let remainder = self.get_total_cumulated_rewards() - sum_unclaimed - self.get_sent_rewards();
         if remainder > 0 {
             let mut node_unclaimed = self.user_data().get_user_rew_unclaimed(OWNER_USER_ID);
             node_unclaimed += &remainder;
@@ -120,9 +122,9 @@ pub trait RewardsModule {
 
     /// Yields how much a user is able to claim in rewards at the present time.
     /// Does not update storage.
-    #[view]
-    fn getClaimableRewards(&self, user: Address) -> BigUint {
-        let user_id = self.user_data().getUserId(&user);
+    #[view(getClaimableRewards)]
+    fn get_claimable_rewards(&self, user: Address) -> BigUint {
+        let user_id = self.user_data().get_user_id(&user);
         if user_id == 0 {
             return BigUint::zero()
         }
@@ -132,9 +134,9 @@ pub trait RewardsModule {
     }
 
     /// Utility readonly function to check how many unclaimed rewards currently reside in the contract.
-    #[view]
-    fn getTotalUnclaimedRewards(&self) -> BigUint {
-        let num_nodes = self.user_data().getNumUsers();
+    #[view(getTotalUnclaimedRewards)]
+    fn get_total_unclaimed_rewards(&self) -> BigUint {
+        let num_nodes = self.user_data().get_num_users();
         let mut sum_unclaimed = BigUint::zero();
         
         for user_id in 1..(num_nodes+1) {
@@ -152,7 +154,7 @@ pub trait RewardsModule {
     #[endpoint(claimRewards)]
     fn claim_rewards(&self) -> Result<(), SCError> {
         let caller = self.get_caller();
-        let user_id = self.user_data().getUserId(&caller);
+        let user_id = self.user_data().get_user_id(&caller);
         if user_id == 0 {
             return sc_error!("unknown caller")
         }

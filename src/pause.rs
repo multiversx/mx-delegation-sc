@@ -11,9 +11,9 @@ pub trait PauseModule {
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
-    #[view]
+    #[view(isStakingPaused)]
     #[storage_get("staking_paused")]
-    fn isStakingPaused(&self) -> bool;
+    fn is_staking_paused(&self) -> bool;
 
     #[storage_set("staking_paused")]
     fn set_staking_paused(&self, staking_paused: bool);

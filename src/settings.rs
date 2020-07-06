@@ -45,31 +45,31 @@ pub trait SettingsModule {
     }
 
     /// Yields the address of the contract with which staking will be performed.
-    #[view]
+    #[view(getContractOwner)]
     #[storage_get("owner")]
-    fn getContractOwner(&self) -> Address;
+    fn get_contract_owner(&self) -> Address;
 
     #[storage_set("owner")]
     fn set_owner(&self, owner: &Address);
 
     fn owner_called(&self) -> bool {
-        self.get_caller() == self.getContractOwner()
+        self.get_caller() == self.get_contract_owner()
     }
 
     /// This is the address where the contract owner receives the rewards for running the nodes.
     /// It can in principle be different from the owner address.
-    #[view]
+    #[view(getNodeRewardDestination)]
     #[storage_get("node_rewards_addr")]
-    fn getNodeRewardDestination(&self) -> Address;
+    fn get_node_reward_destination(&self) -> Address;
 
     #[storage_set("node_rewards_addr")]
     fn set_node_reward_destination(&self, nrd: &Address);
 
     /// Yields the address of the contract with which staking will be performed.
     /// This address is standard in the protocol, but it is saved in storage to avoid hardcoding it.
-    #[view]
+    #[view(getAuctionContractAddress)]
     #[storage_get("auction_addr")]
-    fn getAuctionContractAddress(&self) -> Address;
+    fn get_auction_contract_address(&self) -> Address;
 
     #[storage_set("auction_addr")]
     fn set_auction_addr(&self, auction_addr: &Address);
@@ -79,9 +79,9 @@ pub trait SettingsModule {
     /// if they put up stake for sale and no-one is buying it.
     /// However, they need to wait for this many n_blocks to be processed in between,
     /// from when the put up the stake for sale and the moment they can force global unstaking.
-    #[view]
+    #[view(getNumBlocksBeforeForceUnstake)]
     #[storage_get("n_blocks_before_force_unstake")]
-    fn getNumBlocksBeforeForceUnstake(&self) -> u64;
+    fn get_n_blocks_before_force_unstake(&self) -> u64;
 
     #[storage_set("n_blocks_before_force_unstake")]
     fn set_n_blocks_before_force_unstake(&self, n_blocks_before_force_unstake: u64);
@@ -89,23 +89,23 @@ pub trait SettingsModule {
     /// Minimum number of n_blocks between unstake and unbond.
     /// This mirrors the minimum unbonding period in the auction SC. 
     /// The auction SC cannot be cheated by setting this field lower, unbond will fail anyway if attempted too early.
-    #[view]
+    #[view(getNumBlocksBeforeUnBond)]
     #[storage_get("n_blocks_before_unbond")]
-    fn getNumBlocksBeforeUnBond(&self) -> u64;
+    fn get_n_blocks_before_unbond(&self) -> u64;
 
     #[storage_set("n_blocks_before_unbond")]
     fn set_n_blocks_before_unbond(&self, n_blocks_before_unbond: u64);
 
-    #[view]
+    #[view(isAutoActivationEnabled)]
     #[storage_get("auto_activation_enabled")]
-    fn isAutoActivationEnabled(&self) -> bool;
+    fn is_auto_activation_enabled(&self) -> bool;
 
     #[storage_set("auto_activation_enabled")]
     fn set_auto_activation_enabled(&self, auto_activation_enabled: bool);
 
     #[endpoint(enableAutoActivation)]
     fn enable_auto_activation(&self) -> Result<(), SCError>{
-        if self.get_caller() != self.getContractOwner() {
+        if !self.owner_called() {
             return sc_error!("only owner can enable auto activation");
         }
         self.set_auto_activation_enabled(true);
@@ -114,7 +114,7 @@ pub trait SettingsModule {
 
     #[endpoint(disableAutoActivation)]
     fn disable_auto_activation(&self) -> Result<(), SCError>{
-        if self.get_caller() != self.getContractOwner() {
+        if !self.owner_called() {
             return sc_error!("only owner can disable auto activation");
         }
         self.set_auto_activation_enabled(false);

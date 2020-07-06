@@ -32,9 +32,9 @@ pub trait NodeModule {
 
     /// The proportion of rewards that goes to the owner as compensation for running the nodes.
     /// 10000 = 100%.
-    #[view]
+    #[view(getServiceFee)]
     #[storage_get("service_fee")]
-    fn getServiceFee(&self) -> BigUint;
+    fn get_service_fee(&self) -> BigUint;
 
     #[storage_set("service_fee")]
     fn set_service_fee(&self, service_fee: usize);
@@ -52,7 +52,7 @@ pub trait NodeModule {
         }
 
         // check that all nodes idle
-        if !self.allNodesIdle() {
+        if !self.all_nodes_idle() {
             return sc_error!("cannot change service fee while at least one node is active");
         }
 
@@ -62,9 +62,9 @@ pub trait NodeModule {
     
     /// How much stake has to be provided per validator node.
     /// After genesis this sum is fixed to 2,500,000 ERD, but at some point bidding will happen.
-    #[view]
+    #[view(getStakePerNode)]
     #[storage_get("stake_per_node")]
-    fn getStakePerNode(&self) -> BigUint;
+    fn get_stake_per_node(&self) -> BigUint;
 
     #[storage_set("stake_per_node")]
     fn set_stake_per_node(&self, spn: &BigUint);
@@ -78,7 +78,7 @@ pub trait NodeModule {
         }
 
         // check that all nodes idle
-        if !self.allNodesIdle() {
+        if !self.all_nodes_idle() {
             return sc_error!("cannot change stake per node while at least one node is active");
         }
 
@@ -87,9 +87,9 @@ pub trait NodeModule {
     }
     
     /// The number of nodes that will run with the contract stake, as configured by the owner.
-    #[view]
+    #[view(getNumNodes)]
     #[storage_get("num_nodes")]
-    fn getNumNodes(&self) -> usize;
+    fn get_num_nodes(&self) -> usize;
 
     #[storage_set("num_nodes")]
     fn set_num_nodes(&self, num_nodes: usize);
@@ -98,9 +98,9 @@ pub trait NodeModule {
     /// This is a mapping from node BLS key to node id.
     /// The key is the bytes "node_id" concatenated with the BLS key. The value is the node id.
     /// Ids start from 1 because 0 means unset of None.
-    #[view]
+    #[view(getNodeId)]
     #[storage_get("node_bls_to_id")]
-    fn getNodeId(&self, bls_key: &BLSKey) -> usize;
+    fn get_node_id(&self, bls_key: &BLSKey) -> usize;
 
     #[storage_set("node_bls_to_id")]
     fn set_node_bls_to_id(&self, bls_key: &BLSKey, node_id: usize);
@@ -117,9 +117,9 @@ pub trait NodeModule {
     #[storage_set("node_signature")]
     fn set_node_signature(&self, node_id: usize, node_signature: BLSSignature);
 
-    #[view]
-    fn getNodeSignature(&self, bls_key: BLSKey) -> OptionalResult<BLSSignature> {
-        let node_id = self.getNodeId(&bls_key);
+    #[view(getNodeSignature)]
+    fn get_node_signature_endpoint(&self, bls_key: BLSKey) -> OptionalResult<BLSSignature> {
+        let node_id = self.get_node_id(&bls_key);
         if node_id == 0 {
             OptionalResult::None
         } else {
@@ -134,9 +134,9 @@ pub trait NodeModule {
     #[storage_set("node_state")]
     fn set_node_state(&self, node_id: usize, node_state: NodeState);
 
-    #[view]
-    fn getNodeState(&self, bls_key: BLSKey) -> NodeState {
-        let node_id = self.getNodeId(&bls_key);
+    #[view(getNodeState)]
+    fn get_node_state_endpoint(&self, bls_key: BLSKey) -> NodeState {
+        let node_id = self.get_node_id(&bls_key);
         if node_id == 0 {
             NodeState::Removed
         } else {
@@ -146,9 +146,9 @@ pub trait NodeModule {
 
     /// True if all nodes are either inactive or removed.
     /// Some operations (like setServiceFee and setStakePerNode) can only be performed when all nodes are idle.
-    #[view]
-    fn allNodesIdle(&self) -> bool {
-        let mut i = self.getNumNodes();
+    #[view(allNodesIdle)]
+    fn all_nodes_idle(&self) -> bool {
+        let mut i = self.get_num_nodes();
         while i > 0 {
             let node_state = self.get_node_state(i);
             if node_state != NodeState::Inactive && node_state != NodeState::Removed {
@@ -160,9 +160,9 @@ pub trait NodeModule {
         true
     }
 
-    #[view]
-    fn getAllNodeStates(&self) -> MultiResultVec<Vec<u8>> {
-        let num_nodes = self.getNumNodes();
+    #[view(getAllNodeStates)]
+    fn get_all_node_states(&self) -> MultiResultVec<Vec<u8>> {
+        let num_nodes = self.get_num_nodes();
         let mut result: Vec<Vec<u8>> = Vec::new();
         for i in 1..num_nodes+1 {
             let bls = self.get_node_id_to_bls(i);
@@ -180,9 +180,9 @@ pub trait NodeModule {
     #[storage_set("node_bl_nonce_of_unstake")]
     fn set_node_bl_nonce_of_unstake(&self, node_id: usize, bl_nonce_of_unstake: u64);
 
-    #[view]
-    fn getNodeBlockNonceOfUnstake(&self, bls_key: BLSKey) -> u64 {
-        let node_id = self.getNodeId(&bls_key);
+    #[view(getNodeBlockNonceOfUnstake)]
+    fn get_node_bl_nonce_of_unstake_endpoint(&self, bls_key: BLSKey) -> u64 {
+        let node_id = self.get_node_id(&bls_key);
         if node_id == 0 {
             0
         } else {
@@ -199,7 +199,7 @@ pub trait NodeModule {
             return sc_error!("only owner can add nodes"); 
         }
 
-        let mut num_nodes = self.getNumNodes();
+        let mut num_nodes = self.get_num_nodes();
         if bls_keys_signatures.len() % 2 != 0 {
             return sc_error!("even number of arguments expected"); 
         }
@@ -210,7 +210,7 @@ pub trait NodeModule {
         for (i, arg) in bls_keys_signatures.iter().enumerate() {
             if i % 2 == 0 {
                 let bls_key = BLSKey::from_bytes(arg)?;
-                node_id = self.getNodeId(&bls_key);
+                node_id = self.get_node_id(&bls_key);
                 if node_id == 0 {
                     num_nodes += 1;
                     node_id = num_nodes;
@@ -243,7 +243,7 @@ pub trait NodeModule {
         }
 
         for bls_key in bls_keys.iter() {
-            let node_id = self.getNodeId(bls_key);
+            let node_id = self.get_node_id(bls_key);
             if node_id == 0 {
                 return sc_error!("node not registered");
             }
@@ -263,9 +263,9 @@ pub trait NodeModule {
 
         let mut node_ids: Vec<usize> = Vec::new();
         let mut bls_keys: Vec<BLSKey> = Vec::new();
-        let mut i = self.getNumNodes();
+        let mut i = self.get_num_nodes();
         let mut node_stake = BigUint::zero();
-        let stake_per_node = self.getStakePerNode();
+        let stake_per_node = self.get_stake_per_node();
         while i > 0 && &node_stake < requested_stake {
             if let NodeState::Active = self.get_node_state(i) {
                 node_stake += &stake_per_node;
@@ -287,7 +287,7 @@ pub trait NodeModule {
         for arg in node_status_args.into_vec().into_iter() {
             let (bls_key, status) = arg.into_tuple();
             if status != 0 {
-                let node_id = self.getNodeId(&bls_key);
+                let node_id = self.get_node_id(&bls_key);
                 // move node from ok nodes to failed ones
                 if let Some(pos) = node_ids.iter().position(|x| *x == node_id) {
                     node_ids.swap_remove(pos);
