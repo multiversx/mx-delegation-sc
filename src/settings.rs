@@ -121,4 +121,21 @@ pub trait SettingsModule {
         Ok(())
     }
 
+    /// Delegators are not allowed to hold more than zero but less than this amount of stake (of any type).
+    /// Zero means disabled.
+    #[view(getMinimumStake)]
+    #[storage_get("min_stake")]
+    fn get_minimum_stake(&self) -> BigUint;
+
+    #[storage_set("min_stake")]
+    fn set_minimum_stake(&self, minimum_stake: BigUint);
+
+    #[view(setMinimumStake)]
+    fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> Result<(), SCError> {
+        if !self._owner_called() {
+            return sc_error!("only owner can set minimum stake");
+        }
+        self.set_minimum_stake(minimum_stake);
+        Ok(())
+    }
 }

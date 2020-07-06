@@ -121,9 +121,11 @@ pub trait StakeSaleModule {
         if !enough {
             return sc_error!("payment exceeds seller active stake");
         }
+        self.user_data().validate_total_user_stake(seller_id)?;
 
         // increase stake of buyer
         self.user_data()._increase_user_stake_of_type(buyer_id, UserStakeState::Active, &payment);
+        self.user_data().validate_total_user_stake(buyer_id)?;
 
         // forward payment to seller
         self.send_tx(&seller, &payment, "payment for stake");

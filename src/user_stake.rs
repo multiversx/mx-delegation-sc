@@ -60,6 +60,7 @@ pub trait UserStakeModule {
         
         // save increased stake
         self.user_data()._increase_user_stake_of_type(user_id, UserStakeState::Inactive, &payment);
+        self.user_data().validate_total_user_stake(user_id)?;
 
         // auto-activation, if enabled
         if self.settings().isAutoActivationEnabled() {
@@ -100,6 +101,7 @@ pub trait UserStakeModule {
                 return sc_error!("cannot withdraw more than inactive stake");
             }
         }
+        self.user_data().validate_total_user_stake(user_id)?;
 
         // send stake to delegator
         self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
@@ -162,6 +164,7 @@ pub trait UserStakeModule {
             amount += &inactive_stake;
             self.user_data()._decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &inactive_stake);
         }
+        self.user_data().validate_total_user_stake(user_id)?;
 
         // send stake to delegator
         self.send_tx(&caller, &amount, "delegation withdraw inactive stake");

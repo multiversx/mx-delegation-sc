@@ -1,5 +1,7 @@
 imports!();
 
+use crate::settings::*;
+
 use crate::user_stake_state::*;
 use crate::unbond_queue::*;
 
@@ -25,6 +27,9 @@ pub const USER_STAKE_TOTALS_ID: usize = 0;
 /// Deals with storage data about delegators.
 #[elrond_wasm_derive::module(UserDataModuleImpl)]
 pub trait UserDataModule {
+
+    #[module(SettingsModuleImpl)]
+    fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
     /// Each delegator gets a user id. This is in order to be able to iterate over their data.
     /// This is a mapping from delegator address to delegator id.
@@ -176,6 +181,14 @@ pub trait UserDataModule {
     fn getTotalInactiveStake(&self) -> BigUint {
         self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive) +
         self._get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::WithdrawOnly)
+    }
+
+    fn validate_total_user_stake(&self, user_id: usize) -> Result<(), SCError> {
+        let user_total = self._get_user_total_stake(user_id);
+        if &user_total > &0 && &user_total < &self.settings().get_minimum_stake() {
+            return sc_error!("cannot have less stake than minimum stake");
+        }
+        Ok(())
     }
 
     /// Claiming rewards has 2 steps:
