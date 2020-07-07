@@ -1,15 +1,21 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug Delegation",
-            "preLaunchTask": "delegation-debug-build",
-            "program": "${workspaceFolder}/debug/target/debug/sc-delegation-rs-debug",
+            "name": "Debug auction-mock",
+            "preLaunchTask": "auction-mock-debug-build",
+            "program": "${workspaceFolder}//auction-mock/debug/target/debug/auction-mock-debug",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug sc-delegation-rs",
+            "preLaunchTask": "sc-delegation-rs-debug-build",
+            "program": "${workspaceFolder}//debug/target/debug/sc-delegation-rs-debug",
             "args": [],
             "cwd": "${workspaceFolder}"
         }
