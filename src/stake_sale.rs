@@ -1,4 +1,5 @@
 use crate::user_stake_state::*;
+use crate::stake_sale_payment::*;
 
 use crate::events::*;
 use crate::pause::*;
@@ -23,6 +24,16 @@ pub trait StakeSaleModule {
 
     #[module(RewardsModuleImpl)]
     fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
+
+    #[view(totalPendingStakePayments)]
+    #[storage_get_mut("total_pending_payments")]
+    fn get_mut_total_pending_payments(&self) -> mut_storage!(BigUint);
+
+    #[storage_get("u_pending_payments")]
+    fn get_user_pending_payments(&self, user_id: usize) -> Queue<StakeSalePayment<BigUint>>;
+
+    #[storage_set("u_pending_payments")]
+    fn set_user_pending_payments(&self, user_id: usize, queue: Queue<StakeSalePayment<BigUint>>);
 
     /// Creates a stake offer. Overwrites any previous stake offer.
     /// Once a stake offer is up, it can be bought by anyone on a first come first served basis.
@@ -70,7 +81,6 @@ pub trait StakeSaleModule {
     /// User-to-user purchase of stake.
     /// Only stake that has been offered for sale by owner can be bought.
     /// Note: the price of 1 staked ERD must always be 1 "free" ERD, from outside the contract.
-    /// The payment for the stake does not stay in the contract, it gets forwarded immediately to the seller.
     #[payable]
     #[endpoint(purchaseStake)]
     fn purchase_stake(&self, seller: Address, #[payment] payment: BigUint) -> Result<(), SCError> {

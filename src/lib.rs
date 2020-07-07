@@ -8,6 +8,7 @@
 pub mod auction_proxy;
 pub mod bls_key;
 pub mod node_state;
+pub mod stake_sale_payment;
 pub mod unbond_queue;
 pub mod user_stake_state;
 pub mod util;
