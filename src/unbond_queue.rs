@@ -7,8 +7,6 @@ where BigUint: Encode + Decode
     pub amount: BigUint,
 }
 
-pub type UnbondQueueRef<'a, BigUint> = &'a [UnbondQueueItem<BigUint>];
-
 impl<BigUint> Encode for UnbondQueueItem<BigUint>
 where BigUint: Encode + Decode
 {

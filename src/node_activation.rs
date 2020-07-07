@@ -293,7 +293,7 @@ pub trait ContractStakeModule {
             // add entry to unbond queue 
             let mut unbond_queue = self.user_data().get_unbond_queue();
             unbond_queue.push(unbond_queue_entry);
-            self.user_data().set_unbond_queue(unbond_queue.as_slice());
+            self.user_data().set_unbond_queue(unbond_queue);
         }
 
         // set nodes to UnBondPeriod + save current block nonce
@@ -373,24 +373,26 @@ pub trait ContractStakeModule {
         // here we only peek in the queue, we do not pop out of it
         // TODO: find a more elegant way to write this!!!
         let mut stake_to_unbond = BigUint::from(bls_keys.len()) * self.node_config().get_stake_per_node();
-        let mut unbond_queue = self.user_data().get_unbond_queue();
-        let mut i = 0usize;
-        while i < unbond_queue.len() && stake_to_unbond > 0 {
-            let elem = &mut unbond_queue[i];
-            let max_unbond = if stake_to_unbond > elem.amount {
-                &elem.amount
-            } else {
-                &stake_to_unbond
-            };
-            let mut max_unbond_mut = max_unbond.clone();
-            self.user_data().convert_user_stake(
-                elem.user_id,
-                UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond,
-                &mut max_unbond_mut);
-            let delta = max_unbond - &max_unbond_mut;
-            stake_to_unbond -= &delta;
+        let mut unbond_queue = self.user_data().get_unbond_queue(); // not changed here
+        while stake_to_unbond > 0 {
+            if let Some(elem) = unbond_queue.peek_mut() {
+                let max_unbond = if stake_to_unbond > elem.amount {
+                    &elem.amount
+                } else {
+                    &stake_to_unbond
+                };
+                let mut max_unbond_mut = max_unbond.clone();
+                self.user_data().convert_user_stake(
+                    elem.user_id,
+                    UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond,
+                    &mut max_unbond_mut);
+                let delta = max_unbond - &max_unbond_mut;
+                stake_to_unbond -= &delta;
 
-            i += 1;
+                unbond_queue.pop();
+            } else {
+                break;
+            }
         }
 
         // the remaining stake taken from any users found
@@ -476,29 +478,32 @@ pub trait ContractStakeModule {
         // TODO: find a more elegant way to write this!!! (without affecting performance)
         let mut stake_to_unbond = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
         let mut unbond_queue = self.user_data().get_unbond_queue();
-        let mut i = 0usize;
-        while i < unbond_queue.len() && stake_to_unbond > 0 {
-            let elem = &mut unbond_queue[i];
-            let max_unbond = if stake_to_unbond > elem.amount {
-                &elem.amount
+        while stake_to_unbond > 0 {
+            let opt_elem = unbond_queue.peek_mut();
+            if let Some(elem) = opt_elem {
+                let max_unbond = if stake_to_unbond > elem.amount {
+                    &elem.amount
+                } else {
+                    &stake_to_unbond
+                };
+                let mut max_unbond_mut = max_unbond.clone();
+                self.user_data().convert_user_stake(
+                    elem.user_id,
+                    UserStakeState::PendingUnBond, UserStakeState::WithdrawOnly,
+                    &mut max_unbond_mut);
+                let delta = max_unbond - &max_unbond_mut;
+                stake_to_unbond -= &delta;
+                elem.amount -= &delta;
+                if elem.amount > 0 {
+                    break;
+                }
+                unbond_queue.pop();
             } else {
-                &stake_to_unbond
-            };
-            let mut max_unbond_mut = max_unbond.clone();
-            self.user_data().convert_user_stake(
-                elem.user_id,
-                UserStakeState::PendingUnBond, UserStakeState::WithdrawOnly,
-                &mut max_unbond_mut);
-            let delta = max_unbond - &max_unbond_mut;
-            stake_to_unbond -= &delta;
-            elem.amount -= &delta;
-            if elem.amount > 0 {
                 break;
             }
-            i += 1;
         }
         // slicing the vector is equivalent to pop
-        self.user_data().set_unbond_queue(&unbond_queue[i..]);
+        self.user_data().set_unbond_queue(unbond_queue);
 
         // set remaining stake to Inactive
         if stake_to_unbond > 0 {
@@ -509,10 +514,10 @@ pub trait ContractStakeModule {
 
         // the remaining stake taken from any users found
         self.user_data().convert_user_stake_desc(
-            UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond,
+            UserStakeState::PendingUnBond, UserStakeState::Inactive,
             &mut stake_to_unbond);
         if stake_to_unbond > 0 {
-            return sc_error!("not enough stake in unbond period");
+            return sc_error!("not enough stake pending unbond");
         }
 
         // log event (no data)

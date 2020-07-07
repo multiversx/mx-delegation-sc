@@ -293,10 +293,10 @@ pub trait UserDataModule {
 
     #[view(getUnbondQueue)]
     #[storage_get("unbond_queue")]
-    fn get_unbond_queue(&self) -> Vec<UnbondQueueItem<BigUint>>;
+    fn get_unbond_queue(&self) -> Queue<UnbondQueueItem<BigUint>>;
 
     #[storage_set("unbond_queue")]
-    fn set_unbond_queue(&self, unbond_queue: &[UnbondQueueItem<BigUint>]);
+    fn set_unbond_queue(&self, unbond_queue: Queue<UnbondQueueItem<BigUint>>);
 
     
 }
