@@ -3,6 +3,7 @@ use crate::user_stake_state::*;
 
 use crate::rewards::*;
 use crate::settings::*;
+use crate::stake_sale::*;
 use crate::user_data::*;
 
 imports!();
@@ -20,7 +21,8 @@ pub trait UnexpectedBalanceModule {
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
 
-
+    #[module(StakeSaleModuleImpl)]
+    fn stake_sale(&self) -> StakeSaleModuleImpl<T, BigInt, BigUint>;
 
     /// Expected balance includes:
     /// - stake
@@ -31,6 +33,7 @@ pub trait UnexpectedBalanceModule {
     fn get_unexpected_balance(&self) -> BigUint {
         let mut expected_balance = self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
         expected_balance += self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::WithdrawOnly);
+        expected_balance += self.stake_sale().get_total_pending_payments();
         expected_balance += self.rewards().get_total_cumulated_rewards();
         expected_balance -= self.rewards().get_sent_rewards();
 

@@ -4,6 +4,7 @@ use crate::stake_sale_payment::*;
 use crate::events::*;
 use crate::pause::*;
 use crate::rewards::*;
+use crate::settings::*;
 use crate::user_data::*;
 
 imports!();
@@ -25,7 +26,13 @@ pub trait StakeSaleModule {
     #[module(RewardsModuleImpl)]
     fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
 
+    #[module(SettingsModuleImpl)]
+    fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
+
     #[view(totalPendingStakePayments)]
+    #[storage_get("total_pending_payments")]
+    fn get_total_pending_payments(&self) -> BigUint;
+
     #[storage_get_mut("total_pending_payments")]
     fn get_mut_total_pending_payments(&self) -> mut_storage!(BigUint);
 
@@ -87,6 +94,11 @@ pub trait StakeSaleModule {
         if self.pause().is_stake_sale_paused() {
             return sc_error!("stake sale paused");
         }
+        
+        let caller = self.get_caller();
+        if &caller == &seller {
+            return sc_error!("cannot purchase from self");
+        }
 
         if payment == 0 {
             return Ok(())
@@ -109,7 +121,6 @@ pub trait StakeSaleModule {
         })?;
 
         // get buyer id or create buyer
-        let caller = self.get_caller();
         let mut buyer_id = self.user_data().get_user_id(&caller);
         if buyer_id == 0 {
             buyer_id = self.user_data().new_user();
@@ -137,11 +148,70 @@ pub trait StakeSaleModule {
         self.user_data().increase_user_stake_of_type(buyer_id, UserStakeState::Active, &payment);
         self.user_data().validate_total_user_stake(buyer_id)?;
 
-        // forward payment to seller
-        self.send_tx(&seller, &payment, "payment for stake");
-
         // log transaction
         self.events().purchase_stake_event(&seller, &caller, &payment);
+
+        // increase total pending payments
+        *self.get_mut_total_pending_payments() += &payment;
+
+        // add payment to queue
+        // (left at the end because it moves "payments" variable)
+        let mut payments_queue = self.get_user_pending_payments(seller_id);
+        payments_queue.push(StakeSalePayment{
+            user_id: seller_id,
+            amount: payment,
+            claim_after_nonce: 
+                self.user_data().get_user_bl_nonce_of_stake_offer(seller_id) +
+                self.settings().get_n_blocks_before_force_unstake() +
+                self.settings().get_n_blocks_before_unbond(),
+        });
+        self.set_user_pending_payments(seller_id, payments_queue);
+
+        Ok(())
+    }
+
+    /// Will return the total amount of payments that can be claimed.
+    /// Will also remove those payments from the queue,
+    /// so only use the method when about to make payment.
+    fn consume_claimable_payments(&self, user_id: usize) -> BigUint {
+        let bl_nonce = self.get_block_nonce();
+        let mut result = BigUint::zero();
+
+        let mut payments_queue = self.get_user_pending_payments(user_id);
+        loop {
+            if let Some(stake_sale_payment) = payments_queue.peek() {
+                if bl_nonce > stake_sale_payment.claim_after_nonce {
+                    result += &stake_sale_payment.amount;
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+
+            payments_queue.pop();
+        }
+
+        self.set_user_pending_payments(user_id, payments_queue);
+        result
+    }
+
+    #[endpoint(claimPayment)]
+    fn claim_payment(&self) -> Result<(), SCError> {
+        let caller = self.get_caller();
+        let caller_id = self.user_data().get_user_id(&caller);
+        if caller_id == 0 {
+            return sc_error!("unknown caller");
+        }
+
+        let claimable_payments = self.consume_claimable_payments(caller_id);
+        if &claimable_payments > &0 {
+            // decrease total pending payments
+            *self.get_mut_total_pending_payments() -= &claimable_payments;
+
+            // forward payment to seller
+            self.send_tx(&caller, &claimable_payments, "payment for stake");
+        }
 
         Ok(())
     }
