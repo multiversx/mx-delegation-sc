@@ -96,29 +96,36 @@ pub trait SettingsModule {
     #[storage_set("n_blocks_before_unbond")]
     fn set_n_blocks_before_unbond(&self, n_blocks_before_unbond: u64);
 
-    #[view(isAutoActivationEnabled)]
-    #[storage_get("auto_activation_enabled")]
-    fn is_auto_activation_enabled(&self) -> bool;
+    /// Determines who can call stakeAllAvailable.
+    /// If true, anyone can call.
+    /// If false, only owner can call.
+    #[view(anyoneCanActivate)]
+    #[storage_get("anyone_can_activate")]
+    fn anyone_can_activate(&self) -> bool;
 
-    #[storage_set("auto_activation_enabled")]
-    fn set_auto_activation_enabled(&self, auto_activation_enabled: bool);
+    #[storage_set("anyone_can_activate")]
+    fn set_anyone_can_activate(&self, anyone_can_activate: bool);
 
-    #[endpoint(enableAutoActivation)]
-    fn enable_auto_activation(&self) -> Result<(), SCError>{
+    #[endpoint(setAnyoneCanActivate)]
+    fn set_anyone_can_activate_endpoint(&self) -> Result<(), SCError>{
         if !self.owner_called() {
             return sc_error!("only owner can enable auto activation");
         }
-        self.set_auto_activation_enabled(true);
+        self.set_anyone_can_activate(true);
         Ok(())
     }
 
-    #[endpoint(disableAutoActivation)]
-    fn disable_auto_activation(&self) -> Result<(), SCError>{
+    #[endpoint(setOnlyOwnerCanActivate)]
+    fn set_only_owner_can_activate_endpoint(&self) -> Result<(), SCError>{
         if !self.owner_called() {
             return sc_error!("only owner can disable auto activation");
         }
-        self.set_auto_activation_enabled(false);
+        self.set_anyone_can_activate(false);
         Ok(())
+    }
+
+    fn caller_can_activate(&self) -> bool {
+        self.anyone_can_activate() || self.owner_called()
     }
 
     /// Delegators are not allowed to hold more than zero but less than this amount of stake (of any type).

@@ -33,9 +33,11 @@ pub trait UserStakeModule {
     #[module(PauseModuleImpl)]
     fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
 
+    /// Delegate stake to the smart contract. 
+    /// Stake is initially inactive, so does it not produce rewards.
     #[payable]
-    #[endpoint]
-    fn stake(&self, #[payment] payment: BigUint) -> Result<(), SCError> {
+    #[endpoint(stake)]
+    fn stake_endpoint(&self, #[payment] payment: BigUint) -> Result<(), SCError> {
         if self.pause().is_staking_paused() {
             return sc_error!("staking paused");
         }
@@ -45,6 +47,14 @@ pub trait UserStakeModule {
         }
 
         self.process_stake(payment)
+    }
+
+    /// Equivalent to calling "stake" and then "stakeAllAvailable".
+    #[payable]
+    #[endpoint(stakeAndTryActivate)]
+    fn stake_and_try_activate(&self, #[payment] payment: BigUint) -> Result<(), SCError> {
+        self.stake_endpoint(payment)?;
+        self.node_activation().stake_all_available_endpoint()
     }
 
     fn process_stake(&self, payment: BigUint) -> Result<(), SCError> {
@@ -61,12 +71,6 @@ pub trait UserStakeModule {
         // save increased stake
         self.user_data().increase_user_stake_of_type(user_id, UserStakeState::Inactive, &payment);
         self.user_data().validate_total_user_stake(user_id)?;
-
-        // auto-activation, if enabled
-        if self.settings().is_auto_activation_enabled() {
-            self.node_activation().perform_stake_all_available()?;
-        }
-        
 
         // log staking event
         self.events().stake_event(&caller, &payment);

@@ -66,15 +66,15 @@ pub trait ContractStakeModule {
     /// Anyone can call if auto activation is enabled.
     /// Error if auto activation is disabled (except owner, who can always call).
     #[endpoint(stakeAllAvailable)]
-    fn stake_all_available(&self) -> Result<(), SCError> {
-        if !self.settings().is_auto_activation_enabled() && !self.settings().owner_called() {
-            return sc_error!("auto activation disabled");
+    fn stake_all_available_endpoint(&self) -> Result<(), SCError> {
+        if !self.settings().caller_can_activate() {
+            return sc_error!("not allowed to activate");
         }
 
-        self.perform_stake_all_available()
+        self.stake_all_available()
     }
 
-    fn perform_stake_all_available(&self) -> Result<(), SCError> {
+    fn stake_all_available(&self) -> Result<(), SCError> {
         let mut inactive_stake = self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
         let stake_per_node = self.node_config().get_stake_per_node();
         let num_nodes = self.node_config().get_num_nodes();
