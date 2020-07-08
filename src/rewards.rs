@@ -125,6 +125,9 @@ pub trait RewardsModule {
             sum_unclaimed += user_data.unclaimed_rewards;
         }
 
+        // owner rewards from ActiveForSale stake
+        sum_unclaimed += self.user_data().get_owner_rew_unclaimed_from_active_for_sale();
+
         // divisions are inexact so a small remainder can remain after distributing rewards
         // give it to the validator user, to keep things clear
         let remainder = self.get_total_cumulated_rewards() - sum_unclaimed - self.get_sent_rewards();
