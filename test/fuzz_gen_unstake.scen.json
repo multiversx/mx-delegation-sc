@@ -201,6 +201,26 @@
             }
         },
         {
+            "step": "scCall",
+            "txId": "enable-unstake",
+            "tx": {
+                "from": "''fuzz_owner_addr_______________s1",
+                "to": "''fuzz_sc_delegation_addr_______s1",
+                "value": "0",
+                "function": "enableUnStake",
+                "arguments": [],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
             "step": "setState",
             "comment": "2 - increase block nonce",
             "currentBlockInfo": {

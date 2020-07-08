@@ -47,6 +47,10 @@ pub trait StakeSaleModule {
     /// Cannot be paused, because this is also part of the unStake mechanism, which the owner cannot veto.
     #[endpoint(announceUnStake)]
     fn announce_unstake(&self, amount: BigUint) -> Result<(), SCError> {
+        if !self.settings().is_unstake_enabled() {
+            return sc_error!("unstake is currently disabled");
+        }
+        
         let caller = self.get_caller();
         let user_id = self.user_data().get_user_id(&caller);
         if user_id == 0 {

@@ -138,4 +138,33 @@ pub trait SettingsModule {
         self.set_minimum_stake(minimum_stake);
         Ok(())
     }
+
+    /// The ability to disable unstaking is not normally part of a delegation smart contract.
+    /// It gives a malitious owner the ability to block all delegator stake in the contract indefinitely. 
+    /// However, it will be used by Elrond in the period immediately after genesis.
+    /// In this version of the contract unstaking is disabled by default and needs to be enabled by the owner explicitly.
+    #[view(unStakeEnabled)]
+    #[storage_get("unstake_enabled")]
+    fn is_unstake_enabled(&self) -> bool;
+
+    #[storage_set("unstake_enabled")]
+    fn set_unstake_enabled(&self, unstake_enabled: bool);
+
+    #[endpoint(enableUnStake)]
+    fn enable_unstake(&self) -> Result<(), SCError>{
+        if !self.owner_called() {
+            return sc_error!("only owner can enable unStake");
+        }
+        self.set_unstake_enabled(true);
+        Ok(())
+    }
+
+    #[endpoint(disableUnStake)]
+    fn disable_unstake(&self) -> Result<(), SCError>{
+        if !self.owner_called() {
+            return sc_error!("only owner can disable unStake");
+        }
+        self.set_unstake_enabled(false);
+        Ok(())
+    }
 }
