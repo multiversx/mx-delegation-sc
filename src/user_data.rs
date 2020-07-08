@@ -192,16 +192,6 @@ pub trait UserDataModule {
     #[storage_set("u_rew_unclmd")]
     fn set_user_rew_unclaimed(&self, user_id: usize, user_rew_unclaimed: &BigUint);
 
-    /// Stake that is ActiveForSale does not produce rewards for the delegator, but for the contract owner.
-    /// We keep these extra owner-only rewards separate, since they get computed differently.
-    /// For all other reward types, the delegator who computes also receives the reward,
-    /// but here a delegator computes and someone else (the owner) receives the reward.
-    #[storage_get("o_rew_unclmd_active_for_sale")]
-    fn get_owner_rew_unclaimed_from_active_for_sale(&self) -> BigUint;
-
-    #[storage_set("o_rew_unclmd_active_for_sale")]
-    fn set_owner_rew_unclaimed_from_active_for_sale(&self, owner_rew_unclaimed_from_active_for_sale: &BigUint);
-
     /// As the time passes, if the contract is active, rewards periodically arrive in the contract. 
     /// Users can claim their share of rewards anytime.
     /// This field helps keeping track of how many rewards came to the contract since the last claim.

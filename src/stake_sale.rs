@@ -53,9 +53,9 @@ pub trait StakeSaleModule {
             return sc_error!("only delegators can offer stake for sale")
         }
 
-        // compute rewards
-        let user_rewards = self.rewards().load_user_data_update_rewards(user_id);
-        self.user_data().store_user_data(user_id, &user_rewards);
+        // compute rewards 
+        self.rewards().update_user_rewards(user_id); // for user
+        self.rewards().update_user_rewards(OWNER_USER_ID); // for owner, since ActiveForSale will change
 
         // get active stake
         let stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Active);
@@ -136,13 +136,9 @@ pub trait StakeSaleModule {
         }
 
         // compute rewards (must happen before transferring stake):
-        // for seller
-        let seller_rewards = self.rewards().load_user_data_update_rewards(seller_id);
-        self.user_data().store_user_data(seller_id, &seller_rewards);
-
-        // for buyer
-        let buyer_rewards = self.rewards().load_user_data_update_rewards(buyer_id);
-        self.user_data().store_user_data(buyer_id, &buyer_rewards);
+        self.rewards().update_user_rewards(seller_id); // for seller
+        self.rewards().update_user_rewards(buyer_id); // for buyer
+        self.rewards().update_user_rewards(OWNER_USER_ID); // for owner, since ActiveForSale will change
 
         // transfer stake:
         // decrease stake of seller
@@ -153,6 +149,7 @@ pub trait StakeSaleModule {
         self.user_data().validate_total_user_stake(seller_id)?;
 
         // increase stake of buyer
+        // note: the new buyer's stake will be Active instead of ActiveForSale
         self.user_data().increase_user_stake_of_type(buyer_id, UserStakeState::Active, &payment);
         self.user_data().validate_total_user_stake(buyer_id)?;
 

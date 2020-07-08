@@ -325,6 +325,13 @@ pub trait ContractStakeModule {
             return Ok(());
         }
 
+        // Rewards must be clean because we are changing the active stake.
+        // They were computed before calling auction unStake,
+        // but in the unlikely case that rewards came in since then (between the asyncCall and the callback),
+        // we recompute the rewards again.
+        // Normally, all rewards should already be up to date, so this should add little to the gas cost.
+        self.rewards().compute_all_rewards();
+
         // revert user stake to Active/ActiveForSale
         let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
         self.user_data().convert_user_stake_desc(
