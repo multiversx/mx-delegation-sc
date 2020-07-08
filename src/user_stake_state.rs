@@ -29,6 +29,15 @@ pub enum UserStakeState {
 
     /// Node stake was sent to the auction SC, but the transaction failed for the node.
     ActivationFailed,
+
+    /// Same as Active, but the owner is offering it for sale.
+    /// During this time the stake does not produce rewards.
+    /// Instead, the rewards go to the contract owner.
+    ActiveForSale,
+
+    /// Same as PendingDeactivation, but originating from stake that is ActiveForSale.
+    /// The distinction is necessary in order to be able to correctly revert in case of failure.
+    PendingDeactivationFromSale,
 }
 
 impl UserStakeState {
@@ -42,6 +51,8 @@ impl UserStakeState {
             UserStakeState::PendingUnBond => 5,
             UserStakeState::WithdrawOnly => 6,
             UserStakeState::ActivationFailed => 7,
+            UserStakeState::ActiveForSale => 8,
+            UserStakeState::PendingDeactivationFromSale => 9,
         }
     }
 
@@ -55,6 +66,8 @@ impl UserStakeState {
             5 => Ok(UserStakeState::PendingUnBond),
             6 => Ok(UserStakeState::WithdrawOnly),
             7 => Ok(UserStakeState::ActivationFailed),
+            8 => Ok(UserStakeState::ActiveForSale),
+            9 => Ok(UserStakeState::PendingDeactivationFromSale),
             _ => Err(DecodeError::InvalidValue),
         }
     }

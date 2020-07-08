@@ -231,9 +231,12 @@ pub trait ContractStakeModule {
             // if requested by a user, that user has priority
             self.user_data().convert_user_stake(
                 unbond_queue_entry.user_id,
-                UserStakeState::Active, UserStakeState::PendingDeactivation,
+                UserStakeState::ActiveForSale, UserStakeState::PendingDeactivationFromSale,
                 &mut stake_to_deactivate);
         }
+        self.user_data().convert_user_stake_desc(
+            UserStakeState::ActiveForSale, UserStakeState::PendingDeactivationFromSale,
+            &mut stake_to_deactivate);
         self.user_data().convert_user_stake_desc(
             UserStakeState::Active, UserStakeState::PendingDeactivation,
             &mut stake_to_deactivate);
@@ -282,7 +285,14 @@ pub trait ContractStakeModule {
 
         // set user stake to UnBondPeriod
         let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
-        self.user_data().convert_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::UnBondPeriod, &mut stake_sent);
+        self.user_data().convert_user_stake_desc(
+            UserStakeState::PendingDeactivationFromSale,
+            UserStakeState::UnBondPeriod,
+            &mut stake_sent);
+        self.user_data().convert_user_stake_desc(
+            UserStakeState::PendingDeactivation, 
+            UserStakeState::UnBondPeriod, 
+            &mut stake_sent);
 
         // (if requested by a user) save unstake data for the user 
         if let Some(unbond_queue_entry) = opt_unbond_queue_entry {
@@ -315,9 +325,16 @@ pub trait ContractStakeModule {
             return Ok(());
         }
 
-        // revert user stake to Active
+        // revert user stake to Active/ActiveForSale
         let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
-        self.user_data().convert_user_stake_desc(UserStakeState::PendingDeactivation, UserStakeState::Active, &mut stake_sent);
+        self.user_data().convert_user_stake_desc(
+            UserStakeState::PendingDeactivationFromSale,
+            UserStakeState::ActiveForSale,
+            &mut stake_sent);
+        self.user_data().convert_user_stake_desc(
+            UserStakeState::PendingDeactivation,
+            UserStakeState::Active,
+            &mut stake_sent);
 
         // revert nodes to Active
         for &node_id in node_ids.iter() {

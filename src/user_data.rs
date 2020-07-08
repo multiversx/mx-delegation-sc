@@ -124,7 +124,7 @@ pub trait UserDataModule {
         }
     }
 
-    fn get_user_stake_by_type(&self, user_id: usize) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_user_stake_by_type(&self, user_id: usize) -> MultiResult10<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         (
             self.get_user_stake_of_type(user_id, UserStakeState::Inactive),
             self.get_user_stake_of_type(user_id, UserStakeState::PendingActivation),
@@ -134,14 +134,18 @@ pub trait UserDataModule {
             self.get_user_stake_of_type(user_id, UserStakeState::PendingUnBond),
             self.get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly),
             self.get_user_stake_of_type(user_id, UserStakeState::ActivationFailed),
+            self.get_user_stake_of_type(user_id, UserStakeState::ActiveForSale),
+            self.get_user_stake_of_type(user_id, UserStakeState::PendingDeactivationFromSale),
         ).into()
     }
 
     #[view(getUserStakeByType)]
-    fn get_user_stake_by_type_endpoint(&self, user_address: &Address) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_user_stake_by_type_endpoint(&self, user_address: &Address) -> MultiResult10<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         let user_id = self.get_user_id(&user_address);
         if user_id == 0 {
             (
+                BigUint::zero(),
+                BigUint::zero(),
                 BigUint::zero(),
                 BigUint::zero(),
                 BigUint::zero(),
@@ -157,7 +161,7 @@ pub trait UserDataModule {
     }
 
     #[view(getTotalStakeByType)]
-    fn get_total_stake_by_type_endpoint(&self) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_total_stake_by_type_endpoint(&self) -> MultiResult10<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 

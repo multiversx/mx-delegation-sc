@@ -59,9 +59,13 @@ pub trait StakeSaleModule {
             return sc_error!("cannot offer more than the user active stake")
         }
 
-        // store offer
+        // save offer
         self.user_data().set_user_stake_for_sale(user_id, &amount);
         self.user_data().set_user_bl_nonce_of_stake_offer(user_id, self.get_block_nonce());
+
+        // convert stake from Active to ActiveForSale
+        let mut amount_mut = amount;
+        self.user_data().convert_user_stake(user_id, UserStakeState::Active, UserStakeState::ActiveForSale, &mut amount_mut);
 
         Ok(())
     }
@@ -138,9 +142,9 @@ pub trait StakeSaleModule {
 
         // transfer stake:
         // decrease stake of seller
-        let enough = self.user_data().decrease_user_stake_of_type(seller_id, UserStakeState::Active, &payment);
+        let enough = self.user_data().decrease_user_stake_of_type(seller_id, UserStakeState::ActiveForSale, &payment);
         if !enough {
-            return sc_error!("payment exceeds seller active stake");
+            return sc_error!("payment exceeds seller ActiveForSale stake");
         }
         self.user_data().validate_total_user_stake(seller_id)?;
 
