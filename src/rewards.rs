@@ -78,14 +78,29 @@ pub trait RewardsModule {
             user_data.unclaimed_rewards += &service_fee;
         }
 
-        // update delegator rewards, if applicable
-        if user_data.active_stake > 0 {
+        // update delegator rewards based on Active stake
+        let u_stake_active = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Active);
+        let total_active_stake =
+            self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Active) +
+            self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::ActiveForSale);
+        if &u_stake_active > &0 {
             // delegator reward is:
             // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake
-            let mut delegator_new_rewards = tot_new_rewards - service_fee;
-            delegator_new_rewards *= &user_data.active_stake;
-            delegator_new_rewards /= &self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Active);
+            let mut delegator_new_rewards = &tot_new_rewards - &service_fee;
+            delegator_new_rewards *= &u_stake_active;
+            delegator_new_rewards /= &total_active_stake;
             user_data.unclaimed_rewards += &delegator_new_rewards;
+        }
+
+        // add to owner rewards, based on ActiveForSale stake
+        let u_stake_active_for_sale = self.user_data().get_user_stake_of_type(user_id, UserStakeState::ActiveForSale);
+        if &u_stake_active_for_sale > &0 {
+            let mut active_for_sale_new_rewards = &tot_new_rewards - &service_fee;
+            active_for_sale_new_rewards *= &u_stake_active_for_sale;
+            active_for_sale_new_rewards /= &total_active_stake;
+            let mut owner_rew_from_active_for_sale = self.user_data().get_owner_rew_unclaimed_from_active_for_sale();
+            owner_rew_from_active_for_sale += &active_for_sale_new_rewards;
+            self.user_data().set_owner_rew_unclaimed_from_active_for_sale(&owner_rew_from_active_for_sale);
         }
 
         // update user data checkpoint
@@ -129,7 +144,14 @@ pub trait RewardsModule {
             return BigUint::zero()
         }
 
-        let user_data = self.load_user_data_update_rewards(user_id);
+        let mut user_data = self.load_user_data_update_rewards(user_id);
+
+        // extract owner rewards from ActiveForSale stake
+        // user_data.unclaimed_rewards can be altered because it does not get saved
+        if user_id == OWNER_USER_ID {
+            user_data.unclaimed_rewards += self.user_data().get_owner_rew_unclaimed_from_active_for_sale();
+        }
+
         user_data.unclaimed_rewards
     }
 
@@ -139,10 +161,14 @@ pub trait RewardsModule {
         let num_nodes = self.user_data().get_num_users();
         let mut sum_unclaimed = BigUint::zero();
         
+        // regular rewards
         for user_id in 1..(num_nodes+1) {
             let user_data = self.load_user_data_update_rewards(user_id);
             sum_unclaimed += user_data.unclaimed_rewards;
         }
+
+        // owner rewards from ActiveForSale stake
+        sum_unclaimed += self.user_data().get_owner_rew_unclaimed_from_active_for_sale();
 
         sum_unclaimed
     }
@@ -161,6 +187,13 @@ pub trait RewardsModule {
 
         let mut user_data = self.load_user_data_update_rewards(user_id);
 
+        // extract owner rewards from ActiveForSale stake
+        // user_data.unclaimed_rewards can be changed because it will be reset to 0 anyway
+        if user_id == OWNER_USER_ID {
+            user_data.unclaimed_rewards += self.user_data().get_owner_rew_unclaimed_from_active_for_sale();
+            self.user_data().set_owner_rew_unclaimed_from_active_for_sale(&BigUint::zero());
+        }
+        
         if user_data.unclaimed_rewards > 0 {
             self.send_rewards(&caller, &user_data.unclaimed_rewards);
             user_data.unclaimed_rewards = BigUint::zero();

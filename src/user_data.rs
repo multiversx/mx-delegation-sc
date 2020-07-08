@@ -12,10 +12,6 @@ pub struct UserRewardData<BigUint> {
 
     /// Rewards that are computed but not yet sent to the delegator.
     pub unclaimed_rewards: BigUint,
-
-    /// How much stake the delegator has in the contract.
-    /// Readonly field (does not get changed or saved back to storage).
-    pub active_stake: BigUint,
 }
 
 /// Storing total stake per type the same way as we store it for users, but with user_id 0.
@@ -196,6 +192,16 @@ pub trait UserDataModule {
     #[storage_set("u_rew_unclmd")]
     fn set_user_rew_unclaimed(&self, user_id: usize, user_rew_unclaimed: &BigUint);
 
+    /// Stake that is ActiveForSale does not produce rewards for the delegator, but for the contract owner.
+    /// We keep these extra owner-only rewards separate, since they get computed differently.
+    /// For all other reward types, the delegator who computes also receives the reward,
+    /// but here a delegator computes and someone else (the owner) receives the reward.
+    #[storage_get("o_rew_unclmd_active_for_sale")]
+    fn get_owner_rew_unclaimed_from_active_for_sale(&self) -> BigUint;
+
+    #[storage_set("o_rew_unclmd_active_for_sale")]
+    fn set_owner_rew_unclaimed_from_active_for_sale(&self, owner_rew_unclaimed_from_active_for_sale: &BigUint);
+
     /// As the time passes, if the contract is active, rewards periodically arrive in the contract. 
     /// Users can claim their share of rewards anytime.
     /// This field helps keeping track of how many rewards came to the contract since the last claim.
@@ -231,11 +237,9 @@ pub trait UserDataModule {
     fn load_user_data(&self, user_id: usize) -> UserRewardData<BigUint> {
         let u_rew_checkp = self.get_user_rew_checkpoint(user_id);
         let u_rew_unclmd = self.get_user_rew_unclaimed(user_id);
-        let u_stake_actv = self.get_user_stake_of_type(user_id, UserStakeState::Active);
         UserRewardData {
             reward_checkpoint: u_rew_checkp,
             unclaimed_rewards: u_rew_unclmd,
-            active_stake: u_stake_actv,
         }
     }
 

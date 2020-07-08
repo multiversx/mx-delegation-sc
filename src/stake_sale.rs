@@ -53,6 +53,10 @@ pub trait StakeSaleModule {
             return sc_error!("only delegators can offer stake for sale")
         }
 
+        // compute rewards
+        let user_rewards = self.rewards().load_user_data_update_rewards(user_id);
+        self.user_data().store_user_data(user_id, &user_rewards);
+
         // get active stake
         let stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Active);
         if &amount > &stake {
@@ -133,12 +137,12 @@ pub trait StakeSaleModule {
 
         // compute rewards (must happen before transferring stake):
         // for seller
-        let seller_data = self.rewards().load_user_data_update_rewards(seller_id);
-        self.user_data().store_user_data(seller_id, &seller_data);
+        let seller_rewards = self.rewards().load_user_data_update_rewards(seller_id);
+        self.user_data().store_user_data(seller_id, &seller_rewards);
 
         // for buyer
-        let buyer_data = self.rewards().load_user_data_update_rewards(buyer_id);
-        self.user_data().store_user_data(buyer_id, &buyer_data);
+        let buyer_rewards = self.rewards().load_user_data_update_rewards(buyer_id);
+        self.user_data().store_user_data(buyer_id, &buyer_rewards);
 
         // transfer stake:
         // decrease stake of seller
