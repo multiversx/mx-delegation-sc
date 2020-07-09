@@ -63,7 +63,7 @@ pub trait StakeSaleModule {
 
         // get active stake
         let stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Active);
-        if &amount > &stake {
+        if amount > stake {
             return sc_error!("cannot offer more than the user active stake")
         }
 
@@ -108,7 +108,7 @@ pub trait StakeSaleModule {
         }
         
         let caller = self.get_caller();
-        if &caller == &seller {
+        if caller == seller {
             return sc_error!("cannot purchase from self");
         }
 
@@ -124,7 +124,7 @@ pub trait StakeSaleModule {
 
         // decrease stake for sale
         sc_try!(self.user_data().update_user_stake_for_sale(seller_id, |stake_for_sale| {
-            if &payment > &*stake_for_sale {
+            if payment > *stake_for_sale {
                 sc_error!("payment exceeds stake offered")
             } else {
                 *stake_for_sale -= &payment;
@@ -187,17 +187,12 @@ pub trait StakeSaleModule {
         let mut result = BigUint::zero();
 
         let mut payments_queue = self.get_user_pending_payments(user_id);
-        loop {
-            if let Some(stake_sale_payment) = payments_queue.peek() {
-                if bl_nonce > stake_sale_payment.claim_after_nonce {
-                    result += &stake_sale_payment.amount;
-                } else {
-                    break;
-                }
+        while let Some(stake_sale_payment) = payments_queue.peek() {
+            if bl_nonce > stake_sale_payment.claim_after_nonce {
+                result += &stake_sale_payment.amount;
             } else {
                 break;
             }
-
             payments_queue.pop();
         }
 
@@ -214,7 +209,7 @@ pub trait StakeSaleModule {
         }
 
         let claimable_payments = self.consume_claimable_payments(caller_id);
-        if &claimable_payments > &0 {
+        if claimable_payments > 0 {
             // decrease total pending payments
             *self.get_mut_total_pending_payments() -= &claimable_payments;
 

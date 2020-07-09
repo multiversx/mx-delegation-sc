@@ -15,7 +15,7 @@ impl BLSKey {
         self.0.to_vec()
     }
 
-    pub fn from_bytes(bytes: &Vec<u8>) -> SCResult<Self> {
+    pub fn from_bytes(bytes: &[u8]) -> SCResult<Self> {
         if bytes.len() != BLS_KEY_BYTE_LENGTH {
             return sc_error!("bad BLS key length");
         }

@@ -94,7 +94,7 @@ pub trait UserStakeModule {
 
         // first withdraw from unavailable inactive stake
         let withdraw_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
-        if &amount <= &withdraw_stake {
+        if amount <= withdraw_stake {
             self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &amount);
         } else {
             // if that is not enough, retrieve proper inactive stake
@@ -141,7 +141,7 @@ pub trait UserStakeModule {
         let (node_ids, bls_keys) = self.node_config().find_nodes_for_unstake(&stake_for_sale);
         
         let unbond_queue_entry = UnbondQueueItem {
-            user_id: user_id,
+            user_id,
             amount: stake_for_sale,
         };
         self.node_activation().perform_unstake_nodes(Some(unbond_queue_entry), node_ids, bls_keys)

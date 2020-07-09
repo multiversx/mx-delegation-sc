@@ -86,7 +86,7 @@ pub trait RewardsModule {
             user_data.unclaimed_rewards += &service_fee;
 
             // the owner also gets all rewards for all the ActiveForSale stake
-            if &total_active_stake_for_sale > &0 {
+            if total_active_stake_for_sale > 0 {
                 let mut active_for_sale_new_rewards = &tot_new_rewards - &service_fee;
                 active_for_sale_new_rewards *= &total_active_stake_for_sale;
                 active_for_sale_new_rewards /= &total_active_stake;
@@ -96,7 +96,7 @@ pub trait RewardsModule {
 
         // update delegator rewards based on Active stake
         let u_stake_active = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Active);
-        if &u_stake_active > &0 {
+        if u_stake_active > 0 {
             // delegator reward is:
             // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake
             let mut delegator_new_rewards = &tot_new_rewards - &service_fee;

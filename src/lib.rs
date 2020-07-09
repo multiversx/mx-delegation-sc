@@ -3,6 +3,7 @@
 #![no_main]
 #![allow(non_snake_case)]
 #![allow(unused_attributes)]
+#![allow(clippy::string_lit_as_bytes)]
 
 // auxiliaries
 pub mod auction_proxy;
@@ -99,12 +100,12 @@ pub trait Delegation {
     }
 
     #[callback]
-    fn auction_unStake_callback(&self,
+    fn auction_unstake_callback(&self,
             #[callback_arg] opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>,
             #[callback_arg] node_ids: Vec<usize>,
             call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
 
-        self.node_activation().auction_unStake_callback(
+        self.node_activation().auction_unstake_callback(
             opt_unbond_queue_entry,
             node_ids,
             call_result).unwrap();
@@ -112,11 +113,11 @@ pub trait Delegation {
     }
 
     #[callback]
-    fn auction_unBond_callback(&self,
+    fn auction_unbond_callback(&self,
             #[callback_arg] node_ids: Vec<usize>,
             call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
 
-        self.node_activation().auction_unBond_callback(
+        self.node_activation().auction_unbond_callback(
             node_ids,
             call_result).unwrap();
             // TODO: replace unwrap with typical Result handling

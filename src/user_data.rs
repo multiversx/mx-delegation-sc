@@ -174,7 +174,7 @@ pub trait UserDataModule {
 
     fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
         let user_total = self.get_user_total_stake(user_id);
-        if &user_total > &0 && &user_total < &self.settings().get_minimum_stake() {
+        if user_total > 0 && user_total < self.settings().get_minimum_stake() {
             return sc_error!("cannot have less stake than minimum stake");
         }
         Ok(())
@@ -249,7 +249,7 @@ pub trait UserDataModule {
 
     fn convert_user_stake(&self, user_id: usize, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
         let mut user_stake_old_type = self.get_mut_user_stake_of_type(user_id, old_type);
-        if &*total_supply > &*user_stake_old_type {
+        if *total_supply > *user_stake_old_type {
             *self.get_mut_user_stake_of_type(user_id, new_type) += &*user_stake_old_type;
             *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, new_type) += &*user_stake_old_type;
             *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, old_type) -= &*user_stake_old_type;

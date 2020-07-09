@@ -81,7 +81,7 @@ pub trait ContractStakeModule {
         let mut node_id = 1;
         let mut node_ids = Vec::<usize>::new();
         let mut bls_keys_signatures = Vec::<Vec<u8>>::new();
-        while node_id <= num_nodes && &inactive_stake >= &stake_per_node {
+        while node_id <= num_nodes && inactive_stake >= stake_per_node {
             if self.node_config().get_node_state(node_id) == NodeState::Inactive {
                 self.node_config().set_node_state(node_id, NodeState::PendingActivation);
                 inactive_stake -= &stake_per_node;
@@ -93,7 +93,7 @@ pub trait ContractStakeModule {
             node_id += 1;
         }
 
-        if node_ids.len() == 0 {
+        if node_ids.is_empty() {
             return Ok(())
         }
 
@@ -142,7 +142,7 @@ pub trait ContractStakeModule {
     }
 
     fn auction_stake_callback_ok(&self, node_ids: Vec<usize>) -> SCResult<()> {
-        if node_ids.len() == 0 {
+        if node_ids.is_empty() {
             return Ok(());
         }
 
@@ -167,7 +167,7 @@ pub trait ContractStakeModule {
     }
 
     fn auction_stake_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> SCResult<()> {
-        if node_ids.len() == 0 {
+        if node_ids.is_empty() {
             return Ok(());
         }
 
@@ -257,7 +257,7 @@ pub trait ContractStakeModule {
 
     /// Only finalize deactivation if we got confirmation from the auction contract.
     /// #[callback] can only be declared in lib.rs for the moment.
-    fn auction_unStake_callback(&self, 
+    fn auction_unstake_callback(&self, 
             opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>, // #[callback_arg]
             node_ids: Vec<usize>, // #[callback_arg]
             call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) -> SCResult<()> {
@@ -279,7 +279,7 @@ pub trait ContractStakeModule {
             opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>, 
             node_ids: Vec<usize>) -> SCResult<()> {
 
-        if node_ids.len() == 0 {
+        if node_ids.is_empty() {
             return Ok(());
         }
 
@@ -321,7 +321,7 @@ pub trait ContractStakeModule {
     }
 
     fn auction_unStake_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> SCResult<()> {
-        if node_ids.len() == 0 {
+        if node_ids.is_empty() {
             return Ok(());
         }
 
@@ -459,7 +459,7 @@ pub trait ContractStakeModule {
             node_id -= 1;
         }
 
-        if node_ids.len() == 0 {
+        if node_ids.is_empty() {
             return Ok(())
         }
 
@@ -468,7 +468,7 @@ pub trait ContractStakeModule {
 
     /// Only finalize deactivation if we got confirmation from the auction contract.
     /// #[callback] can only be declared in lib.rs for the moment.
-    fn auction_unBond_callback(&self, 
+    fn auction_unbond_callback(&self, 
         node_ids: Vec<usize>, // #[callback_arg]
         call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) -> SCResult<()> {
 
@@ -486,7 +486,7 @@ pub trait ContractStakeModule {
     }
 
     fn auction_unBond_callback_ok(&self, node_ids: Vec<usize>) -> SCResult<()> {
-        if node_ids.len() == 0 {
+        if node_ids.is_empty() {
             return Ok(());
         }
 
@@ -552,7 +552,7 @@ pub trait ContractStakeModule {
     }
 
     fn auction_unBond_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> SCResult<()> {
-        if node_ids.len() == 0 {
+        if node_ids.is_empty() {
             return Ok(());
         }
         
@@ -592,7 +592,7 @@ pub trait ContractStakeModule {
             node_id -= 1;
         }
 
-        if node_ids.len() == 0 {
+        if node_ids.is_empty() {
             return Ok(())
         }
 
