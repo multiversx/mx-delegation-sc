@@ -1,7 +1,6 @@
 
 #![no_std]
 #![no_main]
-#![allow(non_snake_case)]
 #![allow(unused_attributes)]
 #![allow(clippy::string_lit_as_bytes)]
 

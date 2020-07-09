@@ -23,10 +23,10 @@ pub trait EventsModule {
     fn deactivation_fail_event(&self, _reason: &[u8]);
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000007")]
-    fn unBond_ok_event(&self, _data: ());
+    fn unbond_ok_event(&self, _data: ());
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000008")]
-    fn unBond_fail_event(&self, _reason: &[u8]);
+    fn unbond_fail_event(&self, _reason: &[u8]);
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000009")]
     fn purchase_stake_event(&self, seller: &Address, buyer: &Address, amount: &BigUint);

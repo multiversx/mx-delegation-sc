@@ -265,17 +265,17 @@ pub trait ContractStakeModule {
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
                 let (node_ids_ok, node_ids_fail) = self.node_config().split_node_ids_by_err(node_ids, node_status_args);
-                sc_try!(self.auction_unStake_callback_ok(opt_unbond_queue_entry, node_ids_ok));
-                sc_try!(self.auction_unStake_callback_fail(node_ids_fail, &b"unstaking failed for some nodes"[..]));
+                sc_try!(self.auction_unstake_callback_ok(opt_unbond_queue_entry, node_ids_ok));
+                sc_try!(self.auction_unstake_callback_fail(node_ids_fail, &b"unstaking failed for some nodes"[..]));
                 Ok(())
             },
             AsyncCallResult::Err(error) => {
-                self.auction_unStake_callback_fail(node_ids, error.err_msg.as_slice())
+                self.auction_unstake_callback_fail(node_ids, error.err_msg.as_slice())
             }
         }
     }
 
-    fn auction_unStake_callback_ok(&self, 
+    fn auction_unstake_callback_ok(&self, 
             opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>, 
             node_ids: Vec<usize>) -> SCResult<()> {
 
@@ -320,7 +320,7 @@ pub trait ContractStakeModule {
         Ok(())
     }
 
-    fn auction_unStake_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> SCResult<()> {
+    fn auction_unstake_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());
         }
@@ -475,17 +475,17 @@ pub trait ContractStakeModule {
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
                 let (node_ids_ok, node_ids_fail) = self.node_config().split_node_ids_by_err(node_ids, node_status_args);
-                sc_try!(self.auction_unBond_callback_ok(node_ids_ok));
-                sc_try!(self.auction_unBond_callback_fail(node_ids_fail, &b"unbonding failed for some nodes"[..]));
+                sc_try!(self.auction_unbond_callback_ok(node_ids_ok));
+                sc_try!(self.auction_unbond_callback_fail(node_ids_fail, &b"unbonding failed for some nodes"[..]));
                 Ok(())
             },
             AsyncCallResult::Err(error) => {
-                self.auction_unBond_callback_fail(node_ids, error.err_msg.as_slice())
+                self.auction_unbond_callback_fail(node_ids, error.err_msg.as_slice())
             }
         }
     }
 
-    fn auction_unBond_callback_ok(&self, node_ids: Vec<usize>) -> SCResult<()> {
+    fn auction_unbond_callback_ok(&self, node_ids: Vec<usize>) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());
         }
@@ -546,12 +546,12 @@ pub trait ContractStakeModule {
 
         // log event (no data)
         // TODO: log BLS keys of nodes in data
-        self.events().unBond_ok_event(());
+        self.events().unbond_ok_event(());
 
         Ok(())
     }
 
-    fn auction_unBond_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> SCResult<()> {
+    fn auction_unbond_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());
         }
@@ -568,7 +568,7 @@ pub trait ContractStakeModule {
         }
 
         // log failure event (no data)
-        self.events().unBond_fail_event(err_msg);
+        self.events().unbond_fail_event(err_msg);
 
         Ok(())
     }
