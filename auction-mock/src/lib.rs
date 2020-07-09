@@ -24,7 +24,7 @@ pub trait AuctionMock {
     fn stake(&self,
             num_nodes: usize,
             #[multi(2*num_nodes)] bls_keys_signatures_args: VarArgs<Vec<u8>>,
-            #[payment] payment: &BigUint) -> Result<MultiResultVec<Vec<u8>>, SCError> {
+            #[payment] payment: &BigUint) -> SCResult<MultiResultVec<Vec<u8>>> {
 
         let bls_keys_signatures = bls_keys_signatures_args.into_vec();
 
@@ -60,7 +60,7 @@ pub trait AuctionMock {
 
     #[endpoint(unStake)]
     fn unstake_endpoint(&self,
-            #[var_args] bls_keys: VarArgs<Vec<u8>>) -> Result<MultiResultVec<Vec<u8>>, SCError> {
+            #[var_args] bls_keys: VarArgs<Vec<u8>>) -> SCResult<MultiResultVec<Vec<u8>>> {
 
         if self.storage().is_staking_failure() {
             return sc_error!("auction smart contract deliberate error");
@@ -82,7 +82,7 @@ pub trait AuctionMock {
 
     #[endpoint(unBond)]
     fn unbond_endpoint(&self,
-            #[var_args] bls_keys: VarArgs<Vec<u8>>) -> Result<MultiResultVec<Vec<u8>>, SCError> {
+            #[var_args] bls_keys: VarArgs<Vec<u8>>) -> SCResult<MultiResultVec<Vec<u8>>> {
 
         if self.storage().is_staking_failure() {
             return sc_error!("auction smart contract deliberate error");
@@ -106,7 +106,7 @@ pub trait AuctionMock {
     }
 
     #[endpoint]
-    fn claim(&self) -> Result<(), SCError> {
+    fn claim(&self) -> SCResult<()> {
         Ok(())
     }
 }

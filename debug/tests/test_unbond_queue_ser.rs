@@ -1,5 +1,5 @@
 
-use elrond_wasm::esd_light::*;
+use elrond_wasm::elrond_codec::*;
 use elrond_wasm_debug::*;
 use sc_delegation_rs::unbond_queue::*;
 use elrond_wasm::Vec;

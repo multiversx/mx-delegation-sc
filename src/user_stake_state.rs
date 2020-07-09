@@ -1,4 +1,4 @@
-use elrond_wasm::esd_light::*;
+use elrond_wasm::elrond_codec::*;
 
 /// Contract-wide status of all stake.
 /// Similar to NodeState, but labels the user stake, not the node status.

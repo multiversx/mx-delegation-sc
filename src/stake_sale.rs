@@ -46,7 +46,7 @@ pub trait StakeSaleModule {
     /// Once a stake offer is up, it can be bought by anyone on a first come first served basis.
     /// Cannot be paused, because this is also part of the unStake mechanism, which the owner cannot veto.
     #[endpoint(announceUnStake)]
-    fn announce_unstake(&self, amount: BigUint) -> Result<(), SCError> {
+    fn announce_unstake(&self, amount: BigUint) -> SCResult<()> {
         if !self.settings().is_unstake_enabled() {
             return sc_error!("unstake is currently disabled");
         }
@@ -102,7 +102,7 @@ pub trait StakeSaleModule {
     /// Note: the price of 1 staked ERD must always be 1 "free" ERD, from outside the contract.
     #[payable]
     #[endpoint(purchaseStake)]
-    fn purchase_stake(&self, seller: Address, #[payment] payment: BigUint) -> Result<(), SCError> {
+    fn purchase_stake(&self, seller: Address, #[payment] payment: BigUint) -> SCResult<()> {
         if self.pause().is_stake_sale_paused() {
             return sc_error!("stake sale paused");
         }
@@ -123,14 +123,14 @@ pub trait StakeSaleModule {
         }
 
         // decrease stake for sale
-        self.user_data().update_user_stake_for_sale(seller_id, |stake_for_sale| {
+        sc_try!(self.user_data().update_user_stake_for_sale(seller_id, |stake_for_sale| {
             if &payment > &*stake_for_sale {
                 sc_error!("payment exceeds stake offered")
             } else {
                 *stake_for_sale -= &payment;
                 Ok(())
             }
-        })?;
+        }));
 
         // get buyer id or create buyer
         let mut buyer_id = self.user_data().get_user_id(&caller);
@@ -150,12 +150,12 @@ pub trait StakeSaleModule {
         if !enough {
             return sc_error!("payment exceeds seller ActiveForSale stake");
         }
-        self.user_data().validate_total_user_stake(seller_id)?;
+        sc_try!(self.user_data().validate_total_user_stake(seller_id));
 
         // increase stake of buyer
         // note: the new buyer's stake will be Active instead of ActiveForSale
         self.user_data().increase_user_stake_of_type(buyer_id, UserStakeState::Active, &payment);
-        self.user_data().validate_total_user_stake(buyer_id)?;
+        sc_try!(self.user_data().validate_total_user_stake(buyer_id));
 
         // log transaction
         self.events().purchase_stake_event(&seller, &caller, &payment);
@@ -206,7 +206,7 @@ pub trait StakeSaleModule {
     }
 
     #[endpoint(claimPayment)]
-    fn claim_payment(&self) -> Result<(), SCError> {
+    fn claim_payment(&self) -> SCResult<()> {
         let caller = self.get_caller();
         let caller_id = self.user_data().get_user_id(&caller);
         if caller_id == 0 {

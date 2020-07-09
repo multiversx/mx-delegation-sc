@@ -42,7 +42,7 @@ pub trait NodeModule {
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setServiceFee)]
-    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> Result<(), SCError> {
+    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> SCResult<()> {
         if !self.settings().owner_called() {
             return sc_error!("only owner can change service fee"); 
         }
@@ -72,7 +72,7 @@ pub trait NodeModule {
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setStakePerNode)]
-    fn set_stake_per_node_endpoint(&self, node_activation: &BigUint) -> Result<(), SCError> {
+    fn set_stake_per_node_endpoint(&self, node_activation: &BigUint) -> SCResult<()> {
         if !self.settings().owner_called() {
             return sc_error!("only owner can change stake per node"); 
         }
@@ -193,7 +193,7 @@ pub trait NodeModule {
     #[endpoint(addNodes)]
     fn add_nodes(&self, 
             #[var_args] bls_keys_signatures: VarArgs<Vec<u8>>)
-        -> Result<(), SCError> {
+        -> SCResult<()> {
 
         if !self.settings().owner_called() {
             return sc_error!("only owner can add nodes"); 
@@ -209,7 +209,7 @@ pub trait NodeModule {
         let mut node_id = 0usize;
         for (i, arg) in bls_keys_signatures.iter().enumerate() {
             if i % 2 == 0 {
-                let bls_key = BLSKey::from_bytes(arg)?;
+                let bls_key = sc_try!(BLSKey::from_bytes(arg));
                 node_id = self.get_node_id(&bls_key);
                 if node_id == 0 {
                     num_nodes += 1;
@@ -237,7 +237,7 @@ pub trait NodeModule {
     }
 
     #[endpoint(removeNodes)]
-    fn remove_nodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> Result<(), SCError> {
+    fn remove_nodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
         if !self.settings().owner_called() {
             return sc_error!("only owner can remove nodes"); 
         }

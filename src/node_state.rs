@@ -1,4 +1,4 @@
-use elrond_wasm::esd_light::*;
+use elrond_wasm::elrond_codec::*;
 
 /// Status of a node.
 #[derive(PartialEq, Clone, Copy)]

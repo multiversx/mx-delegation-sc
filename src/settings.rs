@@ -26,7 +26,7 @@ pub trait SettingsModule {
         service_fee_per_10000: usize,
         n_blocks_before_force_unstake: u64,
         n_blocks_before_unbond: u64,
-    ) -> Result<(), SCError> {
+    ) -> SCResult<()> {
 
         let owner = self.get_caller();
         self.set_owner(&owner);
@@ -36,7 +36,7 @@ pub trait SettingsModule {
         self.user_data().set_num_users(1);
 
         self.set_auction_addr(&auction_contract_addr);
-        self.node_config().set_service_fee_endpoint(service_fee_per_10000)?;
+        sc_try!(self.node_config().set_service_fee_endpoint(service_fee_per_10000));
 
         self.set_n_blocks_before_force_unstake(n_blocks_before_force_unstake);
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);
@@ -107,7 +107,7 @@ pub trait SettingsModule {
     fn set_anyone_can_activate(&self, anyone_can_activate: bool);
 
     #[endpoint(setAnyoneCanActivate)]
-    fn set_anyone_can_activate_endpoint(&self) -> Result<(), SCError>{
+    fn set_anyone_can_activate_endpoint(&self) -> SCResult<()>{
         if !self.owner_called() {
             return sc_error!("only owner can enable auto activation");
         }
@@ -116,7 +116,7 @@ pub trait SettingsModule {
     }
 
     #[endpoint(setOnlyOwnerCanActivate)]
-    fn set_only_owner_can_activate_endpoint(&self) -> Result<(), SCError>{
+    fn set_only_owner_can_activate_endpoint(&self) -> SCResult<()>{
         if !self.owner_called() {
             return sc_error!("only owner can disable auto activation");
         }
@@ -138,7 +138,7 @@ pub trait SettingsModule {
     fn set_minimum_stake(&self, minimum_stake: BigUint);
 
     #[view(setMinimumStake)]
-    fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> Result<(), SCError> {
+    fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> SCResult<()> {
         if !self.owner_called() {
             return sc_error!("only owner can set minimum stake");
         }
@@ -158,7 +158,7 @@ pub trait SettingsModule {
     fn set_unstake_enabled(&self, unstake_enabled: bool);
 
     #[endpoint(enableUnStake)]
-    fn enable_unstake(&self) -> Result<(), SCError>{
+    fn enable_unstake(&self) -> SCResult<()>{
         if !self.owner_called() {
             return sc_error!("only owner can enable unStake");
         }
@@ -167,7 +167,7 @@ pub trait SettingsModule {
     }
 
     #[endpoint(disableUnStake)]
-    fn disable_unstake(&self) -> Result<(), SCError>{
+    fn disable_unstake(&self) -> SCResult<()>{
         if !self.owner_called() {
             return sc_error!("only owner can disable unStake");
         }

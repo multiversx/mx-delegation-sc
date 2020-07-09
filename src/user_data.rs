@@ -172,7 +172,7 @@ pub trait UserDataModule {
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::WithdrawOnly)
     }
 
-    fn validate_total_user_stake(&self, user_id: usize) -> Result<(), SCError> {
+    fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
         let user_total = self.get_user_total_stake(user_id);
         if &user_total > &0 && &user_total < &self.settings().get_minimum_stake() {
             return sc_error!("cannot have less stake than minimum stake");

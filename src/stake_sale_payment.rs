@@ -1,4 +1,4 @@
-use elrond_wasm::esd_light::*;
+use elrond_wasm::elrond_codec::*;
 
 /// Pending payment for stake sale.
 /// The seller cannot withdraw the payment immediately.

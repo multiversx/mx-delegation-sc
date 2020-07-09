@@ -176,7 +176,7 @@ pub trait RewardsModule {
     /// - new rewards
     /// - rewards that were previously computed but not sent
     #[endpoint(claimRewards)]
-    fn claim_rewards(&self) -> Result<(), SCError> {
+    fn claim_rewards(&self) -> SCResult<()> {
         let caller = self.get_caller();
         let user_id = self.user_data().get_user_id(&caller);
         if user_id == 0 {
