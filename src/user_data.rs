@@ -1,6 +1,7 @@
 imports!();
 
 use crate::settings::*;
+use crate::node_config::PERCENTAGE_DENOMINATOR;
 
 use crate::user_stake_state::*;
 use crate::unbond_queue::*;
@@ -57,6 +58,13 @@ pub trait UserDataModule {
         num_users
     }
 
+    #[view(totalStake)]
+    #[storage_get("total_stake")]
+    fn get_total_stake(&self) -> BigUint;
+
+    #[storage_get_mut("total_stake")]
+    fn get_mut_total_stake(&self) -> mut_storage!(BigUint);
+
     /// How much a delegator has staked.
     #[storage_get("u_stake_totl")]
     fn get_user_total_stake(&self, user_id: usize) -> BigUint;
@@ -75,6 +83,7 @@ pub trait UserDataModule {
         *self.get_mut_user_stake_of_type(user_id, stake_type) += amount;
         *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type) += amount;
         *self.get_mut_user_total_stake(user_id) += amount;
+        *self.get_mut_total_stake() += amount;
     }
 
     fn decrease_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, amount: &BigUint) -> bool {
@@ -85,6 +94,7 @@ pub trait UserDataModule {
         *user_st_value -= amount;
         *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type) -= amount;
         *self.get_mut_user_total_stake(user_id) -= amount;
+        *self.get_mut_total_stake() -= amount;
         true
     }
 
@@ -177,6 +187,16 @@ pub trait UserDataModule {
         if user_total > 0 && user_total < self.settings().get_minimum_stake() {
             return sc_error!("cannot have less stake than minimum stake");
         }
+        Ok(())
+    }
+
+    fn validate_owner_stake_share(&self) -> SCResult<()> {
+        // owner total stake / contract total stake < owner_min_stake_share / 10000
+        // reordered to avoid divisions
+        if self.get_user_total_stake(OWNER_USER_ID) * BigUint::from(PERCENTAGE_DENOMINATOR) <
+            self.get_total_stake() * self.settings().get_owner_min_stake_share() {
+                return sc_error!("owner doesn't have enough stake in the contract");
+            }
         Ok(())
     }
 

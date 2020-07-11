@@ -101,6 +101,9 @@ pub trait ContractStakeModule {
     }
 
     fn perform_stake_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>) -> SCResult<()> {
+        // do not launch nodes if owner hasn't staked enough
+        sc_try!(self.user_data().validate_owner_stake_share());
+
         let num_nodes = node_ids.len();
 
         let stake = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();

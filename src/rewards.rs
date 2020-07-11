@@ -55,7 +55,7 @@ pub trait RewardsModule {
     /// The account running the nodes is entitled to (service_fee / NODE_DENOMINATOR) * rewards.
     fn service_fee_reward(&self, tot_rewards: &BigUint) -> BigUint {
         let mut node_rewards = tot_rewards * &self.node_config().get_service_fee();
-        node_rewards /= BigUint::from(SERVICE_FEE_DENOMINATOR);
+        node_rewards /= BigUint::from(PERCENTAGE_DENOMINATOR);
         node_rewards
     }
 

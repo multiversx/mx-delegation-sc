@@ -24,6 +24,7 @@ pub trait SettingsModule {
     fn init(&self,
         auction_contract_addr: &Address,
         service_fee_per_10000: usize,
+        owner_min_stake_share_per_10000: usize,
         n_blocks_before_force_unstake: u64,
         n_blocks_before_unbond: u64,
     ) -> SCResult<()> {
@@ -37,6 +38,11 @@ pub trait SettingsModule {
 
         self.set_auction_addr(&auction_contract_addr);
         sc_try!(self.node_config().set_service_fee_endpoint(service_fee_per_10000));
+
+        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
+            return sc_error!("owner min stake share out of range");
+        }
+        self.set_owner_min_stake_share(owner_min_stake_share_per_10000);
 
         self.set_n_blocks_before_force_unstake(n_blocks_before_force_unstake);
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);
@@ -73,6 +79,15 @@ pub trait SettingsModule {
 
     #[storage_set("auction_addr")]
     fn set_auction_addr(&self, auction_addr: &Address);
+
+    /// The minimum proportion of stake that has to be provided by the owner.
+    /// 10000 = 100%.
+    #[view(getOwnerMinStakeShare)]
+    #[storage_get("owner_min_stake_share")]
+    fn get_owner_min_stake_share(&self) -> BigUint;
+
+    #[storage_set("owner_min_stake_share")]
+    fn set_owner_min_stake_share(&self, owner_min_stake_share: usize);
 
 
     /// Delegators can force the entire contract to unstake

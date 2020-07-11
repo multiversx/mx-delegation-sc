@@ -11,7 +11,7 @@ imports!();
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
 /// Percents + 2 decimals -> 10000.
-pub static SERVICE_FEE_DENOMINATOR: usize = 10000;
+pub static PERCENTAGE_DENOMINATOR: usize = 10000;
 
 /// This module manages the validator node info:
 /// - how many nodes there are,
@@ -47,8 +47,8 @@ pub trait NodeModule {
             return sc_error!("only owner can change service fee"); 
         }
 
-        if service_fee_per_10000 > SERVICE_FEE_DENOMINATOR {
-            return sc_error!("node share out of range");
+        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
+            return sc_error!("service fee out of range");
         }
 
         // check that all nodes idle
