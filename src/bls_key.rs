@@ -29,8 +29,9 @@ impl BLSKey {
 
 impl Encode for BLSKey {
     #[inline]
-    fn dep_encode_to<O: Output>(&self, dest: &mut O) {
+    fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         dest.write(&self.0[..]);
+        Ok(())
     }
 }
 

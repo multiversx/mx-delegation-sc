@@ -15,10 +15,11 @@ where BigUint: Encode + Decode
 impl<BigUint> Encode for StakeSalePayment<BigUint>
 where BigUint: Encode + Decode
 {
-    fn dep_encode_to<O: Output>(&self, dest: &mut O) {
-        self.user_id.dep_encode_to(dest);
-        self.amount.dep_encode_to(dest);
-        self.claim_after_nonce.dep_encode_to(dest);
+    fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
+        self.user_id.dep_encode_to(dest)?;
+        self.amount.dep_encode_to(dest)?;
+        self.claim_after_nonce.dep_encode_to(dest)?;
+        Ok(())
     }
 }
 

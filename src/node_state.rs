@@ -61,12 +61,12 @@ impl NodeState {
 
 impl Encode for NodeState {
     #[inline]
-	fn dep_encode_to<O: Output>(&self, dest: &mut O) {
+	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         self.to_u8().dep_encode_to(dest)
 	}
 
 	#[inline]
-	fn using_top_encoded<F: FnOnce(&[u8])>(&self, f: F) {
+	fn using_top_encoded<F: FnOnce(&[u8])>(&self, f: F) -> Result<(), EncodeError> {
         self.to_u8().using_top_encoded(f)
 	}
 }
