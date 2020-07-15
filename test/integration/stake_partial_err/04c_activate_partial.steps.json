@@ -107,13 +107,13 @@
                     "nonce": "*",
                     "balance": "1,000,000,000",
                     "storage": "*",
-                    "code": "file:../../delegation.wasm"
+                    "code": "file:../../../output/delegation.wasm"
                 },
                 "''auction_contract______________s1": {
                     "nonce": "0",
                     "balance": "333,000,000,000,000",
                     "storage": "*",
-                    "code": "file:../../auction-mock.wasm"
+                    "code": "file:../../../auction-mock/output/auction-mock.wasm"
                 },
                 "''delegator_1___________________s1": {
                     "nonce": "*",

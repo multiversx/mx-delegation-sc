@@ -15,4 +15,5 @@ Cargo.lock
 **/*.rs.bk
 
 # Debugging
+compile.sh
 debug-tests.sh
