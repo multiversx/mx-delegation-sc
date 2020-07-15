@@ -16,7 +16,7 @@
                     "storage": {
                         "''stake_per_node": "111,000,000,000,000"
                     },
-                    "code": "file:../../auction-mock.wasm"
+                    "code": "file:../../../auction-mock/output/auction-mock.wasm"
                 },
                 "''someone_______________________s1": {
                     "nonce": "0",

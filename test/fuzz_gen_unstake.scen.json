@@ -17,7 +17,7 @@
                     "storage": {
                         "''stake_per_node": "1000000000"
                     },
-                    "code": "file:auction-mock.wasm"
+                    "code": "file:../auction-mock/output/auction-mock.wasm"
                 },
                 "''endless_sack_of_erd___________s1": {
                     "nonce": "0",
@@ -140,7 +140,7 @@
             "tx": {
                 "from": "''fuzz_owner_addr_______________s1",
                 "value": "0",
-                "contractCode": "file:delegation.wasm",
+                "contractCode": "file:../output/delegation.wasm",
                 "arguments": [
                     "''fuzz_sc_auction_mock_addr_____s1",
                     "1176",
