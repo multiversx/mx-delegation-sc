@@ -9,7 +9,7 @@ static ADDR1: [u8; 32] = [0x11u8; 32];
 static ADDR2: [u8; 32] = [0x22u8; 32];
 
 fn main() {
-    let mock_ref = ArwenMockState::new();
+    let mock_ref = ArwenMockState::new_ref();
 
     mock_ref.add_account(AccountData{
         address: ADDR1.into(),

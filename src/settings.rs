@@ -24,9 +24,10 @@ pub trait SettingsModule {
     fn init(&self,
         auction_contract_addr: &Address,
         service_fee_per_10000: usize,
+        owner_min_stake_share_per_10000: usize,
         n_blocks_before_force_unstake: u64,
         n_blocks_before_unbond: u64,
-    ) -> Result<(), SCError> {
+    ) -> SCResult<()> {
 
         let owner = self.get_caller();
         self.set_owner(&owner);
@@ -36,7 +37,12 @@ pub trait SettingsModule {
         self.user_data().set_num_users(1);
 
         self.set_auction_addr(&auction_contract_addr);
-        self.node_config().set_service_fee_endpoint(service_fee_per_10000)?;
+        sc_try!(self.node_config().set_service_fee_endpoint(service_fee_per_10000));
+
+        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
+            return sc_error!("owner min stake share out of range");
+        }
+        self.set_owner_min_stake_share(owner_min_stake_share_per_10000);
 
         self.set_n_blocks_before_force_unstake(n_blocks_before_force_unstake);
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);
@@ -74,6 +80,15 @@ pub trait SettingsModule {
     #[storage_set("auction_addr")]
     fn set_auction_addr(&self, auction_addr: &Address);
 
+    /// The minimum proportion of stake that has to be provided by the owner.
+    /// 10000 = 100%.
+    #[view(getOwnerMinStakeShare)]
+    #[storage_get("owner_min_stake_share")]
+    fn get_owner_min_stake_share(&self) -> BigUint;
+
+    #[storage_set("owner_min_stake_share")]
+    fn set_owner_min_stake_share(&self, owner_min_stake_share: usize);
+
 
     /// Delegators can force the entire contract to unstake
     /// if they put up stake for sale and no-one is buying it.
@@ -96,29 +111,82 @@ pub trait SettingsModule {
     #[storage_set("n_blocks_before_unbond")]
     fn set_n_blocks_before_unbond(&self, n_blocks_before_unbond: u64);
 
-    #[view(isAutoActivationEnabled)]
-    #[storage_get("auto_activation_enabled")]
-    fn is_auto_activation_enabled(&self) -> bool;
+    /// Determines who can call stakeAllAvailable.
+    /// If true, anyone can call.
+    /// If false, only owner can call.
+    #[view(anyoneCanActivate)]
+    #[storage_get("anyone_can_activate")]
+    fn anyone_can_activate(&self) -> bool;
 
-    #[storage_set("auto_activation_enabled")]
-    fn set_auto_activation_enabled(&self, auto_activation_enabled: bool);
+    #[storage_set("anyone_can_activate")]
+    fn set_anyone_can_activate(&self, anyone_can_activate: bool);
 
-    #[endpoint(enableAutoActivation)]
-    fn enable_auto_activation(&self) -> Result<(), SCError>{
+    #[endpoint(setAnyoneCanActivate)]
+    fn set_anyone_can_activate_endpoint(&self) -> SCResult<()>{
         if !self.owner_called() {
             return sc_error!("only owner can enable auto activation");
         }
-        self.set_auto_activation_enabled(true);
+        self.set_anyone_can_activate(true);
         Ok(())
     }
 
-    #[endpoint(disableAutoActivation)]
-    fn disable_auto_activation(&self) -> Result<(), SCError>{
+    #[endpoint(setOnlyOwnerCanActivate)]
+    fn set_only_owner_can_activate_endpoint(&self) -> SCResult<()>{
         if !self.owner_called() {
             return sc_error!("only owner can disable auto activation");
         }
-        self.set_auto_activation_enabled(false);
+        self.set_anyone_can_activate(false);
         Ok(())
     }
 
+    fn caller_can_activate(&self) -> bool {
+        self.anyone_can_activate() || self.owner_called()
+    }
+
+    /// Delegators are not allowed to hold more than zero but less than this amount of stake (of any type).
+    /// Zero means disabled.
+    #[view(getMinimumStake)]
+    #[storage_get("min_stake")]
+    fn get_minimum_stake(&self) -> BigUint;
+
+    #[storage_set("min_stake")]
+    fn set_minimum_stake(&self, minimum_stake: BigUint);
+
+    #[view(setMinimumStake)]
+    fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> SCResult<()> {
+        if !self.owner_called() {
+            return sc_error!("only owner can set minimum stake");
+        }
+        self.set_minimum_stake(minimum_stake);
+        Ok(())
+    }
+
+    /// The ability to disable unstaking is not normally part of a delegation smart contract.
+    /// It gives a malitious owner the ability to block all delegator stake in the contract indefinitely. 
+    /// However, it will be used by Elrond in the period immediately after genesis.
+    /// In this version of the contract unstaking is disabled by default and needs to be enabled by the owner explicitly.
+    #[view(unStakeEnabled)]
+    #[storage_get("unstake_enabled")]
+    fn is_unstake_enabled(&self) -> bool;
+
+    #[storage_set("unstake_enabled")]
+    fn set_unstake_enabled(&self, unstake_enabled: bool);
+
+    #[endpoint(enableUnStake)]
+    fn enable_unstake(&self) -> SCResult<()>{
+        if !self.owner_called() {
+            return sc_error!("only owner can enable unStake");
+        }
+        self.set_unstake_enabled(true);
+        Ok(())
+    }
+
+    #[endpoint(disableUnStake)]
+    fn disable_unstake(&self) -> SCResult<()>{
+        if !self.owner_called() {
+            return sc_error!("only owner can disable unStake");
+        }
+        self.set_unstake_enabled(false);
+        Ok(())
+    }
 }

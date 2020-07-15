@@ -1,5 +1,5 @@
 
-use elrond_wasm::esd_light::*;
+use elrond_wasm::elrond_codec::*;
 use sc_delegation_rs::bls_key::*;
 use elrond_wasm::Vec;
 

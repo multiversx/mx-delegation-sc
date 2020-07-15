@@ -1,5 +1,8 @@
 imports!();
 
+use crate::settings::*;
+use crate::node_config::PERCENTAGE_DENOMINATOR;
+
 use crate::user_stake_state::*;
 use crate::unbond_queue::*;
 
@@ -10,10 +13,6 @@ pub struct UserRewardData<BigUint> {
 
     /// Rewards that are computed but not yet sent to the delegator.
     pub unclaimed_rewards: BigUint,
-
-    /// How much stake the delegator has in the contract.
-    /// Readonly field (does not get changed or saved back to storage).
-    pub active_stake: BigUint,
 }
 
 /// Storing total stake per type the same way as we store it for users, but with user_id 0.
@@ -26,6 +25,9 @@ pub const USER_STAKE_TOTALS_ID: usize = 0;
 /// Deals with storage data about delegators.
 #[elrond_wasm_derive::module(UserDataModuleImpl)]
 pub trait UserDataModule {
+
+    #[module(SettingsModuleImpl)]
+    fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
     /// Each delegator gets a user id. This is in order to be able to iterate over their data.
     /// This is a mapping from delegator address to delegator id.
@@ -56,6 +58,13 @@ pub trait UserDataModule {
         num_users
     }
 
+    #[view(totalStake)]
+    #[storage_get("total_stake")]
+    fn get_total_stake(&self) -> BigUint;
+
+    #[storage_get_mut("total_stake")]
+    fn get_mut_total_stake(&self) -> mut_storage!(BigUint);
+
     /// How much a delegator has staked.
     #[storage_get("u_stake_totl")]
     fn get_user_total_stake(&self, user_id: usize) -> BigUint;
@@ -74,6 +83,7 @@ pub trait UserDataModule {
         *self.get_mut_user_stake_of_type(user_id, stake_type) += amount;
         *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type) += amount;
         *self.get_mut_user_total_stake(user_id) += amount;
+        *self.get_mut_total_stake() += amount;
     }
 
     fn decrease_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, amount: &BigUint) -> bool {
@@ -84,6 +94,7 @@ pub trait UserDataModule {
         *user_st_value -= amount;
         *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type) -= amount;
         *self.get_mut_user_total_stake(user_id) -= amount;
+        *self.get_mut_total_stake() -= amount;
         true
     }
 
@@ -119,7 +130,7 @@ pub trait UserDataModule {
         }
     }
 
-    fn get_user_stake_by_type(&self, user_id: usize) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_user_stake_by_type(&self, user_id: usize) -> MultiResult10<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         (
             self.get_user_stake_of_type(user_id, UserStakeState::Inactive),
             self.get_user_stake_of_type(user_id, UserStakeState::PendingActivation),
@@ -129,14 +140,18 @@ pub trait UserDataModule {
             self.get_user_stake_of_type(user_id, UserStakeState::PendingUnBond),
             self.get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly),
             self.get_user_stake_of_type(user_id, UserStakeState::ActivationFailed),
+            self.get_user_stake_of_type(user_id, UserStakeState::ActiveForSale),
+            self.get_user_stake_of_type(user_id, UserStakeState::PendingDeactivationFromSale),
         ).into()
     }
 
     #[view(getUserStakeByType)]
-    fn get_user_stake_by_type_endpoint(&self, user_address: &Address) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_user_stake_by_type_endpoint(&self, user_address: &Address) -> MultiResult10<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         let user_id = self.get_user_id(&user_address);
         if user_id == 0 {
             (
+                BigUint::zero(),
+                BigUint::zero(),
                 BigUint::zero(),
                 BigUint::zero(),
                 BigUint::zero(),
@@ -152,7 +167,7 @@ pub trait UserDataModule {
     }
 
     #[view(getTotalStakeByType)]
-    fn get_total_stake_by_type_endpoint(&self) -> MultiResult8<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_total_stake_by_type_endpoint(&self) -> MultiResult10<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 
@@ -165,6 +180,24 @@ pub trait UserDataModule {
     fn get_total_inactive_stake(&self) -> BigUint {
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive) +
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::WithdrawOnly)
+    }
+
+    fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
+        let user_total = self.get_user_total_stake(user_id);
+        if user_total > 0 && user_total < self.settings().get_minimum_stake() {
+            return sc_error!("cannot have less stake than minimum stake");
+        }
+        Ok(())
+    }
+
+    fn validate_owner_stake_share(&self) -> SCResult<()> {
+        // owner total stake / contract total stake < owner_min_stake_share / 10000
+        // reordered to avoid divisions
+        if self.get_user_total_stake(OWNER_USER_ID) * BigUint::from(PERCENTAGE_DENOMINATOR) <
+            self.get_total_stake() * self.settings().get_owner_min_stake_share() {
+                return sc_error!("owner doesn't have enough stake in the contract");
+            }
+        Ok(())
     }
 
     /// Claiming rewards has 2 steps:
@@ -214,11 +247,9 @@ pub trait UserDataModule {
     fn load_user_data(&self, user_id: usize) -> UserRewardData<BigUint> {
         let u_rew_checkp = self.get_user_rew_checkpoint(user_id);
         let u_rew_unclmd = self.get_user_rew_unclaimed(user_id);
-        let u_stake_actv = self.get_user_stake_of_type(user_id, UserStakeState::Active);
         UserRewardData {
             reward_checkpoint: u_rew_checkp,
             unclaimed_rewards: u_rew_unclmd,
-            active_stake: u_stake_actv,
         }
     }
 
@@ -238,7 +269,7 @@ pub trait UserDataModule {
 
     fn convert_user_stake(&self, user_id: usize, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
         let mut user_stake_old_type = self.get_mut_user_stake_of_type(user_id, old_type);
-        if &*total_supply > &*user_stake_old_type {
+        if *total_supply > *user_stake_old_type {
             *self.get_mut_user_stake_of_type(user_id, new_type) += &*user_stake_old_type;
             *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, new_type) += &*user_stake_old_type;
             *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, old_type) -= &*user_stake_old_type;
@@ -280,10 +311,10 @@ pub trait UserDataModule {
 
     #[view(getUnbondQueue)]
     #[storage_get("unbond_queue")]
-    fn get_unbond_queue(&self) -> Vec<UnbondQueueItem<BigUint>>;
+    fn get_unbond_queue(&self) -> Queue<UnbondQueueItem<BigUint>>;
 
     #[storage_set("unbond_queue")]
-    fn set_unbond_queue(&self, unbond_queue: &[UnbondQueueItem<BigUint>]);
+    fn set_unbond_queue(&self, unbond_queue: Queue<UnbondQueueItem<BigUint>>);
 
     
 }

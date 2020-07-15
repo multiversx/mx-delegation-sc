@@ -1,4 +1,4 @@
-use elrond_wasm::esd_light::*;
+use elrond_wasm::elrond_codec::*;
 
 pub struct UnbondQueueItem<BigUint>
 where BigUint: Encode + Decode
@@ -6,8 +6,6 @@ where BigUint: Encode + Decode
     pub user_id: usize,
     pub amount: BigUint,
 }
-
-pub type UnbondQueueRef<'a, BigUint> = &'a [UnbondQueueItem<BigUint>];
 
 impl<BigUint> Encode for UnbondQueueItem<BigUint>
 where BigUint: Encode + Decode

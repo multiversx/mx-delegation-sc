@@ -33,9 +33,11 @@ pub trait UserStakeModule {
     #[module(PauseModuleImpl)]
     fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
 
+    /// Delegate stake to the smart contract. 
+    /// Stake is initially inactive, so does it not produce rewards.
     #[payable]
-    #[endpoint]
-    fn stake(&self, #[payment] payment: BigUint) -> Result<(), SCError> {
+    #[endpoint(stake)]
+    fn stake_endpoint(&self, #[payment] payment: BigUint) -> SCResult<()> {
         if self.pause().is_staking_paused() {
             return sc_error!("staking paused");
         }
@@ -47,7 +49,15 @@ pub trait UserStakeModule {
         self.process_stake(payment)
     }
 
-    fn process_stake(&self, payment: BigUint) -> Result<(), SCError> {
+    /// Equivalent to calling "stake" and then "stakeAllAvailable".
+    #[payable]
+    #[endpoint(stakeAndTryActivate)]
+    fn stake_and_try_activate(&self, #[payment] payment: BigUint) -> SCResult<()> {
+        sc_try!(self.stake_endpoint(payment));
+        self.node_activation().stake_all_available_endpoint()
+    }
+
+    fn process_stake(&self, payment: BigUint) -> SCResult<()> {
         // get user id or create user
         // we use user id as an intermediate identifier between user address and data,
         // because we might at some point need to iterate over all user data
@@ -60,12 +70,7 @@ pub trait UserStakeModule {
         
         // save increased stake
         self.user_data().increase_user_stake_of_type(user_id, UserStakeState::Inactive, &payment);
-
-        // auto-activation, if enabled
-        if self.settings().is_auto_activation_enabled() {
-            self.node_activation().perform_stake_all_available()?;
-        }
-        
+        sc_try!(self.user_data().validate_total_user_stake(user_id));
 
         // log staking event
         self.events().stake_event(&caller, &payment);
@@ -76,7 +81,7 @@ pub trait UserStakeModule {
     // WITHDRAW INACTIVE
 
     #[endpoint(withdrawInactiveStake)]
-    fn withdraw_inactive_stake(&self, amount: BigUint) -> Result<(), SCError> {
+    fn withdraw_inactive_stake(&self, amount: BigUint) -> SCResult<()> {
         if amount == 0 {
             return Ok(());
         }
@@ -89,7 +94,7 @@ pub trait UserStakeModule {
 
         // first withdraw from unavailable inactive stake
         let withdraw_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
-        if &amount <= &withdraw_stake {
+        if amount <= withdraw_stake {
             self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &amount);
         } else {
             // if that is not enough, retrieve proper inactive stake
@@ -100,6 +105,7 @@ pub trait UserStakeModule {
                 return sc_error!("cannot withdraw more than inactive stake");
             }
         }
+        sc_try!(self.user_data().validate_total_user_stake(user_id));
 
         // send stake to delegator
         self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
@@ -114,7 +120,7 @@ pub trait UserStakeModule {
     /// if they put up stake for sale and no-one has bought it for long enough.
     /// This operation can be performed by any delegator.
     #[endpoint(unStake)]
-    fn unstake_endpoint(&self) -> Result<(), SCError> {
+    fn unstake_endpoint(&self) -> SCResult<()> {
         let user_id = self.user_data().get_user_id(&self.get_caller());
         if user_id == 0 {
             return sc_error!("only delegators can call unStake");
@@ -135,14 +141,14 @@ pub trait UserStakeModule {
         let (node_ids, bls_keys) = self.node_config().find_nodes_for_unstake(&stake_for_sale);
         
         let unbond_queue_entry = UnbondQueueItem {
-            user_id: user_id,
+            user_id,
             amount: stake_for_sale,
         };
         self.node_activation().perform_unstake_nodes(Some(unbond_queue_entry), node_ids, bls_keys)
     }
 
     #[endpoint(unBond)]
-    fn unbond_endpoint(&self) -> Result<(), SCError> {
+    fn unbond_endpoint(&self) -> SCResult<()> {
         let caller = self.get_caller();
         let user_id = self.user_data().get_user_id(&caller);
         if user_id == 0 {
@@ -162,6 +168,7 @@ pub trait UserStakeModule {
             amount += &inactive_stake;
             self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &inactive_stake);
         }
+        sc_try!(self.user_data().validate_total_user_stake(user_id));
 
         // send stake to delegator
         self.send_tx(&caller, &amount, "delegation withdraw inactive stake");

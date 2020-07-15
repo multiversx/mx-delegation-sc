@@ -14,13 +14,13 @@ pub trait Auction {
         #[multi(2*num_nodes)] bls_keys_signatures: VarArgs<Vec<u8>>,
         #[payment] payment: &BigUint);
 
-    #[callback(auction_unStake_callback)]
+    #[callback(auction_unstake_callback)]
     fn unStake(&self,
         #[callback_arg] opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>,
         #[callback_arg] node_ids: Vec<usize>,
         #[var_args] bls_keys_signatures: VarArgs<BLSKey>);
 
-    #[callback(auction_unBond_callback)]
+    #[callback(auction_unbond_callback)]
     fn unBond(&self,
         #[callback_arg] node_ids: Vec<usize>,
         #[var_args] bls_keys_signatures: VarArgs<BLSKey>);
