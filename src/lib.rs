@@ -12,6 +12,10 @@ pub mod stake_sale_payment;
 pub mod unbond_queue;
 pub mod user_stake_state;
 pub mod util;
+pub mod fund_item;
+pub mod fund_list;
+pub mod fund_type;
+pub mod fund_transf;
 
 use crate::unbond_queue::*;
 use crate::bls_key::*;
@@ -28,6 +32,7 @@ pub mod unexpected;
 pub mod user_data;
 pub mod user_stake;
 pub mod settings;
+pub mod fund_module;
 
 use crate::events::*;
 use crate::node_config::*;
