@@ -1,5 +1,6 @@
 
 use crate::user_data::*;
+use crate::fund_transf_module::*;
 use crate::node_config::*;
 
 /// Validator reward destination will always be user with id 1.
@@ -15,6 +16,9 @@ pub trait SettingsModule {
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundTransformationsModuleImpl)]
+    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
 
     #[module(NodeConfigModuleImpl)]
     fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, BigUint>;

@@ -7,6 +7,7 @@ use crate::node_config::*;
 use crate::user_stake::*;
 use crate::node_activation::*;
 use crate::user_data::*;
+use crate::fund_transf_module::*;
 
 imports!();
 
@@ -25,6 +26,9 @@ pub trait RewardsModule {
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundTransformationsModuleImpl)]
+    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
 
     #[module(UserStakeModuleImpl)]
     fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;

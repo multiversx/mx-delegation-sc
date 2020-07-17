@@ -1,10 +1,11 @@
 
-use crate::user_stake_state::*;
+// use crate::user_stake_state::*;
 
 use crate::rewards::*;
 use crate::settings::*;
 use crate::stake_sale::*;
 use crate::user_data::*;
+use crate::fund_transf_module::*;
 
 imports!();
 
@@ -21,6 +22,9 @@ pub trait UnexpectedBalanceModule {
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
 
+    #[module(FundTransformationsModuleImpl)]
+    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
+
     #[module(StakeSaleModuleImpl)]
     fn stake_sale(&self) -> StakeSaleModuleImpl<T, BigInt, BigUint>;
 
@@ -31,9 +35,7 @@ pub trait UnexpectedBalanceModule {
     /// This can come from someone accidentally sending ERD to the contract via direct transfer.
     #[view(getUnexpectedBalance)]
     fn get_unexpected_balance(&self) -> BigUint {
-        let mut expected_balance = self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
-        expected_balance += self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::WithdrawOnly);
-        expected_balance += self.stake_sale().get_total_pending_payments();
+        let mut expected_balance = self.user_data().all_funds_in_contract();
         expected_balance += self.rewards().get_total_cumulated_rewards();
         expected_balance -= self.rewards().get_sent_rewards();
 

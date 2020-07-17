@@ -1,10 +1,12 @@
 imports!();
 
 use crate::settings::*;
-use crate::node_config::PERCENTAGE_DENOMINATOR;
+use crate::fund_module::*;
+use crate::fund_type::*;
 
+use crate::node_config::PERCENTAGE_DENOMINATOR;
 use crate::user_stake_state::*;
-use crate::unbond_queue::*;
+// use crate::unbond_queue::*;
 
 // Groups together data per delegator from the storage.
 pub struct UserRewardData<BigUint> {
@@ -28,6 +30,9 @@ pub trait UserDataModule {
 
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundModuleImpl)]
+    fn fund_module(&self) -> FundModuleImpl<T, BigInt, BigUint>;
 
     /// Each delegator gets a user id. This is in order to be able to iterate over their data.
     /// This is a mapping from delegator address to delegator id.
@@ -59,43 +64,116 @@ pub trait UserDataModule {
     }
 
     #[view(totalStake)]
-    #[storage_get("total_stake")]
-    fn get_total_stake(&self) -> BigUint;
+    fn get_total_stake(&self) -> BigUint {
+        self.fund_module().query_all(|fund_info| fund_info.fund_type.is_stake())
+    } 
 
-    #[storage_get_mut("total_stake")]
-    fn get_mut_total_stake(&self) -> mut_storage!(BigUint);
+    // #[view(totalStake)]
+    // #[storage_get("total_stake")]
+    // fn get_total_stake(&self) -> BigUint;
 
-    /// How much a delegator has staked.
-    #[storage_get("u_stake_totl")]
-    fn get_user_total_stake(&self, user_id: usize) -> BigUint;
+    // #[storage_get_mut("total_stake")]
+    // fn get_mut_total_stake(&self) -> mut_storage!(BigUint);
 
-    #[storage_get_mut("u_stake_totl")]
-    fn get_mut_user_total_stake(&self, user_id: usize) -> mut_storage!(BigUint);
+    // /// How much a delegator has staked.
+    // #[storage_get("u_stake_totl")]
+    // fn get_user_total_stake(&self, user_id: usize) -> BigUint;
 
-    /// How much of a delegator's has been sent to the auction SC.
-    #[storage_get("u_stake_type")]
-    fn get_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState) -> BigUint;
+    // #[storage_get_mut("u_stake_totl")]
+    // fn get_mut_user_total_stake(&self, user_id: usize) -> mut_storage!(BigUint);
 
-    #[storage_get_mut("u_stake_type")]
-    fn get_mut_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState) -> mut_storage!(BigUint);
+    // /// How much of a delegator's has been sent to the auction SC.
+    // #[storage_get("u_stake_type")]
+    // fn get_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState) -> BigUint;
 
-    fn increase_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, amount: &BigUint) {
-        *self.get_mut_user_stake_of_type(user_id, stake_type) += amount;
-        *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type) += amount;
-        *self.get_mut_user_total_stake(user_id) += amount;
-        *self.get_mut_total_stake() += amount;
+    fn get_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState) -> BigUint {
+        match stake_type {
+            UserStakeState::Inactive => {
+                self.fund_module().query_list(DISCR_FREE,
+                    |fund_info|
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id) &&
+                        if let FundType::Free{ requested_unstake: false } = fund_info.fund_type { true } else { false }
+                )
+            },
+            UserStakeState::PendingActivation => {
+                self.fund_module().query_list(DISCR_PENDING_ACT,
+                    |fund_info| 
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
+            },
+            UserStakeState::Active => {
+                self.fund_module().query_list(DISCR_ACTIVE, 
+                    |fund_info|
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
+            },
+            UserStakeState::PendingDeactivation => {
+                self.fund_module().query_list(DISCR_PENDING_DEACT,
+                    |fund_info|
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id) &&
+                        if let FundType::PendingDeactivation{ requested_unstake: false } = fund_info.fund_type { true } else { false }
+                )
+            },
+            UserStakeState::UnBondPeriod => {
+                self.fund_module().query_list(DISCR_UNBOND, 
+                    |fund_info|
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
+            },
+            UserStakeState::PendingUnBond => {
+                self.fund_module().query_list(DISCR_PENDING_ACT, 
+                    |fund_info|
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
+            },
+            UserStakeState::WithdrawOnly => {
+                self.fund_module().query_list(DISCR_FREE,
+                    |fund_info|
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id) &&
+                        if let FundType::Free{ requested_unstake: true } = fund_info.fund_type { true } else { false })
+            },
+            UserStakeState::ActivationFailed => {
+                self.fund_module().query_list(DISCR_ACTIVE_FAILED, 
+                    |fund_info|
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
+            },
+            UserStakeState::ActiveForSale => {
+                self.fund_module().query_list(DISCR_ACTIVE_FOR_SALE, 
+                    |fund_info|
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
+            },
+            UserStakeState::PendingDeactivationFromSale => {
+                self.fund_module().query_list(DISCR_PENDING_DEACT,
+                    |fund_info|
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id) &&
+                        if let FundType::PendingDeactivation{ requested_unstake: true } = fund_info.fund_type { true } else { false }
+                )
+            },
+        }
     }
 
-    fn decrease_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, amount: &BigUint) -> bool {
-        let mut user_st_value = self.get_mut_user_stake_of_type(user_id, stake_type);
-        if amount > &*user_st_value {
-            return false;
-        }
-        *user_st_value -= amount;
-        *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type) -= amount;
-        *self.get_mut_user_total_stake(user_id) -= amount;
-        *self.get_mut_total_stake() -= amount;
-        true
+    // #[storage_get_mut("u_stake_type")]
+    // fn get_mut_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState) -> mut_storage!(BigUint);
+
+    // fn increase_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, amount: &BigUint) {
+    //     *self.get_mut_user_stake_of_type(user_id, stake_type) += amount;
+    //     *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type) += amount;
+    //     *self.get_mut_user_total_stake(user_id) += amount;
+    //     *self.get_mut_total_stake() += amount;
+    // }
+
+    // fn decrease_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState, amount: &BigUint) -> bool {
+    //     let mut user_st_value = self.get_mut_user_stake_of_type(user_id, stake_type);
+    //     if amount > &*user_st_value {
+    //         return false;
+    //     }
+    //     *user_st_value -= amount;
+    //     *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, stake_type) -= amount;
+    //     *self.get_mut_user_total_stake(user_id) -= amount;
+    //     *self.get_mut_total_stake() -= amount;
+    //     true
+    // }
+
+
+    fn get_user_total_stake(&self, user_id: usize) -> BigUint {
+        self.fund_module().query_all(
+            |fund_info| fund_info.fund_type.is_stake() && fund_info.user_id == user_id)
     }
 
     /// Yields how much a user has staked in the contract.
@@ -182,6 +260,10 @@ pub trait UserDataModule {
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::WithdrawOnly)
     }
 
+    fn all_funds_in_contract(&self) -> BigUint {
+        self.fund_module().query_all(|fund_info| fund_info.fund_type.funds_in_contract())
+    }
+
     fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
         let user_total = self.get_user_total_stake(user_id);
         if user_total > 0 && user_total < self.settings().get_minimum_stake() {
@@ -225,23 +307,23 @@ pub trait UserDataModule {
     #[storage_set("u_rew_checkp")]
     fn set_user_rew_checkpoint(&self, user_id: usize, user_rew_checkpoint: &BigUint);
 
-    /// Users can trade stake. To do so, a user must first offer stake for sale.
-    /// This field keeps track of how much stake each user has offered for sale.
-    #[storage_get("u_stake_sale")]
-    fn get_user_stake_for_sale(&self, user_id: usize) -> BigUint;
+    // /// Users can trade stake. To do so, a user must first offer stake for sale.
+    // /// This field keeps track of how much stake each user has offered for sale.
+    // #[storage_get("u_stake_sale")]
+    // fn get_user_stake_for_sale(&self, user_id: usize) -> BigUint;
 
-    #[storage_set("u_stake_sale")]
-    fn set_user_stake_for_sale(&self, user_id: usize, user_stake_for_sale: &BigUint);
+    // #[storage_set("u_stake_sale")]
+    // fn set_user_stake_for_sale(&self, user_id: usize, user_stake_for_sale: &BigUint);
 
-    // TODO: auto-generate
-    fn update_user_stake_for_sale<F, R>(&self, user_id: usize, f: F) -> R
-    where F: Fn(&mut BigUint) -> R
-    {
-        let mut value = self.get_user_stake_for_sale(user_id);
-        let result = f(&mut value);
-        self.set_user_stake_for_sale(user_id, &value);
-        result
-    }
+    // // TODO: auto-generate
+    // fn update_user_stake_for_sale<F, R>(&self, user_id: usize, f: F) -> R
+    // where F: Fn(&mut BigUint) -> R
+    // {
+    //     let mut value = self.get_user_stake_for_sale(user_id);
+    //     let result = f(&mut value);
+    //     self.set_user_stake_for_sale(user_id, &value);
+    //     result
+    // }
 
     /// Loads the entire UserRewardData object from storage.
     fn load_user_data(&self, user_id: usize) -> UserRewardData<BigUint> {
@@ -259,62 +341,62 @@ pub trait UserDataModule {
         self.set_user_rew_unclaimed(user_id, &data.unclaimed_rewards);
     }
 
-    /// Block timestamp of when the user offered stake for sale.
-    /// Note: not part of the UserRewardData struct because it is not needed as often.
-    #[storage_get("u_stake_toff")]
-    fn get_user_bl_nonce_of_stake_offer(&self, user_id: usize) -> u64;
+    // /// Block timestamp of when the user offered stake for sale.
+    // /// Note: not part of the UserRewardData struct because it is not needed as often.
+    // #[storage_get("u_stake_toff")]
+    // fn get_user_bl_nonce_of_stake_offer(&self, user_id: usize) -> u64;
 
-    #[storage_set("u_stake_toff")]
-    fn set_user_bl_nonce_of_stake_offer(&self, user_id: usize, bl_nonce_of_stake_offer: u64);
+    // #[storage_set("u_stake_toff")]
+    // fn set_user_bl_nonce_of_stake_offer(&self, user_id: usize, bl_nonce_of_stake_offer: u64);
 
-    fn convert_user_stake(&self, user_id: usize, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
-        let mut user_stake_old_type = self.get_mut_user_stake_of_type(user_id, old_type);
-        if *total_supply > *user_stake_old_type {
-            *self.get_mut_user_stake_of_type(user_id, new_type) += &*user_stake_old_type;
-            *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, new_type) += &*user_stake_old_type;
-            *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, old_type) -= &*user_stake_old_type;
-            *total_supply -= &*user_stake_old_type;
-            *user_stake_old_type = BigUint::zero();
-        } else {
-            *user_stake_old_type -= &*total_supply;
-            *self.get_mut_user_stake_of_type(user_id, new_type) += &*total_supply;
-            *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, new_type) += &*total_supply;
-            *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, old_type) -= &*total_supply;
-            *total_supply = BigUint::zero();
-        }
-    }
+    // fn convert_user_stake(&self, user_id: usize, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
+    //     let mut user_stake_old_type = self.get_mut_user_stake_of_type(user_id, old_type);
+    //     if *total_supply > *user_stake_old_type {
+    //         *self.get_mut_user_stake_of_type(user_id, new_type) += &*user_stake_old_type;
+    //         *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, new_type) += &*user_stake_old_type;
+    //         *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, old_type) -= &*user_stake_old_type;
+    //         *total_supply -= &*user_stake_old_type;
+    //         *user_stake_old_type = BigUint::zero();
+    //     } else {
+    //         *user_stake_old_type -= &*total_supply;
+    //         *self.get_mut_user_stake_of_type(user_id, new_type) += &*total_supply;
+    //         *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, new_type) += &*total_supply;
+    //         *self.get_mut_user_stake_of_type(USER_STAKE_TOTALS_ID, old_type) -= &*total_supply;
+    //         *total_supply = BigUint::zero();
+    //     }
+    // }
 
-    /// Converts from one type of stake to another, for as many users as possible,
-    /// within the limit of total_supply.
-    /// Argument total_supply decreases in the process.
-    /// Walking in increasing user id order, so older users get picked first.
-    fn convert_user_stake_asc(&self, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
-        let num_users = self.get_num_users();
-        let mut i = 1usize;
-        while i <= num_users && *total_supply > 0 {
-            self.convert_user_stake(i, old_type, new_type, total_supply);
-            i += 1;
-        }
-    }
+    // /// Converts from one type of stake to another, for as many users as possible,
+    // /// within the limit of total_supply.
+    // /// Argument total_supply decreases in the process.
+    // /// Walking in increasing user id order, so older users get picked first.
+    // fn convert_user_stake_asc(&self, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
+    //     let num_users = self.get_num_users();
+    //     let mut i = 1usize;
+    //     while i <= num_users && *total_supply > 0 {
+    //         self.convert_user_stake(i, old_type, new_type, total_supply);
+    //         i += 1;
+    //     }
+    // }
 
-    /// Converts from one type of stake to another, for as many users as possible,
-    /// within the limit of total_supply.
-    /// Argument total_supply decreases in the process.
-    /// Walking in decreasing user id order, so newer users get picked first.
-    fn convert_user_stake_desc(&self, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
-        let mut i = self.get_num_users();
-        while i > 0 && *total_supply > 0 {
-            self.convert_user_stake(i, old_type, new_type, total_supply);
-            i -= 1;
-        }
-    }
+    // /// Converts from one type of stake to another, for as many users as possible,
+    // /// within the limit of total_supply.
+    // /// Argument total_supply decreases in the process.
+    // /// Walking in decreasing user id order, so newer users get picked first.
+    // fn convert_user_stake_desc(&self, old_type: UserStakeState, new_type: UserStakeState, total_supply: &mut BigUint) {
+    //     let mut i = self.get_num_users();
+    //     while i > 0 && *total_supply > 0 {
+    //         self.convert_user_stake(i, old_type, new_type, total_supply);
+    //         i -= 1;
+    //     }
+    // }
 
-    #[view(getUnbondQueue)]
-    #[storage_get("unbond_queue")]
-    fn get_unbond_queue(&self) -> Queue<UnbondQueueItem<BigUint>>;
+    // #[view(getUnbondQueue)]
+    // #[storage_get("unbond_queue")]
+    // fn get_unbond_queue(&self) -> Queue<UnbondQueueItem<BigUint>>;
 
-    #[storage_set("unbond_queue")]
-    fn set_unbond_queue(&self, unbond_queue: Queue<UnbondQueueItem<BigUint>>);
+    // #[storage_set("unbond_queue")]
+    // fn set_unbond_queue(&self, unbond_queue: Queue<UnbondQueueItem<BigUint>>);
 
     
 }

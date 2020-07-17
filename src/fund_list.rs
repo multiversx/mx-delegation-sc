@@ -9,10 +9,12 @@ use super::fund_item::*;
 
 pub struct FundList<BigUint:BigUintApi> (pub Vec<FundItem<BigUint>>);
 
-// impl<BigUint:BigUintApi> FundList<BigUint> {
-//     #[inline]
-//     pub fn get_mut
-// }
+impl<BigUint:BigUintApi> FundList<BigUint> {
+    #[inline]
+    pub fn push(&mut self, item: FundItem<BigUint>) {
+        self.0.push(item);
+    }
+}
 
 /// Serializes identically to a Vec, entries before start index are ignored.
 impl<BigUint:BigUintApi> Encode for FundList<BigUint> {

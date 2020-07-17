@@ -7,6 +7,7 @@ use crate::events::*;
 use crate::node_activation::*;
 use crate::node_config::*;
 use crate::user_data::*;
+use crate::fund_transf_module::*;
 use crate::user_stake::*;
 
 #[elrond_wasm_derive::module(GenesisModuleImpl)]
@@ -20,6 +21,9 @@ pub trait GenesisModule {
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundTransformationsModuleImpl)]
+    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
 
     #[module(NodeConfigModuleImpl)]
     fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, BigUint>;
@@ -70,10 +74,13 @@ pub trait GenesisModule {
         }
 
         // convert all user inactive stake to active stake
-        self.user_data().convert_user_stake_asc(UserStakeState::Inactive, UserStakeState::Active, &mut total_inactive_stake);
-        if total_inactive_stake > 0 {
-            return sc_error!("not enough active stake");
-        }
+        // self.user_data().convert_user_stake_asc(UserStakeState::Inactive, UserStakeState::Active, &mut total_inactive_stake);
+        // if total_inactive_stake > 0 {
+        //     return sc_error!("not enough active stake");
+        // }
+        let mut total_inactive_stake_2 = total_inactive_stake.clone();
+        sc_try!(self.fund_transf_module().activate_start_transf(&mut total_inactive_stake));
+        sc_try!(self.fund_transf_module().activate_finish_ok_transf(&mut total_inactive_stake_2));
 
         // log event (no data)
         self.events().activation_ok_event(());

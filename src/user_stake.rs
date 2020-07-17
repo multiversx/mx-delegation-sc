@@ -1,12 +1,13 @@
 
-use crate::user_stake_state::*;
-use crate::unbond_queue::*;
+// use crate::user_stake_state::*;
+// use crate::unbond_queue::*;
 
 use crate::events::*;
 use crate::node_config::*;
 use crate::pause::*;
 use crate::settings::*;
 use crate::user_data::*;
+use crate::fund_transf_module::*;
 use crate::node_activation::*;
 
 imports!();
@@ -17,6 +18,9 @@ pub trait UserStakeModule {
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundTransformationsModuleImpl)]
+    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
 
     #[module(EventsModuleImpl)]
     fn events(&self) -> EventsModuleImpl<T, BigInt, BigUint>;
@@ -68,9 +72,11 @@ pub trait UserStakeModule {
             self.user_data().set_user_id(&caller, user_id);
         }
         
-        // save increased stake
-        self.user_data().increase_user_stake_of_type(user_id, UserStakeState::Inactive, &payment);
-        sc_try!(self.user_data().validate_total_user_stake(user_id));
+        // // save increased stake
+        // self.user_data().increase_user_stake_of_type(user_id, UserStakeState::Inactive, &payment);
+        // sc_try!(self.user_data().validate_total_user_stake(user_id));
+
+        self.fund_transf_module().create_free_stake(user_id, &payment);
 
         // log staking event
         self.events().stake_event(&caller, &payment);
@@ -92,19 +98,23 @@ pub trait UserStakeModule {
             return sc_error!("only delegators can withdraw inactive stake");
         }
 
-        // first withdraw from unavailable inactive stake
-        let withdraw_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
-        if amount <= withdraw_stake {
-            self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &amount);
-        } else {
-            // if that is not enough, retrieve proper inactive stake
-            self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
-            let remaining = &amount - &withdraw_stake;
-            let enough = self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &remaining);
-            if !enough {
-                return sc_error!("cannot withdraw more than inactive stake");
-            }
+        let mut amount_to_unstake = amount.clone();
+        self.fund_transf_module().liquidate_free_stake(user_id, &mut amount_to_unstake);
+        if amount_to_unstake > 0 {
+            return sc_error!("cannot withdraw more than inactive stake");
         }
+
+        // let withdraw_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
+        // if amount <= withdraw_stake {
+        //     self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &amount);
+        // } else {
+        //     self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
+        //     let remaining = &amount - &withdraw_stake;
+        //     let enough = self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &remaining);
+        //     if !enough {
+        //         return sc_error!("cannot withdraw more than inactive stake");
+        //     }
+        // }
         sc_try!(self.user_data().validate_total_user_stake(user_id));
 
         // send stake to delegator
@@ -126,56 +136,60 @@ pub trait UserStakeModule {
             return sc_error!("only delegators can call unStake");
         }
 
-        let stake_for_sale = self.user_data().get_user_stake_for_sale(user_id);
-        if stake_for_sale == 0 {
-            return sc_error!("only delegators that have announced unStake can call unStake");
-        }
+        // let stake_for_sale = self.user_data().get_user_stake_for_sale(user_id);
+        // if stake_for_sale == 0 {
+        //     return sc_error!("only delegators that have announced unStake can call unStake");
+        // }
 
-        let block_nonce_of_stake_offer = self.user_data().get_user_bl_nonce_of_stake_offer(user_id);
+        // let block_nonce_of_stake_offer = self.user_data().get_user_bl_nonce_of_stake_offer(user_id);
         let n_blocks_before_force_unstake = self.settings().get_n_blocks_before_force_unstake();
-        if self.get_block_nonce() <= block_nonce_of_stake_offer + n_blocks_before_force_unstake {
-            return sc_error!("too soon to call unStake");
+        // if self.get_block_nonce() <= block_nonce_of_stake_offer + n_blocks_before_force_unstake {
+        //     return sc_error!("too soon to call unStake");
+        // }
+        let eligible_for_unstake = self.fund_transf_module().eligible_for_unstake(user_id, n_blocks_before_force_unstake);
+        if eligible_for_unstake == 0 {
+            return sc_error!("no stake eligible for unStake");
         }
 
         // find nodes to unstake
-        let (node_ids, bls_keys) = self.node_config().find_nodes_for_unstake(&stake_for_sale);
+        let (node_ids, bls_keys) = self.node_config().find_nodes_for_unstake(&eligible_for_unstake);
         
-        let unbond_queue_entry = UnbondQueueItem {
-            user_id,
-            amount: stake_for_sale,
-        };
-        self.node_activation().perform_unstake_nodes(Some(unbond_queue_entry), node_ids, bls_keys)
+        // let unbond_queue_entry = UnbondQueueItem {
+        //     user_id,
+        //     amount: stake_for_sale,
+        // };
+        self.node_activation().perform_unstake_nodes(Some(user_id), node_ids, bls_keys)
     }
 
-    #[endpoint(unBond)]
-    fn unbond_endpoint(&self) -> SCResult<()> {
-        let caller = self.get_caller();
-        let user_id = self.user_data().get_user_id(&caller);
-        if user_id == 0 {
-            return sc_error!("only delegators can withdraw inactive stake");
-        }
+    // #[endpoint(unBond)]
+    // fn unbond_endpoint(&self) -> SCResult<()> {
+    //     let caller = self.get_caller();
+    //     let user_id = self.user_data().get_user_id(&caller);
+    //     if user_id == 0 {
+    //         return sc_error!("only delegators can withdraw inactive stake");
+    //     }
 
-        let mut amount = BigUint::zero();
-        let withdraw_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
-        if withdraw_stake > 0 {
-            // unavailable inactive stake
-            amount += &withdraw_stake;
-            self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
-        }
-        let inactive_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Inactive);
-        if inactive_stake > 0 {
-            // regular inactive stake
-            amount += &inactive_stake;
-            self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &inactive_stake);
-        }
-        sc_try!(self.user_data().validate_total_user_stake(user_id));
+    //     let mut amount = BigUint::zero();
+    //     let withdraw_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
+    //     if withdraw_stake > 0 {
+    //         // unavailable inactive stake
+    //         amount += &withdraw_stake;
+    //         self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
+    //     }
+    //     let inactive_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Inactive);
+    //     if inactive_stake > 0 {
+    //         // regular inactive stake
+    //         amount += &inactive_stake;
+    //         self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &inactive_stake);
+    //     }
+    //     sc_try!(self.user_data().validate_total_user_stake(user_id));
 
-        // send stake to delegator
-        self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
+    //     // send stake to delegator
+    //     self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
 
-        // log
-        self.events().unstake_event(&caller, &amount);
+    //     // log
+    //     self.events().unstake_event(&caller, &amount);
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 }

@@ -15,9 +15,8 @@ pub mod util;
 pub mod fund_item;
 pub mod fund_list;
 pub mod fund_type;
-pub mod fund_transf;
 
-use crate::unbond_queue::*;
+// use crate::unbond_queue::*;
 use crate::bls_key::*;
 
 // modules
@@ -33,6 +32,7 @@ pub mod user_data;
 pub mod user_stake;
 pub mod settings;
 pub mod fund_module;
+pub mod fund_transf_module;
 
 use crate::events::*;
 use crate::node_config::*;
@@ -43,6 +43,7 @@ use crate::user_stake::*;
 use crate::stake_sale::*;
 use crate::unexpected::*;
 use crate::user_data::*;
+use crate::fund_transf_module::*;
 use crate::settings::*;
 
 imports!();
@@ -88,6 +89,9 @@ pub trait Delegation {
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundTransformationsModuleImpl)]
+    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
     
 
     // Callbacks can only be declared here for the moment.
@@ -105,12 +109,10 @@ pub trait Delegation {
 
     #[callback]
     fn auction_unstake_callback(&self,
-            #[callback_arg] opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>,
             #[callback_arg] node_ids: Vec<usize>,
             call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
 
         self.node_activation().auction_unstake_callback(
-            opt_unbond_queue_entry,
             node_ids,
             call_result).unwrap();
             // TODO: replace unwrap with typical Result handling

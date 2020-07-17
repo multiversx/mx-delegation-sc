@@ -3,7 +3,7 @@ use crate::auction_proxy::Auction;
 
 use crate::bls_key::*;
 use crate::node_state::*;
-use crate::unbond_queue::*;
+// use crate::unbond_queue::*;
 use crate::user_stake_state::*;
 // use crate::util::*;
 
@@ -12,6 +12,7 @@ use crate::node_config::*;
 use crate::rewards::*;
 use crate::settings::*;
 use crate::user_data::*;
+use crate::fund_transf_module::*;
 
 imports!();
 
@@ -20,6 +21,9 @@ pub trait ContractStakeModule {
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundTransformationsModuleImpl)]
+    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
 
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
@@ -107,11 +111,13 @@ pub trait ContractStakeModule {
         let num_nodes = node_ids.len();
 
         let stake = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
-        let mut stake_supply = stake.clone();
-        self.user_data().convert_user_stake_asc(UserStakeState::Inactive, UserStakeState::PendingActivation, &mut stake_supply);
-        if stake_supply > 0 {
-            return sc_error!("not enough inactive stake");
-        }
+        // let mut stake_supply = stake.clone();
+        // self.user_data().convert_user_stake_asc(UserStakeState::Inactive, UserStakeState::PendingActivation, &mut stake_supply);
+        // if stake_supply > 0 {
+        //     return sc_error!("not enough inactive stake");
+        // }
+        let mut stake_to_convert = stake.clone();
+        self.fund_transf_module().activate_start_transf(&mut stake_to_convert);
         
         // send all stake to auction contract
         let auction_contract_addr = self.settings().get_auction_contract_address();
@@ -154,8 +160,12 @@ pub trait ContractStakeModule {
         self.rewards().compute_all_rewards();
 
         // set user stake to Active
+        // let mut stake_activated = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+        // self.user_data().convert_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::Active, &mut stake_activated);
+
         let mut stake_activated = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
-        self.user_data().convert_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::Active, &mut stake_activated);
+        self.fund_transf_module().activate_finish_ok_transf(&mut stake_activated);
+
 
         // set nodes to Active
         for &node_id in node_ids.iter() {
@@ -175,8 +185,11 @@ pub trait ContractStakeModule {
         }
 
         // set user stake to ActivationFailed
+        // let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+        // self.user_data().convert_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::ActivationFailed, &mut stake_sent);
+
         let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
-        self.user_data().convert_user_stake_asc(UserStakeState::PendingActivation, UserStakeState::ActivationFailed, &mut stake_sent);
+        self.fund_transf_module().activate_finish_fail_transf(&mut stake_sent);
 
         // set nodes to ActivationFailed
         for &node_id in node_ids.iter() {
@@ -212,7 +225,7 @@ pub trait ContractStakeModule {
     }
 
     fn perform_unstake_nodes(&self,
-            opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>,
+            opt_requester: Option<usize>,
             node_ids: Vec<usize>,
             bls_keys: Vec<BLSKey>) -> SCResult<()> {
 
@@ -228,30 +241,15 @@ pub trait ContractStakeModule {
             self.node_config().set_node_state(node_id, NodeState::PendingDeactivation);
         }
 
-        // convert user stake to PendingDeactivation
+        // convert funds to PendingDeactivation
         let mut stake_to_deactivate = BigUint::from(bls_keys.len()) * self.node_config().get_stake_per_node();
-        if let Some(unbond_queue_entry) = &opt_unbond_queue_entry {
-            // if requested by a user, that user has priority
-            self.user_data().convert_user_stake(
-                unbond_queue_entry.user_id,
-                UserStakeState::ActiveForSale, UserStakeState::PendingDeactivationFromSale,
-                &mut stake_to_deactivate);
-        }
-        self.user_data().convert_user_stake_desc(
-            UserStakeState::ActiveForSale, UserStakeState::PendingDeactivationFromSale,
-            &mut stake_to_deactivate);
-        self.user_data().convert_user_stake_desc(
-            UserStakeState::Active, UserStakeState::PendingDeactivation,
-            &mut stake_to_deactivate);
-        if stake_to_deactivate > 0 {
-            return sc_error!("not enough active stake"); // REALLY shouldn't happen
-        }
+        let n_blocks_before_force_unstake = self.settings().get_n_blocks_before_force_unstake();
+        self.fund_transf_module().unstake_start_transf(opt_requester, n_blocks_before_force_unstake, &mut stake_to_deactivate);
 
         // send unstake command to Auction SC
         let auction_contract_addr = self.settings().get_auction_contract_address();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
         auction_contract.unStake(
-            opt_unbond_queue_entry,
             node_ids,
             bls_keys.into());
 
@@ -260,15 +258,14 @@ pub trait ContractStakeModule {
 
     /// Only finalize deactivation if we got confirmation from the auction contract.
     /// #[callback] can only be declared in lib.rs for the moment.
-    fn auction_unstake_callback(&self, 
-            opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>, // #[callback_arg]
+    fn auction_unstake_callback(&self,
             node_ids: Vec<usize>, // #[callback_arg]
             call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) -> SCResult<()> {
 
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
                 let (node_ids_ok, node_ids_fail) = self.node_config().split_node_ids_by_err(node_ids, node_status_args);
-                sc_try!(self.auction_unstake_callback_ok(opt_unbond_queue_entry, node_ids_ok));
+                sc_try!(self.auction_unstake_callback_ok(node_ids_ok));
                 sc_try!(self.auction_unstake_callback_fail(node_ids_fail, &b"unstaking failed for some nodes"[..]));
                 Ok(())
             },
@@ -278,8 +275,7 @@ pub trait ContractStakeModule {
         }
     }
 
-    fn auction_unstake_callback_ok(&self, 
-            opt_unbond_queue_entry: Option<UnbondQueueItem<BigUint>>, 
+    fn auction_unstake_callback_ok(&self,
             node_ids: Vec<usize>) -> SCResult<()> {
 
         if node_ids.is_empty() {
@@ -288,26 +284,29 @@ pub trait ContractStakeModule {
 
         // set user stake to UnBondPeriod
         let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
-        self.user_data().convert_user_stake_desc(
-            UserStakeState::PendingDeactivationFromSale,
-            UserStakeState::UnBondPeriod,
-            &mut stake_sent);
-        self.user_data().convert_user_stake_desc(
-            UserStakeState::PendingDeactivation, 
-            UserStakeState::UnBondPeriod, 
-            &mut stake_sent);
+        self.fund_transf_module().unstake_finish_ok_transf(&mut stake_sent);
 
-        // (if requested by a user) save unstake data for the user 
-        if let Some(unbond_queue_entry) = opt_unbond_queue_entry {
-            // clean up any stake sale offered by the user that requested unstake
-            self.user_data().set_user_stake_for_sale(unbond_queue_entry.user_id, &BigUint::zero());
-            self.user_data().set_user_bl_nonce_of_stake_offer(unbond_queue_entry.user_id, 0);
+        // let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+        // self.user_data().convert_user_stake_desc(
+        //     UserStakeState::PendingDeactivationFromSale,
+        //     UserStakeState::UnBondPeriod,
+        //     &mut stake_sent);
+        // self.user_data().convert_user_stake_desc(
+        //     UserStakeState::PendingDeactivation, 
+        //     UserStakeState::UnBondPeriod, 
+        //     &mut stake_sent);
 
-            // add entry to unbond queue 
-            let mut unbond_queue = self.user_data().get_unbond_queue();
-            unbond_queue.push(unbond_queue_entry);
-            self.user_data().set_unbond_queue(unbond_queue);
-        }
+        // // (if requested by a user) save unstake data for the user 
+        // if let Some(unbond_queue_entry) = opt_unbond_queue_entry {
+        //     // clean up any stake sale offered by the user that requested unstake
+        //     self.user_data().set_user_stake_for_sale(unbond_queue_entry.user_id, &BigUint::zero());
+        //     self.user_data().set_user_bl_nonce_of_stake_offer(unbond_queue_entry.user_id, 0);
+
+        //     // add entry to unbond queue 
+        //     let mut unbond_queue = self.user_data().get_unbond_queue();
+        //     unbond_queue.push(unbond_queue_entry);
+        //     self.user_data().set_unbond_queue(unbond_queue);
+        // }
 
         // set nodes to UnBondPeriod + save current block nonce
         let bl_nonce = self.get_block_nonce();
@@ -337,14 +336,17 @@ pub trait ContractStakeModule {
 
         // revert user stake to Active/ActiveForSale
         let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
-        self.user_data().convert_user_stake_desc(
-            UserStakeState::PendingDeactivationFromSale,
-            UserStakeState::ActiveForSale,
-            &mut stake_sent);
-        self.user_data().convert_user_stake_desc(
-            UserStakeState::PendingDeactivation,
-            UserStakeState::Active,
-            &mut stake_sent);
+        self.fund_transf_module().unstake_finish_fail_transf(&mut stake_sent);
+
+        // let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+        // self.user_data().convert_user_stake_desc(
+        //     UserStakeState::PendingDeactivationFromSale,
+        //     UserStakeState::ActiveForSale,
+        //     &mut stake_sent);
+        // self.user_data().convert_user_stake_desc(
+        //     UserStakeState::PendingDeactivation,
+        //     UserStakeState::Active,
+        //     &mut stake_sent);
 
         // revert nodes to Active
         for &node_id in node_ids.iter() {
@@ -387,45 +389,49 @@ pub trait ContractStakeModule {
             self.node_config().set_node_state(node_id, NodeState::PendingUnBond);
         }
 
-        self.perform_unbond(None, node_ids, bls_keys.into_vec())
+        self.perform_unbond(node_ids, bls_keys.into_vec())
     }
 
     fn perform_unbond(&self,
-        _opt_requester_id: Option<usize>,
         node_ids: Vec<usize>,
         bls_keys: Vec<BLSKey>) -> SCResult<()> {
+
+        let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
+        let mut stake_to_unbond = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+        self.fund_transf_module().unbond_start_transf(n_blocks_before_unbond, &mut stake_to_unbond);
 
         // prioritize the users that are in the queue,
         // but only the amounts of first entries that don't exceed the available stake
         // here we only peek in the queue, we do not pop out of it
         // TODO: find a more elegant way to write this!!!
-        let mut stake_to_unbond = BigUint::from(bls_keys.len()) * self.node_config().get_stake_per_node();
-        let mut unbond_queue = self.user_data().get_unbond_queue(); // not changed here
-        while stake_to_unbond > 0 {
-            if let Some(elem) = unbond_queue.peek_mut() {
-                let max_unbond = if stake_to_unbond > elem.amount {
-                    &elem.amount
-                } else {
-                    &stake_to_unbond
-                };
-                let mut max_unbond_mut = max_unbond.clone();
-                self.user_data().convert_user_stake(
-                    elem.user_id,
-                    UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond,
-                    &mut max_unbond_mut);
-                let delta = max_unbond - &max_unbond_mut;
-                stake_to_unbond -= &delta;
 
-                unbond_queue.pop();
-            } else {
-                break;
-            }
-        }
+        // let mut stake_to_unbond = BigUint::from(bls_keys.len()) * self.node_config().get_stake_per_node();
+        // let mut unbond_queue = self.user_data().get_unbond_queue(); // not changed here
+        // while stake_to_unbond > 0 {
+        //     if let Some(elem) = unbond_queue.peek_mut() {
+        //         let max_unbond = if stake_to_unbond > elem.amount {
+        //             &elem.amount
+        //         } else {
+        //             &stake_to_unbond
+        //         };
+        //         let mut max_unbond_mut = max_unbond.clone();
+        //         self.user_data().convert_user_stake(
+        //             elem.user_id,
+        //             UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond,
+        //             &mut max_unbond_mut);
+        //         let delta = max_unbond - &max_unbond_mut;
+        //         stake_to_unbond -= &delta;
+
+        //         unbond_queue.pop();
+        //     } else {
+        //         break;
+        //     }
+        // }
 
         // the remaining stake taken from any users found
-        self.user_data().convert_user_stake_desc(
-            UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond,
-            &mut stake_to_unbond);
+        // self.user_data().convert_user_stake_desc(
+        //     UserStakeState::UnBondPeriod, UserStakeState::PendingUnBond,
+        //     &mut stake_to_unbond);
         if stake_to_unbond > 0 {
             return sc_error!("not enough stake in unbond period");
         }
@@ -466,7 +472,7 @@ pub trait ContractStakeModule {
             return Ok(())
         }
 
-        self.perform_unbond(None, node_ids, bls_keys)
+        self.perform_unbond(node_ids, bls_keys)
     }
 
     /// Only finalize deactivation if we got confirmation from the auction contract.
@@ -499,50 +505,53 @@ pub trait ContractStakeModule {
             self.node_config().set_node_bl_nonce_of_unstake(node_id, 0);
         }
 
+        let mut stake_to_unbond = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+        self.fund_transf_module().unbond_finish_ok_transf(&mut stake_to_unbond);
+
         // prioritize the users that are in the queue,
         // but only the amounts of first entries that don't exceed the available stake
         // pop from the queue
         // TODO: find a more elegant way to write this!!! (without affecting performance)
-        let mut stake_to_unbond = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
-        let mut unbond_queue = self.user_data().get_unbond_queue();
-        while stake_to_unbond > 0 {
-            let opt_elem = unbond_queue.peek_mut();
-            if let Some(elem) = opt_elem {
-                let max_unbond = if stake_to_unbond > elem.amount {
-                    &elem.amount
-                } else {
-                    &stake_to_unbond
-                };
-                let mut max_unbond_mut = max_unbond.clone();
-                self.user_data().convert_user_stake(
-                    elem.user_id,
-                    UserStakeState::PendingUnBond, UserStakeState::WithdrawOnly,
-                    &mut max_unbond_mut);
-                let delta = max_unbond - &max_unbond_mut;
-                stake_to_unbond -= &delta;
-                elem.amount -= &delta;
-                if elem.amount > 0 {
-                    break;
-                }
-                unbond_queue.pop();
-            } else {
-                break;
-            }
-        }
-        // slicing the vector is equivalent to pop
-        self.user_data().set_unbond_queue(unbond_queue);
 
-        // set remaining stake to Inactive
-        if stake_to_unbond > 0 {
-            self.user_data().convert_user_stake_desc(
-                UserStakeState::PendingUnBond, UserStakeState::Inactive,
-                &mut stake_to_unbond);
-        }
+        // let mut unbond_queue = self.user_data().get_unbond_queue();
+        // while stake_to_unbond > 0 {
+        //     let opt_elem = unbond_queue.peek_mut();
+        //     if let Some(elem) = opt_elem {
+        //         let max_unbond = if stake_to_unbond > elem.amount {
+        //             &elem.amount
+        //         } else {
+        //             &stake_to_unbond
+        //         };
+        //         let mut max_unbond_mut = max_unbond.clone();
+        //         self.user_data().convert_user_stake(
+        //             elem.user_id,
+        //             UserStakeState::PendingUnBond, UserStakeState::WithdrawOnly,
+        //             &mut max_unbond_mut);
+        //         let delta = max_unbond - &max_unbond_mut;
+        //         stake_to_unbond -= &delta;
+        //         elem.amount -= &delta;
+        //         if elem.amount > 0 {
+        //             break;
+        //         }
+        //         unbond_queue.pop();
+        //     } else {
+        //         break;
+        //     }
+        // }
+        // // slicing the vector is equivalent to pop
+        // self.user_data().set_unbond_queue(unbond_queue);
 
-        // the remaining stake taken from any users found
-        self.user_data().convert_user_stake_desc(
-            UserStakeState::PendingUnBond, UserStakeState::Inactive,
-            &mut stake_to_unbond);
+        // // set remaining stake to Inactive
+        // if stake_to_unbond > 0 {
+        //     self.user_data().convert_user_stake_desc(
+        //         UserStakeState::PendingUnBond, UserStakeState::Inactive,
+        //         &mut stake_to_unbond);
+        // }
+
+        // // the remaining stake taken from any users found
+        // self.user_data().convert_user_stake_desc(
+        //     UserStakeState::PendingUnBond, UserStakeState::Inactive,
+        //     &mut stake_to_unbond);
         if stake_to_unbond > 0 {
             return sc_error!("not enough stake pending unbond");
         }
@@ -561,9 +570,11 @@ pub trait ContractStakeModule {
         
         // revert user stake to UnBondPeriod
         let mut stake_that_failed_unbond = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
-        self.user_data().convert_user_stake_desc(
-            UserStakeState::PendingUnBond, UserStakeState::UnBondPeriod, 
-            &mut stake_that_failed_unbond);
+        self.fund_transf_module().unbond_finish_fail_transf(&mut stake_that_failed_unbond);
+
+        // self.user_data().convert_user_stake_desc(
+        //     UserStakeState::PendingUnBond, UserStakeState::UnBondPeriod, 
+        //     &mut stake_that_failed_unbond);
 
         // revert nodes to UnBondPeriod
         for &node_id in node_ids.iter() {
@@ -622,9 +633,10 @@ pub trait ContractStakeModule {
 
                 // revert user stake to Inctive
                 let mut failed_stake = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
-                self.user_data().convert_user_stake_desc(
-                    UserStakeState::ActivationFailed, UserStakeState::Inactive, 
-                    &mut failed_stake);
+                self.fund_transf_module().claim_activation_failed_transf(&mut failed_stake);
+                // self.user_data().convert_user_stake_desc(
+                //     UserStakeState::ActivationFailed, UserStakeState::Inactive, 
+                //     &mut failed_stake);
             },
             AsyncCallResult::Err(_) => {
             }
