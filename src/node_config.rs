@@ -91,8 +91,8 @@ pub trait NodeModule {
     #[storage_get("num_nodes")]
     fn get_num_nodes(&self) -> usize;
 
-    #[storage_set("num_nodes")]
-    fn set_num_nodes(&self, num_nodes: usize);
+    #[storage_get_mut("num_nodes")]
+    fn get_mut_num_nodes(&self) -> mut_storage!(usize);
 
     /// Each node gets a node id. This is in order to be able to iterate over their data.
     /// This is a mapping from node BLS key to node id.
@@ -192,47 +192,30 @@ pub trait NodeModule {
 
     #[endpoint(addNodes)]
     fn add_nodes(&self, 
-            #[var_args] bls_keys_signatures: VarArgs<Vec<u8>>)
+            #[var_args] bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>)
         -> SCResult<()> {
 
         if !self.settings().owner_called() {
             return sc_error!("only owner can add nodes"); 
         }
 
-        let mut num_nodes = self.get_num_nodes();
-        if bls_keys_signatures.len() % 2 != 0 {
-            return sc_error!("even number of arguments expected"); 
-        }
-
-        // TODO: handle arguments more elegantly,
-        // once elrond-wasm supports more complex multi-arg definitions
-        let mut node_id = 0usize;
-        for (i, arg) in bls_keys_signatures.iter().enumerate() {
-            if i % 2 == 0 {
-                let bls_key = sc_try!(BLSKey::from_bytes(arg));
-                node_id = self.get_node_id(&bls_key);
-                if node_id == 0 {
-                    num_nodes += 1;
-                    node_id = num_nodes;
-                    self.set_node_bls_to_id(&bls_key, node_id);
-                    self.set_node_id_to_bls(node_id, &bls_key);
-                    self.set_node_state(node_id, NodeState::Inactive);
-                } else if self.get_node_state(node_id) == NodeState::Removed {
-                    self.set_node_state(node_id, NodeState::Inactive);
-                } else {
-                    return sc_error!("node already registered"); 
-                }
+        let mut num_nodes = self.get_mut_num_nodes();
+        for bls_sig_pair_arg in bls_keys_signatures.into_vec().into_iter() {
+            let (bls_key, bls_sig) = bls_sig_pair_arg.into_tuple();
+            let mut node_id = self.get_node_id(&bls_key);
+            if node_id == 0 {
+                *num_nodes += 1;
+                node_id = *num_nodes;
+                self.set_node_bls_to_id(&bls_key, node_id);
+                self.set_node_id_to_bls(node_id, &bls_key);
+                self.set_node_state(node_id, NodeState::Inactive);
+                self.set_node_signature(node_id, bls_sig);
+            } else if self.get_node_state(node_id) == NodeState::Removed {
+                self.set_node_state(node_id, NodeState::Inactive);
             } else {
-                // check signature lengths
-                if arg.len() != BLS_SIGNATURE_BYTE_LENGTH {
-                    return sc_error!("wrong size BLS signature");
-                }
-                let signature = BLSSignature::from_slice(arg.as_slice());
-                self.set_node_signature(node_id, signature)
+                return sc_error!("node already registered"); 
             }
         }
-       
-        self.set_num_nodes(num_nodes);
         Ok(())
     }
 
