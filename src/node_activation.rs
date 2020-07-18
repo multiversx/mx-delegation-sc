@@ -13,6 +13,7 @@ use crate::rewards::*;
 use crate::settings::*;
 use crate::user_data::*;
 use crate::fund_transf_module::*;
+use crate::fund_view_module::*;
 
 imports!();
 
@@ -24,6 +25,9 @@ pub trait ContractStakeModule {
 
     #[module(FundTransformationsModuleImpl)]
     fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundViewModuleImpl)]
+    fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
 
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
@@ -79,7 +83,7 @@ pub trait ContractStakeModule {
     }
 
     fn stake_all_available(&self) -> SCResult<()> {
-        let mut inactive_stake = self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
+        let mut inactive_stake = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive);
         let stake_per_node = self.node_config().get_stake_per_node();
         let num_nodes = self.node_config().get_num_nodes();
         let mut node_id = 1;
@@ -106,7 +110,7 @@ pub trait ContractStakeModule {
 
     fn perform_stake_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>) -> SCResult<()> {
         // do not launch nodes if owner hasn't staked enough
-        sc_try!(self.user_data().validate_owner_stake_share());
+        sc_try!(self.fund_view_module().validate_owner_stake_share());
 
         let num_nodes = node_ids.len();
 

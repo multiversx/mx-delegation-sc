@@ -33,6 +33,7 @@ pub mod user_stake;
 pub mod settings;
 pub mod fund_module;
 pub mod fund_transf_module;
+pub mod fund_view_module;
 
 use crate::events::*;
 use crate::node_config::*;
@@ -44,6 +45,7 @@ use crate::stake_sale::*;
 use crate::unexpected::*;
 use crate::user_data::*;
 use crate::fund_transf_module::*;
+use crate::fund_view_module::*;
 use crate::settings::*;
 
 imports!();
@@ -92,6 +94,9 @@ pub trait Delegation {
 
     #[module(FundTransformationsModuleImpl)]
     fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundViewModuleImpl)]
+    fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
     
 
     // Callbacks can only be declared here for the moment.

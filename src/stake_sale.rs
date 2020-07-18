@@ -7,6 +7,7 @@ use crate::rewards::*;
 use crate::settings::*;
 use crate::user_data::*;
 use crate::fund_transf_module::*;
+use crate::fund_view_module::*;
 
 imports!();
 
@@ -23,6 +24,9 @@ pub trait StakeSaleModule {
 
     #[module(FundTransformationsModuleImpl)]
     fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundViewModuleImpl)]
+    fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
 
     #[module(PauseModuleImpl)]
     fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
@@ -66,7 +70,7 @@ pub trait StakeSaleModule {
         self.rewards().update_user_rewards(OWNER_USER_ID); // for owner, since ActiveForSale will change
 
         // get active stake
-        let stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Active);
+        let stake = self.fund_view_module().get_user_stake_of_type(user_id, UserStakeState::Active);
         if amount > stake {
             return sc_error!("cannot offer more than the user active stake")
         }
@@ -92,7 +96,7 @@ pub trait StakeSaleModule {
         if user_id == 0 {
             return BigUint::zero()
         }
-        self.user_data().get_user_stake_of_type(user_id, UserStakeState::ActiveForSale)
+        self.fund_view_module().get_user_stake_of_type(user_id, UserStakeState::ActiveForSale)
     }
 
 
@@ -152,12 +156,12 @@ pub trait StakeSaleModule {
         // if !enough {
         //     return sc_error!("payment exceeds seller ActiveForSale stake");
         // }
-        // sc_try!(self.user_data().validate_total_user_stake(seller_id));
+        // sc_try!(self.fund_view_module().validate_total_user_stake(seller_id));
 
         // // increase stake of buyer
         // // note: the new buyer's stake will be Active instead of ActiveForSale
         // self.user_data().increase_user_stake_of_type(buyer_id, UserStakeState::Active, &payment);
-        // sc_try!(self.user_data().validate_total_user_stake(buyer_id));
+        // sc_try!(self.fund_view_module().validate_total_user_stake(buyer_id));
 
         sc_try!(self.fund_transf_module().stake_sale_transf(buyer_id, seller_id, &payment));
 

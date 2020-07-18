@@ -8,6 +8,7 @@ use crate::pause::*;
 use crate::settings::*;
 use crate::user_data::*;
 use crate::fund_transf_module::*;
+use crate::fund_view_module::*;
 use crate::node_activation::*;
 
 imports!();
@@ -21,6 +22,9 @@ pub trait UserStakeModule {
 
     #[module(FundTransformationsModuleImpl)]
     fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundViewModuleImpl)]
+    fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
 
     #[module(EventsModuleImpl)]
     fn events(&self) -> EventsModuleImpl<T, BigInt, BigUint>;
@@ -74,7 +78,7 @@ pub trait UserStakeModule {
         
         // // save increased stake
         // self.user_data().increase_user_stake_of_type(user_id, UserStakeState::Inactive, &payment);
-        // sc_try!(self.user_data().validate_total_user_stake(user_id));
+        // sc_try!(self.fund_view_module().validate_total_user_stake(user_id));
 
         self.fund_transf_module().create_free_stake(user_id, &payment);
 
@@ -104,7 +108,7 @@ pub trait UserStakeModule {
             return sc_error!("cannot withdraw more than inactive stake");
         }
 
-        // let withdraw_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
+        // let withdraw_stake = self.fund_view_module().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
         // if amount <= withdraw_stake {
         //     self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &amount);
         // } else {
@@ -115,7 +119,7 @@ pub trait UserStakeModule {
         //         return sc_error!("cannot withdraw more than inactive stake");
         //     }
         // }
-        sc_try!(self.user_data().validate_total_user_stake(user_id));
+        sc_try!(self.fund_view_module().validate_total_user_stake(user_id));
 
         // send stake to delegator
         self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
@@ -170,19 +174,19 @@ pub trait UserStakeModule {
     //     }
 
     //     let mut amount = BigUint::zero();
-    //     let withdraw_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
+    //     let withdraw_stake = self.fund_view_module().get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly);
     //     if withdraw_stake > 0 {
     //         // unavailable inactive stake
     //         amount += &withdraw_stake;
     //         self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::WithdrawOnly, &withdraw_stake);
     //     }
-    //     let inactive_stake = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Inactive);
+    //     let inactive_stake = self.fund_view_module().get_user_stake_of_type(user_id, UserStakeState::Inactive);
     //     if inactive_stake > 0 {
     //         // regular inactive stake
     //         amount += &inactive_stake;
     //         self.user_data().decrease_user_stake_of_type(user_id, UserStakeState::Inactive, &inactive_stake);
     //     }
-    //     sc_try!(self.user_data().validate_total_user_stake(user_id));
+    //     sc_try!(self.fund_view_module().validate_total_user_stake(user_id));
 
     //     // send stake to delegator
     //     self.send_tx(&caller, &amount, "delegation withdraw inactive stake");

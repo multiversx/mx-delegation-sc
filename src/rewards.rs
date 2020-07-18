@@ -8,6 +8,7 @@ use crate::user_stake::*;
 use crate::node_activation::*;
 use crate::user_data::*;
 use crate::fund_transf_module::*;
+use crate::fund_view_module::*;
 
 imports!();
 
@@ -29,6 +30,9 @@ pub trait RewardsModule {
 
     #[module(FundTransformationsModuleImpl)]
     fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FundViewModuleImpl)]
+    fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
 
     #[module(UserStakeModuleImpl)]
     fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
@@ -79,9 +83,9 @@ pub trait RewardsModule {
         
         // total stake that gets rewarded
         let total_active_stake_for_sale =
-            self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::ActiveForSale);
+            self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::ActiveForSale);
         let total_active_stake =
-            &self.user_data().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Active) +
+            &self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Active) +
             &total_active_stake_for_sale;
 
         // update node rewards, if applicable
@@ -99,7 +103,7 @@ pub trait RewardsModule {
         }
 
         // update delegator rewards based on Active stake
-        let u_stake_active = self.user_data().get_user_stake_of_type(user_id, UserStakeState::Active);
+        let u_stake_active = self.fund_view_module().get_user_stake_of_type(user_id, UserStakeState::Active);
         if u_stake_active > 0 {
             // delegator reward is:
             // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake
