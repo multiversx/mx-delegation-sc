@@ -77,11 +77,6 @@ pub trait GenesisModule {
             return sc_error!("stake required by nodes must match total user stake at genesis");
         }
 
-        // convert all user inactive stake to active stake
-        // self.user_data().convert_user_stake_asc(UserStakeState::Inactive, UserStakeState::Active, &mut total_inactive_stake);
-        // if total_inactive_stake > 0 {
-        //     return sc_error!("not enough active stake");
-        // }
         let mut total_inactive_stake_2 = total_inactive_stake.clone();
         sc_try!(self.fund_transf_module().activate_start_transf(&mut total_inactive_stake));
         sc_try!(self.fund_transf_module().activate_finish_ok_transf(&mut total_inactive_stake_2));

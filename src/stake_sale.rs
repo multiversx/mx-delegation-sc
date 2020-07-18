@@ -1,5 +1,4 @@
 use crate::user_stake_state::*;
-// use crate::stake_sale_payment::*;
 
 use crate::events::*;
 use crate::pause::*;
@@ -37,19 +36,6 @@ pub trait StakeSaleModule {
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
-    // #[view(totalPendingStakePayments)]
-    // #[storage_get("total_pending_payments")]
-    // fn get_total_pending_payments(&self) -> BigUint;
-
-    // #[storage_get_mut("total_pending_payments")]
-    // fn get_mut_total_pending_payments(&self) -> mut_storage!(BigUint);
-
-    // #[storage_get("u_pending_payments")]
-    // fn get_user_pending_payments(&self, user_id: usize) -> Queue<StakeSalePayment<BigUint>>;
-
-    // #[storage_set("u_pending_payments")]
-    // fn set_user_pending_payments(&self, user_id: usize, queue: Queue<StakeSalePayment<BigUint>>);
-
     /// Creates a stake offer. Overwrites any previous stake offer.
     /// Once a stake offer is up, it can be bought by anyone on a first come first served basis.
     /// Cannot be paused, because this is also part of the unStake mechanism, which the owner cannot veto.
@@ -69,19 +55,11 @@ pub trait StakeSaleModule {
         self.rewards().update_user_rewards(user_id); // for user
         self.rewards().update_user_rewards(OWNER_USER_ID); // for owner, since ActiveForSale will change
 
-        // get active stake
+        // convert user stake from Active to ActiveForSale
         let stake = self.fund_view_module().get_user_stake_of_type(user_id, UserStakeState::Active);
         if amount > stake {
             return sc_error!("cannot offer more than the user active stake")
         }
-
-        // // save offer
-        // self.user_data().set_user_stake_for_sale(user_id, &amount);
-        // self.user_data().set_user_bl_nonce_of_stake_offer(user_id, self.get_block_nonce());
-
-        // // convert stake from Active to ActiveForSale
-        // let mut amount_mut = amount.clone();
-        // self.user_data().convert_user_stake(user_id, UserStakeState::Active, UserStakeState::ActiveForSale, &mut amount_mut);
 
         // convert stake
         sc_try!(self.fund_transf_module().announce_unstake_transf(user_id, &amount));
@@ -98,8 +76,6 @@ pub trait StakeSaleModule {
         }
         self.fund_view_module().get_user_stake_of_type(user_id, UserStakeState::ActiveForSale)
     }
-
-
 
     /// User-to-user purchase of stake.
     /// Only stake that has been offered for sale by owner can be bought.
@@ -126,16 +102,6 @@ pub trait StakeSaleModule {
             return sc_error!("unknown seller")
         }
 
-        // // decrease stake for sale
-        // sc_try!(self.user_data().update_user_stake_for_sale(seller_id, |stake_for_sale| {
-        //     if payment > *stake_for_sale {
-        //         sc_error!("payment exceeds stake offered")
-        //     } else {
-        //         *stake_for_sale -= &payment;
-        //         Ok(())
-        //     }
-        // }));
-
         // get buyer id or create buyer
         let mut buyer_id = self.user_data().get_user_id(&caller);
         if buyer_id == 0 {
@@ -148,68 +114,18 @@ pub trait StakeSaleModule {
         self.rewards().update_user_rewards(buyer_id); // for buyer
         self.rewards().update_user_rewards(OWNER_USER_ID); // for owner, since ActiveForSale will change
 
+        // 1. payment from buyer becomes free stake
         self.fund_transf_module().create_free_stake(buyer_id, &payment);
 
-        // // transfer stake:
-        // // decrease stake of seller
-        // let enough = self.user_data().decrease_user_stake_of_type(seller_id, UserStakeState::ActiveForSale, &payment);
-        // if !enough {
-        //     return sc_error!("payment exceeds seller ActiveForSale stake");
-        // }
-        // sc_try!(self.fund_view_module().validate_total_user_stake(seller_id));
-
-        // // increase stake of buyer
-        // // note: the new buyer's stake will be Active instead of ActiveForSale
-        // self.user_data().increase_user_stake_of_type(buyer_id, UserStakeState::Active, &payment);
-        // sc_try!(self.fund_view_module().validate_total_user_stake(buyer_id));
-
+        // 2a. transfer stake seller -> buyer
+        // 2b. create deferred payment
         sc_try!(self.fund_transf_module().stake_sale_transf(buyer_id, seller_id, &payment));
 
         // log transaction
         self.events().purchase_stake_event(&seller, &caller, &payment);
 
-        // // increase total pending payments
-        // *self.get_mut_total_pending_payments() += &payment;
-
-        // // add payment to queue
-        // // (left at the end because it moves "payments" variable)
-        // let mut payments_queue = self.get_user_pending_payments(seller_id);
-        // payments_queue.push(StakeSalePayment{
-        //     user_id: seller_id,
-        //     amount: payment,
-        //     claim_after_nonce: 
-        //         self.user_data().get_user_bl_nonce_of_stake_offer(seller_id) +
-        //         self.settings().get_n_blocks_before_force_unstake() +
-        //         self.settings().get_n_blocks_before_unbond(),
-        // });
-        // self.set_user_pending_payments(seller_id, payments_queue);
-
         Ok(())
     }
-
-    // /// Will return the total amount of payments that can be claimed.
-    // /// Will also remove those payments from the queue,
-    // /// so only use the method when about to make payment.
-    // fn consume_claimable_payments(&self, user_id: usize) -> BigUint {
-    //     let bl_nonce = self.get_block_nonce();
-    //     let mut result = BigUint::zero();
-
-
-        
-
-    //     let mut payments_queue = self.get_user_pending_payments(user_id);
-    //     while let Some(stake_sale_payment) = payments_queue.peek() {
-    //         if bl_nonce > stake_sale_payment.claim_after_nonce {
-    //             result += &stake_sale_payment.amount;
-    //         } else {
-    //             break;
-    //         }
-    //         payments_queue.pop();
-    //     }
-
-    //     self.set_user_pending_payments(user_id, payments_queue);
-    //     result
-    // }
 
     #[endpoint(claimPayment)]
     fn claim_payment(&self) -> SCResult<()> {
@@ -222,7 +138,7 @@ pub trait StakeSaleModule {
         let n_blocks_before_claim =
             self.settings().get_n_blocks_before_force_unstake() +
             self.settings().get_n_blocks_before_unbond();
-        let claimed_payments = sc_try!(self.fund_transf_module().claim_all_eligible_deferred_payment(
+        let claimed_payments = sc_try!(self.fund_transf_module().claim_all_eligible_deferred_payments(
             caller_id,
             n_blocks_before_claim
         ));

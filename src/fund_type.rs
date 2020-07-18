@@ -1,13 +1,5 @@
 use elrond_wasm::elrond_codec::*;
 
-// pub enum UnstakeInfo {
-//     None,
-
-//     AnnouncedUnstake{ bl_nonce: u64 },
-
-//     UnBondPeriod{ bl_nonce: u64 },
-// }
-
 #[derive(PartialEq, Clone, Copy)]
 pub enum FundType {
     /// Funds not staked, free to extract from contract.
@@ -37,7 +29,6 @@ pub enum FundType {
 
     DeferredPayment{ created: u64 },
 
-    // Reward,
 }
 
 pub const DISCR_FREE: u8 = 0;
@@ -63,7 +54,6 @@ impl FundType {
             FundType::UnBondPeriod{..} => DISCR_UNBOND,
             FundType::PendingUnBond{..} => DISCR_PENDING_UNBOND,
             FundType::DeferredPayment{..} => DISCR_DEF_PAYMENT,
-            // FundType::Reward{..} => DISCR_REWARD,
         }
     }
 
@@ -131,7 +121,6 @@ impl Encode for FundType {
                 dest.push_byte(8u8);
                 created.dep_encode_to(dest)?;
             },
-            // FundType::Reward => { dest.push_byte(9u8); },
         }
         Ok(())
 	}
@@ -165,7 +154,6 @@ impl Decode for FundType {
             8 => Ok(FundType::DeferredPayment{
                 created: u64::dep_decode(input)?
             }),
-            // 9 => Ok(FundType::Reward),
             _ => Err(DecodeError::InvalidValue),
         }
     }

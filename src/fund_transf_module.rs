@@ -206,7 +206,7 @@ pub trait FundTransformationsModule {
         )
     }
 
-    fn claim_all_eligible_deferred_payment(&self,
+    fn claim_all_eligible_deferred_payments(&self,
         user_id: usize,
         n_blocks_before_claim: u64) -> SCResult<BigUint> {
         
