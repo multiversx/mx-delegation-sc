@@ -1,29 +1,17 @@
 imports!();
 
-use crate::settings::*;
+// use crate::settings::*;
 // use crate::fund_type::*;
 
 // use crate::node_config::PERCENTAGE_DENOMINATOR;
 // use crate::user_stake_state::*;
 // use crate::unbond_queue::*;
 
-// Groups together data per delegator from the storage.
-pub struct UserRewardData<BigUint> {
-    /// The value of the total cumulated rewards in the contract when the user's rewards were computed the last time.
-    pub reward_checkpoint: BigUint,
 
-    /// Rewards that are computed but not yet sent to the delegator.
-    pub unclaimed_rewards: BigUint,
-}
 
 /// Deals with storage data about delegators.
 #[elrond_wasm_derive::module(UserDataModuleImpl)]
 pub trait UserDataModule {
-
-    #[module(SettingsModuleImpl)]
-    fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
-
-
 
     /// Each delegator gets a user id. This is in order to be able to iterate over their data.
     /// This is a mapping from delegator address to delegator id.
@@ -98,30 +86,7 @@ pub trait UserDataModule {
 
 
 
-    /// Claiming rewards has 2 steps:
-    /// 1. computing the delegator rewards out of the total rewards, and
-    /// 2. sending those rewards to the delegator address. 
-    /// This field keeps track of rewards that went through step 1 but not 2,
-    /// i.e. were computed and deducted from the total rewards, but not yet "physically" sent to the user.
-    /// The unclaimed stake still resides in the contract.
-    #[storage_get("u_rew_unclmd")]
-    fn get_user_rew_unclaimed(&self, user_id: usize) -> BigUint;
 
-    #[storage_set("u_rew_unclmd")]
-    fn set_user_rew_unclaimed(&self, user_id: usize, user_rew_unclaimed: &BigUint);
-
-    /// As the time passes, if the contract is active, rewards periodically arrive in the contract. 
-    /// Users can claim their share of rewards anytime.
-    /// This field helps keeping track of how many rewards came to the contract since the last claim.
-    /// More specifically, it indicates the cumulated sum of rewards that had arrived in the contract 
-    /// when the user last claimed their own personal rewards.
-    /// If zero, it means the user never claimed any rewards.
-    /// If equal to get_total_cumulated_rewards, it means the user claimed everything there is for him/her.
-    #[storage_get("u_rew_checkp")]
-    fn get_user_rew_checkpoint(&self, user_id: usize) -> BigUint;
-
-    #[storage_set("u_rew_checkp")]
-    fn set_user_rew_checkpoint(&self, user_id: usize, user_rew_checkpoint: &BigUint);
 
     // /// Users can trade stake. To do so, a user must first offer stake for sale.
     // /// This field keeps track of how much stake each user has offered for sale.
@@ -141,21 +106,7 @@ pub trait UserDataModule {
     //     result
     // }
 
-    /// Loads the entire UserRewardData object from storage.
-    fn load_user_data(&self, user_id: usize) -> UserRewardData<BigUint> {
-        let u_rew_checkp = self.get_user_rew_checkpoint(user_id);
-        let u_rew_unclmd = self.get_user_rew_unclaimed(user_id);
-        UserRewardData {
-            reward_checkpoint: u_rew_checkp,
-            unclaimed_rewards: u_rew_unclmd,
-        }
-    }
 
-    /// Saves a UserRewardData object to storage.
-    fn store_user_data(&self, user_id: usize, data: &UserRewardData<BigUint>) {
-        self.set_user_rew_checkpoint(user_id, &data.reward_checkpoint);
-        self.set_user_rew_unclaimed(user_id, &data.unclaimed_rewards);
-    }
 
     // /// Block timestamp of when the user offered stake for sale.
     // /// Note: not part of the UserRewardData struct because it is not needed as often.

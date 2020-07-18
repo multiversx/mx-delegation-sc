@@ -12,6 +12,15 @@ use crate::fund_view_module::*;
 
 imports!();
 
+// Groups together data per delegator from the storage.
+pub struct UserRewardData<BigUint> {
+    /// The value of the total cumulated rewards in the contract when the user's rewards were computed the last time.
+    pub reward_checkpoint: BigUint,
+
+    /// Rewards that are computed but not yet sent to the delegator.
+    pub unclaimed_rewards: BigUint,
+}
+
 /// Contains logic to compute and distribute individual delegator rewards.
 #[elrond_wasm_derive::module(RewardsModuleImpl)]
 pub trait RewardsModule {
@@ -40,7 +49,30 @@ pub trait RewardsModule {
     #[module(NodeActivationModuleImpl)]
     fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
 
+    /// Claiming rewards has 2 steps:
+    /// 1. computing the delegator rewards out of the total rewards, and
+    /// 2. sending those rewards to the delegator address. 
+    /// This field keeps track of rewards that went through step 1 but not 2,
+    /// i.e. were computed and deducted from the total rewards, but not yet "physically" sent to the user.
+    /// The unclaimed stake still resides in the contract.
+    #[storage_get("u_rew_unclmd")]
+    fn get_user_rew_unclaimed(&self, user_id: usize) -> BigUint;
 
+    #[storage_set("u_rew_unclmd")]
+    fn set_user_rew_unclaimed(&self, user_id: usize, user_rew_unclaimed: &BigUint);
+
+    /// As the time passes, if the contract is active, rewards periodically arrive in the contract. 
+    /// Users can claim their share of rewards anytime.
+    /// This field helps keeping track of how many rewards came to the contract since the last claim.
+    /// More specifically, it indicates the cumulated sum of rewards that had arrived in the contract 
+    /// when the user last claimed their own personal rewards.
+    /// If zero, it means the user never claimed any rewards.
+    /// If equal to get_total_cumulated_rewards, it means the user claimed everything there is for him/her.
+    #[storage_get("u_rew_checkp")]
+    fn get_user_rew_checkpoint(&self, user_id: usize) -> BigUint;
+
+    #[storage_set("u_rew_checkp")]
+    fn set_user_rew_checkpoint(&self, user_id: usize, user_rew_checkpoint: &BigUint);
 
     #[storage_get("sent_rewards")]
     fn get_sent_rewards(&self) -> BigUint;
@@ -69,7 +101,7 @@ pub trait RewardsModule {
 
     /// Does not update storage, only returns the user rewards object, after computing rewards.
     fn load_updated_user_rewards(&self, user_id: usize) -> UserRewardData<BigUint> {
-        let mut user_data = self.user_data().load_user_data(user_id);
+        let mut user_data = self.load_user_reward_data(user_id);
 
         // new rewards are what was added since the last time rewards were computed
         let tot_cumul_rewards = self.get_total_cumulated_rewards();
@@ -122,7 +154,7 @@ pub trait RewardsModule {
     /// Convenience method, brings user rewards up to date for one user.
     fn update_user_rewards(&self, user_id: usize) {
         let user_rewards = self.load_updated_user_rewards(user_id);
-        self.user_data().store_user_data(user_id, &user_rewards);
+        self.store_user_reward_data(user_id, &user_rewards);
     }
 
     /// Computes rewards for all delegators and the node.
@@ -137,7 +169,7 @@ pub trait RewardsModule {
         // but load_updated_user_rewards works in all cases
         for user_id in 1..(num_nodes+1) {
             let user_data = self.load_updated_user_rewards(user_id);
-            self.user_data().store_user_data(user_id, &user_data);
+            self.store_user_reward_data(user_id, &user_data);
             sum_unclaimed += user_data.unclaimed_rewards;
         }
 
@@ -145,9 +177,9 @@ pub trait RewardsModule {
         // give it to the validator user, to keep things clear
         let remainder = self.get_total_cumulated_rewards() - sum_unclaimed - self.get_sent_rewards();
         if remainder > 0 {
-            let mut node_unclaimed = self.user_data().get_user_rew_unclaimed(OWNER_USER_ID);
+            let mut node_unclaimed = self.get_user_rew_unclaimed(OWNER_USER_ID);
             node_unclaimed += &remainder;
-            self.user_data().set_user_rew_unclaimed(OWNER_USER_ID, &node_unclaimed);
+            self.set_user_rew_unclaimed(OWNER_USER_ID, &node_unclaimed);
         }
     }
 
@@ -198,7 +230,7 @@ pub trait RewardsModule {
             user_data.unclaimed_rewards = BigUint::zero();
         }
 
-        self.user_data().store_user_data(user_id, &user_data);
+        self.store_user_reward_data(user_id, &user_data);
 
         Ok(())
     }
@@ -211,6 +243,22 @@ pub trait RewardsModule {
         let mut sent_rewards = self.get_sent_rewards();
         sent_rewards += amount;
         self.set_sent_rewards(&sent_rewards);
+    }
+
+    /// Loads the entire UserRewardData object from storage.
+    fn load_user_reward_data(&self, user_id: usize) -> UserRewardData<BigUint> {
+        let u_rew_checkp = self.get_user_rew_checkpoint(user_id);
+        let u_rew_unclmd = self.get_user_rew_unclaimed(user_id);
+        UserRewardData {
+            reward_checkpoint: u_rew_checkp,
+            unclaimed_rewards: u_rew_unclmd,
+        }
+    }
+
+    /// Saves a UserRewardData object to storage.
+    fn store_user_reward_data(&self, user_id: usize, data: &UserRewardData<BigUint>) {
+        self.set_user_rew_checkpoint(user_id, &data.reward_checkpoint);
+        self.set_user_rew_unclaimed(user_id, &data.unclaimed_rewards);
     }
 
 }
