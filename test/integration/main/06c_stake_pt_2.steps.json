@@ -3,7 +3,7 @@
     "steps": [
         {
             "step": "scCall",
-            "txId": "check-total_stake-3",
+            "txId": "check-total_stake-6",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",

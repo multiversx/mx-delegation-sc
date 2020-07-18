@@ -95,14 +95,7 @@ pub trait StakeSaleModule {
         self.user_data().get_user_stake_of_type(user_id, UserStakeState::ActiveForSale)
     }
 
-    // #[view(getTimeOfStakeOffer)]
-    // fn get_time_of_stake_offer(&self, user: Address) -> u64 {
-    //     let user_id = self.user_data().get_user_id(&user);
-    //     if user_id == 0 {
-    //         return 0
-    //     }
-    //     self.user_data().get_user_bl_nonce_of_stake_offer(user_id)
-    // }
+
 
     /// User-to-user purchase of stake.
     /// Only stake that has been offered for sale by owner can be bought.

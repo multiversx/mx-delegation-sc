@@ -201,7 +201,7 @@ pub trait RewardsModule {
 
     fn send_rewards(&self, to: &Address, amount: &BigUint) {
         // send funds
-        self.send_tx(to, amount, "delegation claim");
+        self.send_tx(to, amount, "delegation rewards claim");
 
         // increment globally sent funds
         let mut sent_rewards = self.get_sent_rewards();

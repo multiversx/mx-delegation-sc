@@ -55,11 +55,12 @@
         {
             "step": "scCall",
             "txId": "check-stake-offer-time",
+            "comment": "TODO: coalesce/deduplicate",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
                 "value": "0",
-                "function": "getTimeOfStakeOffer",
+                "function": "getStakeForSaleCreationNonces",
                 "arguments": [
                     "''delegator_1___________________s1"
                 ],
@@ -67,7 +68,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "out": [ "521000" ],
+                "out": [ "521000", "521000" ],
                 "status": "",
                 "logs": [],
                 "gas": "*",

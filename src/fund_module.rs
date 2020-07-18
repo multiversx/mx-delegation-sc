@@ -24,8 +24,8 @@ pub trait FundModule {
         F: Fn(&FundInfo) -> bool,
     {
         let mut sum = BigUint::zero();
-        let mut list = self.get_fund_list(discriminant);
-        for fund_item in list.0.iter_mut() {
+        let list = self.get_fund_list(discriminant);
+        for fund_item in list.0.iter() {
             if filter(&fund_item.info) {
                 sum += &fund_item.balance;
             }
@@ -47,6 +47,19 @@ pub trait FundModule {
             }
         }
         sum
+    }
+
+    fn find_in_list_map<F, R>(&self, discriminant: u8, f: F) -> Option<R> 
+    where 
+        F: Fn(&FundInfo) -> Option<R>,
+    {
+        let list = self.get_fund_list(discriminant);
+        for fund_item in list.0.iter() {
+            if let Some(r) = f(&fund_item.info) {
+                return Some(r);
+            }
+        }
+        None
     }
 
     fn create_fund(&self, fund_info: FundInfo, balance: BigUint) {

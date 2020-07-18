@@ -282,6 +282,25 @@ pub trait UserDataModule {
         Ok(())
     }
 
+    #[view(getStakeForSaleCreationNonces)]
+    fn get_stake_for_sale_creation_nonces(&self, user: Address) -> MultiResultVec<u64> {
+        let user_id = self.get_user_id(&user);
+        if user_id == 0 {
+            return MultiResultVec::new();
+        }
+        self.fund_module().get_fund_list(DISCR_ACTIVE_FOR_SALE)
+            .0.iter()
+            .filter_map(|fund_item| {
+                if fund_item.info.user_id == user_id {
+                    if let FundType::ActiveForSale{ created } = fund_item.info.fund_type {
+                        return Some(created)
+                    }
+                }
+                None
+            })
+            .collect()
+    }
+
     /// Claiming rewards has 2 steps:
     /// 1. computing the delegator rewards out of the total rewards, and
     /// 2. sending those rewards to the delegator address. 

@@ -387,9 +387,10 @@ pub trait FundTransformationsModule {
             DISCR_PENDING_UNBOND,
             |fund_info| {
                 if let FundType::UnBondPeriod { created, requested_unstake } = fund_info.fund_type {
-                    if current_bl_nonce > created + n_blocks_before_unbond {
+                    if current_bl_nonce >= created + n_blocks_before_unbond {
                         return Some(FundInfo {
-                            fund_type: FundType::Free {
+                            fund_type: FundType::PendingUnBond {
+                                unbond_created: created,
                                 requested_unstake,
                             },
                             user_id: fund_info.user_id,
