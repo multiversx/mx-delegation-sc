@@ -84,7 +84,7 @@ pub trait FundTransformationsModule {
             }
         );
         if *amount > 0 {
-            return sc_error!("cannot offer more than the user active stake");
+            return sc_error!("not enough stake pending activation");
         }
 
         Ok(())
@@ -106,7 +106,7 @@ pub trait FundTransformationsModule {
             }
         );
         if *amount > 0 {
-            return sc_error!("cannot offer more than the user active stake");
+            return sc_error!("not enough stake pending activation");
         }
 
         Ok(())
@@ -347,7 +347,7 @@ pub trait FundTransformationsModule {
             }
         );
         if *amount > 0 {
-            return sc_error!("cannot offer more than the user active stake");
+            return sc_error!("not enough stake pending unstake");
         }
 
         Ok(())
@@ -370,7 +370,7 @@ pub trait FundTransformationsModule {
             }
         );
         if *amount > 0 {
-            return sc_error!("cannot offer more than the user active stake");
+            return sc_error!("not enough stake pending unstake");
         }
 
         Ok(())
@@ -401,7 +401,7 @@ pub trait FundTransformationsModule {
             }
         );
         if *amount > 0 {
-            return sc_error!("cannot offer more than the user active stake");
+            return sc_error!("not enough stake eligible for unbond");
         }
 
         Ok(())
@@ -426,7 +426,7 @@ pub trait FundTransformationsModule {
             }
         );
         if *amount > 0 {
-            return sc_error!("cannot offer more than the user active stake");
+            return sc_error!("not enough stake pending unbond");
         }
 
         Ok(())
@@ -451,7 +451,7 @@ pub trait FundTransformationsModule {
             }
         );
         if *amount > 0 {
-            return sc_error!("cannot offer more than the user active stake");
+            return sc_error!("not enough stake pending unbond");
         }
 
         Ok(())
@@ -474,9 +474,9 @@ pub trait FundTransformationsModule {
                 None
             }
         );
-        // if *amount > 0 {
-        //     return sc_error!("cannot offer more than the user active stake");
-        // }
+        if *amount > 0 {
+            return sc_error!("not enough stake activation failed");
+        }
 
         Ok(())
     }
