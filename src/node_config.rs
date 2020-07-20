@@ -212,6 +212,7 @@ pub trait NodeModule {
                 self.set_node_signature(node_id, bls_sig);
             } else if self.get_node_state(node_id) == NodeState::Removed {
                 self.set_node_state(node_id, NodeState::Inactive);
+                self.set_node_signature(node_id, bls_sig);
             } else {
                 return sc_error!("node already registered"); 
             }
