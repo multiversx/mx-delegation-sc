@@ -10,8 +10,17 @@ use super::fund_item::*;
 pub struct FundList<BigUint:BigUintApi> (pub Vec<FundItem<BigUint>>);
 
 impl<BigUint:BigUintApi> FundList<BigUint> {
-    #[inline]
+    /// Will coalesce consecutively pushed items if they are compatible to each other.
+    /// Regular Vec push otherwise.
     pub fn push(&mut self, item: FundItem<BigUint>) {
+        if !self.0.is_empty() {
+            let last_index = self.0.len() - 1;
+            let last = &mut self.0[last_index];
+            if FundInfo::can_coalesce(&last.info, &item.info) {
+                last.balance += item.balance;
+                return;
+            }
+        }
         self.0.push(item);
     }
 }

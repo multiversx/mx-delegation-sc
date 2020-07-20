@@ -8,6 +8,12 @@ pub struct FundInfo {
     pub fund_type: FundType,
 }
 
+impl FundInfo {
+    pub fn can_coalesce(f1: &FundInfo, f2: &FundInfo) -> bool {
+        f1.user_id == f2.user_id && f1.fund_type == f2.fund_type
+    }
+}
+
 pub struct FundItem<BigUint:BigUintApi> {
     pub info: FundInfo,
     pub balance: BigUint,
