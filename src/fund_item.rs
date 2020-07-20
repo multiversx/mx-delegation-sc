@@ -3,17 +3,23 @@ use elrond_wasm::BigUintApi;
 
 use super::fund_type::*;
 
+/// Describes a unit of balance, usually stake.
+/// Contains the descriptive part of a fund bucket, without the balance part.
 pub struct FundInfo {
     pub user_id: usize,
     pub fund_type: FundType,
 }
 
 impl FundInfo {
+    /// Pushing identical items at the end of a list, brings them together in 1 item.
+    /// This is to save storage space.
     pub fn can_coalesce(f1: &FundInfo, f2: &FundInfo) -> bool {
         f1.user_id == f2.user_id && f1.fund_type == f2.fund_type
     }
 }
 
+/// A unit of balance, usually stake.
+/// Contains a description of the source/intent of the funds, together with a balance.
 pub struct FundItem<BigUint:BigUintApi> {
     pub info: FundInfo,
     pub balance: BigUint,

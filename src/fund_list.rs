@@ -1,12 +1,13 @@
 use elrond_wasm::elrond_codec::*;
 use elrond_wasm::Vec;
-// use elrond_wasm::Queue;
 use elrond_wasm::BigUintApi;
 
-// use super::fund_type::*;
 use super::fund_item::*;
 
-
+/// A list of fund items, that also works as a queue.
+/// When an individual item's balance drops to zero,
+/// it is no longer serialized to storage.
+/// This is how we manage to delete items and free storage without moving the items that come after.
 pub struct FundList<BigUint:BigUintApi> (pub Vec<FundItem<BigUint>>);
 
 impl<BigUint:BigUintApi> FundList<BigUint> {
@@ -26,6 +27,9 @@ impl<BigUint:BigUintApi> FundList<BigUint> {
 }
 
 /// Serializes identically to a Vec, entries before start index are ignored.
+/// Also entries without a balance are dropped.
+/// Does not implement dep_encode_to because unlikve Vec, the length is not known ahead of time,
+/// and beccause we never need to embed it into another struct.
 impl<BigUint:BigUintApi> Encode for FundList<BigUint> {
     #[inline]
 	fn using_top_encoded<F: FnOnce(&[u8])>(&self, f: F) -> Result<(), EncodeError> {
