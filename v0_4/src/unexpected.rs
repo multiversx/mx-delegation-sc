@@ -3,7 +3,7 @@
 
 use crate::rewards::*;
 use crate::settings::*;
-use crate::stake_sale::*;
+use crate::user_unstake::*;
 use crate::user_data::*;
 use crate::fund_transf_module::*;
 use crate::fund_view_module::*;
@@ -30,7 +30,7 @@ pub trait UnexpectedBalanceModule {
     fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
 
     #[module(StakeSaleModuleImpl)]
-    fn stake_sale(&self) -> StakeSaleModuleImpl<T, BigInt, BigUint>;
+    fn user_unstake(&self) -> StakeSaleModuleImpl<T, BigInt, BigUint>;
 
     /// Expected balance includes:
     /// - stake
