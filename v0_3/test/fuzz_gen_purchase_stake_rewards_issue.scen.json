@@ -18,7 +18,7 @@
                     "storage": {
                         "''stake_per_node": "1000000000"
                     },
-                    "code": "file:../auction-mock/output/auction-mock.wasm"
+                    "code": "file:../../auction-mock/output/auction-mock.wasm"
                 },
                 "''endless_sack_of_erd___________s1": {
                     "nonce": "0",

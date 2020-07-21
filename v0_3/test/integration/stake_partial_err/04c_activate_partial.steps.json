@@ -113,7 +113,7 @@
                     "nonce": "0",
                     "balance": "333,000,000,000,000",
                     "storage": "*",
-                    "code": "file:../../../auction-mock/output/auction-mock.wasm"
+                    "code": "file:../../../../auction-mock/output/auction-mock.wasm"
                 },
                 "''delegator_1___________________s1": {
                     "nonce": "*",
