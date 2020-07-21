@@ -7,7 +7,7 @@ use super::fund_type::*;
 /// Contains the descriptive part of a fund bucket, without the balance part.
 pub struct FundInfo {
     pub user_id: usize,
-    pub fund_type: FundType,
+    pub fund_type: FundDescription,
 }
 
 impl FundInfo {
@@ -41,7 +41,7 @@ impl<BigUint:BigUintApi> Decode for FundItem<BigUint> {
         Ok(FundItem {
             info: FundInfo {
                 user_id: usize::dep_decode(input)?,
-                fund_type: FundType::dep_decode(input)?,
+                fund_type: FundDescription::dep_decode(input)?,
             },
             balance: BigUint::dep_decode(input)?,
         })

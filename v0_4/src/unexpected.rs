@@ -1,5 +1,5 @@
 
-// use crate::user_stake_state::*;
+// use crate::fund_type::*;
 
 use crate::rewards::*;
 use crate::settings::*;

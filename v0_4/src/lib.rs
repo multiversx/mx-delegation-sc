@@ -8,7 +8,6 @@
 pub mod auction_proxy;
 pub mod bls_key;
 pub mod node_state;
-pub mod user_stake_state;
 pub mod fund_item;
 pub mod fund_list;
 pub mod fund_type;

@@ -1,4 +1,4 @@
-use crate::user_stake_state::*;
+use crate::fund_type::*;
 
 use crate::events::*;
 use crate::pause::*;
@@ -53,16 +53,16 @@ pub trait StakeSaleModule {
 
         // compute rewards 
         self.rewards().update_user_rewards(user_id); // for user
-        self.rewards().update_user_rewards(OWNER_USER_ID); // for owner, since ActiveForSale will change
+        self.rewards().update_user_rewards(OWNER_USER_ID); // for owner, since UnStaked will change
 
-        // convert user stake from Active to ActiveForSale
-        let stake = self.fund_view_module().get_user_stake_of_type(user_id, UserStakeState::Active);
+        // convert user stake from Active to UnStaked
+        let stake = self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active);
         if amount > stake {
             return sc_error!("cannot offer more than the user active stake")
         }
 
         // convert stake
-        sc_try!(self.fund_transf_module().announce_unstake_transf(user_id, &amount));
+        sc_try!(self.fund_transf_module().unstake_transf(user_id, &amount));
 
         Ok(())
     }
@@ -74,7 +74,7 @@ pub trait StakeSaleModule {
         if user_id == 0 {
             return BigUint::zero()
         }
-        self.fund_view_module().get_user_stake_of_type(user_id, UserStakeState::ActiveForSale)
+        self.fund_view_module().get_user_stake_of_type(user_id, FundType::UnStaked)
     }
 
     /// User-to-user purchase of stake.
@@ -112,7 +112,7 @@ pub trait StakeSaleModule {
         // compute rewards (must happen before transferring stake):
         self.rewards().update_user_rewards(seller_id); // for seller
         self.rewards().update_user_rewards(buyer_id); // for buyer
-        self.rewards().update_user_rewards(OWNER_USER_ID); // for owner, since ActiveForSale will change
+        self.rewards().update_user_rewards(OWNER_USER_ID); // for owner, since UnStaked will change
 
         // 1. payment from buyer becomes free stake
         self.fund_transf_module().create_free_stake(buyer_id, &payment);

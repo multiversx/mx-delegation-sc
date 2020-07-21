@@ -3,9 +3,7 @@ imports!();
 // use super::fund_list::*;
 // use super::fund_item::*;
 use super::fund_type::*;
-
 use crate::node_config::PERCENTAGE_DENOMINATOR;
-use crate::user_stake_state::*;
 
 
 use crate::fund_module::*;
@@ -36,64 +34,44 @@ pub trait FundViewModule {
         self.fund_module().query_all(|fund_info| fund_info.fund_type.is_stake())
     } 
 
-    fn get_user_stake_of_type(&self, user_id: usize, stake_type: UserStakeState) -> BigUint {
+    fn get_user_stake_of_type(&self, user_id: usize, stake_type: FundType) -> BigUint {
         match stake_type {
-            UserStakeState::Inactive => {
-                self.fund_module().query_list(DISCR_FREE,
+            FundType::WithdrawOnly => {
+                self.fund_module().query_list(DISCR_WITHDRAW_ONLY,
                     |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id) &&
-                        if let FundType::Free{ requested_unstake: false } = fund_info.fund_type { true } else { false }
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id)
                 )
             },
-            UserStakeState::PendingActivation => {
+            FundType::Inactive => {
+                self.fund_module().query_list(DISCR_INACTIVE,
+                    |fund_info|
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id)
+                )
+            },
+            FundType::PendingActivation => {
                 self.fund_module().query_list(DISCR_PENDING_ACT,
                     |fund_info| 
                         (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
             },
-            UserStakeState::Active => {
+            FundType::Active => {
                 self.fund_module().query_list(DISCR_ACTIVE, 
                     |fund_info|
                         (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
             },
-            UserStakeState::PendingDeactivation => {
-                self.fund_module().query_list(DISCR_PENDING_DEACT,
-                    |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id) &&
-                        if let FundType::PendingDeactivation{ requested_unstake: false } = fund_info.fund_type { true } else { false }
-                )
-            },
-            UserStakeState::UnBondPeriod => {
-                self.fund_module().query_list(DISCR_UNBOND, 
-                    |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
-            },
-            UserStakeState::PendingUnBond => {
-                self.fund_module().query_list(DISCR_PENDING_ACT, 
-                    |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
-            },
-            UserStakeState::WithdrawOnly => {
-                self.fund_module().query_list(DISCR_FREE,
-                    |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id) &&
-                        if let FundType::Free{ requested_unstake: true } = fund_info.fund_type { true } else { false })
-            },
-            UserStakeState::ActivationFailed => {
+            FundType::ActivationFailed => {
                 self.fund_module().query_list(DISCR_ACTIVE_FAILED, 
                     |fund_info|
                         (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
             },
-            UserStakeState::ActiveForSale => {
-                self.fund_module().query_list(DISCR_ACTIVE_FOR_SALE, 
+            FundType::UnStaked => {
+                self.fund_module().query_list(DISCR_UNSTAKED, 
                     |fund_info|
                         (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
             },
-            UserStakeState::PendingDeactivationFromSale => {
-                self.fund_module().query_list(DISCR_PENDING_DEACT,
+            FundType::DeferredPayment => {
+                self.fund_module().query_list(DISCR_DEF_PAYMENT, 
                     |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id) &&
-                        if let FundType::PendingDeactivation{ requested_unstake: true } = fund_info.fund_type { true } else { false }
-                )
+                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
             },
         }
     }
@@ -121,7 +99,7 @@ pub trait FundViewModule {
         if user_id == 0 {
             BigUint::zero()
         } else {
-            self.get_user_stake_of_type(user_id, UserStakeState::Active)
+            self.get_user_stake_of_type(user_id, FundType::Active)
         }
     }
 
@@ -131,34 +109,28 @@ pub trait FundViewModule {
         if user_id == 0 {
             BigUint::zero()
         } else {
-            self.get_user_stake_of_type(user_id, UserStakeState::Inactive) +
-            self.get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly)
+            self.get_user_stake_of_type(user_id, FundType::Inactive) +
+            self.get_user_stake_of_type(user_id, FundType::WithdrawOnly)
         }
     }
 
-    fn get_user_stake_by_type(&self, user_id: usize) -> MultiResult10<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_user_stake_by_type(&self, user_id: usize) -> MultiResult7<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         (
-            self.get_user_stake_of_type(user_id, UserStakeState::Inactive),
-            self.get_user_stake_of_type(user_id, UserStakeState::PendingActivation),
-            self.get_user_stake_of_type(user_id, UserStakeState::Active),
-            self.get_user_stake_of_type(user_id, UserStakeState::PendingDeactivation),
-            self.get_user_stake_of_type(user_id, UserStakeState::UnBondPeriod),
-            self.get_user_stake_of_type(user_id, UserStakeState::PendingUnBond),
-            self.get_user_stake_of_type(user_id, UserStakeState::WithdrawOnly),
-            self.get_user_stake_of_type(user_id, UserStakeState::ActivationFailed),
-            self.get_user_stake_of_type(user_id, UserStakeState::ActiveForSale),
-            self.get_user_stake_of_type(user_id, UserStakeState::PendingDeactivationFromSale),
+            self.get_user_stake_of_type(user_id, FundType::WithdrawOnly),
+            self.get_user_stake_of_type(user_id, FundType::Inactive),
+            self.get_user_stake_of_type(user_id, FundType::PendingActivation),
+            self.get_user_stake_of_type(user_id, FundType::Active),
+            self.get_user_stake_of_type(user_id, FundType::ActivationFailed),
+            self.get_user_stake_of_type(user_id, FundType::UnStaked),
+            self.get_user_stake_of_type(user_id, FundType::DeferredPayment),
         ).into()
     }
 
     #[view(getUserStakeByType)]
-    fn get_user_stake_by_type_endpoint(&self, user_address: &Address) -> MultiResult10<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_user_stake_by_type_endpoint(&self, user_address: &Address) -> MultiResult7<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         let user_id = self.user_data().get_user_id(&user_address);
         if user_id == 0 {
             (
-                BigUint::zero(),
-                BigUint::zero(),
-                BigUint::zero(),
                 BigUint::zero(),
                 BigUint::zero(),
                 BigUint::zero(),
@@ -173,19 +145,19 @@ pub trait FundViewModule {
     }
 
     #[view(getTotalStakeByType)]
-    fn get_total_stake_by_type_endpoint(&self) -> MultiResult10<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_total_stake_by_type_endpoint(&self) -> MultiResult7<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 
     #[view(getTotalActiveStake)]
     fn get_total_active_stake(&self) -> BigUint {
-        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Active)
+        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active)
     }
 
     #[view(getTotalInactiveStake)]
     fn get_total_inactive_stake(&self) -> BigUint {
-        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Inactive) +
-        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::WithdrawOnly)
+        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Inactive) +
+        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly)
     }
 
     fn all_funds_in_contract(&self) -> BigUint {
@@ -216,11 +188,11 @@ pub trait FundViewModule {
         if user_id == 0 {
             return MultiResultVec::new();
         }
-        self.fund_module().get_fund_list(DISCR_ACTIVE_FOR_SALE)
+        self.fund_module().get_fund_list(DISCR_UNSTAKED)
             .0.iter()
             .filter_map(|fund_item| {
                 if fund_item.info.user_id == user_id {
-                    if let FundType::ActiveForSale{ created } = fund_item.info.fund_type {
+                    if let FundDescription::UnStaked{ created } = fund_item.info.fund_type {
                         return Some(created)
                     }
                 }

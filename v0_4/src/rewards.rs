@@ -1,5 +1,5 @@
 
-use crate::user_stake_state::*;
+use crate::fund_type::*;
 
 use super::settings::*;
 use crate::events::*;
@@ -115,9 +115,9 @@ pub trait RewardsModule {
         
         // total stake that gets rewarded
         let total_active_stake_for_sale =
-            self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::ActiveForSale);
+            self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
         let total_active_stake =
-            &self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, UserStakeState::Active) +
+            &self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active) +
             &total_active_stake_for_sale;
 
         // update node rewards, if applicable
@@ -125,7 +125,7 @@ pub trait RewardsModule {
             // the owner gets the service fee
             user_data.unclaimed_rewards += &service_fee;
 
-            // the owner also gets all rewards for all the ActiveForSale stake
+            // the owner also gets all rewards for all the UnStaked stake
             if total_active_stake_for_sale > 0 {
                 let mut active_for_sale_new_rewards = &tot_new_rewards - &service_fee;
                 active_for_sale_new_rewards *= &total_active_stake_for_sale;
@@ -135,7 +135,7 @@ pub trait RewardsModule {
         }
 
         // update delegator rewards based on Active stake
-        let u_stake_active = self.fund_view_module().get_user_stake_of_type(user_id, UserStakeState::Active);
+        let u_stake_active = self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active);
         if u_stake_active > 0 {
             // delegator reward is:
             // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake

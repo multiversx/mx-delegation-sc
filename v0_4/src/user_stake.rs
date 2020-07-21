@@ -113,26 +113,26 @@ pub trait UserStakeModule {
         Ok(())
     }
 
-    /// Delegators can force some or all nodes to unstake
-    /// if they put up stake for sale and no-one has bought it for long enough.
-    /// This operation can be performed by any delegator.
-    #[endpoint(unStake)]
-    fn unstake_endpoint(&self) -> SCResult<()> {
-        let user_id = self.user_data().get_user_id(&self.get_caller());
-        if user_id == 0 {
-            return sc_error!("only delegators can call unStake");
-        }
+    // /// Delegators can force some or all nodes to unstake
+    // /// if they put up stake for sale and no-one has bought it for long enough.
+    // /// This operation can be performed by any delegator.
+    // #[endpoint(unStake)]
+    // fn unstake_endpoint(&self) -> SCResult<()> {
+    //     let user_id = self.user_data().get_user_id(&self.get_caller());
+    //     if user_id == 0 {
+    //         return sc_error!("only delegators can call unStake");
+    //     }
 
-        let n_blocks_before_force_unstake = self.settings().get_n_blocks_before_force_unstake();
-        let eligible_for_unstake = self.fund_transf_module().eligible_for_unstake(user_id, n_blocks_before_force_unstake);
-        if eligible_for_unstake == 0 {
-            return sc_error!("no stake eligible for unStake");
-        }
+    //     let n_blocks_before_force_unstake = self.settings().get_n_blocks_before_force_unstake();
+    //     let eligible_for_unstake = self.fund_transf_module().eligible_for_unstake(user_id, n_blocks_before_force_unstake);
+    //     if eligible_for_unstake == 0 {
+    //         return sc_error!("no stake eligible for unStake");
+    //     }
 
-        // find nodes to unstake
-        let (node_ids, bls_keys) = self.node_config().find_nodes_for_unstake(&eligible_for_unstake);
+    //     // find nodes to unstake
+    //     let (node_ids, bls_keys) = self.node_config().find_nodes_for_unstake(&eligible_for_unstake);
         
-        self.node_activation().perform_unstake_nodes(Some(user_id), node_ids, bls_keys)
-    }
+    //     self.node_activation().perform_unstake_nodes(Some(user_id), node_ids, bls_keys)
+    // }
     
 }
