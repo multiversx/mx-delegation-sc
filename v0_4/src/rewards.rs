@@ -113,28 +113,15 @@ pub trait RewardsModule {
         // the owner is entitled to: new rewards * service_fee / NODE_DENOMINATOR
         let service_fee = self.service_fee_reward(&tot_new_rewards);
         
-        // total stake that gets rewarded
-        let total_active_stake_for_sale =
-            self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
-        let total_active_stake =
-            &self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active) +
-            &total_active_stake_for_sale;
-
         // update node rewards, if applicable
         if user_id == OWNER_USER_ID {
             // the owner gets the service fee
             user_data.unclaimed_rewards += &service_fee;
-
-            // the owner also gets all rewards for all the UnStaked stake
-            if total_active_stake_for_sale > 0 {
-                let mut active_for_sale_new_rewards = &tot_new_rewards - &service_fee;
-                active_for_sale_new_rewards *= &total_active_stake_for_sale;
-                active_for_sale_new_rewards /= &total_active_stake;
-                user_data.unclaimed_rewards += &active_for_sale_new_rewards;
-            }
         }
 
         // update delegator rewards based on Active stake
+        let total_active_stake =
+            self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
         let u_stake_active = self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active);
         if u_stake_active > 0 {
             // delegator reward is:

@@ -39,8 +39,8 @@ pub trait StakeSaleModule {
     /// Creates a stake offer. Overwrites any previous stake offer.
     /// Once a stake offer is up, it can be bought by anyone on a first come first served basis.
     /// Cannot be paused, because this is also part of the unStake mechanism, which the owner cannot veto.
-    #[endpoint(announceUnStake)]
-    fn announce_unstake(&self, amount: BigUint) -> SCResult<()> {
+    #[endpoint(unStake)]
+    fn unstake_endpoint(&self, amount: BigUint) -> SCResult<()> {
         if !self.settings().is_unstake_enabled() {
             return sc_error!("unstake is currently disabled");
         }
@@ -52,79 +52,35 @@ pub trait StakeSaleModule {
         }
 
         // compute rewards 
-        self.rewards().update_user_rewards(user_id); // for user
-        self.rewards().update_user_rewards(OWNER_USER_ID); // for owner, since UnStaked will change
+        self.rewards().compute_all_rewards();
 
-        // convert user stake from Active to UnStaked
+        // check that amount does not exceed existing active stake
         let stake = self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active);
         if amount > stake {
             return sc_error!("cannot offer more than the user active stake")
         }
 
-        // convert stake
+        // convert Active -> Unstaked
         sc_try!(self.fund_transf_module().unstake_transf(user_id, &amount));
 
+        // try to fill the Unstaked stake with Inactive stake in the queue
+        sc_try!(self.fill_unstaked_from_queue());
+
         Ok(())
     }
 
-    /// Check if a user is willing to sell stake, and how much.
-    #[view(getStakeForSale)]
-    fn get_stake_for_sale(&self, user: Address) -> BigUint {
-        let user_id = self.user_data().get_user_id(&user);
-        if user_id == 0 {
-            return BigUint::zero()
+    #[endpoint(fillUnstakedFromQueue)]
+    fn fill_unstaked_from_queue(&self) -> SCResult<()> {
+        let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
+        if total_unstaked == 0 {
+            return Ok(());
         }
-        self.fund_view_module().get_user_stake_of_type(user_id, FundType::UnStaked)
-    }
-
-    /// User-to-user purchase of stake.
-    /// Only stake that has been offered for sale by owner can be bought.
-    /// Note: the price of 1 staked ERD must always be 1 "free" ERD, from outside the contract.
-    #[payable]
-    #[endpoint(purchaseStake)]
-    fn purchase_stake(&self, seller: Address, #[payment] payment: BigUint) -> SCResult<()> {
-        if self.pause().is_stake_sale_paused() {
-            return sc_error!("stake sale paused");
+        let total_inactive = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Inactive);
+        if total_inactive == 0 {
+            return Ok(());
         }
-        
-        let caller = self.get_caller();
-        if caller == seller {
-            return sc_error!("cannot purchase from self");
-        }
-
-        if payment == 0 {
-            return Ok(())
-        }
-
-        // get seller id
-        let seller_id = self.user_data().get_user_id(&seller);
-        if seller_id == 0 {
-            return sc_error!("unknown seller")
-        }
-
-        // get buyer id or create buyer
-        let mut buyer_id = self.user_data().get_user_id(&caller);
-        if buyer_id == 0 {
-            buyer_id = self.user_data().new_user();
-            self.user_data().set_user_id(&caller, buyer_id);
-        }
-
-        // compute rewards (must happen before transferring stake):
-        self.rewards().update_user_rewards(seller_id); // for seller
-        self.rewards().update_user_rewards(buyer_id); // for buyer
-        self.rewards().update_user_rewards(OWNER_USER_ID); // for owner, since UnStaked will change
-
-        // 1. payment from buyer becomes free stake
-        self.fund_transf_module().create_free_stake(buyer_id, &payment);
-
-        // 2a. transfer stake seller -> buyer
-        // 2b. create deferred payment
-        sc_try!(self.fund_transf_module().stake_sale_transf(buyer_id, seller_id, &payment));
-
-        // log transaction
-        self.events().purchase_stake_event(&seller, &caller, &payment);
-
-        Ok(())
+        let swappable = core::cmp::min(total_unstaked, total_inactive);
+        self.fund_transf_module().inactive_unstaked_swap_transf(&swappable)
     }
 
     #[endpoint(claimPayment)]

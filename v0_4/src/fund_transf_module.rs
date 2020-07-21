@@ -122,35 +122,31 @@ pub trait FundTransformationsModule {
         Ok(())
     }
 
-    fn stake_sale_transf(&self, buyer_id: usize, seller_id: usize, amount: &BigUint) -> SCResult<()> {
+    fn inactive_unstaked_swap_transf(&self, amount: &BigUint) -> SCResult<()> {
         // convert active stake -> deferred payment (seller)
-        let mut stake_to_convert = amount.clone();
+        let mut unstaked_to_convert = amount.clone();
         let current_bl_nonce = self.get_block_nonce();
         self.fund_module().split_convert_max(
-            &mut stake_to_convert,
+            &mut unstaked_to_convert,
             DISCR_UNSTAKED,
             DISCR_DEF_PAYMENT,
             |fund_info| {
                 if let FundDescription::UnStaked{ .. } = fund_info.fund_desc {
-                    if fund_info.user_id == seller_id {
-                        return Some(FundDescription::DeferredPayment{ created: current_bl_nonce })
-                    }
+                    return Some(FundDescription::DeferredPayment{ created: current_bl_nonce })
                 }
                 None
             }
         );
 
         // convert inactive -> active (buyer)
-        let mut payment_to_convert = amount.clone();
+        let mut stake_to_activate = amount.clone();
         self.fund_module().split_convert_max(
-            &mut payment_to_convert,
+            &mut stake_to_activate,
             DISCR_INACTIVE,
             DISCR_ACTIVE,
             |fund_info| {
-                if let FundDescription::Inactive{ .. } = fund_info.fund_desc {
-                    if fund_info.user_id == buyer_id {
-                        return Some(FundDescription::Active)
-                    }
+                if let FundDescription::Inactive = fund_info.fund_desc {
+                    return Some(FundDescription::Active)
                 }
                 None
             }
