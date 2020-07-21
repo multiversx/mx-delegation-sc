@@ -7,14 +7,14 @@ use super::fund_type::*;
 /// Contains the descriptive part of a fund bucket, without the balance part.
 pub struct FundInfo {
     pub user_id: usize,
-    pub fund_type: FundDescription,
+    pub fund_desc: FundDescription,
 }
 
 impl FundInfo {
     /// Pushing identical items at the end of a list, brings them together in 1 item.
     /// This is to save storage space.
     pub fn can_coalesce(f1: &FundInfo, f2: &FundInfo) -> bool {
-        f1.user_id == f2.user_id && f1.fund_type == f2.fund_type
+        f1.user_id == f2.user_id && f1.fund_desc == f2.fund_desc
     }
 }
 
@@ -29,7 +29,7 @@ impl<BigUint:BigUintApi> Encode for FundItem<BigUint> {
 	#[inline]
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         self.info.user_id.dep_encode_to(dest)?;
-        self.info.fund_type.dep_encode_to(dest)?;
+        self.info.fund_desc.dep_encode_to(dest)?;
         self.balance.dep_encode_to(dest)?;
         Ok(())
 	}
@@ -41,7 +41,7 @@ impl<BigUint:BigUintApi> Decode for FundItem<BigUint> {
         Ok(FundItem {
             info: FundInfo {
                 user_id: usize::dep_decode(input)?,
-                fund_type: FundDescription::dep_decode(input)?,
+                fund_desc: FundDescription::dep_decode(input)?,
             },
             balance: BigUint::dep_decode(input)?,
         })

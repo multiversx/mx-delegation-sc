@@ -18,7 +18,7 @@ pub trait FundTransformationsModule {
     fn create_free_stake(&self, user_id: usize, balance: &BigUint) {
         self.fund_module().create_fund(
             FundInfo{
-                fund_type: FundDescription::Inactive,
+                fund_desc: FundDescription::Inactive,
                 user_id,
             },
             balance.clone()
@@ -48,11 +48,8 @@ pub trait FundTransformationsModule {
             DISCR_INACTIVE,
             DISCR_PENDING_ACT,
             |fund_info| {
-                if let FundDescription::Inactive = fund_info.fund_type {
-                    return Some(FundInfo {
-                        fund_type: FundDescription::PendingActivation,
-                        user_id: fund_info.user_id,
-                    })
+                if let FundDescription::Inactive = fund_info.fund_desc {
+                    return Some(FundDescription::PendingActivation)
                 }
                 None
             }
@@ -70,11 +67,8 @@ pub trait FundTransformationsModule {
             DISCR_PENDING_ACT,
             DISCR_ACTIVE,
             |fund_info| {
-                if let FundDescription::PendingActivation = fund_info.fund_type {
-                    return Some(FundInfo {
-                        fund_type: FundDescription::Active,
-                        user_id: fund_info.user_id,
-                    })
+                if let FundDescription::PendingActivation = fund_info.fund_desc {
+                    return Some(FundDescription::Active)
                 }
                 None
             }
@@ -92,11 +86,8 @@ pub trait FundTransformationsModule {
             DISCR_PENDING_ACT,
             DISCR_ACTIVE_FAILED,
             |fund_info| {
-                if let FundDescription::PendingActivation = fund_info.fund_type {
-                    return Some(FundInfo {
-                        fund_type: FundDescription::ActivationFailed,
-                        user_id: fund_info.user_id,
-                    })
+                if let FundDescription::PendingActivation = fund_info.fund_desc {
+                    return Some(FundDescription::ActivationFailed)
                 }
                 None
             }
@@ -116,12 +107,9 @@ pub trait FundTransformationsModule {
             DISCR_ACTIVE,
             DISCR_UNSTAKED,
             |fund_info| {
-                if let FundDescription::Active = fund_info.fund_type {
+                if let FundDescription::Active = fund_info.fund_desc {
                     if fund_info.user_id == seller_id {
-                        return Some(FundInfo {
-                            fund_type: FundDescription::UnStaked{ created: current_bl_nonce },
-                            user_id: seller_id,
-                        })
+                        return Some(FundDescription::UnStaked{ created: current_bl_nonce })
                     }
                 }
                 None
@@ -143,12 +131,9 @@ pub trait FundTransformationsModule {
             DISCR_UNSTAKED,
             DISCR_DEF_PAYMENT,
             |fund_info| {
-                if let FundDescription::UnStaked{ .. } = fund_info.fund_type {
+                if let FundDescription::UnStaked{ .. } = fund_info.fund_desc {
                     if fund_info.user_id == seller_id {
-                        return Some(FundInfo {
-                            fund_type: FundDescription::DeferredPayment{ created: current_bl_nonce },
-                            user_id: seller_id,
-                        })
+                        return Some(FundDescription::DeferredPayment{ created: current_bl_nonce })
                     }
                 }
                 None
@@ -162,12 +147,9 @@ pub trait FundTransformationsModule {
             DISCR_INACTIVE,
             DISCR_ACTIVE,
             |fund_info| {
-                if let FundDescription::Inactive{ .. } = fund_info.fund_type {
+                if let FundDescription::Inactive{ .. } = fund_info.fund_desc {
                     if fund_info.user_id == buyer_id {
-                        return Some(FundInfo {
-                            fund_type: FundDescription::Active,
-                            user_id: buyer_id,
-                        })
+                        return Some(FundDescription::Active)
                     }
                 }
                 None
@@ -185,7 +167,7 @@ pub trait FundTransformationsModule {
         self.fund_module().query_list(
             DISCR_DEF_PAYMENT,
             |fund_info| {
-                if let FundDescription::DeferredPayment{ created } = fund_info.fund_type {
+                if let FundDescription::DeferredPayment{ created } = fund_info.fund_desc {
                     if fund_info.user_id == user_id && 
                         current_bl_nonce > created + n_blocks_before_claim {
                         return true;
@@ -205,11 +187,11 @@ pub trait FundTransformationsModule {
             DISCR_DEF_PAYMENT,
             DISCR_INACTIVE,
             |fund_info| {
-                if let FundDescription::DeferredPayment{ created } = fund_info.fund_type {
+                if let FundDescription::DeferredPayment{ created } = fund_info.fund_desc {
                     if fund_info.user_id == user_id && 
                        current_bl_nonce > created + n_blocks_before_claim {
                         return Some(FundInfo {
-                            fund_type: FundDescription::WithdrawOnly,
+                            fund_desc: FundDescription::WithdrawOnly,
                             user_id: fund_info.user_id,
                         })
                     }
@@ -225,11 +207,8 @@ pub trait FundTransformationsModule {
             DISCR_UNSTAKED,
             DISCR_WITHDRAW_ONLY,
             |fund_info| {
-                if let FundDescription::UnStaked { created: _ } = fund_info.fund_type {
-                    return Some(FundInfo {
-                        fund_type: FundDescription::WithdrawOnly,
-                        user_id: fund_info.user_id,
-                    });
+                if let FundDescription::UnStaked { created: _ } = fund_info.fund_desc {
+                    return Some(FundDescription::WithdrawOnly);
                 }
                 None
             }
@@ -240,11 +219,8 @@ pub trait FundTransformationsModule {
                 DISCR_ACTIVE,
                 DISCR_INACTIVE,
                 |fund_info| {
-                    if let FundDescription::Active = fund_info.fund_type {
-                        return Some(FundInfo {
-                            fund_type: FundDescription::Inactive,
-                            user_id: fund_info.user_id,
-                        });
+                    if let FundDescription::Active = fund_info.fund_desc {
+                        return Some(FundDescription::Inactive);
                     }
                     None
                 }
@@ -260,11 +236,8 @@ pub trait FundTransformationsModule {
             DISCR_ACTIVE_FAILED,
             DISCR_INACTIVE,
             |fund_info| {
-                if let FundDescription::ActivationFailed = fund_info.fund_type {
-                    return Some(FundInfo {
-                        fund_type: FundDescription::Inactive,
-                        user_id: fund_info.user_id,
-                    });
+                if let FundDescription::ActivationFailed = fund_info.fund_desc {
+                    return Some(FundDescription::Inactive);
                 }
                 None
             }

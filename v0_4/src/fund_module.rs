@@ -2,7 +2,7 @@ imports!();
 
 use super::fund_list::*;
 use super::fund_item::*;
-// use super::fund_type::*;
+use super::fund_type::*;
 
 
 /// Deals with storage data about delegators.
@@ -63,7 +63,7 @@ pub trait FundModule {
     }
 
     fn create_fund(&self, fund_info: FundInfo, balance: BigUint) {
-        let dest_discriminant = fund_info.fund_type.discriminant();
+        let dest_discriminant = fund_info.fund_desc.discriminant();
         let mut dest_list = self.get_mut_fund_list(dest_discriminant);
         let new_fund_item = FundItem{
             info: fund_info,
@@ -118,7 +118,7 @@ pub trait FundModule {
         dest_discriminant: u8,
         filter_transform: F) -> SCResult<()> 
     where 
-        F: Fn(&FundInfo) -> Option<FundInfo>,
+        F: Fn(&FundInfo) -> Option<FundDescription>,
     {
         let mut source_list = self.get_mut_fund_list(source_discriminant);
         let mut dest_list_opt: Option<mut_storage!(FundList<BigUint>)> = None;
@@ -131,7 +131,10 @@ pub trait FundModule {
                 let extracted_balance = self.extract_balance(amount, fund_item);
 
                 let new_fund_item = FundItem{
-                    info: transformed,
+                    info: FundInfo {
+                        user_id: fund_item.info.user_id, // user id cannot change
+                        fund_desc: transformed,
+                    },
                     balance: extracted_balance,
                 };
                 

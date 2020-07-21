@@ -31,7 +31,7 @@ pub trait FundViewModule {
 
     #[view(totalStake)]
     fn get_total_stake(&self) -> BigUint {
-        self.fund_module().query_all(|fund_info| fund_info.fund_type.is_stake())
+        self.fund_module().query_all(|fund_info| fund_info.fund_desc.is_stake())
     } 
 
     fn get_user_stake_of_type(&self, user_id: usize, stake_type: FundType) -> BigUint {
@@ -79,7 +79,7 @@ pub trait FundViewModule {
 
     fn get_user_total_stake(&self, user_id: usize) -> BigUint {
         self.fund_module().query_all(
-            |fund_info| fund_info.fund_type.is_stake() && fund_info.user_id == user_id)
+            |fund_info| fund_info.fund_desc.is_stake() && fund_info.user_id == user_id)
     }
 
     /// Yields how much a user has staked in the contract.
@@ -161,7 +161,7 @@ pub trait FundViewModule {
     }
 
     fn all_funds_in_contract(&self) -> BigUint {
-        self.fund_module().query_all(|fund_info| fund_info.fund_type.funds_in_contract())
+        self.fund_module().query_all(|fund_info| fund_info.fund_desc.funds_in_contract())
     }
 
     fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
@@ -192,7 +192,7 @@ pub trait FundViewModule {
             .0.iter()
             .filter_map(|fund_item| {
                 if fund_item.info.user_id == user_id {
-                    if let FundDescription::UnStaked{ created } = fund_item.info.fund_type {
+                    if let FundDescription::UnStaked{ created } = fund_item.info.fund_desc {
                         return Some(created)
                     }
                 }
