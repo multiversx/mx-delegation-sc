@@ -38,7 +38,6 @@ pub trait SettingsModule {
     ) -> SCResult<()> {
 
         let owner = self.get_caller();
-        self.set_node_reward_destination(&owner);
         self.user_data().set_user_id(&owner, OWNER_USER_ID); // node reward destination will be user #1
         self.user_data().set_num_users(1);
 
@@ -59,15 +58,6 @@ pub trait SettingsModule {
     fn owner_called(&self) -> bool {
         self.get_caller() == self.get_owner_address()
     }
-
-    /// This is the address where the contract owner receives the rewards for running the nodes.
-    /// It can in principle be different from the owner address.
-    #[view(getNodeRewardDestination)]
-    #[storage_get("node_rewards_addr")]
-    fn get_node_reward_destination(&self) -> Address;
-
-    #[storage_set("node_rewards_addr")]
-    fn set_node_reward_destination(&self, nrd: &Address);
 
     /// Yields the address of the contract with which staking will be performed.
     /// This address is standard in the protocol, but it is saved in storage to avoid hardcoding it.
