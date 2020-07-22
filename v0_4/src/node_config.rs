@@ -235,28 +235,6 @@ pub trait NodeModule {
         Ok(())
     }
 
-    /// Called when a user decides to forcefully unstake own share.
-    /// Finds enough nodes to cover requested stake.
-    /// Both node ids and node BLS keys are required, separately.
-    fn find_nodes_for_unstake(&self, requested_stake: &BigUint) -> (Vec<usize>, Vec<BLSKey>) {
-
-        let mut node_ids: Vec<usize> = Vec::new();
-        let mut bls_keys: Vec<BLSKey> = Vec::new();
-        let mut i = self.get_num_nodes();
-        let mut node_stake = BigUint::zero();
-        let stake_per_node = self.get_stake_per_node();
-        while i > 0 && &node_stake < requested_stake {
-            if let NodeState::Active = self.get_node_state(i) {
-                node_stake += &stake_per_node;
-                node_ids.push(i);
-                bls_keys.push(self.get_node_id_to_bls(i));
-            }
-            i -= 1;
-        }
-
-        (node_ids, bls_keys)
-    }
-
     fn split_node_ids_by_err(&self, 
             mut node_ids: Vec<usize>, 
             node_status_args: VarArgs<BLSStatusMultiArg>)
