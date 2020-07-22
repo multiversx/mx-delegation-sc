@@ -122,7 +122,7 @@ pub trait FundTransformationsModule {
         Ok(())
     }
 
-    fn inactive_unstaked_swap_transf(&self, amount: &BigUint) -> SCResult<()> {
+    fn unstake_swap_transf(&self, unstake_user_id: usize, amount: &BigUint) -> SCResult<()> {
         // convert active stake -> deferred payment (seller)
         let mut unstaked_to_convert = amount.clone();
         let current_bl_nonce = self.get_block_nonce();
@@ -132,7 +132,9 @@ pub trait FundTransformationsModule {
             DISCR_DEF_PAYMENT,
             |fund_info| {
                 if let FundDescription::UnStaked{ .. } = fund_info.fund_desc {
-                    return Some(FundDescription::DeferredPayment{ created: current_bl_nonce })
+                    if fund_info.user_id == unstake_user_id {
+                        return Some(FundDescription::DeferredPayment{ created: current_bl_nonce })
+                    }
                 }
                 None
             }

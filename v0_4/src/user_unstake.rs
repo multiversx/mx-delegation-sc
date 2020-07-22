@@ -46,8 +46,8 @@ pub trait StakeSaleModule {
         }
         
         let caller = self.get_caller();
-        let user_id = self.user_data().get_user_id(&caller);
-        if user_id == 0 {
+        let unstake_user_id = self.user_data().get_user_id(&caller);
+        if unstake_user_id == 0 {
             return sc_error!("only delegators can offer stake for sale")
         }
 
@@ -55,32 +55,27 @@ pub trait StakeSaleModule {
         self.rewards().compute_all_rewards();
 
         // check that amount does not exceed existing active stake
-        let stake = self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active);
+        let stake = self.fund_view_module().get_user_stake_of_type(unstake_user_id, FundType::Active);
         if amount > stake {
             return sc_error!("cannot offer more than the user active stake")
         }
 
         // convert Active -> Unstaked
-        sc_try!(self.fund_transf_module().unstake_transf(user_id, &amount));
+        sc_try!(self.fund_transf_module().unstake_transf(unstake_user_id, &amount));
 
         // try to fill the Unstaked stake with Inactive stake in the queue
-        sc_try!(self.fill_unstaked_from_queue());
+        sc_try!(self.try_fill_unstaked_from_queue(unstake_user_id, &amount));
 
         Ok(())
     }
 
-    #[endpoint(fillUnstakedFromQueue)]
-    fn fill_unstaked_from_queue(&self) -> SCResult<()> {
-        let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
-        if total_unstaked == 0 {
-            return Ok(());
-        }
+    fn try_fill_unstaked_from_queue(&self, unstake_user_id: usize, amount: &BigUint) -> SCResult<()> {
         let total_inactive = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Inactive);
         if total_inactive == 0 {
             return Ok(());
         }
-        let swappable = core::cmp::min(total_unstaked, total_inactive);
-        self.fund_transf_module().inactive_unstaked_swap_transf(&swappable)
+        let swappable = core::cmp::min(amount, &total_inactive);
+        self.fund_transf_module().unstake_swap_transf(unstake_user_id, &swappable)
     }
 
     #[endpoint(claimPayment)]
