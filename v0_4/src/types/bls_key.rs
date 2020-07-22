@@ -1,3 +1,4 @@
+use elrond_wasm::Box;
 use elrond_wasm::elrond_codec::*;
 use elrond_wasm::{H256, SCResult, MultiArg2, Vec};
 
@@ -5,7 +6,7 @@ use elrond_wasm::{H256, SCResult, MultiArg2, Vec};
 pub const BLS_KEY_BYTE_LENGTH: usize = 96;
 pub const BLS_SIGNATURE_BYTE_LENGTH: usize = 32;
 
-pub struct BLSKey(pub [u8; BLS_KEY_BYTE_LENGTH]);
+pub struct BLSKey(pub Box<[u8; BLS_KEY_BYTE_LENGTH]>);
 pub type BLSSignature = H256;
 
 pub type BLSStatusMultiArg = MultiArg2<BLSKey, i32>;
@@ -23,7 +24,7 @@ impl BLSKey {
         for (i, &b) in bytes.iter().enumerate() {
             arr[i] = b;
         }
-        SCResult::Ok(BLSKey(arr))
+        SCResult::Ok(BLSKey(Box::new(arr)))
     }
 }
 
@@ -37,8 +38,8 @@ impl Encode for BLSKey {
 
 impl Decode for BLSKey {
     fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
-        let mut arr = [0u8; BLS_KEY_BYTE_LENGTH];
-        input.read_into(&mut arr)?;
-        Ok(BLSKey(arr))
+        let mut boxed = Box::new([0u8; BLS_KEY_BYTE_LENGTH]);
+        input.read_into(boxed.as_mut())?;
+        Ok(BLSKey(boxed))
     }
 }

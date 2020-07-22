@@ -15,8 +15,8 @@ pub static PERCENTAGE_DENOMINATOR: usize = 10000;
 
 /// This module manages the validator node info:
 /// - how many nodes there are,
-/// - how much they need to stake and 
 /// - what BLS keys they have.
+/// - what BLS signatures they have
 /// 
 #[elrond_wasm_derive::module(NodeConfigModuleImpl)]
 pub trait NodeModule {
