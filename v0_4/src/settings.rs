@@ -2,6 +2,7 @@
 use crate::user_data::*;
 use crate::fund_transf_module::*;
 use crate::node_config::*;
+use crate::rewards::*;
 
 /// Validator reward destination will always be user with id 1.
 /// This can also count as a delegator (if the owner adds stake into the contract) or not.
@@ -23,6 +24,9 @@ pub trait SettingsModule {
     #[module(NodeConfigModuleImpl)]
     fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, BigUint>;
 
+    #[module(RewardsModuleImpl)]
+    fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
+
     /// This is the contract constructor, called only once when the contract is deployed.
     #[init]
     fn init(&self,
@@ -41,7 +45,7 @@ pub trait SettingsModule {
         self.user_data().set_num_users(1);
 
         self.set_auction_addr(&auction_contract_addr);
-        sc_try!(self.node_config().set_service_fee_endpoint(service_fee_per_10000));
+        sc_try!(self.set_service_fee_endpoint(service_fee_per_10000));
 
         if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
             return sc_error!("owner min stake share out of range");
@@ -83,6 +87,60 @@ pub trait SettingsModule {
 
     #[storage_set("auction_addr")]
     fn set_auction_addr(&self, auction_addr: &Address);
+
+
+    /// The proportion of rewards that goes to the owner as compensation for running the nodes.
+    /// 10000 = 100%.
+    #[view(getServiceFee)]
+    #[storage_get("service_fee")]
+    fn get_service_fee(&self) -> BigUint;
+
+    #[storage_set("service_fee")]
+    fn set_service_fee(&self, service_fee: usize);
+
+    /// The stake per node can be changed by the owner.
+    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
+    #[endpoint(setServiceFee)]
+    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> SCResult<()> {
+        if !self.owner_called() {
+            return sc_error!("only owner can change service fee"); 
+        }
+
+        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
+            return sc_error!("service fee out of range");
+        }
+
+        self.rewards().compute_all_rewards();
+
+        self.set_service_fee(service_fee_per_10000);
+        Ok(())
+    }
+    
+    /// How much stake has to be provided per validator node.
+    /// After genesis this sum is fixed to 2,500,000 ERD, but at some point bidding will happen.
+    #[view(getStakePerNode)]
+    #[storage_get("stake_per_node")]
+    fn get_stake_per_node(&self) -> BigUint;
+
+    #[storage_set("stake_per_node")]
+    fn set_stake_per_node(&self, spn: &BigUint);
+
+    /// The stake per node can be changed by the owner.
+    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
+    #[endpoint(setStakePerNode)]
+    fn set_stake_per_node_endpoint(&self, node_activation: &BigUint) -> SCResult<()> {
+        if !self.owner_called() {
+            return sc_error!("only owner can change stake per node"); 
+        }
+
+        // check that all nodes idle
+        if !self.node_config().all_nodes_idle() {
+            return sc_error!("cannot change stake per node while at least one node is active");
+        }
+
+        self.set_stake_per_node(&node_activation);
+        Ok(())
+    }
 
     /// The minimum proportion of stake that has to be provided by the owner.
     /// 10000 = 100%.

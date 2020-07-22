@@ -29,62 +29,6 @@ pub trait NodeModule {
 
     #[module(NodeActivationModuleImpl)]
     fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
-
-    /// The proportion of rewards that goes to the owner as compensation for running the nodes.
-    /// 10000 = 100%.
-    #[view(getServiceFee)]
-    #[storage_get("service_fee")]
-    fn get_service_fee(&self) -> BigUint;
-
-    #[storage_set("service_fee")]
-    fn set_service_fee(&self, service_fee: usize);
-
-    /// The stake per node can be changed by the owner.
-    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    #[endpoint(setServiceFee)]
-    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> SCResult<()> {
-        if !self.settings().owner_called() {
-            return sc_error!("only owner can change service fee"); 
-        }
-
-        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
-            return sc_error!("service fee out of range");
-        }
-
-        // check that all nodes idle
-        if !self.all_nodes_idle() {
-            return sc_error!("cannot change service fee while at least one node is active");
-        }
-
-        self.set_service_fee(service_fee_per_10000);
-        Ok(())
-    }
-    
-    /// How much stake has to be provided per validator node.
-    /// After genesis this sum is fixed to 2,500,000 ERD, but at some point bidding will happen.
-    #[view(getStakePerNode)]
-    #[storage_get("stake_per_node")]
-    fn get_stake_per_node(&self) -> BigUint;
-
-    #[storage_set("stake_per_node")]
-    fn set_stake_per_node(&self, spn: &BigUint);
-
-    /// The stake per node can be changed by the owner.
-    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    #[endpoint(setStakePerNode)]
-    fn set_stake_per_node_endpoint(&self, node_activation: &BigUint) -> SCResult<()> {
-        if !self.settings().owner_called() {
-            return sc_error!("only owner can change stake per node"); 
-        }
-
-        // check that all nodes idle
-        if !self.all_nodes_idle() {
-            return sc_error!("cannot change stake per node while at least one node is active");
-        }
-
-        self.set_stake_per_node(&node_activation);
-        Ok(())
-    }
     
     /// The number of nodes that will run with the contract stake, as configured by the owner.
     #[view(getNumNodes)]

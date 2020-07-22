@@ -10,6 +10,7 @@ use crate::user_data::*;
 use crate::fund_transf_module::*;
 use crate::fund_view_module::*;
 use crate::user_stake::*;
+use crate::settings::*;
 
 #[elrond_wasm_derive::module(GenesisModuleImpl)]
 pub trait GenesisModule {
@@ -34,6 +35,9 @@ pub trait GenesisModule {
 
     #[module(NodeActivationModuleImpl)]
     fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
+
+    #[module(SettingsModuleImpl)]
+    fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
 
     /// Function to be used only during genesis block.
@@ -71,7 +75,7 @@ pub trait GenesisModule {
         }
 
         // validate that node stake and user stake match
-        let stake_required_by_nodes = BigUint::from(num_inactive_nodes) * self.node_config().get_stake_per_node();
+        let stake_required_by_nodes = BigUint::from(num_inactive_nodes) * self.settings().get_stake_per_node();
         let mut total_inactive_stake = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Inactive);
         if stake_required_by_nodes != total_inactive_stake {
             return sc_error!("stake required by nodes must match total user stake at genesis");

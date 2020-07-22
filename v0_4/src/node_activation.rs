@@ -82,7 +82,7 @@ pub trait ContractStakeModule {
 
     fn stake_all_available(&self) -> SCResult<()> {
         let mut inactive_stake = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Inactive);
-        let stake_per_node = self.node_config().get_stake_per_node();
+        let stake_per_node = self.settings().get_stake_per_node();
         let num_nodes = self.node_config().get_num_nodes();
         let mut node_id = 1;
         let mut node_ids = Vec::<usize>::new();
@@ -112,7 +112,7 @@ pub trait ContractStakeModule {
 
         let num_nodes = node_ids.len();
 
-        let stake = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+        let stake = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
         let mut stake_to_convert = stake.clone();
         self.fund_transf_module().activate_start_transf(&mut stake_to_convert);
         
@@ -157,7 +157,7 @@ pub trait ContractStakeModule {
         self.rewards().compute_all_rewards();
 
         // change user stake to Active
-        let mut stake_activated = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+        let mut stake_activated = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
         self.fund_transf_module().activate_finish_ok_transf(&mut stake_activated);
 
         // set nodes to Active
@@ -178,7 +178,7 @@ pub trait ContractStakeModule {
         }
 
         // change user stake to ActivationFailed
-        let mut stake_sent = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+        let mut stake_sent = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
         self.fund_transf_module().activate_finish_fail_transf(&mut stake_sent);
 
         // set nodes to ActivationFailed
@@ -398,7 +398,7 @@ pub trait ContractStakeModule {
         }
 
         // change user stake to WithdrawOnly/Inactive
-        let mut stake_to_unbond = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+        let mut stake_to_unbond = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
         self.fund_transf_module().node_unbond_transf(&mut stake_to_unbond);
         if stake_to_unbond > 0 {
             return sc_error!("not enough stake pending unbond");
@@ -476,7 +476,7 @@ pub trait ContractStakeModule {
                 }
 
                 // revert user stake to Inactive
-                let mut failed_stake = BigUint::from(node_ids.len()) * self.node_config().get_stake_per_node();
+                let mut failed_stake = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
                 self.fund_transf_module().claim_activation_failed_transf(&mut failed_stake);
             },
             AsyncCallResult::Err(_) => {
