@@ -11,15 +11,15 @@ pub enum FundDescription {
     /// Stake sent to auction SC.
     PendingActivation,
 
+    /// Node stake was sent to the auction SC, but the transaction failed for the node.
+    ActivationFailed,
+
     /// Stake is locked in the protocol and rewards are coming in.
     /// Users cannot withdraw stake, but they can exchange their share of the total stake amongst each other.
     Active,
 
     /// Same as Active, but no rewards are coming in.
     UnStaked{ created: u64 },
-
-    /// Node stake was sent to the auction SC, but the transaction failed for the node.
-    ActivationFailed,
 
     DeferredPayment{ created: u64 },
 
@@ -37,15 +37,15 @@ pub enum FundType {
     /// Stake sent to auction SC.
     PendingActivation,
 
+    /// Node stake was sent to the auction SC, but the transaction failed for the node.
+    ActivationFailed,
+
     /// Stake is locked in the protocol and rewards are coming in.
     /// Users cannot withdraw stake, but they can exchange their share of the total stake amongst each other.
     Active,
 
     /// Same as Active, but no rewards are coming in.
     UnStaked,
-
-    /// Node stake was sent to the auction SC, but the transaction failed for the node.
-    ActivationFailed,
 
     DeferredPayment,
 
