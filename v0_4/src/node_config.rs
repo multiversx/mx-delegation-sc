@@ -1,6 +1,6 @@
 
-use crate::bls_key::*;
-use crate::node_state::*;
+use crate::types::bls_key::*;
+use crate::types::node_state::*;
 
 use crate::settings::*;
 use crate::node_activation::*;

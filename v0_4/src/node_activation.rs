@@ -1,9 +1,9 @@
 
 use crate::auction_proxy::Auction;
 
-use crate::bls_key::*;
-use crate::node_state::*;
-use crate::fund_type::*;
+use crate::types::bls_key::*;
+use crate::types::node_state::*;
+use crate::types::fund_type::*;
 
 use crate::events::*;
 use crate::node_config::*;

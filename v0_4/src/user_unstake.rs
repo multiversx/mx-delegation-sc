@@ -1,4 +1,4 @@
-use crate::fund_type::*;
+use crate::types::fund_type::*;
 
 use crate::events::*;
 use crate::pause::*;

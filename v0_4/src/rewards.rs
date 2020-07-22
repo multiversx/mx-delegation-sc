@@ -1,5 +1,5 @@
 
-use crate::fund_type::*;
+use crate::types::fund_type::*;
 
 use super::settings::*;
 use crate::events::*;

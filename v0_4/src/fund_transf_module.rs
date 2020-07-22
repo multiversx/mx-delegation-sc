@@ -1,8 +1,8 @@
 imports!();
 
 use crate::fund_module::*;
-use super::fund_item::*;
-use super::fund_type::*;
+use crate::types::fund_item::*;
+use crate::types::fund_type::*;
 
 
 /// Deals with storage data about delegators.
