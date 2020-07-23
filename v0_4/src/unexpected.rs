@@ -1,9 +1,9 @@
 
-// use crate::user_stake_state::*;
+// use crate::fund_type::*;
 
 use crate::rewards::*;
 use crate::settings::*;
-use crate::stake_sale::*;
+use crate::user_unstake::*;
 use crate::user_data::*;
 use crate::fund_transf_module::*;
 use crate::fund_view_module::*;
@@ -30,7 +30,7 @@ pub trait UnexpectedBalanceModule {
     fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
 
     #[module(StakeSaleModuleImpl)]
-    fn stake_sale(&self) -> StakeSaleModuleImpl<T, BigInt, BigUint>;
+    fn user_unstake(&self) -> StakeSaleModuleImpl<T, BigInt, BigUint>;
 
     /// Expected balance includes:
     /// - stake
@@ -39,7 +39,7 @@ pub trait UnexpectedBalanceModule {
     /// This can come from someone accidentally sending ERD to the contract via direct transfer.
     #[view(getUnexpectedBalance)]
     fn get_unexpected_balance(&self) -> BigUint {
-        let mut expected_balance = self.fund_view_module().all_funds_in_contract();
+        let mut expected_balance = self.fund_view_module().get_total_stake();
         expected_balance += self.rewards().get_total_cumulated_rewards();
         expected_balance -= self.rewards().get_sent_rewards();
 

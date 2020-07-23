@@ -3,8 +3,6 @@ use crate::types::bls_key::*;
 use crate::types::node_state::*;
 
 use crate::settings::*;
-use crate::node_activation::*;
-use crate::user_stake::*;
 
 imports!();
 
@@ -23,12 +21,6 @@ pub trait NodeModule {
 
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
-
-    #[module(UserStakeModuleImpl)]
-    fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
-
-    #[module(NodeActivationModuleImpl)]
-    fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
     
     /// The number of nodes that will run with the contract stake, as configured by the owner.
     #[view(getNumNodes)]

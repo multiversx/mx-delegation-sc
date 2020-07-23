@@ -1,0 +1,28 @@
+[package]
+name = "sc-delegation-rs"
+version = "0.4.0"
+authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
+edition = "2018"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "delegation"
+path = "src/lib.rs"
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+
+[dependencies]
+elrond-wasm = "0.5.4"
+elrond-wasm-node = "0.5.4"
+elrond-wasm-derive = "0.5.4"
+
+# elrond-wasm = { path = "../elrond-wasm-rs/elrond-wasm" }
+# elrond-wasm-node = { path = "../elrond-wasm-rs/elrond-wasm-node" }
+# elrond-wasm-derive = { path = "../elrond-wasm-rs/elrond-wasm-derive" }

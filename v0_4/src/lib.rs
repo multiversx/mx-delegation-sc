@@ -6,14 +6,9 @@
 
 // auxiliaries
 pub mod auction_proxy;
-pub mod bls_key;
-pub mod node_state;
-pub mod user_stake_state;
-pub mod fund_item;
-pub mod fund_list;
-pub mod fund_type;
+pub mod types;
 
-use crate::bls_key::*;
+use crate::types::bls_key::*;
 
 // modules
 pub mod events;
@@ -22,7 +17,7 @@ pub mod node_config;
 pub mod rewards;
 pub mod node_activation;
 pub mod pause;
-pub mod stake_sale;
+pub mod user_unstake;
 pub mod unexpected;
 pub mod user_data;
 pub mod user_stake;
@@ -37,7 +32,7 @@ use crate::rewards::*;
 use crate::node_activation::*;
 use crate::pause::*;
 use crate::user_stake::*;
-use crate::stake_sale::*;
+use crate::user_unstake::*;
 use crate::unexpected::*;
 use crate::user_data::*;
 use crate::fund_transf_module::*;
@@ -80,7 +75,7 @@ pub trait Delegation {
     fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
 
     #[module(StakeSaleModuleImpl)]
-    fn stake_sale(&self) -> StakeSaleModuleImpl<T, BigInt, BigUint>;
+    fn user_unstake(&self) -> StakeSaleModuleImpl<T, BigInt, BigUint>;
 
     #[module(UnexpectedBalanceModuleImpl)]
     fn unexpected(&self) -> UnexpectedBalanceModuleImpl<T, BigInt, BigUint>;

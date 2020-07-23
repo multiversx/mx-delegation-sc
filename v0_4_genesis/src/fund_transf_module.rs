@@ -14,7 +14,7 @@ pub trait FundTransformationsModule {
     #[module(FundTransformationsModuleImpl)]
     fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
 
-    fn create_free_stake(&self, user_id: usize, balance: BigUint) {
+    fn create_waiting(&self, user_id: usize, balance: BigUint) {
         self.fund_module().create_fund(user_id, FundDescription::Waiting, balance);
     }
 

@@ -1,7 +1,7 @@
 
 imports!();
 
-use crate::bls_key::*;
+use crate::types::bls_key::*;
 
 #[elrond_wasm_derive::callable(AuctionProxy)]
 pub trait Auction {
