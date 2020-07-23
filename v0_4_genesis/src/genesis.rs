@@ -4,7 +4,6 @@ use crate::types::node_state::*;
 use crate::types::fund_type::*;
 
 use crate::events::*;
-use crate::node_activation::*;
 use crate::node_config::*;
 use crate::user_data::*;
 use crate::fund_transf_module::*;
@@ -32,9 +31,6 @@ pub trait GenesisModule {
 
     #[module(NodeConfigModuleImpl)]
     fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, BigUint>;
-
-    #[module(NodeActivationModuleImpl)]
-    fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
 
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;

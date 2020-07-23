@@ -108,7 +108,7 @@ pub trait SettingsModule {
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setStakePerNode)]
-    fn set_stake_per_node_endpoint(&self, node_activation: &BigUint) -> SCResult<()> {
+    fn set_stake_per_node_endpoint(&self, stake_per_node: &BigUint) -> SCResult<()> {
         if !self.owner_called() {
             return sc_error!("only owner can change stake per node"); 
         }
@@ -118,7 +118,7 @@ pub trait SettingsModule {
             return sc_error!("cannot change stake per node while at least one node is active");
         }
 
-        self.set_stake_per_node(&node_activation);
+        self.set_stake_per_node(&stake_per_node);
         Ok(())
     }
 

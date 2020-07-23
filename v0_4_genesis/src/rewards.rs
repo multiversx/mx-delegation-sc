@@ -4,8 +4,6 @@ use crate::types::fund_type::*;
 use super::settings::*;
 use crate::events::*;
 use crate::node_config::*;
-use crate::user_stake::*;
-use crate::node_activation::*;
 use crate::user_data::*;
 use crate::fund_transf_module::*;
 use crate::fund_view_module::*;
@@ -42,12 +40,6 @@ pub trait RewardsModule {
 
     #[module(FundViewModuleImpl)]
     fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
-
-    #[module(UserStakeModuleImpl)]
-    fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
-
-    #[module(NodeActivationModuleImpl)]
-    fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
 
     /// Claiming rewards has 2 steps:
     /// 1. computing the delegator rewards out of the total rewards, and
