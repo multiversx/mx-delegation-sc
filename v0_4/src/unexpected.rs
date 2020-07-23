@@ -39,7 +39,7 @@ pub trait UnexpectedBalanceModule {
     /// This can come from someone accidentally sending ERD to the contract via direct transfer.
     #[view(getUnexpectedBalance)]
     fn get_unexpected_balance(&self) -> BigUint {
-        let mut expected_balance = self.fund_view_module().all_funds_in_contract();
+        let mut expected_balance = self.fund_view_module().get_total_stake();
         expected_balance += self.rewards().get_total_cumulated_rewards();
         expected_balance -= self.rewards().get_sent_rewards();
 

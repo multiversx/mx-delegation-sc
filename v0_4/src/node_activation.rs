@@ -81,7 +81,7 @@ pub trait ContractStakeModule {
     }
 
     fn stake_all_available(&self) -> SCResult<()> {
-        let mut inactive_stake = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Inactive);
+        let mut inactive_stake = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
         let stake_per_node = self.settings().get_stake_per_node();
         let num_nodes = self.node_config().get_num_nodes();
         let mut node_id = 1;
@@ -397,12 +397,12 @@ pub trait ContractStakeModule {
             self.node_config().set_node_state(node_id, NodeState::Inactive);
         }
 
-        // change user stake to WithdrawOnly/Inactive
-        let mut stake_to_unbond = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
-        self.fund_transf_module().node_unbond_transf(&mut stake_to_unbond);
-        if stake_to_unbond > 0 {
-            return sc_error!("not enough stake pending unbond");
-        }
+        // // change user stake to WithdrawOnly/Inactive
+        // let mut stake_to_unbond = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
+        // self.fund_transf_module().node_unbond_transf(&mut stake_to_unbond);
+        // if stake_to_unbond > 0 {
+        //     return sc_error!("not enough stake pending unbond");
+        // }
 
         // log event (no data)
         // TODO: log BLS keys of nodes in data

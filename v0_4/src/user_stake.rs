@@ -58,11 +58,11 @@ pub trait UserStakeModule {
             self.user_data().set_user_id(&caller, user_id);
         }
 
-        // create stake funds
-        self.fund_transf_module().create_free_stake(user_id, &payment);
-
         // log staking event
         self.events().stake_event(&caller, &payment);
+
+        // create stake funds
+        self.fund_transf_module().create_free_stake(user_id, payment);
 
         Ok(())
     }

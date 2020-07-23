@@ -29,58 +29,32 @@ pub trait FundViewModule {
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
-    #[view(totalStake)]
-    fn get_total_stake(&self) -> BigUint {
-        self.fund_module().query_all(|fund_info| fund_info.fund_desc.is_stake())
-    } 
-
-    fn get_user_stake_of_type(&self, user_id: usize, stake_type: FundType) -> BigUint {
-        match stake_type {
-            FundType::WithdrawOnly => {
-                self.fund_module().query_list(DISCR_WITHDRAW_ONLY,
-                    |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id)
-                )
-            },
-            FundType::Inactive => {
-                self.fund_module().query_list(DISCR_INACTIVE,
-                    |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id)
-                )
-            },
-            FundType::PendingActivation => {
-                self.fund_module().query_list(DISCR_PENDING_ACT,
-                    |fund_info| 
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
-            },
-            FundType::Active => {
-                self.fund_module().query_list(DISCR_ACTIVE, 
-                    |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
-            },
-            FundType::ActivationFailed => {
-                self.fund_module().query_list(DISCR_ACTIVE_FAILED, 
-                    |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
-            },
-            FundType::UnStaked => {
-                self.fund_module().query_list(DISCR_UNSTAKED, 
-                    |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
-            },
-            FundType::DeferredPayment => {
-                self.fund_module().query_list(DISCR_DEF_PAYMENT, 
-                    |fund_info|
-                        (user_id == USER_STAKE_TOTALS_ID || fund_info.user_id == user_id))
-            },
+    fn get_user_stake_of_type(&self, user_id: usize, fund_type: FundType) -> BigUint {
+        if user_id == USER_STAKE_TOTALS_ID {
+            let type_list = self.fund_module().get_fund_list_by_type(fund_type);
+            type_list.total_balance
+        } else {
+            let user_list = self.fund_module().get_fund_list_by_user(user_id, fund_type);
+            user_list.total_balance
         }
     }
 
-
     fn get_user_total_stake(&self, user_id: usize) -> BigUint {
-        self.fund_module().query_all(
-            |fund_info| fund_info.fund_desc.is_stake() && fund_info.user_id == user_id)
+        let mut sum = BigUint::zero();
+        sum += self.get_user_stake_of_type(user_id, FundType::WithdrawOnly);
+        sum += self.get_user_stake_of_type(user_id, FundType::Waiting);
+        sum += self.get_user_stake_of_type(user_id, FundType::PendingActivation);
+        sum += self.get_user_stake_of_type(user_id, FundType::ActivationFailed);
+        sum += self.get_user_stake_of_type(user_id, FundType::Active);
+        sum += self.get_user_stake_of_type(user_id, FundType::UnStaked);
+        sum += self.get_user_stake_of_type(user_id, FundType::DeferredPayment);
+        sum
     }
+
+    #[view(totalStake)]
+    fn get_total_stake(&self) -> BigUint {
+        self.get_user_total_stake(USER_STAKE_TOTALS_ID)
+    } 
 
     /// Yields how much a user has staked in the contract.
     #[view(getUserStake)]
@@ -109,7 +83,7 @@ pub trait FundViewModule {
         if user_id == 0 {
             BigUint::zero()
         } else {
-            self.get_user_stake_of_type(user_id, FundType::Inactive) +
+            self.get_user_stake_of_type(user_id, FundType::Waiting) +
             self.get_user_stake_of_type(user_id, FundType::WithdrawOnly)
         }
     }
@@ -117,7 +91,7 @@ pub trait FundViewModule {
     fn get_user_stake_by_type(&self, user_id: usize) -> MultiResult7<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
         (
             self.get_user_stake_of_type(user_id, FundType::WithdrawOnly),
-            self.get_user_stake_of_type(user_id, FundType::Inactive),
+            self.get_user_stake_of_type(user_id, FundType::Waiting),
             self.get_user_stake_of_type(user_id, FundType::PendingActivation),
             self.get_user_stake_of_type(user_id, FundType::Active),
             self.get_user_stake_of_type(user_id, FundType::ActivationFailed),
@@ -156,12 +130,8 @@ pub trait FundViewModule {
 
     #[view(getTotalInactiveStake)]
     fn get_total_inactive_stake(&self) -> BigUint {
-        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Inactive) +
+        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting) +
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly)
-    }
-
-    fn all_funds_in_contract(&self) -> BigUint {
-        self.fund_module().query_all(|fund_info| fund_info.fund_desc.funds_in_contract())
     }
 
     fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
@@ -180,24 +150,5 @@ pub trait FundViewModule {
                 return sc_error!("owner doesn't have enough stake in the contract");
             }
         Ok(())
-    }
-
-    #[view(getStakeForSaleCreationNonces)]
-    fn get_stake_for_sale_creation_nonces(&self, user: Address) -> MultiResultVec<u64> {
-        let user_id = self.user_data().get_user_id(&user);
-        if user_id == 0 {
-            return MultiResultVec::new();
-        }
-        self.fund_module().get_fund_list(DISCR_UNSTAKED)
-            .0.iter()
-            .filter_map(|fund_item| {
-                if fund_item.info.user_id == user_id {
-                    if let FundDescription::UnStaked{ created } = fund_item.info.fund_desc {
-                        return Some(created)
-                    }
-                }
-                None
-            })
-            .collect()
     }
 }

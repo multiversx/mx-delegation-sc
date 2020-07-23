@@ -76,7 +76,7 @@ pub trait GenesisModule {
 
         // validate that node stake and user stake match
         let stake_required_by_nodes = BigUint::from(num_inactive_nodes) * self.settings().get_stake_per_node();
-        let mut total_inactive_stake = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Inactive);
+        let mut total_inactive_stake = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
         if stake_required_by_nodes != total_inactive_stake {
             return sc_error!("stake required by nodes must match total user stake at genesis");
         }

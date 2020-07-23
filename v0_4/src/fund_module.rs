@@ -1,6 +1,5 @@
 imports!();
 
-use crate::types::fund_list::*;
 use crate::types::fund_item::*;
 use crate::types::fund_type::*;
 
@@ -9,171 +8,302 @@ use crate::types::fund_type::*;
 #[elrond_wasm_derive::module(FundModuleImpl)]
 pub trait FundModule {
 
-    #[view(fundList)]
+    #[view(fundById)]
     #[storage_get("f")]
-    fn get_fund_list(&self, discriminant: u8) -> FundList<BigUint>;
+    fn get_fund_by_id(&self, id: usize) -> FundItem<BigUint>;
 
     #[storage_get_mut("f")]
-    fn get_mut_fund_list(&self, discriminant: u8) -> mut_storage!(FundList<BigUint>);
+    fn get_mut_fund_by_id(&self, id: usize) -> mut_storage!(FundItem<BigUint>);
 
     #[storage_set("f")]
-    fn set_fund_list(&self, discriminant: u8, fund_list: FundList<BigUint>);
+    fn set_fund_by_id(&self, id: usize, fund_item: &FundItem<BigUint>);
 
-    fn query_list<F>(&self, discriminant: u8, filter: F) -> BigUint 
+    #[storage_get("f_max_id")]
+    fn get_fund_max_id(&self) -> usize;
+
+    #[storage_set("f_max_id")]
+    fn set_fund_max_id(&self, f_num: usize);
+
+    #[storage_get("ftype")]
+    fn get_fund_list_by_type(&self, fund_type: FundType) -> FundsListInfo<BigUint>;
+
+    #[storage_get_mut("ftype")]
+    fn get_mut_fund_list_by_type(&self, fund_type: FundType) -> mut_storage!(FundsListInfo<BigUint>);
+
+    #[storage_get("fuser")]
+    fn get_fund_list_by_user(&self, user_id: usize, fund_type: FundType) -> FundsListInfo<BigUint>;
+
+    #[storage_get_mut("fuser")]
+    fn get_mut_fund_list_by_user(&self, user_id: usize, fund_type: FundType) -> mut_storage!(FundsListInfo<BigUint>);
+
+
+    fn query_sum_funds_by_type<F>(&self, fund_type: FundType, filter: F) -> BigUint 
     where 
-        F: Fn(&FundInfo) -> bool,
+        F: Fn(usize, FundDescription) -> bool,
     {
         let mut sum = BigUint::zero();
-        let list = self.get_fund_list(discriminant);
-        for fund_item in list.0.iter() {
-            if filter(&fund_item.info) {
+        let type_list = self.get_fund_list_by_type(fund_type);
+        let mut id = type_list.first;
+        while id > 0 {
+            let fund_item = self.get_fund_by_id(id);
+            if filter(fund_item.user_id, fund_item.fund_desc) {
                 sum += &fund_item.balance;
             }
+            id = fund_item.type_list_next;
         }
         sum
     }
 
-    fn query_all<F>(&self, filter: F) -> BigUint 
+    fn query_sum_funds_by_user_type<F>(&self, user_id: usize, fund_type: FundType, filter: F) -> BigUint 
     where 
-        F: Fn(&FundInfo) -> bool,
+        F: Fn(FundDescription) -> bool,
     {
         let mut sum = BigUint::zero();
-        for discriminant in 0..10 {
-            let mut list = self.get_fund_list(discriminant);
-            for fund_item in list.0.iter_mut() {
-                if filter(&fund_item.info) {
-                    sum += &fund_item.balance;
+        let user_list = self.get_fund_list_by_user(user_id, fund_type);
+        let mut id = user_list.first;
+        while id > 0 {
+            let fund_item = self.get_fund_by_id(id);
+            if filter(fund_item.fund_desc) {
+                sum += &fund_item.balance;
+            }
+            id = fund_item.type_list_next;
+        }
+        sum
+    }
+
+    /// Adds at the end of the fund by type list.
+    fn add_fund_to_type_list(&self, id: usize, new_fund_item: &mut FundItem<BigUint>) {
+        let mut type_list = self.get_fund_list_by_type(new_fund_item.fund_desc.fund_type());
+        type_list.total_balance += &new_fund_item.balance;
+        if type_list.is_empty() {
+            type_list.first = id;
+            type_list.last = id;
+        } else {
+            new_fund_item.type_list_prev = type_list.last;
+            let mut prev_fund = self.get_mut_fund_by_id(type_list.last);
+            (*prev_fund).type_list_next = id;
+            type_list.last = id;
+        }
+    }
+
+    /// Adds at the end of the fund by user+type list.
+    fn add_fund_to_user_list(&self, id: usize, new_fund_item: &mut FundItem<BigUint>) {
+        let mut user_list = self.get_fund_list_by_user(new_fund_item.user_id, new_fund_item.fund_desc.fund_type());
+        user_list.total_balance += &new_fund_item.balance;
+        if user_list.is_empty() {
+            user_list.first = id;
+            user_list.last = id;
+        } else {
+            new_fund_item.user_list_prev = user_list.last;
+            let mut prev_fund = self.get_mut_fund_by_id(user_list.last);
+            (*prev_fund).user_list_next = id;
+            user_list.last = id;
+        }
+    }
+
+    fn create_fund(&self, user_id: usize, fund_desc: FundDescription, balance: BigUint) {
+        // add fund
+        let mut fund_max_id = self.get_fund_max_id();
+        fund_max_id += 1;
+        self.set_fund_max_id(fund_max_id);
+
+        let mut new_fund_item = FundItem{
+            fund_desc,
+            user_id,
+            balance,
+            type_list_next: 0,
+            type_list_prev: 0,
+            user_list_next: 0,
+            user_list_prev: 0,
+        };
+
+        self.add_fund_to_type_list(fund_max_id, &mut new_fund_item);
+        self.add_fund_to_user_list(fund_max_id, &mut new_fund_item);
+
+        self.set_fund_by_id(fund_max_id, &new_fund_item);
+    }
+
+    fn increase_fund_balance(&self, user_id: usize, fund_desc: FundDescription, amount: BigUint) {
+        // attempt to coalesce into 1 fund item
+        if fund_desc.fund_type().allow_coalesce() { // not all types can be coalesced, anything involving queues cannot
+            let user_list = self.get_fund_list_by_user(user_id, fund_desc.fund_type());
+            if user_list.last > 0 { // at least 1 item must exist for user
+                let mut last_item = self.get_fund_by_id(user_list.last);
+                if last_item.fund_desc == fund_desc { // specific item descriptions need to be identical
+                    last_item.balance += &amount;
+                    self.set_fund_by_id(user_list.last, &last_item);
+                    return;
                 }
             }
         }
-        sum
+
+        self.create_fund(user_id, fund_desc, amount);
     }
 
-    fn find_in_list_map<F, R>(&self, discriminant: u8, f: F) -> Option<R> 
-    where 
-        F: Fn(&FundInfo) -> Option<R>,
-    {
-        let list = self.get_fund_list(discriminant);
-        for fund_item in list.0.iter() {
-            if let Some(r) = f(&fund_item.info) {
-                return Some(r);
-            }
+    fn delete_fund_from_type_list(&self,
+        fund_item: &FundItem<BigUint>,
+        type_list: &mut FundsListInfo<BigUint>) {
+
+        if fund_item.user_list_prev == 0 {
+            type_list.first = fund_item.type_list_next;
+        } else {
+            let mut prev = self.get_mut_fund_by_id(fund_item.type_list_prev);
+            (*prev).type_list_next = fund_item.type_list_next;
         }
-        None
+
+        if fund_item.user_list_next == 0 {
+            type_list.last = fund_item.type_list_prev;
+        } else {
+            let mut next = self.get_mut_fund_by_id(fund_item.type_list_next);
+            (*next).type_list_prev = fund_item.type_list_prev;
+        }
     }
 
-    fn create_fund(&self, fund_info: FundInfo, balance: BigUint) {
-        let dest_discriminant = fund_info.fund_desc.discriminant();
-        let mut dest_list = self.get_mut_fund_list(dest_discriminant);
-        let new_fund_item = FundItem{
-            info: fund_info,
-            balance,
-        };
-        (*dest_list).push(new_fund_item);
+    fn delete_fund_from_user_list(&self,
+        fund_item: &FundItem<BigUint>,
+        user_list: &mut FundsListInfo<BigUint>) {
+    
+        if fund_item.user_list_prev == 0 {
+            user_list.first = fund_item.user_list_next;
+        } else {
+            let mut prev = self.get_mut_fund_by_id(fund_item.user_list_prev);
+            (*prev).user_list_next = fund_item.user_list_next;
+        }
+    
+        if fund_item.user_list_next == 0 {
+            user_list.last = fund_item.user_list_prev;
+        } else {
+            let mut next = self.get_mut_fund_by_id(fund_item.user_list_next);
+            (*next).user_list_prev = fund_item.user_list_prev;
+        }
     }
 
-    fn extract_balance(&self, amount: &mut BigUint, fund_item: &mut FundItem<BigUint>) -> BigUint {
-        let extracted_balance: BigUint;
-        if *amount > fund_item.balance {
-            // consume the entire fund
-            // amount <- amount - fund_item.balance
-            // extracted_balance <- fund_item.balance
-            // fund_item.balance <- 0
+    /// Returns the old balance of the deleted item.
+    fn delete_fund(&self, fund_item: &mut FundItem<BigUint>) -> BigUint {
+        let mut type_list = self.get_mut_fund_list_by_type(fund_item.fund_desc.fund_type());
+        let mut user_list = self.get_mut_fund_list_by_user(fund_item.user_id, fund_item.fund_desc.fund_type());
+
+        // synchronize sums
+        (*type_list).total_balance -= &fund_item.balance;
+        (*user_list).total_balance -= &fund_item.balance;
+
+        // remove fund from the linked lists
+        self.delete_fund_from_type_list(&*fund_item, &mut *type_list);
+        self.delete_fund_from_user_list(&*fund_item, &mut *user_list);
+
+        // setting balance to zero causes the fund item to be removed from storage when saving
+        // result = fund_item.balance; fund_item.balance = 0;
+        core::mem::replace(&mut fund_item.balance, BigUint::zero())
+    }
+
+    /// Decreases `amount` and returns by how much it decreased.
+    fn decrease_fund_balance(&self, amount: &mut BigUint, fund_item: &mut FundItem<BigUint>) -> BigUint {
+        let mut type_list = self.get_mut_fund_list_by_type(fund_item.fund_desc.fund_type());
+        let mut user_list = self.get_mut_fund_list_by_user(fund_item.user_id, fund_item.fund_desc.fund_type());
+
+        if *amount >= fund_item.balance {
             *amount -= &fund_item.balance;
-            extracted_balance = core::mem::replace(&mut fund_item.balance, BigUint::zero());
+            self.delete_fund(fund_item)
         } else {
             // consume all the remaining amount
-            // amount <- 0
-            // extracted_balance <- amount
-            // fund_item.balance <- fund_item.balance - amount
             fund_item.balance -= &*amount;
-            extracted_balance = core::mem::replace(amount, BigUint::zero());
-        }
-        extracted_balance
-    }
 
-    fn destroy_max<F>(&self,
-        amount: &mut BigUint, 
-        source_discriminant: u8,
-        filter: F)
-    where 
-        F: Fn(&FundInfo) -> bool,
-    {
-        let mut source_list = self.get_mut_fund_list(source_discriminant);
-        for fund_item in source_list.0.iter_mut() {
-            if *amount == 0 {
-                break;
-            }
-            if filter(&fund_item.info) {
-                let _ = self.extract_balance(amount, fund_item);
-            }
+            // synchronize sums
+            (*type_list).total_balance -= &*amount;
+            (*user_list).total_balance -= &*amount;
+
+            // result = amount; amount = 0;
+            core::mem::replace(amount, BigUint::zero())
         }
     }
 
-
-
-    fn split_convert_max<F>(&self,
-        amount: &mut BigUint, 
-        source_discriminant: u8,
-        dest_discriminant: u8,
-        filter_transform: F) -> SCResult<()> 
+    fn split_convert_max_by_type<F>(&self,
+        mut opt_max_amount: Option<&mut BigUint>,
+        source_type: FundType,
+        filter_transform: F) -> SCResult<BigUint> 
     where 
-        F: Fn(&FundInfo) -> Option<FundDescription>,
+        F: Fn(usize, FundDescription) -> Option<FundDescription>,
     {
-        let mut source_list = self.get_mut_fund_list(source_discriminant);
-        let mut dest_list_opt: Option<mut_storage!(FundList<BigUint>)> = None;
+        let type_list = self.get_fund_list_by_type(source_type);
+        let mut id = type_list.first;
+        let mut total_transformed = BigUint::zero();
 
-        for fund_item in source_list.0.iter_mut() {
-            if *amount == 0 {
-                break;
+        while id > 0 {
+            let mut fund_item = self.get_mut_fund_by_id(id);
+            if let Some(transformed) = filter_transform(fund_item.user_id, fund_item.fund_desc) {
+                // extract / decrease
+                let extracted_balance: BigUint;
+                if let Some(max_amount) = opt_max_amount {
+                    extracted_balance = self.decrease_fund_balance(max_amount, &mut *fund_item);
+                    opt_max_amount = Some(max_amount); // move back
+                } else {
+                    extracted_balance = self.delete_fund(&mut *fund_item);
+                }
+                // add to sum
+                total_transformed += &extracted_balance;
+                // create / increase
+                self.increase_fund_balance(
+                    (*fund_item).user_id,
+                    transformed,
+                    extracted_balance);
             }
-            if let Some(transformed) = filter_transform(&fund_item.info) {
-                let extracted_balance = self.extract_balance(amount, fund_item);
+            id = fund_item.type_list_next;
+        }
 
-                let new_fund_item = FundItem{
-                    info: FundInfo {
-                        user_id: fund_item.info.user_id, // user id cannot change
-                        fund_desc: transformed,
-                    },
-                    balance: extracted_balance,
-                };
-                
-                let mut dest_list = dest_list_opt.unwrap_or_else(|| self.get_mut_fund_list(dest_discriminant));
-                (*dest_list).push(new_fund_item);
-                dest_list_opt = Some(dest_list);
+        Ok(total_transformed)
+    }
+
+    fn split_convert_max_by_user<F>(&self,
+        mut opt_max_amount: Option<&mut BigUint>,
+        user_id: usize,
+        source_type: FundType,
+        filter_transform: F) -> SCResult<BigUint> 
+    where 
+        F: Fn(FundDescription) -> Option<FundDescription>,
+    {
+        let user_list = self.get_fund_list_by_user(user_id, source_type);
+        let mut id = user_list.first;
+        let mut total_transformed = BigUint::zero();
+
+        while id > 0 {
+            let mut fund_item = self.get_mut_fund_by_id(id);
+            if let Some(transformed) = filter_transform(fund_item.fund_desc) {
+                // extract / decrease
+                let extracted_balance: BigUint;
+                if let Some(max_amount) = opt_max_amount {
+                    extracted_balance = self.decrease_fund_balance(max_amount, &mut *fund_item);
+                    opt_max_amount = Some(max_amount); // move back
+                } else {
+                    extracted_balance = self.delete_fund(&mut *fund_item);
+                }
+                // add to sum
+                total_transformed += &extracted_balance;
+                // create / increase
+                self.increase_fund_balance(
+                    (*fund_item).user_id,
+                    transformed,
+                    extracted_balance);
             }
+            id = fund_item.user_list_next;
+        }
+
+        Ok(total_transformed)
+    }
+
+    fn destroy_max_for_user(&self,
+        amount: &mut BigUint,
+        user_id: usize,
+        source_type: FundType) -> SCResult<()> {
+
+        let user_list = self.get_fund_list_by_user(user_id, source_type);
+        let mut id = user_list.first;
+
+        while id > 0 {
+            let mut fund_item = self.get_mut_fund_by_id(id);
+            let _ = self.decrease_fund_balance(amount, &mut *fund_item);
+            id = fund_item.user_list_next;
         }
 
         Ok(())
-    }
-
-    fn split_convert_all<F>(&self,
-        source_discriminant: u8,
-        dest_discriminant: u8,
-        filter_transform: F) -> SCResult<BigUint> 
-    where 
-        F: Fn(&FundInfo) -> Option<FundInfo>,
-    {
-        let mut source_list = self.get_mut_fund_list(source_discriminant);
-        let mut dest_list_opt: Option<mut_storage!(FundList<BigUint>)> = None;
-        let mut sum = BigUint::zero();
-
-        for fund_item in source_list.0.iter_mut() {
-            if let Some(transformed) = filter_transform(&fund_item.info) {
-                sum += &fund_item.balance;
-                let split_balance = core::mem::replace(&mut fund_item.balance, BigUint::zero());
-
-                let new_fund_item = FundItem{
-                    info: transformed,
-                    balance: split_balance,
-                };
-                
-                let mut dest_list = dest_list_opt.unwrap_or_else(|| self.get_mut_fund_list(dest_discriminant));
-                (*dest_list).push(new_fund_item);
-                dest_list_opt = Some(dest_list);
-            }
-        }
-
-        Ok(sum)
     }
 }

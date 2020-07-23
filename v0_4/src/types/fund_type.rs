@@ -6,7 +6,7 @@ pub enum FundDescription {
     WithdrawOnly,
 
     /// Inactive stake, waiting in the queue to be activated.
-    Inactive,
+    Waiting,
 
     /// Stake sent to auction SC.
     PendingActivation,
@@ -32,7 +32,7 @@ pub enum FundType {
     WithdrawOnly,
 
     /// Inactive stake, waiting in the queue to be activated.
-    Inactive,
+    Waiting,
 
     /// Stake sent to auction SC.
     PendingActivation,
@@ -49,6 +49,36 @@ pub enum FundType {
 
     DeferredPayment,
 
+}
+
+impl FundType {
+    pub fn allow_coalesce(&self) -> bool {
+        match self {
+            FundType::WithdrawOnly |
+            FundType::DeferredPayment => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_stake(&self) -> bool {
+        match self {
+            FundType::Waiting |
+            FundType::PendingActivation |
+            FundType::ActivationFailed |
+            FundType::Active |
+            FundType::UnStaked => true,
+            _ => false,
+        }
+    }
+
+    pub fn funds_in_contract(&self) -> bool {
+        match self {
+            FundType::WithdrawOnly |
+            FundType::Waiting |
+            FundType::DeferredPayment => true,
+            _ => false,
+        }
+    }
 }
 
 pub const DISCR_WITHDRAW_ONLY: u8 = 0;
@@ -69,32 +99,12 @@ impl FundDescription {
     pub fn fund_type(&self) -> FundType {
         match self {
             FundDescription::WithdrawOnly => FundType::WithdrawOnly,
-            FundDescription::Inactive => FundType::Inactive,
+            FundDescription::Waiting => FundType::Waiting,
             FundDescription::PendingActivation => FundType::PendingActivation,
             FundDescription::ActivationFailed => FundType::ActivationFailed,
             FundDescription::Active => FundType::Active,
             FundDescription::UnStaked{..} => FundType::UnStaked,
             FundDescription::DeferredPayment{..} => FundType::DeferredPayment,
-        }
-    }
-
-    pub fn is_stake(&self) -> bool {
-        match self {
-            FundDescription::Inactive{..} |
-            FundDescription::PendingActivation |
-            FundDescription::ActivationFailed |
-            FundDescription::Active |
-            FundDescription::UnStaked{..} => true,
-            _ => false,
-        }
-    }
-
-    pub fn funds_in_contract(&self) -> bool {
-        match self {
-            FundDescription::WithdrawOnly |
-            FundDescription::Inactive |
-            FundDescription::DeferredPayment { .. } => true,
-            _ => false,
         }
     }
 }
@@ -103,7 +113,7 @@ impl FundType {
     pub fn discriminant(&self) -> u8 {
         match self {
             FundType::WithdrawOnly => DISCR_WITHDRAW_ONLY,
-            FundType::Inactive => DISCR_INACTIVE,
+            FundType::Waiting => DISCR_INACTIVE,
             FundType::PendingActivation => DISCR_PENDING_ACT,
             FundType::ActivationFailed => DISCR_ACTIVE_FAILED,
             FundType::Active => DISCR_ACTIVE,
@@ -118,7 +128,7 @@ impl Encode for FundDescription {
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
             FundDescription::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
-            FundDescription::Inactive => { dest.push_byte(DISCR_INACTIVE); },
+            FundDescription::Waiting => { dest.push_byte(DISCR_INACTIVE); },
             FundDescription::PendingActivation => { dest.push_byte(DISCR_PENDING_ACT); },
             FundDescription::ActivationFailed => { dest.push_byte(DISCR_ACTIVE_FAILED); },
             FundDescription::Active => { dest.push_byte(DISCR_ACTIVE); },
@@ -141,7 +151,7 @@ impl Decode for FundDescription {
         let discriminant = input.read_byte()?;
         match discriminant {
             DISCR_WITHDRAW_ONLY => Ok(FundDescription::WithdrawOnly),
-            DISCR_INACTIVE => Ok(FundDescription::Inactive),
+            DISCR_INACTIVE => Ok(FundDescription::Waiting),
             DISCR_PENDING_ACT => Ok(FundDescription::PendingActivation),
             DISCR_ACTIVE_FAILED => Ok(FundDescription::ActivationFailed),
             DISCR_ACTIVE => Ok(FundDescription::Active),
@@ -161,7 +171,7 @@ impl Encode for FundType {
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
             FundType::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
-            FundType::Inactive => { dest.push_byte(DISCR_INACTIVE);},
+            FundType::Waiting => { dest.push_byte(DISCR_INACTIVE);},
             FundType::PendingActivation => { dest.push_byte(DISCR_PENDING_ACT); },
             FundType::ActivationFailed => { dest.push_byte(DISCR_ACTIVE_FAILED); },
             FundType::Active => { dest.push_byte(DISCR_ACTIVE); },
@@ -178,7 +188,7 @@ impl Decode for FundType {
         let discriminant = input.read_byte()?;
         match discriminant {
             DISCR_WITHDRAW_ONLY => Ok(FundType::WithdrawOnly),
-            DISCR_INACTIVE => Ok(FundType::Inactive),
+            DISCR_INACTIVE => Ok(FundType::Waiting),
             DISCR_PENDING_ACT => Ok(FundType::PendingActivation),
             DISCR_ACTIVE_FAILED => Ok(FundType::ActivationFailed),
             DISCR_ACTIVE => Ok(FundType::Active),

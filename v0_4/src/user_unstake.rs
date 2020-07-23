@@ -60,22 +60,24 @@ pub trait StakeSaleModule {
             return sc_error!("cannot offer more than the user active stake")
         }
 
+        // convert Active -> DeferredPayment, simultaneously Waiting -> Active
+        sc_try!(self.try_swap_active_with_waiting(unstake_user_id, &amount));
+
         // convert Active -> Unstaked
         sc_try!(self.fund_transf_module().unstake_transf(unstake_user_id, &amount));
 
-        // try to fill the Unstaked stake with Inactive stake in the queue
-        sc_try!(self.try_fill_unstaked_from_queue(unstake_user_id, &amount));
+
 
         Ok(())
     }
 
-    fn try_fill_unstaked_from_queue(&self, unstake_user_id: usize, amount: &BigUint) -> SCResult<()> {
-        let total_inactive = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Inactive);
+    fn try_swap_active_with_waiting(&self, unstake_user_id: usize, amount: &BigUint) -> SCResult<()> {
+        let total_inactive = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
         if total_inactive == 0 {
             return Ok(());
         }
         let swappable = core::cmp::min(amount, &total_inactive);
-        self.fund_transf_module().unstake_swap_transf(unstake_user_id, &swappable)
+        self.fund_transf_module().swap_active_with_waiting_transf(unstake_user_id, &swappable)
     }
 
     #[endpoint(claimPayment)]
