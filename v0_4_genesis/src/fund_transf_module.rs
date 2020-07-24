@@ -18,20 +18,22 @@ pub trait FundTransformationsModule {
         self.fund_module().create_fund(user_id, FundDescription::Waiting, balance);
     }
 
-    fn liquidate_free_stake(&self, user_id: usize, amount: &mut BigUint) {
+    fn liquidate_free_stake(&self, user_id: usize, amount: &mut BigUint) -> SCResult<()> {
         // first withdraw from withdraw-only inactive stake
-        self.fund_module().destroy_max_for_user(
+        sc_try!(self.fund_module().destroy_max_for_user(
             amount,
             user_id,
-            FundType::WithdrawOnly);
+            FundType::WithdrawOnly));
 
         // if that is not enough, retrieve proper inactive stake
         if *amount > 0 {
-            self.fund_module().destroy_max_for_user(
+            sc_try!(self.fund_module().destroy_max_for_user(
                 amount,
                 user_id,
-                FundType::Waiting);
+                FundType::Waiting));
         }
+        
+        Ok(())
     }
 
     fn activate_start_transf(&self, amount: &mut BigUint) -> SCResult<()> {
