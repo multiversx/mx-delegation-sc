@@ -1,17 +1,17 @@
 
 use crate::auction_proxy::Auction;
 
-use crate::types::bls_key::*;
-use crate::types::node_state::*;
-use crate::types::fund_type::*;
+use user_fund_storage::types::*;
+use node_storage::types::*;
 
 use crate::events::*;
-use crate::node_config::*;
+use node_storage::node_config::*;
 use crate::rewards::*;
 use crate::settings::*;
-use crate::user_data::*;
-use crate::fund_transf_module::*;
-use crate::fund_view_module::*;
+use user_fund_storage::user_data::*;
+use crate::user_stake::*;
+use user_fund_storage::fund_transf_module::*;
+use user_fund_storage::fund_view_module::*;
 
 imports!();
 
@@ -39,8 +39,8 @@ pub trait ContractStakeModule {
     #[module(RewardsModuleImpl)]
     fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
 
-    #[module(NodeActivationModuleImpl)]
-    fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
+    #[module(UserStakeModuleImpl)]
+    fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
 
 
     /// Owner activates specific nodes.
@@ -108,13 +108,13 @@ pub trait ContractStakeModule {
 
     fn perform_stake_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>) -> SCResult<()> {
         // do not launch nodes if owner hasn't staked enough
-        sc_try!(self.fund_view_module().validate_owner_stake_share());
+        sc_try!(self.user_stake().validate_owner_stake_share());
 
         let num_nodes = node_ids.len();
 
         let stake = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
         let mut stake_to_convert = stake.clone();
-        self.fund_transf_module().activate_start_transf(&mut stake_to_convert);
+        sc_try!(self.fund_transf_module().activate_start_transf(&mut stake_to_convert));
         
         // send all stake to auction contract
         let auction_contract_addr = self.settings().get_auction_contract_address();
@@ -158,7 +158,7 @@ pub trait ContractStakeModule {
 
         // change user stake to Active
         let mut stake_activated = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
-        self.fund_transf_module().activate_finish_ok_transf(&mut stake_activated);
+        sc_try!(self.fund_transf_module().activate_finish_ok_transf(&mut stake_activated));
 
         // set nodes to Active
         for &node_id in node_ids.iter() {
@@ -179,7 +179,7 @@ pub trait ContractStakeModule {
 
         // change user stake to ActivationFailed
         let mut stake_sent = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
-        self.fund_transf_module().activate_finish_fail_transf(&mut stake_sent);
+        sc_try!(self.fund_transf_module().activate_finish_fail_transf(&mut stake_sent));
 
         // set nodes to ActivationFailed
         for &node_id in node_ids.iter() {
@@ -477,7 +477,7 @@ pub trait ContractStakeModule {
 
                 // revert user stake to Inactive
                 let mut failed_stake = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
-                self.fund_transf_module().claim_activation_failed_transf(&mut failed_stake);
+                sc_try!(self.fund_transf_module().claim_activation_failed_transf(&mut failed_stake));
             },
             AsyncCallResult::Err(_) => {
             }

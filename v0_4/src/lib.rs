@@ -6,37 +6,30 @@
 
 // auxiliaries
 pub mod auction_proxy;
-pub mod types;
-
-use crate::types::bls_key::*;
 
 // modules
 pub mod events;
 pub mod genesis;
-pub mod node_config;
 pub mod rewards;
 pub mod node_activation;
 pub mod pause;
 pub mod user_unstake;
 pub mod unexpected;
-pub mod user_data;
 pub mod user_stake;
 pub mod settings;
-pub mod fund_module;
-pub mod fund_transf_module;
-pub mod fund_view_module;
 
+use node_storage::types::*;
 use crate::events::*;
-use crate::node_config::*;
+use node_storage::node_config::*;
 use crate::rewards::*;
 use crate::node_activation::*;
 use crate::pause::*;
 use crate::user_stake::*;
 use crate::user_unstake::*;
 use crate::unexpected::*;
-use crate::user_data::*;
-use crate::fund_transf_module::*;
-use crate::fund_view_module::*;
+use user_fund_storage::user_data::*;
+use user_fund_storage::fund_transf_module::*;
+use user_fund_storage::fund_view_module::*;
 use crate::settings::*;
 
 imports!();

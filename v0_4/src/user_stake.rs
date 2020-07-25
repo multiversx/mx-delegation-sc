@@ -2,9 +2,9 @@
 use crate::events::*;
 use crate::pause::*;
 use crate::settings::*;
-use crate::user_data::*;
-use crate::fund_transf_module::*;
-use crate::fund_view_module::*;
+use user_fund_storage::user_data::*;
+use user_fund_storage::fund_transf_module::*;
+use user_fund_storage::fund_view_module::*;
 // use crate::settings::*;
 
 imports!();
@@ -62,7 +62,7 @@ pub trait UserStakeModule {
         self.events().stake_event(&caller, &payment);
 
         // create stake funds
-        self.fund_transf_module().create_free_stake(user_id, payment);
+        self.fund_transf_module().create_waiting(user_id, payment);
 
         Ok(())
     }
@@ -82,12 +82,12 @@ pub trait UserStakeModule {
         }
 
         let mut amount_to_unstake = amount.clone();
-        self.fund_transf_module().liquidate_free_stake(user_id, &mut amount_to_unstake);
+        sc_try!(self.fund_transf_module().liquidate_free_stake(user_id, &mut amount_to_unstake));
         if amount_to_unstake > 0 {
             return sc_error!("cannot withdraw more than inactive stake");
         }
 
-        sc_try!(self.fund_view_module().validate_total_user_stake(user_id));
+        sc_try!(self.validate_total_user_stake(user_id));
 
         // send stake to delegator
         self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
@@ -95,6 +95,24 @@ pub trait UserStakeModule {
         // log
         self.events().unstake_event(&caller, &amount);
 
+        Ok(())
+    }
+
+    fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
+        let user_total = self.fund_view_module().get_user_total_stake(user_id);
+        if user_total > 0 && user_total < self.settings().get_minimum_stake() {
+            return sc_error!("cannot have less stake than minimum stake");
+        }
+        Ok(())
+    }
+
+    fn validate_owner_stake_share(&self) -> SCResult<()> {
+        // owner total stake / contract total stake < owner_min_stake_share / 10000
+        // reordered to avoid divisions
+        if self.fund_view_module().get_user_total_stake(OWNER_USER_ID) * BigUint::from(PERCENTAGE_DENOMINATOR) <
+            self.fund_view_module().get_total_stake() * self.settings().get_owner_min_stake_share() {
+                return sc_error!("owner doesn't have enough stake in the contract");
+            }
         Ok(())
     }
     
