@@ -42,7 +42,7 @@ pub trait SettingsModule {
         self.user_data().set_num_users(1);
 
         self.set_auction_addr(&auction_contract_addr);
-        sc_try!(self.set_service_fee_endpoint(service_fee_per_10000));
+        sc_try!(self.set_service_fee_validated(service_fee_per_10000));
 
         if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
             return sc_error!("owner min stake share out of range");
@@ -78,6 +78,15 @@ pub trait SettingsModule {
     #[storage_set("service_fee")]
     fn set_service_fee(&self, service_fee: usize);
 
+    fn set_service_fee_validated(&self, service_fee_per_10000: usize) -> SCResult<()> {
+        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
+            return sc_error!("service fee out of range");
+        }
+
+        self.set_service_fee(service_fee_per_10000);
+        Ok(())
+    }
+
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setServiceFee)]
@@ -86,14 +95,9 @@ pub trait SettingsModule {
             return sc_error!("only owner can change service fee"); 
         }
 
-        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
-            return sc_error!("service fee out of range");
-        }
-
         self.rewards().compute_all_rewards();
 
-        self.set_service_fee(service_fee_per_10000);
-        Ok(())
+        self.set_service_fee_validated(service_fee_per_10000)
     }
     
     /// How much stake has to be provided per validator node.
