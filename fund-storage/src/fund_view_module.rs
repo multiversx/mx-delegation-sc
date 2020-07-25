@@ -3,12 +3,12 @@ imports!();
 // use crate::types::fund_list::*;
 // use crate::types::fund_item::*;
 use crate::types::fund_type::*;
-use crate::node_config::PERCENTAGE_DENOMINATOR;
+// use crate::node_config::PERCENTAGE_DENOMINATOR;
 
 
 use crate::fund_module::*;
 use crate::user_data::*;
-use crate::settings::*;
+// use crate::settings::*;
 
 /// Storing total stake per type the same way as we store it for users, but with user_id 0.
 /// There can be no user with id 0, so the value is safe to use.
@@ -25,9 +25,6 @@ pub trait FundViewModule {
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
-
-    #[module(SettingsModuleImpl)]
-    fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
     fn get_user_stake_of_type(&self, user_id: usize, fund_type: FundType) -> BigUint {
         if user_id == USER_STAKE_TOTALS_ID {
@@ -134,21 +131,4 @@ pub trait FundViewModule {
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly)
     }
 
-    fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
-        let user_total = self.get_user_total_stake(user_id);
-        if user_total > 0 && user_total < self.settings().get_minimum_stake() {
-            return sc_error!("cannot have less stake than minimum stake");
-        }
-        Ok(())
-    }
-
-    fn validate_owner_stake_share(&self) -> SCResult<()> {
-        // owner total stake / contract total stake < owner_min_stake_share / 10000
-        // reordered to avoid divisions
-        if self.get_user_total_stake(OWNER_USER_ID) * BigUint::from(PERCENTAGE_DENOMINATOR) <
-            self.get_total_stake() * self.settings().get_owner_min_stake_share() {
-                return sc_error!("owner doesn't have enough stake in the contract");
-            }
-        Ok(())
-    }
 }

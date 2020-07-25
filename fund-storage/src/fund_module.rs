@@ -73,8 +73,7 @@ pub trait FundModule {
 
     /// Adds at the end of the fund by type list.
     fn add_fund_to_type_list(&self, id: usize, new_fund_item: &mut FundItem<BigUint>) {
-        let mut type_list = self.get_fund_list_by_type(new_fund_item.fund_desc.fund_type());
-        type_list.total_balance += &new_fund_item.balance;
+        let mut type_list = self.get_mut_fund_list_by_type(new_fund_item.fund_desc.fund_type());
         if type_list.is_empty() {
             type_list.first = id;
             type_list.last = id;
@@ -84,12 +83,12 @@ pub trait FundModule {
             (*prev_fund).type_list_next = id;
             type_list.last = id;
         }
+        type_list.total_balance += &new_fund_item.balance;
     }
 
     /// Adds at the end of the fund by user+type list.
     fn add_fund_to_user_list(&self, id: usize, new_fund_item: &mut FundItem<BigUint>) {
-        let mut user_list = self.get_fund_list_by_user(new_fund_item.user_id, new_fund_item.fund_desc.fund_type());
-        user_list.total_balance += &new_fund_item.balance;
+        let mut user_list = self.get_mut_fund_list_by_user(new_fund_item.user_id, new_fund_item.fund_desc.fund_type());
         if user_list.is_empty() {
             user_list.first = id;
             user_list.last = id;
@@ -99,6 +98,7 @@ pub trait FundModule {
             (*prev_fund).user_list_next = id;
             user_list.last = id;
         }
+        user_list.total_balance += &new_fund_item.balance;
     }
 
     fn create_fund(&self, user_id: usize, fund_desc: FundDescription, balance: BigUint) {

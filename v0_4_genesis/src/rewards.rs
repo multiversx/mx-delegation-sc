@@ -1,12 +1,12 @@
 
-use crate::types::fund_type::*;
+use fund_storage::types::fund_type::*;
 
 use super::settings::*;
 use crate::events::*;
 use crate::node_config::*;
-use crate::user_data::*;
-use crate::fund_transf_module::*;
-use crate::fund_view_module::*;
+use fund_storage::user_data::*;
+use fund_storage::fund_transf_module::*;
+use fund_storage::fund_view_module::*;
 
 imports!();
 

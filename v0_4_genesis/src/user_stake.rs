@@ -1,7 +1,7 @@
 
 use crate::events::*;
-use crate::user_data::*;
-use crate::fund_transf_module::*;
+use fund_storage::user_data::*;
+use fund_storage::fund_transf_module::*;
 
 imports!();
 

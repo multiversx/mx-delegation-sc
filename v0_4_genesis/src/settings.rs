@@ -1,6 +1,6 @@
 
-use crate::user_data::*;
-use crate::fund_transf_module::*;
+use fund_storage::user_data::*;
+use fund_storage::fund_transf_module::*;
 use crate::node_config::*;
 use crate::rewards::*;
 
