@@ -19,7 +19,7 @@ debug = false
 panic = "abort"
 
 [dependencies]
-fund-storage = { path = "../fund-storage" }
+user-fund-storage = { path = "../user-fund-storage" }
 
 # elrond-wasm = "0.5.4"
 # elrond-wasm-node = "0.5.4"
