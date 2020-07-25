@@ -1,6 +1,6 @@
 use elrond_wasm::elrond_codec::*;
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum FundDescription {
     /// Funds that can only be extracted from contract. Will never be used as stake.
     WithdrawOnly,
@@ -26,7 +26,7 @@ pub enum FundDescription {
 }
 
 /// Same as fund description, but only the enum with no additional data.
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum FundType {
     /// Funds that can only be extracted from contract. Will never be used as stake.
     WithdrawOnly,

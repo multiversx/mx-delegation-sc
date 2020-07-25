@@ -4,18 +4,9 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug auction-mock",
-            "preLaunchTask": "auction-mock-debug-build",
-            "program": "${workspaceFolder}//auction-mock/debug/target/debug/auction-mock-debug",
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug sc-delegation-rs",
-            "preLaunchTask": "sc-delegation-rs-debug-build",
-            "program": "${workspaceFolder}//debug/target/debug/sc-delegation-rs-debug",
+            "name": "Debug user-fund-storage",
+            "preLaunchTask": "user-fund-storage-debug-build",
+            "program": "${workspaceFolder}//user-fund-storage/debug/target/debug/user-fund-storage-debug",
             "args": [],
             "cwd": "${workspaceFolder}"
         }
