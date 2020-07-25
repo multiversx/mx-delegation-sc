@@ -1,15 +1,12 @@
 
-use crate::types::bls_key::*;
-use crate::types::node_state::*;
-
-use crate::settings::*;
+use crate::types::*;
 
 imports!();
 
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
 /// Percents + 2 decimals -> 10000.
-pub static PERCENTAGE_DENOMINATOR: usize = 10000;
+// pub static PERCENTAGE_DENOMINATOR: usize = 10000;
 
 /// This module manages the validator node info:
 /// - how many nodes there are,
@@ -18,9 +15,6 @@ pub static PERCENTAGE_DENOMINATOR: usize = 10000;
 /// 
 #[elrond_wasm_derive::module(NodeConfigModuleImpl)]
 pub trait NodeModule {
-
-    #[module(SettingsModuleImpl)]
-    fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
     
     /// The number of nodes that will run with the contract stake, as configured by the owner.
     #[view(getNumNodes)]
@@ -126,7 +120,7 @@ pub trait NodeModule {
             #[var_args] bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>)
         -> SCResult<()> {
 
-        if !self.settings().owner_called() {
+        if self.get_caller() != self.get_owner_address() {
             return sc_error!("only owner can add nodes"); 
         }
 
@@ -153,7 +147,7 @@ pub trait NodeModule {
 
     #[endpoint(removeNodes)]
     fn remove_nodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
-        if !self.settings().owner_called() {
+        if self.get_caller() != self.get_owner_address() {
             return sc_error!("only owner can remove nodes"); 
         }
 

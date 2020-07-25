@@ -1,5 +1,5 @@
 [package]
-name = "sc-delegation-rs"
+name = "node-storage"
 version = "0.4.0"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
@@ -19,9 +19,6 @@ debug = false
 panic = "abort"
 
 [dependencies]
-node-storage = { path = "../node-storage" }
-user-fund-storage = { path = "../user-fund-storage" }
-
 # elrond-wasm = "0.5.4"
 # elrond-wasm-node = "0.5.4"
 # elrond-wasm-derive = "0.5.4"
@@ -29,4 +26,3 @@ user-fund-storage = { path = "../user-fund-storage" }
 elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
 elrond-wasm-node = { path = "../../elrond-wasm-rs/elrond-wasm-node" }
 elrond-wasm-derive = { path = "../../elrond-wasm-rs/elrond-wasm-derive" }
-

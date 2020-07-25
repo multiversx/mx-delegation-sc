@@ -16,6 +16,10 @@ impl BLSKey {
         self.0.to_vec()
     }
 
+    pub fn from_array(arr: [u8; BLS_KEY_BYTE_LENGTH]) -> Self {
+        BLSKey(Box::new(arr))
+    }
+
     pub fn from_bytes(bytes: &[u8]) -> SCResult<Self> {
         if bytes.len() != BLS_KEY_BYTE_LENGTH {
             return sc_error!("bad BLS key length");

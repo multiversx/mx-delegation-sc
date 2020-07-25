@@ -1,8 +1,13 @@
 
 use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
-use crate::node_config::*;
+use node_storage::node_config::*;
 use crate::rewards::*;
+
+/// Indicates how we express the percentage of rewards that go to the node.
+/// Since we cannot have floating point numbers, we use fixed point with this denominator.
+/// Percents + 2 decimals -> 10000.
+pub static PERCENTAGE_DENOMINATOR: usize = 10000;
 
 /// Validator reward destination will always be user with id 1.
 /// This can also count as a delegator (if the owner adds stake into the contract) or not.

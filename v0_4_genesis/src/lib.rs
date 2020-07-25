@@ -4,13 +4,9 @@
 #![allow(unused_attributes)]
 #![allow(clippy::string_lit_as_bytes)]
 
-// auxiliaries
-pub mod types;
-
 // modules
 pub mod events;
 pub mod genesis;
-pub mod node_config;
 pub mod rewards;
 pub mod user_stake;
 pub mod settings;
