@@ -47,12 +47,9 @@ pub trait SettingsModule {
         self.user_data().set_num_users(1);
 
         self.set_auction_addr(&auction_contract_addr);
-        sc_try!(self.set_service_fee_validated(service_fee_per_10000));
 
-        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
-            return sc_error!("owner min stake share out of range");
-        }
-        self.set_owner_min_stake_share(owner_min_stake_share_per_10000);
+        sc_try!(self.set_service_fee_validated(service_fee_per_10000));
+        sc_try!(self.set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
 
         self.set_n_blocks_before_force_unstake(n_blocks_before_force_unstake);
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);
@@ -140,6 +137,14 @@ pub trait SettingsModule {
     #[storage_set("owner_min_stake_share")]
     fn set_owner_min_stake_share(&self, owner_min_stake_share: usize);
 
+    fn set_owner_min_stake_share_validated(&self, owner_min_stake_share_per_10000: usize) -> SCResult<()> {
+        if owner_min_stake_share_per_10000 > PERCENTAGE_DENOMINATOR {
+            return sc_error!("owner min stake share out of range");
+        }
+
+        self.set_service_fee(owner_min_stake_share_per_10000);
+        Ok(())
+    }
 
     /// Delegators can force the entire contract to unstake
     /// if they put up stake for sale and no-one is buying it.
