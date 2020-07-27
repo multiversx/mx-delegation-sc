@@ -31,4 +31,7 @@ pub trait EventsModule {
     #[event("0x0000000000000000000000000000000000000000000000000000000000000009")]
     fn purchase_stake_event(&self, seller: &Address, buyer: &Address, amount: &BigUint);
 
+    #[event("0x000000000000000000000000000000000000000000000000000000000000000a")]
+    fn claim_rewards_event(&self, user: &Address, amount: &BigUint);
+
 }

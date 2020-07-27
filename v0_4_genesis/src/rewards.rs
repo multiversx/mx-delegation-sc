@@ -205,7 +205,13 @@ pub trait RewardsModule {
         let mut user_data = self.load_updated_user_rewards(user_id);
         
         if user_data.unclaimed_rewards > 0 {
+            // log event
+            self.events().claim_rewards_event(&caller, &user_data.unclaimed_rewards);
+
+            // send reward tx back to caller
             self.send_rewards(&caller, &user_data.unclaimed_rewards);
+
+            // reset unclaimed_rewards
             user_data.unclaimed_rewards = BigUint::zero();
         }
 
