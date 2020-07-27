@@ -82,7 +82,7 @@ impl FundType {
 }
 
 pub const DISCR_WITHDRAW_ONLY: u8 = 0;
-pub const DISCR_INACTIVE: u8 = 1;
+pub const DISCR_WAITING: u8 = 1;
 pub const DISCR_PENDING_ACT: u8 = 2;
 pub const DISCR_ACTIVE_FAILED: u8 = 3;
 pub const DISCR_ACTIVE: u8 = 4;
@@ -113,7 +113,7 @@ impl FundType {
     pub fn discriminant(&self) -> u8 {
         match self {
             FundType::WithdrawOnly => DISCR_WITHDRAW_ONLY,
-            FundType::Waiting => DISCR_INACTIVE,
+            FundType::Waiting => DISCR_WAITING,
             FundType::PendingActivation => DISCR_PENDING_ACT,
             FundType::ActivationFailed => DISCR_ACTIVE_FAILED,
             FundType::Active => DISCR_ACTIVE,
@@ -128,7 +128,7 @@ impl Encode for FundDescription {
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
             FundDescription::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
-            FundDescription::Waiting => { dest.push_byte(DISCR_INACTIVE); },
+            FundDescription::Waiting => { dest.push_byte(DISCR_WAITING); },
             FundDescription::PendingActivation => { dest.push_byte(DISCR_PENDING_ACT); },
             FundDescription::ActivationFailed => { dest.push_byte(DISCR_ACTIVE_FAILED); },
             FundDescription::Active => { dest.push_byte(DISCR_ACTIVE); },
@@ -151,7 +151,7 @@ impl Decode for FundDescription {
         let discriminant = input.read_byte()?;
         match discriminant {
             DISCR_WITHDRAW_ONLY => Ok(FundDescription::WithdrawOnly),
-            DISCR_INACTIVE => Ok(FundDescription::Waiting),
+            DISCR_WAITING => Ok(FundDescription::Waiting),
             DISCR_PENDING_ACT => Ok(FundDescription::PendingActivation),
             DISCR_ACTIVE_FAILED => Ok(FundDescription::ActivationFailed),
             DISCR_ACTIVE => Ok(FundDescription::Active),
@@ -171,7 +171,7 @@ impl Encode for FundType {
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
             FundType::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
-            FundType::Waiting => { dest.push_byte(DISCR_INACTIVE);},
+            FundType::Waiting => { dest.push_byte(DISCR_WAITING);},
             FundType::PendingActivation => { dest.push_byte(DISCR_PENDING_ACT); },
             FundType::ActivationFailed => { dest.push_byte(DISCR_ACTIVE_FAILED); },
             FundType::Active => { dest.push_byte(DISCR_ACTIVE); },
@@ -188,7 +188,7 @@ impl Decode for FundType {
         let discriminant = input.read_byte()?;
         match discriminant {
             DISCR_WITHDRAW_ONLY => Ok(FundType::WithdrawOnly),
-            DISCR_INACTIVE => Ok(FundType::Waiting),
+            DISCR_WAITING => Ok(FundType::Waiting),
             DISCR_PENDING_ACT => Ok(FundType::PendingActivation),
             DISCR_ACTIVE_FAILED => Ok(FundType::ActivationFailed),
             DISCR_ACTIVE => Ok(FundType::Active),
