@@ -127,13 +127,13 @@
             "comment": "delegator 1 gets another 1",
             "accounts": {
                 "''delegation_contract___________s1": {
-                    "balance": "0"
+                    "balance": "1"
                 },
                 "''node_address__________________s1": {
-                    "balance": "0"
+                    "balance": "1"
                 },
                 "''delegator_1___________________s1": {
-                    "balance": "2"
+                    "balance": "0"
                 },
                 "+": ""
             }

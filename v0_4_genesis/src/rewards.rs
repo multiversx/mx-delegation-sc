@@ -85,10 +85,26 @@ pub trait RewardsModule {
     }
 
     /// The account running the nodes is entitled to (service_fee / NODE_DENOMINATOR) * rewards.
-    fn service_fee_reward(&self, tot_rewards: &BigUint) -> BigUint {
-        let mut node_rewards = tot_rewards * &self.settings().get_service_fee();
-        node_rewards /= BigUint::from(PERCENTAGE_DENOMINATOR);
-        node_rewards
+    /// Yields the service reward and the non-service-reward.
+    /// 
+    /// The sum of the 2 outputs is <= tot_rewards (not always equal).
+    /// Both results are rounded down,
+    /// so te rounding error is not in the result.
+    /// This is deliberate, to avoid a very subtle rounding error edge case.
+    fn split_service_reward(&self, tot_rewards: &BigUint) -> (BigUint, BigUint) {
+        let service_fee = &self.settings().get_service_fee();
+        let perc_denominator = &BigUint::from(PERCENTAGE_DENOMINATOR);
+
+        // part of the rewards that goes to the owner
+        let mut service_rewards = service_fee * tot_rewards;
+        service_rewards /= perc_denominator;
+
+        // part of the rewards that gets split amongst delegators
+        let mut non_service_rewards = perc_denominator - service_fee;
+        non_service_rewards *= tot_rewards;
+        non_service_rewards /= perc_denominator;
+
+        (service_rewards, non_service_rewards)
     }
 
     /// Does not update storage, only returns the user rewards object, after computing rewards.
@@ -102,13 +118,14 @@ pub trait RewardsModule {
             return user_data; // nothing happened since the last claim
         }
 
-        // the owner is entitled to: new rewards * service_fee / NODE_DENOMINATOR
-        let service_fee = self.service_fee_reward(&tot_new_rewards);
+        // the owner is entitled to: tot_new_rewards * service_fee / NODE_DENOMINATOR
+        // delegators are entitled to: tot_new_rewards * (1 - service_fee / NODE_DENOMINATOR)
+        let (service_rewards, non_service_rewards) = self.split_service_reward(&tot_new_rewards);
         
         // update node rewards, if applicable
         if user_id == OWNER_USER_ID {
             // the owner gets the service fee
-            user_data.unclaimed_rewards += &service_fee;
+            user_data.unclaimed_rewards += &service_rewards;
         }
 
         // update delegator rewards based on Active stake
@@ -118,7 +135,7 @@ pub trait RewardsModule {
         if u_stake_active > 0 {
             // delegator reward is:
             // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake
-            let mut delegator_new_rewards = &tot_new_rewards - &service_fee;
+            let mut delegator_new_rewards = non_service_rewards;
             delegator_new_rewards *= &u_stake_active;
             delegator_new_rewards /= &total_active_stake;
             user_data.unclaimed_rewards += &delegator_new_rewards;
