@@ -97,7 +97,7 @@ pub trait SettingsModule {
             return sc_error!("only owner can change service fee"); 
         }
 
-        self.rewards().compute_all_rewards();
+        sc_try!(self.rewards().compute_all_rewards());
 
         self.set_service_fee_validated(service_fee_per_10000)
     }

@@ -7,6 +7,7 @@ use node_storage::node_config::*;
 use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
+use features_module::*;
 
 imports!();
 
@@ -40,6 +41,9 @@ pub trait RewardsModule {
 
     #[module(FundViewModuleImpl)]
     fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FeaturesModuleImpl)]
+    fn features_module(&self) -> FeaturesModuleImpl<T, BigInt, BigUint>;
 
     /// Claiming rewards has 2 steps:
     /// 1. computing the delegator rewards out of the total rewards, and
@@ -157,7 +161,9 @@ pub trait RewardsModule {
     /// Updates storage.
     /// Could cost a lot of gas.
     #[endpoint(computeAllRewards)]
-    fn compute_all_rewards(&self) {
+    fn compute_all_rewards(&self) -> SCResult<()> {
+        feature_guard!(self.features_module(), b"computeAllRewards", true);
+
         let num_nodes = self.user_data().get_num_users();
         let mut sum_unclaimed = BigUint::zero();
 
@@ -177,6 +183,7 @@ pub trait RewardsModule {
             node_unclaimed += &remainder;
             self.set_user_rew_unclaimed(OWNER_USER_ID, &node_unclaimed);
         }
+        Ok(())
     }
 
     /// Yields how much a user is able to claim in rewards at the present time.
@@ -213,6 +220,8 @@ pub trait RewardsModule {
     /// - rewards that were previously computed but not sent
     #[endpoint(claimRewards)]
     fn claim_rewards(&self) -> SCResult<()> {
+        feature_guard!(self.features_module(), b"claimRewards", true);
+
         let caller = self.get_caller();
         let user_id = self.user_data().get_user_id(&caller);
         if user_id == 0 {

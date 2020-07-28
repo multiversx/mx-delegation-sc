@@ -1,5 +1,5 @@
 [package]
-name = "sc-delegation-rs"
+name = "features-module"
 version = "0.4.0"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
@@ -19,10 +19,6 @@ debug = false
 panic = "abort"
 
 [dependencies]
-node-storage = { path = "../node-storage" }
-user-fund-storage = { path = "../user-fund-storage" }
-features-module = { path = "../features-module" }
-
 elrond-wasm = "0.5.5"
 elrond-wasm-node = "0.5.5"
 elrond-wasm-derive = "0.5.5"
@@ -30,4 +26,3 @@ elrond-wasm-derive = "0.5.5"
 # elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
 # elrond-wasm-node = { path = "../../elrond-wasm-rs/elrond-wasm-node" }
 # elrond-wasm-derive = { path = "../../elrond-wasm-rs/elrond-wasm-derive" }
-
