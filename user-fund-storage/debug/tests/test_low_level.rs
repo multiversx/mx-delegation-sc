@@ -1,11 +1,7 @@
 
-// use elrond_wasm::elrond_codec::*;
-// use sc_delegation_rs::bls_key::*;
-// use elrond_wasm::Vec;
 use user_fund_storage::fund_module::*;
 use user_fund_storage::types::*;
 
-// use sc_delegation_rs::*;
 use elrond_wasm::*;
 use elrond_wasm_debug::*;
 use elrond_wasm_debug::HashMap;
@@ -134,6 +130,7 @@ fn test_fund_inc_dec_3() {
     let mut destroy = RustBigUint::from(1230u32);
     let sc_res = fund_module.destroy_max_for_user(&mut destroy, user_id, FundType::Waiting);
     assert!(sc_res.is_ok());
+    assert_eq!(destroy, RustBigUint::zero());
 
     assert_eq!(
         RustBigUint::from(4u32),
