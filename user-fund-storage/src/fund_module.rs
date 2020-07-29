@@ -66,9 +66,45 @@ pub trait FundModule {
             if filter(fund_item.fund_desc) {
                 sum += &fund_item.balance;
             }
-            id = fund_item.type_list_next;
+            id = fund_item.user_list_next;
         }
         sum
+    }
+
+    /// Mostly written for testing. The contract shouldn't care how many items there are in the list.
+    fn count_fund_items_by_type<F>(&self, fund_type: FundType, filter: F) -> usize 
+    where 
+        F: Fn(usize, FundDescription) -> bool,
+    {
+        let mut count = 0usize;
+        let type_list = self.get_fund_list_by_type(fund_type);
+        let mut id = type_list.first;
+        while id > 0 {
+            let fund_item = self.get_fund_by_id(id);
+            if filter(fund_item.user_id, fund_item.fund_desc) {
+                count += 1;
+            }
+            id = fund_item.type_list_next;
+        }
+        count
+    }
+
+    /// Mostly written for testing. The contract shouldn't care how many items there are in the list.
+    fn count_fund_items_by_user_type<F>(&self, user_id: usize, fund_type: FundType, filter: F) -> usize 
+    where 
+        F: Fn(FundDescription) -> bool,
+    {
+        let mut count = 0usize;
+        let user_list = self.get_fund_list_by_user(user_id, fund_type);
+        let mut id = user_list.first;
+        while id > 0 {
+            let fund_item = self.get_fund_by_id(id);
+            if filter(fund_item.fund_desc) {
+                count += 1;
+            }
+            id = fund_item.user_list_next;
+        }
+        count
     }
 
     /// Adds at the end of the fund by type list.
@@ -127,7 +163,7 @@ pub trait FundModule {
         // attempt to coalesce into 1 fund item
         if fund_desc.fund_type().allow_coalesce() { // not all types can be coalesced, anything involving queues cannot
             let user_list = self.get_fund_list_by_user(user_id, fund_desc.fund_type());
-            if user_list.last > 0 { // at least 1 item must exist for user
+            if !user_list.is_empty() { // at least 1 item must exist for user
                 let mut last_item = self.get_fund_by_id(user_list.last);
                 if last_item.fund_desc == fund_desc { // specific item descriptions need to be identical
                     last_item.balance += &amount;
@@ -144,14 +180,14 @@ pub trait FundModule {
         fund_item: &FundItem<BigUint>,
         type_list: &mut FundsListInfo<BigUint>) {
 
-        if fund_item.user_list_prev == 0 {
+        if fund_item.type_list_prev == 0 {
             type_list.first = fund_item.type_list_next;
         } else {
             let mut prev = self.get_mut_fund_by_id(fund_item.type_list_prev);
             (*prev).type_list_next = fund_item.type_list_next;
         }
 
-        if fund_item.user_list_next == 0 {
+        if fund_item.type_list_prev == 0 {
             type_list.last = fund_item.type_list_prev;
         } else {
             let mut next = self.get_mut_fund_by_id(fund_item.type_list_next);
