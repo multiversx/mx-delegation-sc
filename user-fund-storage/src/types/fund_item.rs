@@ -32,8 +32,14 @@ impl<BigUint:BigUintApi> FundsListInfo<BigUint> {
 
 impl<BigUint:BigUintApi> Encode for FundItem<BigUint> {
     fn using_top_encoded<F: FnOnce(&[u8])>(&self, f: F) -> Result<(), EncodeError> {
-        if self.balance == 0 {
-            // delete storage if the balance reaches 0
+        // delete storage when the balance reaches 0
+        // also require links to have been reset (this check is not strictly necessary, but improves safety)
+        if self.balance == 0 && 
+            self.type_list_next == 0 && 
+            self.type_list_prev == 0 && 
+            self.user_list_next == 0 && 
+            self.user_list_prev == 0 {
+
             f(&[]);
         } else {
             let mut result: Vec<u8> = Vec::new();

@@ -38,10 +38,10 @@ fn test_fund_item_empty_serialization() {
         fund_desc: FundDescription::Active,
         user_id: 123,
         balance: RustBigUint::from(0u32),
-        type_list_next: 15,
-        type_list_prev: 16,
-        user_list_next: 17,
-        user_list_prev: 18,
+        type_list_next: 0,
+        type_list_prev: 0,
+        user_list_next: 0,
+        user_list_prev: 0,
     };
 
     let serialized_bytes = empty.top_encode().unwrap();

@@ -177,7 +177,7 @@ pub trait FundModule {
     }
 
     fn delete_fund_from_type_list(&self,
-        fund_item: &FundItem<BigUint>,
+        fund_item: &mut FundItem<BigUint>,
         type_list: &mut FundsListInfo<BigUint>) {
 
         if fund_item.type_list_prev == 0 {
@@ -186,6 +186,7 @@ pub trait FundModule {
             let mut prev = self.get_mut_fund_by_id(fund_item.type_list_prev);
             (*prev).type_list_next = fund_item.type_list_next;
         }
+        fund_item.type_list_prev = 0; // also clear own prev, so the item can be deleted
 
         if fund_item.type_list_prev == 0 {
             type_list.last = fund_item.type_list_prev;
@@ -193,10 +194,11 @@ pub trait FundModule {
             let mut next = self.get_mut_fund_by_id(fund_item.type_list_next);
             (*next).type_list_prev = fund_item.type_list_prev;
         }
+        fund_item.type_list_next = 0; // also clear own next, so the item can be deleted
     }
 
     fn delete_fund_from_user_list(&self,
-        fund_item: &FundItem<BigUint>,
+        fund_item: &mut FundItem<BigUint>,
         user_list: &mut FundsListInfo<BigUint>) {
     
         if fund_item.user_list_prev == 0 {
@@ -205,6 +207,7 @@ pub trait FundModule {
             let mut prev = self.get_mut_fund_by_id(fund_item.user_list_prev);
             (*prev).user_list_next = fund_item.user_list_next;
         }
+        fund_item.user_list_prev = 0; // also clear own prev, so the item can be deleted
     
         if fund_item.user_list_next == 0 {
             user_list.last = fund_item.user_list_prev;
@@ -212,6 +215,7 @@ pub trait FundModule {
             let mut next = self.get_mut_fund_by_id(fund_item.user_list_next);
             (*next).user_list_prev = fund_item.user_list_prev;
         }
+        fund_item.user_list_next = 0; // also clear own next, so the item can be deleted
     }
 
     /// Returns the old balance of the deleted item.
@@ -224,8 +228,8 @@ pub trait FundModule {
         (*user_list).total_balance -= &fund_item.balance;
 
         // remove fund from the linked lists
-        self.delete_fund_from_type_list(&*fund_item, &mut *type_list);
-        self.delete_fund_from_user_list(&*fund_item, &mut *user_list);
+        self.delete_fund_from_type_list(fund_item, &mut *type_list);
+        self.delete_fund_from_user_list(fund_item, &mut *user_list);
 
         // setting balance to zero causes the fund item to be removed from storage when saving
         // result = fund_item.balance; fund_item.balance = 0;
@@ -266,6 +270,8 @@ pub trait FundModule {
 
         while id > 0 {
             let mut fund_item = self.get_mut_fund_by_id(id);
+            let next_id = fund_item.type_list_next; // save next id now, because fund_item can be destroyed
+
             if let Some(transformed) = filter_transform(fund_item.user_id, fund_item.fund_desc) {
                 // extract / decrease
                 let extracted_balance: BigUint;
@@ -283,7 +289,7 @@ pub trait FundModule {
                     transformed,
                     extracted_balance);
             }
-            id = fund_item.type_list_next;
+            id = next_id;
         }
 
         Ok(total_transformed)
@@ -303,6 +309,8 @@ pub trait FundModule {
 
         while id > 0 {
             let mut fund_item = self.get_mut_fund_by_id(id);
+            let next_id = fund_item.user_list_next; // save next id now, because fund_item can be destroyed
+
             if let Some(transformed) = filter_transform(fund_item.fund_desc) {
                 // extract / decrease
                 let extracted_balance: BigUint;
@@ -320,7 +328,7 @@ pub trait FundModule {
                     transformed,
                     extracted_balance);
             }
-            id = fund_item.user_list_next;
+            id = next_id;
         }
 
         Ok(total_transformed)
@@ -336,8 +344,10 @@ pub trait FundModule {
 
         while id > 0 {
             let mut fund_item = self.get_mut_fund_by_id(id);
+            let next_id = fund_item.user_list_next; // save next id now, because fund_item can be destroyed
+
             let _ = self.decrease_fund_balance(amount, &mut *fund_item);
-            id = fund_item.user_list_next;
+            id = next_id;
         }
 
         Ok(())
