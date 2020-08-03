@@ -89,8 +89,7 @@ pub trait SettingsModule {
         Ok(())
     }
 
-    /// The stake per node can be changed by the owner.
-    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
+    /// The service fee can be changed by the owner.
     #[endpoint(setServiceFee)]
     fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> SCResult<()> {
         if !self.owner_called() {
@@ -99,6 +98,26 @@ pub trait SettingsModule {
 
         sc_try!(self.rewards().compute_all_rewards());
 
+        self.set_service_fee_validated(service_fee_per_10000)
+    }
+
+    #[storage_get("service_fee_once")]
+    fn get_service_fee_once(&self) -> u64;
+
+    #[storage_set("service_fee_once")]
+    fn set_service_fee_once(&self, service_fee: u64);
+
+    /// The service fee can be changed by the owner.
+    #[endpoint(setServiceFeeOnce)]
+    fn set_service_fee_endpoint_once(&self, service_fee_per_10000: usize) -> SCResult<()> {
+        if !self.owner_called() {
+            return sc_error!("only owner can change service fee"); 
+        }
+        if self.get_service_fee_once() > 0 {
+            return sc_error!("can be called only once"); 
+        }
+
+        self.set_service_fee_once(100);
         self.set_service_fee_validated(service_fee_per_10000)
     }
     
