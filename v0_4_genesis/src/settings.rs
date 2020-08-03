@@ -124,7 +124,7 @@ pub trait SettingsModule {
             return sc_error!("owner min stake share out of range");
         }
 
-        self.set_service_fee(owner_min_stake_share_per_10000);
+        self.set_owner_min_stake_share(owner_min_stake_share_per_10000);
         Ok(())
     }
 
