@@ -34,25 +34,8 @@ pub trait SettingsModule {
 
     /// This is the contract constructor, called only once when the contract is deployed.
     #[init]
-    fn init(&self,
-        auction_contract_addr: &Address,
-        service_fee_per_10000: usize,
-        owner_min_stake_share_per_10000: usize,
-        n_blocks_before_force_unstake: u64,
-        n_blocks_before_unbond: u64,
-    ) -> SCResult<()> {
-
-        let owner = self.get_caller();
-        self.user_data().set_user_id(&owner, OWNER_USER_ID); // node reward destination will be user #1
-        self.user_data().set_num_users(1);
-
-        self.set_auction_addr(&auction_contract_addr);
-
+    fn init(&self, service_fee_per_10000: usize) -> SCResult<()> {
         sc_try!(self.set_service_fee_validated(service_fee_per_10000));
-        sc_try!(self.set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
-
-        self.set_n_blocks_before_force_unstake(n_blocks_before_force_unstake);
-        self.set_n_blocks_before_unbond(n_blocks_before_unbond);
 
         Ok(())
     }
@@ -98,26 +81,6 @@ pub trait SettingsModule {
 
         sc_try!(self.rewards().compute_all_rewards());
 
-        self.set_service_fee_validated(service_fee_per_10000)
-    }
-
-    #[storage_get("service_fee_once")]
-    fn get_service_fee_once(&self) -> u64;
-
-    #[storage_set("service_fee_once")]
-    fn set_service_fee_once(&self, service_fee: u64);
-
-    /// The service fee can be changed by the owner.
-    #[endpoint(setServiceFeeOnce)]
-    fn set_service_fee_endpoint_once(&self, service_fee_per_10000: usize) -> SCResult<()> {
-        if !self.owner_called() {
-            return sc_error!("only owner can change service fee"); 
-        }
-        if self.get_service_fee_once() > 0 {
-            return sc_error!("can be called only once"); 
-        }
-
-        self.set_service_fee_once(100);
         self.set_service_fee_validated(service_fee_per_10000)
     }
     
