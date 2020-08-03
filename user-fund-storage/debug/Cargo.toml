@@ -1,0 +1,14 @@
+[package]
+name = "user-fund-storage-debug"
+version = "0.1.3"
+authors = ["andrei-marinica <andrei_m_marinica@yahoo.com>"]
+edition = "2018"
+
+[dependencies]
+elrond-wasm = "0.5.5"
+elrond-wasm-debug = "0.5.5"
+
+# elrond-wasm = { path = "../../../elrond-wasm-rs/elrond-wasm" }
+# elrond-wasm-debug = { path = "../../../elrond-wasm-rs/elrond-wasm-debug" }
+
+user-fund-storage = { path = ".." }

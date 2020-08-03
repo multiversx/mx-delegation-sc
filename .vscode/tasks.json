@@ -2,24 +2,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "auction-mock-debug-build",
+            "label": "user-fund-storage-debug-build",
             "command": "cargo",
             "args": [
                 "build"
             ],
             "options": {
-                "cwd": "${workspaceFolder}//auction-mock/debug"
-            },
-            "type": "shell"
-        },
-        {
-            "label": "sc-delegation-rs-debug-build",
-            "command": "cargo",
-            "args": [
-                "build"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}//debug"
+                "cwd": "${workspaceFolder}//user-fund-storage/debug"
             },
             "type": "shell"
         }

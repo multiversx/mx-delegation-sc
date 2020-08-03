@@ -1,6 +1,6 @@
 [package]
-name = "auction-mock"
-version = "0.3.4"
+name = "sc-delegation-rs"
+version = "0.3.7"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
@@ -8,7 +8,7 @@ edition = "2018"
 path = "src/lib.rs"
 
 [[bin]]
-name = "auction-mock"
+name = "delegation"
 path = "src/lib.rs"
 
 [profile.release]
@@ -23,6 +23,6 @@ elrond-wasm = "0.5.5"
 elrond-wasm-node = "0.5.5"
 elrond-wasm-derive = "0.5.5"
 
-# elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
-# elrond-wasm-node = { path = "../../elrond-wasm-rs/elrond-wasm-node" }
-# elrond-wasm-derive = { path = "../../elrond-wasm-rs/elrond-wasm-derive" }
+# elrond-wasm = { path = "../elrond-wasm-rs/elrond-wasm" }
+# elrond-wasm-node = { path = "../elrond-wasm-rs/elrond-wasm-node" }
+# elrond-wasm-derive = { path = "../elrond-wasm-rs/elrond-wasm-derive" }
