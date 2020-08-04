@@ -5,6 +5,7 @@ use crate::settings::*;
 use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
+use user_fund_storage::types::*;
 
 imports!();
 
@@ -45,7 +46,21 @@ pub trait UserStakeModule {
         self.events().stake_event(&caller, &payment);
 
         // create stake funds
+        let amount_to_stake = payment.clone();
         self.fund_transf_module().create_waiting(user_id, payment);
+
+        // get total unstaked
+        let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
+        if total_unstaked == 0 {
+            return Ok(());
+        }
+        let swappable = core::cmp::min(&amount_to_stake, &total_unstaked);
+
+        // swap unStaked to deferred payment
+        sc_try!(self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable));
+
+        // swap waiting to active
+        sc_try!(self.fund_transf_module().swap_active_with_waiting_transf(&swappable));
 
         Ok(())
     }
@@ -58,9 +73,8 @@ pub trait UserStakeModule {
         if self.pause().is_staking_paused() {
             return sc_error!("staking paused");
         }
-        
-        if payment == 0 {
-            return Ok(());
+        if payment < self.settings().get_minimum_stake() {
+            return sc_error!("cannot stake less than minimum stake")
         }
 
         self.process_stake(payment)

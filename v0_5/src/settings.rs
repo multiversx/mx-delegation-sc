@@ -39,6 +39,7 @@ pub trait SettingsModule {
         service_fee_per_10000: usize,
         owner_min_stake_share_per_10000: usize,
         n_blocks_before_unbond: u64,
+        minimum_stake: BigUint,
     ) -> SCResult<()> {
 
         let owner = self.get_caller();
@@ -51,6 +52,7 @@ pub trait SettingsModule {
         sc_try!(self.set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
 
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);
+        self.set_minimum_stake(minimum_stake);
 
         Ok(())
     }

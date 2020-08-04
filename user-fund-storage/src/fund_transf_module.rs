@@ -91,23 +91,24 @@ pub trait FundTransformationsModule {
         Ok(())
     }
 
-    fn swap_active_with_waiting_transf(&self, unstake_user_id: usize, amount: &BigUint) -> SCResult<()> {
-        // convert active stake -> deferred payment (seller)
-        let mut unstaked_to_convert = amount.clone();
-        let current_bl_nonce = self.get_block_nonce();
-        let _ = sc_try!(self.fund_module().split_convert_max_by_user(
-            Some(&mut unstaked_to_convert),
-            unstake_user_id,
-            FundType::Active,
-            |_| Some(FundDescription::DeferredPayment{ created: current_bl_nonce })
-        ));
-
-        // convert inactive -> active (buyer)
+    fn swap_active_with_waiting_transf(&self, amount: &BigUint) -> SCResult<()> {
         let mut stake_to_activate = amount.clone();
         let _ = sc_try!(self.fund_module().split_convert_max_by_type(
             Some(&mut stake_to_activate),
             FundType::Waiting,
             |_, _| Some(FundDescription::Active)
+        ));
+
+        Ok(())
+    }
+
+    fn swap_unstaked_to_deferred_payment(&self, amount: &BigUint) -> SCResult<()> {
+        let mut unstaked_to_convert = amount.clone();
+        let current_bl_nonce = self.get_block_nonce();
+        let _ = sc_try!(self.fund_module().split_convert_max_by_type(
+            Some(&mut unstaked_to_convert),
+            FundType::UnStaked,
+            |_, _| Some(FundDescription::DeferredPayment{ created: current_bl_nonce })
         ));
 
         Ok(())

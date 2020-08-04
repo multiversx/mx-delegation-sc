@@ -1,6 +1,4 @@
 
-use user_fund_storage::types::*;
-
 use crate::events::*;
 use crate::pause::*;
 use crate::rewards::*;
@@ -8,6 +6,7 @@ use crate::settings::*;
 use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
+use user_fund_storage::types::*;
 
 imports!();
 
@@ -54,37 +53,39 @@ pub trait UserUnStakeModule {
         if amount > stake {
             return sc_error!("cannot offer more than the user active stake")
         }
+        if amount != stake && amount < self.settings().get_minimum_stake() {
+            return sc_error!("cannot unstake less than minimum stake")
+        }
+
+        // convert Active of this user -> UnStaked
+        sc_try!(self.fund_transf_module().unstake_transf(unstake_user_id, &amount));
 
         // convert Waiting from other users -> Active
-        sc_try!(self.try_swap_active_with_waiting(unstake_user_id, &amount));
+        let total_waiting = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
+        if total_waiting == 0 {
+            return Ok(());
+        }
+        let swappable = core::cmp::min(&amount, &total_waiting);
+        sc_try!(self.fund_transf_module().swap_active_with_waiting_transf(&swappable));
 
-        // convert Active of this user -> DeferredPayment
-        sc_try!(self.fund_transf_module().unstake_transf(unstake_user_id, &amount));
+        // convert UnStaked to deffered payment
+        sc_try!(self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable));
 
         Ok(())
     }
 
-    fn try_swap_active_with_waiting(&self, unstake_user_id: usize, amount: &BigUint) -> SCResult<()> {
-        let total_inactive = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
-        if total_inactive == 0 {
-            return Ok(());
-        }
-        let swappable = core::cmp::min(amount, &total_inactive);
-        self.fund_transf_module().swap_active_with_waiting_transf(unstake_user_id, &swappable)
-    }
-
-    #[endpoint(claimPayment)]
-    fn claim_payment(&self) -> SCResult<()> {
+    #[endpoint(unBond)]
+    fn unbond_user(&self) -> SCResult<()> {
         let caller = self.get_caller();
         let caller_id = self.user_data().get_user_id(&caller);
         if caller_id == 0 {
             return sc_error!("unknown caller");
         }
 
-        let n_blocks_before_claim = self.settings().get_n_blocks_before_unbond();
+        let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
         let claimed_payments = sc_try!(self.fund_transf_module().claim_all_eligible_deferred_payments(
             caller_id,
-            n_blocks_before_claim
+            n_blocks_before_unbond
         ));
 
         if claimed_payments > 0 {
