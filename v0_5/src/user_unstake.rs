@@ -57,6 +57,8 @@ pub trait UserUnStakeModule {
             return sc_error!("cannot unstake less than minimum stake")
         }
 
+        self.rewards().compute_one_user_reward(unstake_user_id);
+
         // convert Active of this user -> UnStaked
         sc_try!(self.fund_transf_module().unstake_transf(unstake_user_id, &amount));
 
@@ -66,7 +68,10 @@ pub trait UserUnStakeModule {
             return Ok(());
         }
         let swappable = core::cmp::min(&amount, &total_waiting);
-        sc_try!(self.fund_transf_module().swap_active_with_waiting_transf(&swappable));
+        let affected_users = self.fund_transf_module().swap_waiting_to_active(&swappable);
+        for user_id in affected_users.iter() {
+            self.rewards().compute_one_user_reward(*user_id);
+        }
 
         // convert UnStaked to deffered payment
         sc_try!(self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable));

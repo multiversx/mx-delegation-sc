@@ -159,7 +159,7 @@ pub trait RewardsModule {
 
     /// Computes rewards for all delegators and the node.
     /// Updates storage.
-    /// Could cost a lot of gas.
+    /// It costs a lot of gas - more than gasLimit of a block if more than 1000 users.
     #[endpoint(computeAllRewards)]
     fn compute_all_rewards(&self) -> SCResult<()> {
         feature_guard!(self.features_module(), b"computeAllRewards", true);
@@ -184,6 +184,11 @@ pub trait RewardsModule {
             self.set_user_rew_unclaimed(OWNER_USER_ID, &node_unclaimed);
         }
         Ok(())
+    }
+
+    fn compute_one_user_reward(&self, user_id: usize) {
+        let user_data = self.load_updated_user_rewards(user_id);
+        self.store_user_reward_data(user_id, &user_data);
     }
 
     /// Yields how much a user is able to claim in rewards at the present time.

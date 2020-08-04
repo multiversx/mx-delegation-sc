@@ -153,12 +153,11 @@ fn test_transfer_funds_1() {
     fund_module.increase_fund_balance(user_1, FundDescription::Waiting, 1200u32.into());
     fund_module.increase_fund_balance(user_2, FundDescription::Waiting, 34u32.into());
 
-    let res = fund_module.split_convert_max_by_type(
+    let _ = fund_module.split_convert_max_by_type(
         None,
         FundType::Waiting,
         |_, _| Some(FundDescription::PendingActivation)
     );
-    assert!(res.is_ok());
 
     assert_eq!(
         RustBigUint::from(1234u32),

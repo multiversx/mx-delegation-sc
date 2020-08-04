@@ -1,6 +1,7 @@
 
 use crate::events::*;
 use crate::pause::*;
+use crate::rewards::*;
 use crate::settings::*;
 use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
@@ -24,6 +25,9 @@ pub trait UserStakeModule {
 
     #[module(PauseModuleImpl)]
     fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
+
+    #[module(RewardsModuleImpl)]
+    fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
 
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
@@ -60,7 +64,10 @@ pub trait UserStakeModule {
         sc_try!(self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable));
 
         // swap waiting to active
-        sc_try!(self.fund_transf_module().swap_active_with_waiting_transf(&swappable));
+        let affected_users = self.fund_transf_module().swap_waiting_to_active(&swappable);
+        for user_id in affected_users.iter() {
+            self.rewards().compute_one_user_reward(*user_id);
+        }
 
         Ok(())
     }

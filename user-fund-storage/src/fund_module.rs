@@ -260,13 +260,13 @@ pub trait FundModule {
     fn split_convert_max_by_type<F>(&self,
         mut opt_max_amount: Option<&mut BigUint>,
         source_type: FundType,
-        filter_transform: F) -> SCResult<BigUint> 
+        filter_transform: F) -> Vec<usize>
     where 
         F: Fn(usize, FundDescription) -> Option<FundDescription>,
     {
         let type_list = self.get_fund_list_by_type(source_type);
         let mut id = type_list.first;
-        let mut total_transformed = BigUint::zero();
+        let mut affected_users: Vec<usize> = Vec::new();
 
         while id > 0 {
             let mut fund_item = self.get_mut_fund_by_id(id);
@@ -281,18 +281,17 @@ pub trait FundModule {
                 } else {
                     extracted_balance = self.delete_fund(&mut *fund_item);
                 }
-                // add to sum
-                total_transformed += &extracted_balance;
                 // create / increase
                 self.increase_fund_balance(
                     (*fund_item).user_id,
                     transformed,
                     extracted_balance);
+                affected_users.push((*fund_item).user_id)
             }
             id = next_id;
         }
 
-        Ok(total_transformed)
+        affected_users
     }
 
     fn split_convert_max_by_user<F>(&self,
