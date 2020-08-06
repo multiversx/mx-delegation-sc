@@ -49,7 +49,7 @@ pub trait ContractStakeModule {
             #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
 
         if !self.settings().caller_can_activate() {
-            return sc_error!("not allowed to activate");
+            return sc_error!("caller not allowed to stake node");
         }
         let stake_per_node = self.settings().get_stake_per_node();
         let mut inactive_stake = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
@@ -178,7 +178,7 @@ pub trait ContractStakeModule {
             #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
 
         if !self.settings().caller_can_activate() {
-            return sc_error!("not allowed to activate");
+            return sc_error!("caller not allowed to unstake node");
         }
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
@@ -276,7 +276,7 @@ pub trait ContractStakeModule {
     #[endpoint(unBondNodes)]
     fn unbond_all_available(&self) -> SCResult<()> {
         if !self.settings().caller_can_activate() {
-            return sc_error!("not allowed to activate");
+            return sc_error!("caller not allowed to unbond nodes");
         }
 
         let mut node_id = self.node_config().get_num_nodes();

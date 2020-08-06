@@ -73,7 +73,7 @@ pub trait UserUnStakeModule {
             self.rewards().compute_one_user_reward(*user_id);
         }
 
-        // convert UnStaked to deffered payment
+        // convert UnStaked to defered payment
         sc_try!(self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable));
 
         Ok(())

@@ -103,7 +103,7 @@ pub trait SettingsModule {
     }
     
     /// How much stake has to be provided per validator node.
-    /// After genesis this sum is fixed to 2,500,000 ERD, but at some point bidding will happen.
+    /// After genesis this sum is fixed to 2,500 eGLD, but at some point bidding will happen.
     #[view(getStakePerNode)]
     #[storage_get("stake_per_node")]
     fn get_stake_per_node(&self) -> BigUint;
@@ -142,7 +142,7 @@ pub trait SettingsModule {
             return sc_error!("owner min stake share out of range");
         }
 
-        self.set_service_fee(owner_min_stake_share_per_10000);
+        self.set_owner_min_stake_share(owner_min_stake_share_per_10000);
         Ok(())
     }
 

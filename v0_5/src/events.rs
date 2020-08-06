@@ -3,7 +3,6 @@ imports!();
 /// Contains all events that can be emitted by the contract.
 #[elrond_wasm_derive::module(EventsModuleImpl)]
 pub trait EventsModule {
-
     #[event("0x0000000000000000000000000000000000000000000000000000000000000001")]
     fn stake_event(&self, delegator: &Address, amount: &BigUint);
 
@@ -30,5 +29,4 @@ pub trait EventsModule {
 
     #[event("0x0000000000000000000000000000000000000000000000000000000000000009")]
     fn claim_rewards_event(&self, user: &Address, amount: &BigUint);
-
 }

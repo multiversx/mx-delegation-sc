@@ -135,5 +135,5 @@ pub trait UserStakeModule {
             }
         Ok(())
     }
-     
+    
 }

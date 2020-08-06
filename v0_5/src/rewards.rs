@@ -104,11 +104,11 @@ pub trait RewardsModule {
         service_rewards /= perc_denominator;
 
         // part of the rewards that gets split amongst delegators
-        let mut non_service_rewards = perc_denominator - service_fee;
-        non_service_rewards *= tot_rewards;
-        non_service_rewards /= perc_denominator;
+        let mut total_delegators_rewards = perc_denominator - service_fee;
+        total_delegators_rewards *= tot_rewards;
+        total_delegators_rewards /= perc_denominator;
 
-        (service_rewards, non_service_rewards)
+        (service_rewards, total_delegators_rewards)
     }
 
     /// Does not update storage, only returns the user rewards object, after computing rewards.
@@ -124,7 +124,7 @@ pub trait RewardsModule {
 
         // the owner is entitled to: tot_new_rewards * service_fee / NODE_DENOMINATOR
         // delegators are entitled to: tot_new_rewards * (1 - service_fee / NODE_DENOMINATOR)
-        let (service_rewards, non_service_rewards) = self.split_service_reward(&tot_new_rewards);
+        let (service_rewards, total_delegators_rewards) = self.split_service_reward(&tot_new_rewards);
         
         // update node rewards, if applicable
         if user_id == OWNER_USER_ID {
@@ -139,7 +139,7 @@ pub trait RewardsModule {
         if u_stake_active > 0 {
             // delegator reward is:
             // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake
-            let mut delegator_new_rewards = non_service_rewards;
+            let mut delegator_new_rewards = total_delegators_rewards;
             delegator_new_rewards *= &u_stake_active;
             delegator_new_rewards /= &total_active_stake;
             user_data.unclaimed_rewards += &delegator_new_rewards;
@@ -158,8 +158,12 @@ pub trait RewardsModule {
     }
 
     /// Computes rewards for all delegators and the node.
-    /// Updates storage.
-    /// It costs a lot of gas - more than gasLimit of a block if more than 1000 users.
+    /// this will compute only for a set of users - until gasLimit is reached.
+    /// it must be called multiple times to finish the execution
+    /// For certain operations this is a must - like stake a new NODE or unStake a NODE
+    /// as those will change the distribution of the rewards
+    /// The function will save where it left last time - and compute all rewards must be finished before
+    /// stake or unstake of a NODE
     #[endpoint(computeAllRewards)]
     fn compute_all_rewards(&self) -> SCResult<()> {
         feature_guard!(self.features_module(), b"computeAllRewards", true);
