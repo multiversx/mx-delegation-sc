@@ -3,6 +3,7 @@ use crate::events::*;
 use crate::pause::*;
 use crate::rewards::*;
 use crate::settings::*;
+use crate::reset_checkpoints::*;
 use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
@@ -31,6 +32,9 @@ pub trait UserUnStakeModule {
     #[module(RewardsModuleImpl)]
     fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
 
+    #[module(ResetCheckpointsModuleImpl)]
+    fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, BigUint>;
+
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
@@ -41,11 +45,14 @@ pub trait UserUnStakeModule {
         if !self.settings().is_unstake_enabled() {
             return sc_error!("unstake is currently disabled");
         }
+        if self.reset_checkpoints().get_global_check_point_in_progress() {
+            return sc_error!("unstaking is temporarily paused as checkpoint is reset")
+        }
         
         let caller = self.get_caller();
         let unstake_user_id = self.user_data().get_user_id(&caller);
         if unstake_user_id == 0 {
-            return sc_error!("only delegators can offer stake for sale")
+            return sc_error!("only delegators can unstake")
         }
 
         // check that amount does not exceed existing active stake
@@ -65,7 +72,7 @@ pub trait UserUnStakeModule {
         // convert Waiting from other users -> Active
         let total_waiting = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
         if total_waiting == 0 {
-            return Ok(());
+            return Ok(())
         }
         let swappable = core::cmp::min(&amount, &total_waiting);
         let affected_users = self.fund_transf_module().swap_waiting_to_active(&swappable);

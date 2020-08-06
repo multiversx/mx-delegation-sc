@@ -157,39 +157,6 @@ pub trait RewardsModule {
         self.store_user_reward_data(user_id, &user_rewards);
     }
 
-    /// Computes rewards for all delegators and the node.
-    /// this will compute only for a set of users - until gasLimit is reached.
-    /// it must be called multiple times to finish the execution
-    /// For certain operations this is a must - like stake a new NODE or unStake a NODE
-    /// as those will change the distribution of the rewards
-    /// The function will save where it left last time - and compute all rewards must be finished before
-    /// stake or unstake of a NODE
-    #[endpoint(computeAllRewards)]
-    fn compute_all_rewards(&self) -> SCResult<()> {
-        feature_guard!(self.features_module(), b"computeAllRewards", true);
-
-        let num_nodes = self.user_data().get_num_users();
-        let mut sum_unclaimed = BigUint::zero();
-
-        // user 1 is the node and from 2 on are the other delegators,
-        // but load_updated_user_rewards works in all cases
-        for user_id in 1..(num_nodes+1) {
-            let user_data = self.load_updated_user_rewards(user_id);
-            self.store_user_reward_data(user_id, &user_data);
-            sum_unclaimed += user_data.unclaimed_rewards;
-        }
-
-        // divisions are inexact so a small remainder can remain after distributing rewards
-        // give it to the validator user, to keep things clear
-        let remainder = self.get_total_cumulated_rewards() - sum_unclaimed - self.get_sent_rewards();
-        if remainder > 0 {
-            let mut node_unclaimed = self.get_user_rew_unclaimed(OWNER_USER_ID);
-            node_unclaimed += &remainder;
-            self.set_user_rew_unclaimed(OWNER_USER_ID, &node_unclaimed);
-        }
-        Ok(())
-    }
-
     fn compute_one_user_reward(&self, user_id: usize) {
         let user_data = self.load_updated_user_rewards(user_id);
         self.store_user_reward_data(user_id, &user_data);

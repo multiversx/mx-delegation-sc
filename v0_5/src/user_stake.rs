@@ -3,6 +3,7 @@ use crate::events::*;
 use crate::pause::*;
 use crate::rewards::*;
 use crate::settings::*;
+use crate::reset_checkpoints::*;
 use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
@@ -29,6 +30,9 @@ pub trait UserStakeModule {
     #[module(RewardsModuleImpl)]
     fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
 
+    #[module(ResetCheckpointsModuleImpl)]
+    fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, BigUint>;
+
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
@@ -53,12 +57,15 @@ pub trait UserStakeModule {
         let amount_to_stake = payment.clone();
         self.fund_transf_module().create_waiting(user_id, payment);
 
-        // get total unstaked
+        let total_staked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+        let total_delegation_cap = self.settings().get_total_delegation_cap();
         let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
-        if total_unstaked == 0 {
+
+        let total_free = total_delegation_cap - total_staked + total_unstaked;
+        if total_free == 0 {
             return Ok(());
         }
-        let swappable = core::cmp::min(&amount_to_stake, &total_unstaked);
+        let swappable = core::cmp::min(&amount_to_stake, &total_free);
 
         // swap unStaked to deferred payment
         sc_try!(self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable));
@@ -82,6 +89,9 @@ pub trait UserStakeModule {
         }
         if payment < self.settings().get_minimum_stake() {
             return sc_error!("cannot stake less than minimum stake")
+        }
+        if self.reset_checkpoints().get_global_check_point_in_progress() {
+            return sc_error!("staking is temporarily paused as checkpoint is reset")
         }
 
         self.process_stake(payment)

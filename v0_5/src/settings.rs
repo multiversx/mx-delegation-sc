@@ -52,7 +52,9 @@ pub trait SettingsModule {
         sc_try!(self.set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
 
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);
+        let min_stake_2 = minimum_stake.clone();
         self.set_minimum_stake(minimum_stake);
+        self.set_total_delegation_cap(min_stake_2);
 
         Ok(())
     }
@@ -97,11 +99,16 @@ pub trait SettingsModule {
             return sc_error!("only owner can change service fee"); 
         }
 
-        sc_try!(self.rewards().compute_all_rewards());
-
         self.set_service_fee_validated(service_fee_per_10000)
     }
     
+    #[view(getTotalDelegationCap)]
+    #[storage_get("total_delegation_cap")]
+    fn get_total_delegation_cap(&self) -> BigUint;
+
+    #[storage_set("total_delegation_cap")]
+    fn set_total_delegation_cap(&self, amount: BigUint);
+
     /// How much stake has to be provided per validator node.
     /// After genesis this sum is fixed to 2,500 eGLD, but at some point bidding will happen.
     #[view(getStakePerNode)]

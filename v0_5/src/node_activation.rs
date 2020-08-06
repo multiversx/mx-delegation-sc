@@ -48,7 +48,7 @@ pub trait ContractStakeModule {
     fn stake_nodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
 
-        if !self.settings().caller_can_activate() {
+        if !self.settings().owner_called() {
             return sc_error!("caller not allowed to stake node");
         }
         let stake_per_node = self.settings().get_stake_per_node();
@@ -128,10 +128,6 @@ pub trait ContractStakeModule {
             return Ok(());
         }
 
-        // All rewards need to be recalculated now, 
-        // because the rewardable stake changes.
-        sc_try!(self.rewards().compute_all_rewards());
-
         // change user stake to Active
         let mut stake_activated = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
         sc_try!(self.fund_transf_module().activate_finish_ok_transf(&mut stake_activated));
@@ -177,7 +173,7 @@ pub trait ContractStakeModule {
     fn unstake_nodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
 
-        if !self.settings().caller_can_activate() {
+        if !self.settings().owner_called() {
             return sc_error!("caller not allowed to unstake node");
         }
 
@@ -193,10 +189,6 @@ pub trait ContractStakeModule {
     fn perform_unstake_nodes(&self,
             node_ids: Vec<usize>,
             bls_keys: Vec<BLSKey>) -> SCResult<()> {
-
-        // All rewards need to be recalculated now, 
-        // because the rewardable stake will change shortly.
-        sc_try!(self.rewards().compute_all_rewards());
 
         // convert node state to PendingDeactivation
         for &node_id in node_ids.iter() {

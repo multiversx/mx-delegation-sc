@@ -17,6 +17,8 @@ pub mod user_unstake;
 pub mod unexpected;
 pub mod user_stake;
 pub mod settings;
+pub mod reset_checkpoints;
+pub mod global_checkpoint;
 
 use node_storage::types::*;
 use crate::events::*;
@@ -31,6 +33,8 @@ use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
 use crate::settings::*;
+use crate::reset_checkpoints::*;
+use crate::global_checkpoint::*;
 
 imports!();
 
@@ -54,6 +58,9 @@ pub trait Delegation {
 
     #[module(RewardsModuleImpl)]
     fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
+
+    #[module(ResetCheckpointsModuleImpl)]
+    fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, BigUint>;
 
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
