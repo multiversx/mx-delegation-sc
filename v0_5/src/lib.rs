@@ -34,7 +34,6 @@ use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
 use crate::settings::*;
 use crate::reset_checkpoints::*;
-use crate::global_checkpoint::*;
 
 imports!();
 

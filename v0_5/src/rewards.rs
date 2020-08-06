@@ -3,6 +3,7 @@ use user_fund_storage::types::fund_type::*;
 
 use super::settings::*;
 use crate::events::*;
+use crate::reset_checkpoints::*;
 use node_storage::node_config::*;
 use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
@@ -35,6 +36,9 @@ pub trait RewardsModule {
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
+
+    #[module(ResetCheckpointsModuleImpl)]
+    fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, BigUint>;
 
     #[module(FundTransformationsModuleImpl)]
     fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
@@ -202,6 +206,9 @@ pub trait RewardsModule {
         let user_id = self.user_data().get_user_id(&caller);
         if user_id == 0 {
             return sc_error!("unknown caller")
+        }
+        if self.reset_checkpoints().get_global_check_point_in_progress() {
+            return sc_error!("staking is temporarily paused as checkpoint is reset")
         }
 
         let mut user_data = self.load_updated_user_rewards(user_id);

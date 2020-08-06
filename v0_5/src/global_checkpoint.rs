@@ -1,29 +1,34 @@
 use elrond_wasm::elrond_codec::*;
+use elrond_wasm::BigUintApi;
 
 #[derive(Clone)]
 #[derive(PartialEq)]
-pub struct GlobalCheckpoint {
-    pub totalDelegationCap: BigUint,
-    pub finished:   bool,
-    pub lastID:     u64,
+pub struct GlobalCheckpoint<BigUint:BigUintApi> {
+    pub total_delegation_cap: BigUint,
+    pub finished:             bool,
+    pub last_id:              usize,
+    pub sum_unclaimed:        BigUint,
 }
 
-impl Encode for GlobalCheckpoint {
+impl<BigUint:BigUintApi> Encode for GlobalCheckpoint<BigUint> {
     #[inline]
-    fn dep_encode_to<O: Output>(&self, dest: &mut O) {
-        self.totalDelegationCap.dep_encode_to(dest);
-        self.finished.dep_encode_to(dest);
-        self.lastID.dep_encode_to(dest);
+    fn dep_encode_to<O: Output>(&self, dest: &mut O)  -> Result<(), EncodeError> {
+        self.total_delegation_cap.dep_encode_to(dest)?;
+        self.finished.dep_encode_to(dest)?;
+        self.last_id.dep_encode_to(dest)?;
+        self.sum_unclaimed.dep_encode_to(dest)?;
+        Ok(())
     }
 }
 
-impl Decode for GlobalCheckpoint {
+impl<BigUint:BigUintApi> Decode for GlobalCheckpoint<BigUint> {
     #[inline]
     fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         Ok(GlobalCheckpoint{
-            totalDelegationCap:  BigUint::dep_decode(input)?,
-            finished:            bool::dep_decode(input)?,
-            lastID:              u64::dep_decode(input)?,
+            total_delegation_cap: BigUint::dep_decode(input)?,
+            finished:             bool::dep_decode(input)?,
+            last_id:              usize::dep_decode(input)?,
+            sum_unclaimed:        BigUint::dep_decode(input)?,
         })
     }
 }
