@@ -3,6 +3,7 @@ imports!();
 use crate::types::fund_item::*;
 use crate::types::fund_type::*;
 
+pub static STOP_AT_GASLIMIT: i64 = 1000000;
 
 /// Deals with storage data about delegators.
 #[elrond_wasm_derive::module(FundModuleImpl)]
@@ -268,7 +269,7 @@ pub trait FundModule {
         let mut id = type_list.first;
         let mut affected_users: Vec<usize> = Vec::new();
 
-        while id > 0 {
+        while id > 0 && self.get_gas_left() > STOP_AT_GASLIMIT {
             let mut fund_item = self.get_mut_fund_by_id(id);
             let next_id = fund_item.type_list_next; // save next id now, because fund_item can be destroyed
 

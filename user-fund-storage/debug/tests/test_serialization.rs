@@ -14,8 +14,6 @@ fn check<T: Encode + Decode + PartialEq + std::fmt::Debug>(t: T) {
 fn test_fund_type_serialization() {
     check(FundType::WithdrawOnly);
     check(FundType::Waiting);
-    check(FundType::PendingActivation);
-    check(FundType::ActivationFailed);
     check(FundType::Active);
     check(FundType::UnStaked);
     check(FundType::DeferredPayment);
@@ -25,8 +23,6 @@ fn test_fund_type_serialization() {
 fn test_fund_description_serialization() {
     check(FundDescription::WithdrawOnly);
     check(FundDescription::Waiting);
-    check(FundDescription::PendingActivation);
-    check(FundDescription::ActivationFailed);
     check(FundDescription::Active);
     check(FundDescription::UnStaked{ created: 5 });
     check(FundDescription::DeferredPayment{ created: 20 });

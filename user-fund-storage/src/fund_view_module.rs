@@ -40,8 +40,6 @@ pub trait FundViewModule {
         let mut sum = BigUint::zero();
         sum += self.get_user_stake_of_type(user_id, FundType::WithdrawOnly);
         sum += self.get_user_stake_of_type(user_id, FundType::Waiting);
-        sum += self.get_user_stake_of_type(user_id, FundType::PendingActivation);
-        sum += self.get_user_stake_of_type(user_id, FundType::ActivationFailed);
         sum += self.get_user_stake_of_type(user_id, FundType::Active);
         sum += self.get_user_stake_of_type(user_id, FundType::UnStaked);
         sum += self.get_user_stake_of_type(user_id, FundType::DeferredPayment);
@@ -85,25 +83,21 @@ pub trait FundViewModule {
         }
     }
 
-    fn get_user_stake_by_type(&self, user_id: usize) -> MultiResult7<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_user_stake_by_type(&self, user_id: usize) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
         (
             self.get_user_stake_of_type(user_id, FundType::WithdrawOnly),
             self.get_user_stake_of_type(user_id, FundType::Waiting),
-            self.get_user_stake_of_type(user_id, FundType::PendingActivation),
             self.get_user_stake_of_type(user_id, FundType::Active),
-            self.get_user_stake_of_type(user_id, FundType::ActivationFailed),
             self.get_user_stake_of_type(user_id, FundType::UnStaked),
             self.get_user_stake_of_type(user_id, FundType::DeferredPayment),
         ).into()
     }
 
     #[view(getUserStakeByType)]
-    fn get_user_stake_by_type_endpoint(&self, user_address: &Address) -> MultiResult7<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_user_stake_by_type_endpoint(&self, user_address: &Address) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
         let user_id = self.user_data().get_user_id(&user_address);
         if user_id == 0 {
             (
-                BigUint::zero(),
-                BigUint::zero(),
                 BigUint::zero(),
                 BigUint::zero(),
                 BigUint::zero(),
@@ -116,7 +110,7 @@ pub trait FundViewModule {
     }
 
     #[view(getTotalStakeByType)]
-    fn get_total_stake_by_type_endpoint(&self) -> MultiResult7<BigUint, BigUint, BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_total_stake_by_type_endpoint(&self) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 

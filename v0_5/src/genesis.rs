@@ -77,9 +77,7 @@ pub trait GenesisModule {
             return sc_error!("stake required by nodes must match total user stake at genesis");
         }
 
-        let mut total_inactive_stake_2 = total_inactive_stake.clone();
-        sc_try!(self.fund_transf_module().activate_start_transf(&mut total_inactive_stake));
-        sc_try!(self.fund_transf_module().activate_finish_ok_transf(&mut total_inactive_stake_2));
+        let _ = self.fund_transf_module().swap_waiting_to_active(&mut total_inactive_stake);
         self.settings().set_total_delegation_cap(stake_required_by_nodes);
         // log event (no data)
         self.events().stake_node_ok_event(());

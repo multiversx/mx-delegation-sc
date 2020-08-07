@@ -8,12 +8,6 @@ pub enum FundDescription {
     /// Inactive stake, waiting in the queue to be activated.
     Waiting,
 
-    /// Stake sent to auction SC.
-    PendingActivation,
-
-    /// Node stake was sent to the auction SC, but the transaction failed for the node.
-    ActivationFailed,
-
     /// Stake is locked in the protocol and rewards are coming in.
     /// Users cannot withdraw stake, but they can exchange their share of the total stake amongst each other.
     Active,
@@ -33,12 +27,6 @@ pub enum FundType {
 
     /// Inactive stake, waiting in the queue to be activated.
     Waiting,
-
-    /// Stake sent to auction SC.
-    PendingActivation,
-
-    /// Node stake was sent to the auction SC, but the transaction failed for the node.
-    ActivationFailed,
 
     /// Stake is locked in the protocol and rewards are coming in.
     /// Users cannot withdraw stake, but they can exchange their share of the total stake amongst each other.
@@ -63,8 +51,6 @@ impl FundType {
     pub fn is_stake(&self) -> bool {
         match self {
             FundType::Waiting |
-            FundType::PendingActivation |
-            FundType::ActivationFailed |
             FundType::Active |
             FundType::UnStaked => true,
             _ => false,
@@ -100,8 +86,6 @@ impl FundDescription {
         match self {
             FundDescription::WithdrawOnly => FundType::WithdrawOnly,
             FundDescription::Waiting => FundType::Waiting,
-            FundDescription::PendingActivation => FundType::PendingActivation,
-            FundDescription::ActivationFailed => FundType::ActivationFailed,
             FundDescription::Active => FundType::Active,
             FundDescription::UnStaked{..} => FundType::UnStaked,
             FundDescription::DeferredPayment{..} => FundType::DeferredPayment,
@@ -114,8 +98,6 @@ impl FundType {
         match self {
             FundType::WithdrawOnly => DISCR_WITHDRAW_ONLY,
             FundType::Waiting => DISCR_WAITING,
-            FundType::PendingActivation => DISCR_PENDING_ACT,
-            FundType::ActivationFailed => DISCR_ACTIVE_FAILED,
             FundType::Active => DISCR_ACTIVE,
             FundType::UnStaked => DISCR_UNSTAKED,
             FundType::DeferredPayment => DISCR_DEF_PAYMENT,
@@ -129,8 +111,6 @@ impl Encode for FundDescription {
         match self {
             FundDescription::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
             FundDescription::Waiting => { dest.push_byte(DISCR_WAITING); },
-            FundDescription::PendingActivation => { dest.push_byte(DISCR_PENDING_ACT); },
-            FundDescription::ActivationFailed => { dest.push_byte(DISCR_ACTIVE_FAILED); },
             FundDescription::Active => { dest.push_byte(DISCR_ACTIVE); },
             FundDescription::UnStaked{ created } => {
                 dest.push_byte(DISCR_UNSTAKED);
@@ -152,8 +132,6 @@ impl Decode for FundDescription {
         match discriminant {
             DISCR_WITHDRAW_ONLY => Ok(FundDescription::WithdrawOnly),
             DISCR_WAITING => Ok(FundDescription::Waiting),
-            DISCR_PENDING_ACT => Ok(FundDescription::PendingActivation),
-            DISCR_ACTIVE_FAILED => Ok(FundDescription::ActivationFailed),
             DISCR_ACTIVE => Ok(FundDescription::Active),
             DISCR_UNSTAKED => Ok(FundDescription::UnStaked{
                 created: u64::dep_decode(input)?
@@ -172,8 +150,6 @@ impl Encode for FundType {
         match self {
             FundType::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
             FundType::Waiting => { dest.push_byte(DISCR_WAITING);},
-            FundType::PendingActivation => { dest.push_byte(DISCR_PENDING_ACT); },
-            FundType::ActivationFailed => { dest.push_byte(DISCR_ACTIVE_FAILED); },
             FundType::Active => { dest.push_byte(DISCR_ACTIVE); },
             FundType::UnStaked => { dest.push_byte(DISCR_UNSTAKED);},
             FundType::DeferredPayment => { dest.push_byte(DISCR_DEF_PAYMENT);},
@@ -189,8 +165,6 @@ impl Decode for FundType {
         match discriminant {
             DISCR_WITHDRAW_ONLY => Ok(FundType::WithdrawOnly),
             DISCR_WAITING => Ok(FundType::Waiting),
-            DISCR_PENDING_ACT => Ok(FundType::PendingActivation),
-            DISCR_ACTIVE_FAILED => Ok(FundType::ActivationFailed),
             DISCR_ACTIVE => Ok(FundType::Active),
             DISCR_UNSTAKED => Ok(FundType::UnStaked),
             DISCR_DEF_PAYMENT => Ok(FundType::DeferredPayment),
@@ -198,5 +172,3 @@ impl Decode for FundType {
         }
     }
 }
-
-

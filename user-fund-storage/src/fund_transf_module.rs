@@ -36,45 +36,6 @@ pub trait FundTransformationsModule {
         Ok(())
     }
 
-    fn activate_start_transf(&self, amount: &mut BigUint) -> SCResult<()> {
-        let _ = self.fund_module().split_convert_max_by_type(
-            Some(amount),
-            FundType::Waiting,
-            |_, _| Some(FundDescription::PendingActivation)
-        );
-        if *amount > 0 {
-            return sc_error!("not enough inactive stake");
-        }
-
-        Ok(())
-    }
-
-    fn activate_finish_ok_transf(&self, amount: &mut BigUint) -> SCResult<()> {
-        let _ = self.fund_module().split_convert_max_by_type(
-            Some(amount),
-            FundType::PendingActivation,
-            |_, _| Some(FundDescription::Active)
-        );
-        if *amount > 0 {
-            return sc_error!("not enough stake pending activation");
-        }
-
-        Ok(())
-    }
-
-    fn activate_finish_fail_transf(&self, amount: &mut BigUint) -> SCResult<()> {
-        let _ = self.fund_module().split_convert_max_by_type(
-            Some(amount),
-            FundType::PendingActivation,
-            |_, _| Some(FundDescription::ActivationFailed)
-        );
-        if *amount > 0 {
-            return sc_error!("not enough stake pending activation");
-        }
-
-        Ok(())
-    }
-
     fn unstake_transf(&self, unstake_user_id: usize, amount: &BigUint) -> SCResult<()> {
         let mut amount_to_unstake = amount.clone();
         let current_bl_nonce = self.get_block_nonce();
@@ -91,7 +52,7 @@ pub trait FundTransformationsModule {
         Ok(())
     }
 
-    fn swap_waiting_to_active(&self, amount: &BigUint) -> Vec<usize> {
+    fn swap_waiting_to_active(&self, amount: &BigUint) -> (Vec<usize>, BigUint) {
         let mut stake_to_activate = amount.clone();
         let mut affected_states = self.fund_module().split_convert_max_by_type(
             Some(&mut stake_to_activate),
@@ -101,10 +62,24 @@ pub trait FundTransformationsModule {
         affected_states.sort();
         affected_states.dedup();
 
-        affected_states
+        (affected_states, stake_to_activate)
     }
 
-    fn swap_unstaked_to_deferred_payment(&self, amount: &BigUint) -> SCResult<()> {
+    fn swap_active_to_unstaked(&self, amount: &BigUint) -> (Vec<usize>, BigUint) {
+        let mut amount_to_unstake = amount.clone();
+        let current_bl_nonce = self.get_block_nonce();
+        let mut affected_states = self.fund_module().split_convert_max_by_type(
+            Some(&mut amount_to_unstake),
+            FundType::Active,
+            |_, _| Some(FundDescription::UnStaked{ created: current_bl_nonce })
+        );
+        affected_states.sort();
+        affected_states.dedup();
+
+        (affected_states, amount_to_unstake)
+    }
+
+    fn swap_unstaked_to_deferred_payment(&self, amount: &BigUint) -> BigUint {
         let mut unstaked_to_convert = amount.clone();
         let current_bl_nonce = self.get_block_nonce();
         let _ = self.fund_module().split_convert_max_by_type(
@@ -113,7 +88,7 @@ pub trait FundTransformationsModule {
             |_, _| Some(FundDescription::DeferredPayment{ created: current_bl_nonce })
         );
 
-        Ok(())
+        unstaked_to_convert
     }
 
     fn eligible_deferred_payment(&self, 
@@ -152,36 +127,5 @@ pub trait FundTransformationsModule {
                 None
             }
         )
-    }
-
-    fn node_unbond_transf(&self, amount: &mut BigUint, block_nonce: u64) -> SCResult<()> {
-        let _ = self.fund_module().split_convert_max_by_type(
-            Some(amount),
-            FundType::UnStaked,
-            |_, _| Some(FundDescription::DeferredPayment{ created: block_nonce })
-        );
-
-        if *amount > 0 {
-            let _ = self.fund_module().split_convert_max_by_type(
-                Some(amount),
-                FundType::Active,
-                |_, _| Some(FundDescription::DeferredPayment{ created: block_nonce })
-            );
-        }
-
-        Ok(())
-    }
-
-    fn claim_activation_failed_transf(&self, amount: &mut BigUint) -> SCResult<()> {
-        let _ = self.fund_module().split_convert_max_by_type(
-            Some(amount),
-            FundType::ActivationFailed,
-            |_, _| Some(FundDescription::Waiting)
-        );
-        if *amount > 0 {
-            return sc_error!("not enough stake activation failed");
-        }
-
-        Ok(())
     }
 }

@@ -10,7 +10,6 @@ use crate::rewards::*;
 use crate::settings::*;
 use user_fund_storage::user_data::*;
 use crate::user_stake::*;
-use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
 
 imports!();
@@ -20,9 +19,6 @@ pub trait ContractStakeModule {
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
-
-    #[module(FundTransformationsModuleImpl)]
-    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
 
     #[module(FundViewModuleImpl)]
     fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
@@ -89,9 +85,6 @@ pub trait ContractStakeModule {
         let num_nodes = node_ids.len();
 
         let stake = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
-        let mut stake_to_convert = stake.clone();
-        sc_try!(self.fund_transf_module().activate_start_transf(&mut stake_to_convert));
-        
         // send all stake to auction contract
         let auction_contract_addr = self.settings().get_auction_contract_address();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
@@ -128,10 +121,6 @@ pub trait ContractStakeModule {
             return Ok(());
         }
 
-        // change user stake to Active
-        let mut stake_activated = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
-        sc_try!(self.fund_transf_module().activate_finish_ok_transf(&mut stake_activated));
-
         // set nodes to Active
         for &node_id in node_ids.iter() {
             self.node_config().set_node_state(node_id, NodeState::Active);
@@ -148,10 +137,6 @@ pub trait ContractStakeModule {
         if node_ids.is_empty() {
             return Ok(());
         }
-
-        // change user stake to ActivationFailed
-        let mut stake_sent = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
-        sc_try!(self.fund_transf_module().activate_finish_fail_transf(&mut stake_sent));
 
         // set nodes to ActivationFailed
         for &node_id in node_ids.iter() {
@@ -406,10 +391,6 @@ pub trait ContractStakeModule {
                 for &node_id in node_ids.iter() {
                     self.node_config().set_node_state(node_id, NodeState::Inactive);
                 }
-
-                // revert user stake to Inactive
-                let mut failed_stake = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
-                sc_try!(self.fund_transf_module().claim_activation_failed_transf(&mut failed_stake));
             },
             AsyncCallResult::Err(_) => {
             }

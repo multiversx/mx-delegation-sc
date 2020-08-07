@@ -75,13 +75,20 @@ pub trait UserUnStakeModule {
             return Ok(())
         }
         let swappable = core::cmp::min(&amount, &total_waiting);
-        let affected_users = self.fund_transf_module().swap_waiting_to_active(&swappable);
+        let (affected_users, remained) = self.fund_transf_module().swap_waiting_to_active(&swappable);
+        if remained > 0 {
+            return sc_error!("not enough gas to swap all")
+        }
+
         for user_id in affected_users.iter() {
             self.rewards().compute_one_user_reward(*user_id);
         }
 
         // convert UnStaked to defered payment
-        sc_try!(self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable));
+        let remained = self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable);
+        if remained > 0 {
+            return sc_error!("not enough gas to swap all")
+        }
 
         Ok(())
     }
