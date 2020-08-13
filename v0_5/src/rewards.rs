@@ -208,19 +208,16 @@ pub trait RewardsModule {
             return sc_error!("unknown caller")
         }
         if self.reset_checkpoints().get_global_check_point_in_progress() {
-            return sc_error!("staking is temporarily paused as checkpoint is reset")
+            return sc_error!("claim rewards is temporarily paused as checkpoint is reset")
         }
 
         let mut user_data = self.load_updated_user_rewards(user_id);
         
         if user_data.unclaimed_rewards > 0 {
-            // log event
             self.events().claim_rewards_event(&caller, &user_data.unclaimed_rewards);
 
-            // send reward tx back to caller
             self.send_rewards(&caller, &user_data.unclaimed_rewards);
 
-            // reset unclaimed_rewards
             user_data.unclaimed_rewards = BigUint::zero();
         }
 
@@ -253,6 +250,19 @@ pub trait RewardsModule {
     fn store_user_reward_data(&self, user_id: usize, data: &UserRewardData<BigUint>) {
         self.set_user_rew_checkpoint(user_id, &data.reward_checkpoint);
         self.set_user_rew_unclaimed(user_id, &data.unclaimed_rewards);
+    }
+
+    #[view(getTotalUnProtected)]
+    fn total_unprotected(&self) -> BigUint {
+        let sent_rewards = self.get_sent_rewards();
+        let total_rewards = self.get_total_cumulated_rewards();
+        let total_waiting = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
+        let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
+        let total_deferred = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::DeferredPayment);
+        let total_withdraw = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly);
+
+        let unprotected = self.get_sc_balance() + sent_rewards - total_rewards - total_waiting - total_unstaked - total_deferred - total_withdraw;
+        return unprotected
     }
 
 }

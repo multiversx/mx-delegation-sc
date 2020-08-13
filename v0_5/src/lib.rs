@@ -14,7 +14,6 @@ pub mod rewards;
 pub mod node_activation;
 pub mod pause;
 pub mod user_unstake;
-pub mod unexpected;
 pub mod user_stake;
 pub mod settings;
 pub mod reset_checkpoints;
@@ -28,7 +27,6 @@ use crate::node_activation::*;
 use crate::pause::*;
 use crate::user_stake::*;
 use crate::user_unstake::*;
-use crate::unexpected::*;
 use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
@@ -75,9 +73,6 @@ pub trait Delegation {
 
     #[module(UserUnStakeModuleImpl)]
     fn user_unstake(&self) -> UserUnStakeModuleImpl<T, BigInt, BigUint>;
-
-    #[module(UnexpectedBalanceModuleImpl)]
-    fn unexpected(&self) -> UnexpectedBalanceModuleImpl<T, BigInt, BigUint>;
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;

@@ -98,6 +98,7 @@ pub trait ResetCheckpointsModule {
 
             curr_global_checkpoint.last_id = 0;
             self.set_global_check_point(Some(curr_global_checkpoint.clone()));
+            self.set_swap_in_progress(true);
 
             Ok(0)            
 
@@ -112,10 +113,10 @@ pub trait ResetCheckpointsModule {
     // As this process might be long as well - swapping multiple funds - the function can be called multiple times to resolve all
     #[endpoint(endCheckpointCompute)]
     fn end_checkpoint_compute(&self) -> SCResult<BigUint> {
-        if self.get_global_check_point_in_progress() {
+        if !self.get_global_check_point_in_progress() {
             return sc_error!("cannot call end checkpoint as not checkpoint reset is in progress");
         }
-        if self.get_swap_in_progress() {
+        if !self.get_swap_in_progress() {
             return sc_error!("cannot call end checkpoint compute as swap is in progress");
         }
 
@@ -143,7 +144,7 @@ pub trait ResetCheckpointsModule {
                     self.save_swapping_checkpoint(FundType::UnStaked, remaining_for_defer.clone(), amount_to_swap);
                     return Ok(remaining_for_defer.clone());
                 }
-            } else {
+            } else if curr_global_checkpoint.total_delegation_cap > old_delegation_cap {
                 // move waiting to active
                 let amount_to_swap = curr_global_checkpoint.total_delegation_cap.clone() - old_delegation_cap.clone();
                 let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(&amount_to_swap);
@@ -153,6 +154,7 @@ pub trait ResetCheckpointsModule {
                 }
             }   
 
+            self.set_swap_in_progress(false);
             self.set_global_check_point_in_progress(false);
             return Ok(BigUint::zero());
 
@@ -167,7 +169,6 @@ pub trait ResetCheckpointsModule {
             remaining: remaining.clone(),
             f_type:    swap_initial_type,
         };
-        self.set_swap_in_progress(true);
         self.set_swap_check_point(swap_checkpoint);
     }
 

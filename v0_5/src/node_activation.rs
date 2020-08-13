@@ -1,7 +1,5 @@
 
 use crate::auction_proxy::Auction;
-
-use user_fund_storage::types::*;
 use node_storage::types::*;
 
 use crate::events::*;
@@ -10,7 +8,6 @@ use crate::rewards::*;
 use crate::settings::*;
 use user_fund_storage::user_data::*;
 use crate::user_stake::*;
-use user_fund_storage::fund_view_module::*;
 
 imports!();
 
@@ -19,9 +16,6 @@ pub trait ContractStakeModule {
 
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
-
-    #[module(FundViewModuleImpl)]
-    fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
 
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
@@ -41,23 +35,22 @@ pub trait ContractStakeModule {
 
     /// Owner activates specific nodes.
     #[endpoint(stakeNodes)]
-    fn stake_nodes(&self,
+    fn stake_nodes(&self, amount_to_stake: BigUint,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
 
         if !self.settings().owner_called() {
             return sc_error!("caller not allowed to stake node");
         }
-        let stake_per_node = self.settings().get_stake_per_node();
-        let mut inactive_stake = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
+        if self.rewards().total_unprotected() < amount_to_stake {
+            return sc_error!("not enough funds in contract to stake nodes");
+        }
+
+        sc_try!(self.user_stake().validate_owner_stake_share());
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         let mut bls_keys_signatures = Vec::<Vec<u8>>::with_capacity(2 * bls_keys.len());
 
         for bls_key in bls_keys.iter() {
-            if inactive_stake < stake_per_node {
-                break;
-            }
-
             let node_id = self.node_config().get_node_id(&bls_key);
             if self.node_config().get_node_state(node_id) != NodeState::Inactive {
                 continue;
@@ -68,23 +61,13 @@ pub trait ContractStakeModule {
             bls_keys_signatures.push(self.node_config().get_node_signature(node_id).to_vec());
 
             self.node_config().set_node_state(node_id, NodeState::PendingActivation);
-            inactive_stake -= &stake_per_node;
         }
 
-        if node_ids.is_empty() {
-            return Ok(())
-        }
-
-        self.perform_stake_nodes(node_ids, bls_keys_signatures)
+        self.perform_stake_nodes(node_ids, bls_keys_signatures, amount_to_stake)
     }
 
-    fn perform_stake_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>) -> SCResult<()> {
-        // do not launch nodes if owner hasn't staked enough
-        sc_try!(self.user_stake().validate_owner_stake_share());
-
+    fn perform_stake_nodes(&self, node_ids: Vec<usize>, bls_keys_signatures: Vec<Vec<u8>>, amount_to_stake: BigUint) -> SCResult<()> {
         let num_nodes = node_ids.len();
-
-        let stake = BigUint::from(node_ids.len()) * self.settings().get_stake_per_node();
         // send all stake to auction contract
         let auction_contract_addr = self.settings().get_auction_contract_address();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
@@ -92,7 +75,7 @@ pub trait ContractStakeModule {
             node_ids, // callback arg
             num_nodes,
             bls_keys_signatures.into(),
-            &stake);
+            &amount_to_stake);
 
         Ok(())
     }
@@ -351,7 +334,6 @@ pub trait ContractStakeModule {
     }
 
     /// Claims unstaked stake from the auction smart contract.
-    /// This operation can be executed by anyone (note that it might cost much gas).
     #[endpoint(claimInactive)]
     fn claim_inactive_stake(&self) -> SCResult<()> {
         if !self.settings().owner_called() {

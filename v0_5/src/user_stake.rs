@@ -129,9 +129,7 @@ pub trait UserStakeModule {
         // send stake to delegator
         self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
 
-        // log
         self.events().unstake_event(&caller, &amount);
-
         Ok(())
     }
 
@@ -146,8 +144,8 @@ pub trait UserStakeModule {
     fn validate_owner_stake_share(&self) -> SCResult<()> {
         // owner total stake / contract total stake < owner_min_stake_share / 10000
         // reordered to avoid divisions
-        if self.fund_view_module().get_user_total_stake(OWNER_USER_ID) * BigUint::from(PERCENTAGE_DENOMINATOR) <
-            self.fund_view_module().get_total_stake() * self.settings().get_owner_min_stake_share() {
+        if self.fund_view_module().get_user_stake_of_type(OWNER_USER_ID, FundType::Active) * BigUint::from(PERCENTAGE_DENOMINATOR) <
+        self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active) * self.settings().get_owner_min_stake_share() {
                 return sc_error!("owner doesn't have enough stake in the contract");
             }
         Ok(())

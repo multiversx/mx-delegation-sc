@@ -5,7 +5,6 @@ use user_fund_storage::types::*;
 
 use crate::events::*;
 use node_storage::node_config::*;
-use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
 use crate::user_stake::*;
@@ -19,9 +18,6 @@ pub trait GenesisModule {
 
     #[module(UserStakeModuleImpl)]
     fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
-
-    #[module(UserDataModuleImpl)]
-    fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
 
     #[module(FundTransformationsModuleImpl)]
     fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
@@ -56,12 +52,10 @@ pub trait GenesisModule {
 
         // set nodes to Active, and count how many not deleted
         let num_nodes = self.node_config().get_num_nodes();
-        let mut num_inactive_nodes = 0usize;
         for node_id in 1..num_nodes+1 {
             match self.node_config().get_node_state(node_id) {
                 NodeState::Inactive => {
                     self.node_config().set_node_state(node_id, NodeState::Active);
-                    num_inactive_nodes += 1;
                 },
                 NodeState::Removed => {},
                 _ => {
@@ -70,18 +64,11 @@ pub trait GenesisModule {
             }
         }
 
-        // validate that node stake and user stake match
-        let stake_required_by_nodes = BigUint::from(num_inactive_nodes) * self.settings().get_stake_per_node();
         let mut total_inactive_stake = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
-        if stake_required_by_nodes != total_inactive_stake {
-            return sc_error!("stake required by nodes must match total user stake at genesis");
-        }
-
         let _ = self.fund_transf_module().swap_waiting_to_active(&mut total_inactive_stake);
-        self.settings().set_total_delegation_cap(stake_required_by_nodes);
-        // log event (no data)
-        self.events().stake_node_ok_event(());
+        self.settings().set_total_delegation_cap(total_inactive_stake);
 
+        self.events().stake_node_ok_event(());
         Ok(())
     }
 

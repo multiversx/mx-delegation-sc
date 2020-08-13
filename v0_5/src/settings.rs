@@ -3,6 +3,7 @@ use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use node_storage::node_config::*;
 use crate::rewards::*;
+use crate::reset_checkpoints::*;
 
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
@@ -32,6 +33,9 @@ pub trait SettingsModule {
     #[module(RewardsModuleImpl)]
     fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
 
+    #[module(ResetCheckpointsModuleImpl)]
+    fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, BigUint>;
+
     /// This is the contract constructor, called only once when the contract is deployed.
     #[init]
     fn init(&self,
@@ -48,7 +52,11 @@ pub trait SettingsModule {
 
         self.set_auction_addr(&auction_contract_addr);
 
-        sc_try!(self.set_service_fee_validated(service_fee_per_10000));
+        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
+            return sc_error!("service fee out of range");
+        }
+        self.set_service_fee(service_fee_per_10000);
+
         sc_try!(self.set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
 
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);
@@ -82,15 +90,6 @@ pub trait SettingsModule {
     #[storage_set("service_fee")]
     fn set_service_fee(&self, service_fee: usize);
 
-    fn set_service_fee_validated(&self, service_fee_per_10000: usize) -> SCResult<()> {
-        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
-            return sc_error!("service fee out of range");
-        }
-
-        self.set_service_fee(service_fee_per_10000);
-        Ok(())
-    }
-
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setServiceFee)]
@@ -98,8 +97,18 @@ pub trait SettingsModule {
         if !self.owner_called() {
             return sc_error!("only owner can change service fee"); 
         }
+        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
+            return sc_error!("service fee out of range");
+        }
+        if self.reset_checkpoints().get_global_check_point_in_progress() {
+            return sc_error!("global checkpoint is in progress");
+        }
 
-        self.set_service_fee_validated(service_fee_per_10000)
+        let total_delegation_cap = self.get_total_delegation_cap();
+        self.reset_checkpoints().start_checkpoint_compute(total_delegation_cap.clone(), total_delegation_cap);
+
+        self.set_service_fee(service_fee_per_10000);
+        Ok(())
     }
     
     #[view(getTotalDelegationCap)]
@@ -108,32 +117,6 @@ pub trait SettingsModule {
 
     #[storage_set("total_delegation_cap")]
     fn set_total_delegation_cap(&self, amount: BigUint);
-
-    /// How much stake has to be provided per validator node.
-    /// After genesis this sum is fixed to 2,500 eGLD, but at some point bidding will happen.
-    #[view(getStakePerNode)]
-    #[storage_get("stake_per_node")]
-    fn get_stake_per_node(&self) -> BigUint;
-
-    #[storage_set("stake_per_node")]
-    fn set_stake_per_node(&self, spn: &BigUint);
-
-    /// The stake per node can be changed by the owner.
-    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    #[endpoint(setStakePerNode)]
-    fn set_stake_per_node_endpoint(&self, stake_per_node: &BigUint) -> SCResult<()> {
-        if !self.owner_called() {
-            return sc_error!("only owner can change stake per node"); 
-        }
-
-        // check that all nodes idle
-        if !self.node_config().all_nodes_idle() {
-            return sc_error!("cannot change stake per node while at least one node is active");
-        }
-
-        self.set_stake_per_node(&stake_per_node);
-        Ok(())
-    }
 
     /// The minimum proportion of stake that has to be provided by the owner.
     /// 10000 = 100%.
@@ -193,7 +176,7 @@ pub trait SettingsModule {
         self.anyone_can_activate() || self.owner_called()
     }
 
-    /// Delegators are not allowed to hold more than zero but less than this amount of stake (of any type).
+    /// Delegators are not allowed make transactions with less then this amount of stake (of any type).
     /// Zero means disabled.
     #[view(getMinimumStake)]
     #[storage_get("min_stake")]
