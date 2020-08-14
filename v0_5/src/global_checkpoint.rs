@@ -9,6 +9,7 @@ pub struct GlobalCheckpoint<BigUint:BigUintApi> {
     pub sum_unclaimed:        BigUint,
     pub total_to_swap:        BigUint,
     pub last_id:              usize,
+    pub epoch:                u64,
 }
 
 impl<BigUint:BigUintApi> Encode for GlobalCheckpoint<BigUint> {
@@ -18,6 +19,7 @@ impl<BigUint:BigUintApi> Encode for GlobalCheckpoint<BigUint> {
         self.sum_unclaimed.dep_encode_to(dest)?;
         self.total_to_swap.dep_encode_to(dest)?;
         self.last_id.dep_encode_to(dest)?;
+        self.epoch.dep_encode_to(dest)?;
         Ok(())
     }
 }
@@ -30,6 +32,7 @@ impl<BigUint:BigUintApi> Decode for GlobalCheckpoint<BigUint> {
             sum_unclaimed:        BigUint::dep_decode(input)?,
             total_to_swap:        BigUint::dep_decode(input)?,
             last_id:              usize::dep_decode(input)?,
+            epoch:                u64::dep_decode(input)?,
         })
     }
 }

@@ -55,7 +55,8 @@ pub trait SettingsModule {
         if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
             return sc_error!("service fee out of range");
         }
-        self.set_service_fee(service_fee_per_10000);
+        let next_service_fee = BigUint::from(service_fee_per_10000);
+        self.set_service_fee(next_service_fee);
 
         sc_try!(self.set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
 
@@ -88,7 +89,13 @@ pub trait SettingsModule {
     fn get_service_fee(&self) -> BigUint;
 
     #[storage_set("service_fee")]
-    fn set_service_fee(&self, service_fee: usize);
+    fn set_service_fee(&self, service_fee: BigUint);
+
+    #[storage_get("new_service_fee")]
+    fn get_new_service_fee(&self) -> BigUint;
+
+    #[storage_set("new_service_fee")]
+    fn set_new_service_fee(&self, service_fee: BigUint);
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
@@ -103,11 +110,15 @@ pub trait SettingsModule {
         if self.reset_checkpoints().get_global_check_point_in_progress() {
             return sc_error!("global checkpoint is in progress");
         }
+        let next_service_fee = BigUint::from(service_fee_per_10000);
+        if self.get_service_fee() == next_service_fee {
+            return Ok(())
+        }
 
         let total_delegation_cap = self.get_total_delegation_cap();
         self.reset_checkpoints().start_checkpoint_compute(total_delegation_cap.clone(), total_delegation_cap);
 
-        self.set_service_fee(service_fee_per_10000);
+        self.set_new_service_fee(next_service_fee);
         Ok(())
     }
     

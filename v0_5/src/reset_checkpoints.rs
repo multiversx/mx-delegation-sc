@@ -86,6 +86,16 @@ pub trait ResetCheckpointsModule {
                 sum_unclaimed += user_data.unclaimed_rewards;
             }
 
+            // one epoch past thus the global checkpoint computation has to start from the first user ID
+            let curr_epoch = self.get_block_epoch();
+            if curr_global_checkpoint.epoch != curr_epoch {
+                curr_global_checkpoint.epoch = curr_epoch;
+                curr_global_checkpoint.last_id = 1;
+                curr_global_checkpoint.sum_unclaimed = BigUint::zero();
+                self.set_global_check_point(Some(curr_global_checkpoint.clone()));
+                return Ok(1)
+            }
+
             // divisions are inexact so a small remainder can remain after distributing rewards
             // give it to the validator user, to keep things clear
             curr_global_checkpoint.sum_unclaimed = sum_unclaimed.clone();
@@ -152,7 +162,9 @@ pub trait ResetCheckpointsModule {
                     self.save_swapping_checkpoint(FundType::Waiting, remaining.clone(), amount_to_swap);
                     return Ok(remaining.clone());
                 }
-            }   
+            } else {
+                self.settings().set_service_fee(self.settings().get_new_service_fee());
+            }
 
             self.set_swap_in_progress(false);
             self.set_global_check_point_in_progress(false);
@@ -178,6 +190,7 @@ pub trait ResetCheckpointsModule {
             last_id:              1,
             sum_unclaimed:        BigUint::zero(),
             total_to_swap:        total_to_swap,
+            epoch:                self.get_block_epoch(),
         });
 
         self.set_global_check_point_in_progress(true);
@@ -210,6 +223,9 @@ pub trait ResetCheckpointsModule {
         let total_to_swap : BigUint;
         if curr_delegation_cap > new_total_cap {
             total_to_swap = curr_delegation_cap - new_total_cap.clone();
+            if total_to_swap < self.rewards().total_unprotected() {
+                return sc_error!("not enough funds in contract to pay those who are forced unstaked");
+            }
         } else {
             total_to_swap = new_total_cap.clone() - curr_delegation_cap;
         }

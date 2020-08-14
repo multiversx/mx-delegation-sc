@@ -81,11 +81,13 @@ pub trait FundTransformationsModule {
 
     fn swap_unstaked_to_deferred_payment(&self, amount: &BigUint) -> BigUint {
         let mut unstaked_to_convert = amount.clone();
-        let current_bl_nonce = self.get_block_nonce();
         let _ = self.fund_module().split_convert_max_by_type(
             Some(&mut unstaked_to_convert),
             FundType::UnStaked,
-            |_, _| Some(FundDescription::DeferredPayment{ created: current_bl_nonce })
+            |_, fund_info| match fund_info {
+                FundDescription::UnStaked{ created } => Some(FundDescription::DeferredPayment{ created }),
+               _ => None
+            }
         );
 
         unstaked_to_convert
