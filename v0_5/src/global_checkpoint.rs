@@ -2,8 +2,7 @@ use elrond_wasm::elrond_codec::*;
 use elrond_wasm::BigUintApi;
 use user_fund_storage::types::*;
 
-#[derive(Clone)]
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct GlobalCheckpoint<BigUint:BigUintApi> {
     pub total_delegation_cap: BigUint,
     pub sum_unclaimed:        BigUint,
@@ -13,7 +12,6 @@ pub struct GlobalCheckpoint<BigUint:BigUintApi> {
 }
 
 impl<BigUint:BigUintApi> Encode for GlobalCheckpoint<BigUint> {
-    #[inline]
     fn dep_encode_to<O: Output>(&self, dest: &mut O)  -> Result<(), EncodeError> {
         self.total_delegation_cap.dep_encode_to(dest)?;
         self.sum_unclaimed.dep_encode_to(dest)?;
@@ -25,7 +23,6 @@ impl<BigUint:BigUintApi> Encode for GlobalCheckpoint<BigUint> {
 }
 
 impl<BigUint:BigUintApi> Decode for GlobalCheckpoint<BigUint> {
-    #[inline]
     fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         Ok(GlobalCheckpoint{
             total_delegation_cap: BigUint::dep_decode(input)?,
@@ -37,8 +34,7 @@ impl<BigUint:BigUintApi> Decode for GlobalCheckpoint<BigUint> {
     }
 }
 
-#[derive(Clone)]
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct SwapCheckpoint<BigUint:BigUintApi> {
     pub initial:   BigUint,
     pub remaining: BigUint,
@@ -46,7 +42,6 @@ pub struct SwapCheckpoint<BigUint:BigUintApi> {
 }
 
 impl<BigUint:BigUintApi> Encode for SwapCheckpoint<BigUint> {
-    #[inline]
     fn dep_encode_to<O: Output>(&self, dest: &mut O)  -> Result<(), EncodeError> {
         self.initial.dep_encode_to(dest)?;
         self.remaining.dep_encode_to(dest)?;
@@ -56,7 +51,6 @@ impl<BigUint:BigUintApi> Encode for SwapCheckpoint<BigUint> {
 }
 
 impl<BigUint:BigUintApi> Decode for SwapCheckpoint<BigUint> {
-    #[inline]
     fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         Ok(SwapCheckpoint{
             initial:   BigUint::dep_decode(input)?,

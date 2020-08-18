@@ -124,10 +124,10 @@ pub trait ResetCheckpointsModule {
     #[endpoint(endCheckpointCompute)]
     fn end_checkpoint_compute(&self) -> SCResult<BigUint> {
         if !self.get_global_check_point_in_progress() {
-            return sc_error!("cannot call end checkpoint as not checkpoint reset is in progress");
+            return sc_error!("cannot call end checkpoint as checkpoint reset is not in progress");
         }
         if !self.get_swap_in_progress() {
-            return sc_error!("cannot call end checkpoint compute as swap is in progress");
+            return sc_error!("cannot call end checkpoint compute as swap is not in progress");
         }
 
         let opt_global_checkpoint = self.get_global_check_point();
@@ -141,7 +141,7 @@ pub trait ResetCheckpointsModule {
 
             if curr_global_checkpoint.total_delegation_cap < old_delegation_cap {
                 // move active to unstake to deferred
-                let amount_to_swap = old_delegation_cap.clone() - curr_global_checkpoint.total_delegation_cap.clone();
+                let amount_to_swap = &old_delegation_cap - &curr_global_checkpoint.total_delegation_cap;
 
                 let (_, remaining) = self.fund_transf_module().swap_active_to_unstaked(&amount_to_swap);
                 if remaining > 0 {
@@ -178,7 +178,7 @@ pub trait ResetCheckpointsModule {
     fn save_swapping_checkpoint(&self, swap_initial_type: FundType, remaining: BigUint, start_amount: BigUint) {
         let swap_checkpoint = SwapCheckpoint{
             initial:   start_amount,
-            remaining: remaining.clone(),
+            remaining: remaining,
             f_type:    swap_initial_type,
         };
         self.set_swap_check_point(swap_checkpoint);
