@@ -11,6 +11,39 @@
                 "cwd": "${workspaceFolder}//user-fund-storage/debug"
             },
             "type": "shell"
+        },
+        {
+            "label": "auction-mock-debug-build",
+            "command": "cargo",
+            "args": [
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}//auction-mock/debug"
+            },
+            "type": "shell"
+        },
+        {
+            "label": "v0_4_genesis-debug-build",
+            "command": "cargo",
+            "args": [
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}//v0_4_genesis/debug"
+            },
+            "type": "shell"
+        },
+        {
+            "label": "v0_5-debug-build",
+            "command": "cargo",
+            "args": [
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}//v0_5/debug"
+            },
+            "type": "shell"
         }
     ]
 }

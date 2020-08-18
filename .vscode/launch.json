@@ -9,6 +9,33 @@
             "program": "${workspaceFolder}//user-fund-storage/debug/target/debug/user-fund-storage-debug",
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug auction-mock",
+            "preLaunchTask": "auction-mock-debug-build",
+            "program": "${workspaceFolder}//auction-mock/debug/target/debug/auction-mock-debug",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug v0_4_genesis",
+            "preLaunchTask": "v0_4_genesis-debug-build",
+            "program": "${workspaceFolder}//v0_4_genesis/debug/target/debug/v0_4_genesis-debug",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug v0_5",
+            "preLaunchTask": "v0_5-debug-build",
+            "program": "${workspaceFolder}//v0_5/debug/target/debug/v0_5-debug",
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
