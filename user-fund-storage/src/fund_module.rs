@@ -189,7 +189,7 @@ pub trait FundModule {
         }
         fund_item.type_list_prev = 0; // also clear own prev, so the item can be deleted
 
-        if fund_item.type_list_prev == 0 {
+        if fund_item.type_list_next == 0 {
             type_list.last = fund_item.type_list_prev;
         } else {
             let mut next = self.get_mut_fund_by_id(fund_item.type_list_next);
