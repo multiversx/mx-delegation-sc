@@ -208,7 +208,7 @@ pub trait SettingsModule {
     #[storage_set("min_stake")]
     fn set_minimum_stake(&self, minimum_stake: BigUint);
 
-    #[view(setMinimumStake)]
+    #[endpoint(setMinimumStake)]
     fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> SCResult<()> {
         if !self.owner_called() {
             return sc_error!("only owner can set minimum stake");
