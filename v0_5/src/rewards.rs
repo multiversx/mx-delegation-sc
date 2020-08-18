@@ -156,11 +156,6 @@ pub trait RewardsModule {
     }
 
     /// Convenience method, brings user rewards up to date for one user.
-    fn update_user_rewards(&self, user_id: usize) {
-        let user_rewards = self.load_updated_user_rewards(user_id);
-        self.store_user_reward_data(user_id, &user_rewards);
-    }
-
     fn compute_one_user_reward(&self, user_id: usize) {
         let user_data = self.load_updated_user_rewards(user_id);
         self.store_user_reward_data(user_id, &user_data);
