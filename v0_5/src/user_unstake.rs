@@ -107,6 +107,12 @@ pub trait UserUnStakeModule {
             n_blocks_before_unbond
         ));
 
+        let mut amount_to_withdraw = claimed_payments.clone();
+        sc_try!(self.fund_transf_module().liquidate_free_stake(caller_id, &mut amount_to_withdraw));
+        if amount_to_withdraw > 0 {
+            return sc_error!("cannot withdraw more than inactive stake");
+        }
+
         if claimed_payments > 0 {
             // forward payment to seller
             self.send_tx(&caller, &claimed_payments, "payment for stake");

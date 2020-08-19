@@ -115,9 +115,9 @@ pub trait UserStakeModule {
             return sc_error!("only delegators can withdraw inactive stake");
         }
 
-        let mut amount_to_unstake = amount.clone();
-        sc_try!(self.fund_transf_module().liquidate_free_stake(user_id, &mut amount_to_unstake));
-        if amount_to_unstake > 0 {
+        let mut amount_to_withdraw = amount.clone();
+        sc_try!(self.fund_transf_module().liquidate_free_stake(user_id, &mut amount_to_withdraw));
+        if amount_to_withdraw > 0 {
             return sc_error!("cannot withdraw more than inactive stake");
         }
 
