@@ -52,12 +52,13 @@ pub trait FundTransformationsModule {
         Ok(())
     }
 
-    fn swap_waiting_to_active(&self, amount: &BigUint) -> (Vec<usize>, BigUint) {
+    fn swap_waiting_to_active<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {
         let mut stake_to_activate = amount.clone();
         let mut affected_states = self.fund_module().split_convert_max_by_type(
             Some(&mut stake_to_activate),
             FundType::Waiting,
-            |_, _| Some(FundDescription::Active)
+            |_, _| Some(FundDescription::Active),
+            interrupt
         );
         affected_states.sort();
         affected_states.dedup();
@@ -65,13 +66,14 @@ pub trait FundTransformationsModule {
         (affected_states, stake_to_activate)
     }
 
-    fn swap_active_to_unstaked(&self, amount: &BigUint) -> (Vec<usize>, BigUint) {
+    fn swap_active_to_unstaked<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {
         let mut amount_to_unstake = amount.clone();
         let current_bl_nonce = self.get_block_nonce();
         let mut affected_states = self.fund_module().split_convert_max_by_type(
             Some(&mut amount_to_unstake),
             FundType::Active,
-            |_, _| Some(FundDescription::UnStaked{ created: current_bl_nonce })
+            |_, _| Some(FundDescription::UnStaked{ created: current_bl_nonce }),
+            interrupt
         );
         affected_states.sort();
         affected_states.dedup();
@@ -79,7 +81,7 @@ pub trait FundTransformationsModule {
         (affected_states, amount_to_unstake)
     }
 
-    fn swap_unstaked_to_deferred_payment(&self, amount: &BigUint) -> BigUint {
+    fn swap_unstaked_to_deferred_payment<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> BigUint {
         let mut unstaked_to_convert = amount.clone();
         let _ = self.fund_module().split_convert_max_by_type(
             Some(&mut unstaked_to_convert),
@@ -87,7 +89,8 @@ pub trait FundTransformationsModule {
             |_, fund_info| match fund_info {
                 FundDescription::UnStaked{ created } => Some(FundDescription::DeferredPayment{ created }),
                _ => None
-            }
+            },
+            interrupt
         );
 
         unstaked_to_convert

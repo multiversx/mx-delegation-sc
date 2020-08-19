@@ -3,8 +3,6 @@ imports!();
 use crate::types::fund_item::*;
 use crate::types::fund_type::*;
 
-pub static STOP_AT_GASLIMIT: i64 = 1000000;
-
 /// Deals with storage data about delegators.
 #[elrond_wasm_derive::module(FundModuleImpl)]
 pub trait FundModule {
@@ -37,6 +35,22 @@ pub trait FundModule {
     #[storage_get_mut("fuser")]
     fn get_mut_fund_list_by_user(&self, user_id: usize, fund_type: FundType) -> mut_storage!(FundsListInfo<BigUint>);
 
+    /// For testing; please do not use in production.
+    /// Goes through all fund items, ignores indexes.
+    fn query_sum_all_funds_brute_force<F>(&self, filter: F) -> BigUint 
+    where 
+        F: Fn(usize, FundDescription) -> bool,
+    {
+        let mut sum = BigUint::zero();
+        let max_fund_id = self.get_fund_max_id();
+        for id in 1..(max_fund_id+1) {
+            let fund_item = self.get_fund_by_id(id);
+            if filter(fund_item.user_id, fund_item.fund_desc) {
+                sum += &fund_item.balance;
+            }
+        }
+        sum
+    }
 
     fn query_sum_funds_by_type<F>(&self, fund_type: FundType, filter: F) -> BigUint 
     where 
@@ -258,18 +272,20 @@ pub trait FundModule {
         }
     }
 
-    fn split_convert_max_by_type<F>(&self,
+    fn split_convert_max_by_type<F, I>(&self,
         mut opt_max_amount: Option<&mut BigUint>,
         source_type: FundType,
-        filter_transform: F) -> Vec<usize>
+        filter_transform: F,
+        interrupt: I) -> Vec<usize>
     where 
         F: Fn(usize, FundDescription) -> Option<FundDescription>,
+        I: Fn() -> bool
     {
         let type_list = self.get_fund_list_by_type(source_type);
         let mut id = type_list.first;
         let mut affected_users: Vec<usize> = Vec::new();
 
-        while id > 0 && self.get_gas_left() > STOP_AT_GASLIMIT {
+        while id > 0 && !interrupt() {
             let mut fund_item = self.get_mut_fund_by_id(id);
             let next_id = fund_item.type_list_next; // save next id now, because fund_item can be destroyed
 

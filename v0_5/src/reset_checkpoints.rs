@@ -143,13 +143,19 @@ pub trait ResetCheckpointsModule {
                 // move active to unstake to deferred
                 let amount_to_swap = &old_delegation_cap - &curr_global_checkpoint.total_delegation_cap;
 
-                let (_, remaining) = self.fund_transf_module().swap_active_to_unstaked(&amount_to_swap);
+                let (_, remaining) = self.fund_transf_module().swap_active_to_unstaked(
+                    &amount_to_swap,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
                 if remaining > 0 {
                     self.save_swapping_checkpoint(FundType::Active, remaining.clone(), amount_to_swap);
                     return Ok(remaining.clone());
                 }
 
-                let remaining_for_defer = self.fund_transf_module().swap_unstaked_to_deferred_payment(&amount_to_swap);
+                let remaining_for_defer = self.fund_transf_module().swap_unstaked_to_deferred_payment(
+                    &amount_to_swap,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
                 if remaining_for_defer > 0 {
                     self.save_swapping_checkpoint(FundType::UnStaked, remaining_for_defer.clone(), amount_to_swap);
                     return Ok(remaining_for_defer.clone());
@@ -157,7 +163,10 @@ pub trait ResetCheckpointsModule {
             } else if curr_global_checkpoint.total_delegation_cap > old_delegation_cap {
                 // move waiting to active
                 let amount_to_swap = curr_global_checkpoint.total_delegation_cap.clone() - old_delegation_cap.clone();
-                let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(&amount_to_swap);
+                let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(
+                    &amount_to_swap,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
                 if remaining > 0 {
                     self.save_swapping_checkpoint(FundType::Waiting, remaining.clone(), amount_to_swap);
                     return Ok(remaining.clone());
@@ -245,7 +254,10 @@ pub trait ResetCheckpointsModule {
         let mut swap_checkpoint = self.get_swap_check_point();
         match swap_checkpoint.f_type {
             FundType::Waiting => {
-                let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(&swap_checkpoint.remaining);
+                let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(
+                    &swap_checkpoint.remaining,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
                 if remaining > 0 {
                     swap_checkpoint.remaining = remaining.clone();
                     self.set_swap_check_point(swap_checkpoint);
@@ -253,14 +265,20 @@ pub trait ResetCheckpointsModule {
                 }
             },
             FundType::Active => {
-                let (_, remaining) = self.fund_transf_module().swap_active_to_unstaked(&swap_checkpoint.remaining);
+                let (_, remaining) = self.fund_transf_module().swap_active_to_unstaked(
+                    &swap_checkpoint.remaining,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
                 if remaining > 0 {
                     swap_checkpoint.remaining = remaining.clone();
                     self.set_swap_check_point(swap_checkpoint);
                     return Ok(remaining.clone());
                 }
 
-                let remaining_for_defer = self.fund_transf_module().swap_unstaked_to_deferred_payment(&swap_checkpoint.initial);
+                let remaining_for_defer = self.fund_transf_module().swap_unstaked_to_deferred_payment(
+                    &swap_checkpoint.initial,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
                 if remaining_for_defer > 0 {
                     swap_checkpoint.remaining = remaining_for_defer.clone();
                     self.set_swap_check_point(swap_checkpoint);
@@ -268,7 +286,10 @@ pub trait ResetCheckpointsModule {
                 }
             },
             FundType::UnStaked => {
-                let remaining = self.fund_transf_module().swap_unstaked_to_deferred_payment(&swap_checkpoint.remaining);
+                let remaining = self.fund_transf_module().swap_unstaked_to_deferred_payment(
+                    &swap_checkpoint.remaining,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
                 if remaining > 0 {
                     swap_checkpoint.remaining = remaining.clone();
                     self.set_swap_check_point(swap_checkpoint);

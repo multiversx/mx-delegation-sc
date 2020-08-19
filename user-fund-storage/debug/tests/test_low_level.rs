@@ -153,11 +153,20 @@ fn test_transfer_funds_1() {
     fund_module.increase_fund_balance(user_1, FundDescription::Waiting, 1200u32.into());
     fund_module.increase_fund_balance(user_2, FundDescription::Waiting, 34u32.into());
 
+    assert_eq!(
+        RustBigUint::from(1234u32),
+        fund_module.query_sum_all_funds_brute_force(|_, fund_desc| fund_desc == FundDescription::Waiting));
+
     let _ = fund_module.split_convert_max_by_type(
         None,
         FundType::Waiting,
-        |_, _| Some(FundDescription::Active)
+        |_, _| Some(FundDescription::Active),
+        || false
     );
+
+    assert_eq!(
+        RustBigUint::from(1234u32),
+        fund_module.query_sum_all_funds_brute_force(|_, fund_desc| fund_desc == FundDescription::Active));
 
     assert_eq!(
         RustBigUint::from(1234u32),

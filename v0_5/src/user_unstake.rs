@@ -75,9 +75,9 @@ pub trait UserUnStakeModule {
             return Ok(())
         }
         let swappable = core::cmp::min(&amount, &total_waiting);
-        let (affected_users, remained) = self.fund_transf_module().swap_waiting_to_active(&swappable);
+        let (affected_users, remained) = self.fund_transf_module().swap_waiting_to_active(&swappable, || false);
         if remained > 0 {
-            return sc_error!("not enough gas to swap all")
+            return sc_error!("error swapping waiting to active")
         }
 
         for user_id in affected_users.iter() {
@@ -85,9 +85,9 @@ pub trait UserUnStakeModule {
         }
 
         // convert UnStaked to defered payment
-        let remained = self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable);
+        let remained = self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable, || false);
         if remained > 0 {
-            return sc_error!("not enough gas to swap all")
+            return sc_error!("error swapping unstaked to deferred payment")
         }
 
         Ok(())
