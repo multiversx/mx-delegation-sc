@@ -1,0 +1,21 @@
+{
+    "name": "staking scenario",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "steps/init_accounts.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "deploy.steps.json"
+        },
+        {
+            "step": "externalSteps",
+            "path": "add_nodes.steps.json"
+        }, 
+        {
+            "step": "externalSteps",
+            "path": "stake_1.steps.json"
+        }
+    ]
+}
