@@ -3,7 +3,6 @@ imports!();
 use crate::types::fund_item::*;
 use crate::types::fund_type::*;
 
-
 /// Deals with storage data about delegators.
 #[elrond_wasm_derive::module(FundModuleImpl)]
 pub trait FundModule {
@@ -36,6 +35,22 @@ pub trait FundModule {
     #[storage_get_mut("fuser")]
     fn get_mut_fund_list_by_user(&self, user_id: usize, fund_type: FundType) -> mut_storage!(FundsListInfo<BigUint>);
 
+    /// For testing; please do not use in production.
+    /// Goes through all fund items, ignores indexes.
+    fn query_sum_all_funds_brute_force<F>(&self, filter: F) -> BigUint 
+    where 
+        F: Fn(usize, FundDescription) -> bool,
+    {
+        let mut sum = BigUint::zero();
+        let max_fund_id = self.get_fund_max_id();
+        for id in 1..(max_fund_id+1) {
+            let fund_item = self.get_fund_by_id(id);
+            if filter(fund_item.user_id, fund_item.fund_desc) {
+                sum += &fund_item.balance;
+            }
+        }
+        sum
+    }
 
     fn query_sum_funds_by_type<F>(&self, fund_type: FundType, filter: F) -> BigUint 
     where 
@@ -188,7 +203,7 @@ pub trait FundModule {
         }
         fund_item.type_list_prev = 0; // also clear own prev, so the item can be deleted
 
-        if fund_item.type_list_prev == 0 {
+        if fund_item.type_list_next == 0 {
             type_list.last = fund_item.type_list_prev;
         } else {
             let mut next = self.get_mut_fund_by_id(fund_item.type_list_next);
@@ -257,18 +272,20 @@ pub trait FundModule {
         }
     }
 
-    fn split_convert_max_by_type<F>(&self,
+    fn split_convert_max_by_type<F, I>(&self,
         mut opt_max_amount: Option<&mut BigUint>,
         source_type: FundType,
-        filter_transform: F) -> SCResult<BigUint> 
+        filter_transform: F,
+        interrupt: I) -> Vec<usize>
     where 
         F: Fn(usize, FundDescription) -> Option<FundDescription>,
+        I: Fn() -> bool
     {
         let type_list = self.get_fund_list_by_type(source_type);
         let mut id = type_list.first;
-        let mut total_transformed = BigUint::zero();
+        let mut affected_users: Vec<usize> = Vec::new();
 
-        while id > 0 {
+        while id > 0 && !interrupt() {
             let mut fund_item = self.get_mut_fund_by_id(id);
             let next_id = fund_item.type_list_next; // save next id now, because fund_item can be destroyed
 
@@ -281,18 +298,17 @@ pub trait FundModule {
                 } else {
                     extracted_balance = self.delete_fund(&mut *fund_item);
                 }
-                // add to sum
-                total_transformed += &extracted_balance;
                 // create / increase
                 self.increase_fund_balance(
                     (*fund_item).user_id,
                     transformed,
                     extracted_balance);
+                affected_users.push((*fund_item).user_id)
             }
             id = next_id;
         }
 
-        Ok(total_transformed)
+        affected_users
     }
 
     fn split_convert_max_by_user<F>(&self,

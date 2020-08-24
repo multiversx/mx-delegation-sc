@@ -153,28 +153,36 @@ fn test_transfer_funds_1() {
     fund_module.increase_fund_balance(user_1, FundDescription::Waiting, 1200u32.into());
     fund_module.increase_fund_balance(user_2, FundDescription::Waiting, 34u32.into());
 
-    let res = fund_module.split_convert_max_by_type(
+    assert_eq!(
+        RustBigUint::from(1234u32),
+        fund_module.query_sum_all_funds_brute_force(|_, fund_desc| fund_desc == FundDescription::Waiting));
+
+    let _ = fund_module.split_convert_max_by_type(
         None,
         FundType::Waiting,
-        |_, _| Some(FundDescription::PendingActivation)
+        |_, _| Some(FundDescription::Active),
+        || false
     );
-    assert!(res.is_ok());
 
     assert_eq!(
         RustBigUint::from(1234u32),
-        fund_module.query_sum_funds_by_type(FundType::PendingActivation, |_, _| true));
+        fund_module.query_sum_all_funds_brute_force(|_, fund_desc| fund_desc == FundDescription::Active));
+
+    assert_eq!(
+        RustBigUint::from(1234u32),
+        fund_module.query_sum_funds_by_type(FundType::Active, |_, _| true));
     assert_eq!(2,
-        fund_module.count_fund_items_by_type(FundType::PendingActivation, |_, _| true));
+        fund_module.count_fund_items_by_type(FundType::Active, |_, _| true));
 
     assert_eq!(
         RustBigUint::from(1200u32),
-        fund_module.query_sum_funds_by_user_type(user_1, FundType::PendingActivation, |_| true));
+        fund_module.query_sum_funds_by_user_type(user_1, FundType::Active, |_| true));
     assert_eq!(1,
-        fund_module.count_fund_items_by_user_type(user_1, FundType::PendingActivation, |_| true));
+        fund_module.count_fund_items_by_user_type(user_1, FundType::Active, |_| true));
 
     assert_eq!(
         RustBigUint::from(34u32),
-        fund_module.query_sum_funds_by_user_type(user_2, FundType::PendingActivation, |_| true));
+        fund_module.query_sum_funds_by_user_type(user_2, FundType::Active, |_| true));
     assert_eq!(1,
-        fund_module.count_fund_items_by_user_type(user_2, FundType::PendingActivation, |_| true));
+        fund_module.count_fund_items_by_user_type(user_2, FundType::Active, |_| true));
 }

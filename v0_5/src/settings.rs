@@ -3,6 +3,7 @@ use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use node_storage::node_config::*;
 use crate::rewards::*;
+use crate::reset_checkpoints::*;
 
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
@@ -32,14 +33,17 @@ pub trait SettingsModule {
     #[module(RewardsModuleImpl)]
     fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
 
+    #[module(ResetCheckpointsModuleImpl)]
+    fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, BigUint>;
+
     /// This is the contract constructor, called only once when the contract is deployed.
     #[init]
     fn init(&self,
         auction_contract_addr: &Address,
         service_fee_per_10000: usize,
         owner_min_stake_share_per_10000: usize,
-        n_blocks_before_force_unstake: u64,
         n_blocks_before_unbond: u64,
+        minimum_stake: BigUint,
     ) -> SCResult<()> {
 
         let owner = self.get_caller();
@@ -48,11 +52,18 @@ pub trait SettingsModule {
 
         self.set_auction_addr(&auction_contract_addr);
 
-        sc_try!(self.set_service_fee_validated(service_fee_per_10000));
+        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
+            return sc_error!("service fee out of range");
+        }
+        let next_service_fee = BigUint::from(service_fee_per_10000);
+        self.set_service_fee(next_service_fee);
+
         sc_try!(self.set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
 
-        self.set_n_blocks_before_force_unstake(n_blocks_before_force_unstake);
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);
+        let min_stake_2 = minimum_stake.clone();
+        self.set_minimum_stake(minimum_stake);
+        self.set_total_delegation_cap(min_stake_2);
 
         Ok(())
     }
@@ -78,16 +89,13 @@ pub trait SettingsModule {
     fn get_service_fee(&self) -> BigUint;
 
     #[storage_set("service_fee")]
-    fn set_service_fee(&self, service_fee: usize);
+    fn set_service_fee(&self, service_fee: BigUint);
 
-    fn set_service_fee_validated(&self, service_fee_per_10000: usize) -> SCResult<()> {
-        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
-            return sc_error!("service fee out of range");
-        }
+    #[storage_get("new_service_fee")]
+    fn get_new_service_fee(&self) -> BigUint;
 
-        self.set_service_fee(service_fee_per_10000);
-        Ok(())
-    }
+    #[storage_set("new_service_fee")]
+    fn set_new_service_fee(&self, service_fee: BigUint);
 
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
@@ -96,37 +104,30 @@ pub trait SettingsModule {
         if !self.owner_called() {
             return sc_error!("only owner can change service fee"); 
         }
-
-        sc_try!(self.rewards().compute_all_rewards());
-
-        self.set_service_fee_validated(service_fee_per_10000)
-    }
-    
-    /// How much stake has to be provided per validator node.
-    /// After genesis this sum is fixed to 2,500,000 ERD, but at some point bidding will happen.
-    #[view(getStakePerNode)]
-    #[storage_get("stake_per_node")]
-    fn get_stake_per_node(&self) -> BigUint;
-
-    #[storage_set("stake_per_node")]
-    fn set_stake_per_node(&self, spn: &BigUint);
-
-    /// The stake per node can be changed by the owner.
-    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    #[endpoint(setStakePerNode)]
-    fn set_stake_per_node_endpoint(&self, stake_per_node: &BigUint) -> SCResult<()> {
-        if !self.owner_called() {
-            return sc_error!("only owner can change stake per node"); 
+        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
+            return sc_error!("service fee out of range");
+        }
+        if self.reset_checkpoints().get_global_check_point_in_progress() {
+            return sc_error!("global checkpoint is in progress");
+        }
+        let next_service_fee = BigUint::from(service_fee_per_10000);
+        if self.get_service_fee() == next_service_fee {
+            return Ok(())
         }
 
-        // check that all nodes idle
-        if !self.node_config().all_nodes_idle() {
-            return sc_error!("cannot change stake per node while at least one node is active");
-        }
+        let total_delegation_cap = self.get_total_delegation_cap();
+        self.reset_checkpoints().start_checkpoint_compute(total_delegation_cap.clone(), total_delegation_cap);
 
-        self.set_stake_per_node(&stake_per_node);
+        self.set_new_service_fee(next_service_fee);
         Ok(())
     }
+    
+    #[view(getTotalDelegationCap)]
+    #[storage_get("total_delegation_cap")]
+    fn get_total_delegation_cap(&self) -> BigUint;
+
+    #[storage_set("total_delegation_cap")]
+    fn set_total_delegation_cap(&self, amount: BigUint);
 
     /// The minimum proportion of stake that has to be provided by the owner.
     /// 10000 = 100%.
@@ -142,24 +143,11 @@ pub trait SettingsModule {
             return sc_error!("owner min stake share out of range");
         }
 
-        self.set_service_fee(owner_min_stake_share_per_10000);
+        self.set_owner_min_stake_share(owner_min_stake_share_per_10000);
         Ok(())
     }
 
-    /// Delegators can force the entire contract to unstake
-    /// if they put up stake for sale and no-one is buying it.
-    /// However, they need to wait for this many n_blocks to be processed in between,
-    /// from when the put up the stake for sale and the moment they can force global unstaking.
-    #[view(getNumBlocksBeforeForceUnstake)]
-    #[storage_get("n_blocks_before_force_unstake")]
-    fn get_n_blocks_before_force_unstake(&self) -> u64;
-
-    #[storage_set("n_blocks_before_force_unstake")]
-    fn set_n_blocks_before_force_unstake(&self, n_blocks_before_force_unstake: u64);
-
-    /// Minimum number of n_blocks between unstake and unbond.
-    /// This mirrors the minimum unbonding period in the auction SC. 
-    /// The auction SC cannot be cheated by setting this field lower, unbond will fail anyway if attempted too early.
+    /// Minimum number of n_blocks between unstake and fund getting into inactive state.
     #[view(getNumBlocksBeforeUnBond)]
     #[storage_get("n_blocks_before_unbond")]
     fn get_n_blocks_before_unbond(&self) -> u64;
@@ -199,7 +187,7 @@ pub trait SettingsModule {
         self.anyone_can_activate() || self.owner_called()
     }
 
-    /// Delegators are not allowed to hold more than zero but less than this amount of stake (of any type).
+    /// Delegators are not allowed make transactions with less then this amount of stake (of any type).
     /// Zero means disabled.
     #[view(getMinimumStake)]
     #[storage_get("min_stake")]
