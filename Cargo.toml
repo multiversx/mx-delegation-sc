@@ -1,7 +1,12 @@
 [workspace]
 members = [
-  # "v0_4_genesis",
-  # "v0_4_1_genesis",
+  "node-storage",
+  "user-fund-storage",
+  "user-fund-storage-genesis",
+
+  "auction-mock",
+  "v0_4_genesis",
+  "v0_4_1_genesis",
   "v0_5",
   "v0_5/debug",
   

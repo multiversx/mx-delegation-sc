@@ -1,14 +1,10 @@
 [package]
-name = "delegation_v0_4_1"
-version = "0.4.1"
+name = "user-fund-storage-genesis"
+version = "0.4.0"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
 [dependencies]
-node-storage = { path = "../node-storage" }
-user-fund-storage-genesis = { path = "../user-fund-storage-genesis" }
-features-module = { path = "../features-module" }
-
 elrond-wasm = "0.6.0"
 elrond-wasm-node = "0.6.0"
 elrond-wasm-derive = "0.6.0"
@@ -16,3 +12,6 @@ elrond-wasm-derive = "0.6.0"
 # elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
 # elrond-wasm-node = { path = "../../elrond-wasm-rs/elrond-wasm-node" }
 # elrond-wasm-derive = { path = "../../elrond-wasm-rs/elrond-wasm-derive" }
+
+[dev-dependencies]
+elrond-wasm-debug = "0.6.0"
