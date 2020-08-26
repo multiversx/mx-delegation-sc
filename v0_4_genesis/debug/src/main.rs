@@ -1,7 +1,7 @@
 
 #![allow(unused_attributes)]
 
-use sc_delegation_rs::*;
+use delegation_v0_4::*;
 use elrond_wasm_debug::*;
 use elrond_wasm_debug::HashMap;
 

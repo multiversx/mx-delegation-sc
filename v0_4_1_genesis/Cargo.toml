@@ -1,33 +1,20 @@
 [package]
-name = "sc-delegation-rs"
+name = "delegation_v0_4_1"
 version = "0.4.1"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
-[lib]
-path = "src/lib.rs"
-
-[[bin]]
-name = "delegation"
-path = "src/lib.rs"
-
-[profile.release]
-codegen-units = 1
-opt-level = "z"
-lto = true
-debug = false
-panic = "abort"
-
 [dependencies]
 node-storage = { path = "../node-storage" }
 user-fund-storage = { path = "../user-fund-storage" }
-features-module = { path = "../features-module" }
+features-module = { path = "../features-module-genesis" }
 
-elrond-wasm = "0.5.5"
-elrond-wasm-node = "0.5.5"
-elrond-wasm-derive = "0.5.5"
+elrond-wasm = "0.6.0"
+elrond-wasm-node = "0.6.0"
+elrond-wasm-derive = "0.6.0"
 
 # elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
 # elrond-wasm-node = { path = "../../elrond-wasm-rs/elrond-wasm-node" }
 # elrond-wasm-derive = { path = "../../elrond-wasm-rs/elrond-wasm-derive" }
 
+[workspace]

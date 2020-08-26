@@ -1,6 +1,6 @@
 
 use elrond_wasm::elrond_codec::*;
-use sc_delegation_rs::bls_key::*;
+use delegation_v0_5::bls_key::*;
 use elrond_wasm::Vec;
 
 #[test]
