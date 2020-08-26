@@ -1,5 +1,5 @@
 [package]
-name = "delegation_v0_5_wasm"
+name = "delegation_v0_4_wasm"
 version = "0.2.0"
 authors = ["andrei-marinica <andrei_m_marinica@yahoo.com>"]
 edition = "2018"
@@ -15,7 +15,7 @@ debug = false
 panic = "abort"
 
 [dependencies]
-delegation_v0_5 = { path = ".." }
+delegation_v0_4 = { path = ".." }
 elrond-wasm-output = { version="0.6.0", features=["wasm-output-mode"]}
 
 [workspace]
