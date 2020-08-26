@@ -137,8 +137,7 @@ pub trait RewardsModule {
         }
 
         // update delegator rewards based on Active stake
-        let total_active_stake =
-            self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+        let total_active_stake = self.settings().get_total_delegation_cap();
         let u_stake_active = self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active);
         if u_stake_active > 0 {
             // delegator reward is:

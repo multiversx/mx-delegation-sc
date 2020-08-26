@@ -108,7 +108,7 @@ pub trait ResetCheckpointsModule {
 
             curr_global_checkpoint.last_id = 0;
             self.set_global_check_point(Some(curr_global_checkpoint.clone()));
-            self.set_swap_in_progress(true);
+            self.set_swap_in_progress(false);
 
             Ok(0)            
 
@@ -126,7 +126,7 @@ pub trait ResetCheckpointsModule {
         if !self.get_global_check_point_in_progress() {
             return sc_error!("cannot call end checkpoint as checkpoint reset is not in progress");
         }
-        if !self.get_swap_in_progress() {
+        if self.get_swap_in_progress() {
             return sc_error!("cannot call end checkpoint compute as swap is not in progress");
         }
 
@@ -142,9 +142,11 @@ pub trait ResetCheckpointsModule {
             if curr_global_checkpoint.total_delegation_cap < old_delegation_cap {
                 // move active to unstake to deferred
                 let amount_to_swap = &old_delegation_cap - &curr_global_checkpoint.total_delegation_cap;
+                let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
 
+                let amount_to_unstake = core::cmp::min(BigUint::zero(), amount_to_swap.clone() - total_unstaked);
                 let (_, remaining) = self.fund_transf_module().swap_active_to_unstaked(
-                    &amount_to_swap,
+                    &amount_to_unstake,
                     || self.get_gas_left() < STOP_AT_GASLIMIT
                 );
                 if remaining > 0 {
@@ -184,6 +186,66 @@ pub trait ResetCheckpointsModule {
         }
     }
 
+    // continues to swap the pending action
+    #[endpoint(continueSwap)]
+    fn continue_swap(&self) -> SCResult<BigUint> {
+        if !self.get_swap_in_progress() {
+            return sc_error!("there is no swap in progress");
+        }
+
+        let mut swap_checkpoint = self.get_swap_check_point();
+        match swap_checkpoint.f_type {
+            FundType::Waiting => {
+                let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(
+                    &swap_checkpoint.remaining,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
+                if remaining > 0 {
+                    swap_checkpoint.remaining = remaining.clone();
+                    self.set_swap_check_point(swap_checkpoint);
+                    return Ok(remaining);
+                }
+            },
+            FundType::Active => {
+                let (_, remaining) = self.fund_transf_module().swap_active_to_unstaked(
+                    &swap_checkpoint.remaining,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
+                if remaining > 0 {
+                    swap_checkpoint.remaining = remaining.clone();
+                    self.set_swap_check_point(swap_checkpoint);
+                    return Ok(remaining.clone());
+                }
+
+                let remaining_for_defer = self.fund_transf_module().swap_unstaked_to_deferred_payment(
+                    &swap_checkpoint.initial,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
+                if remaining_for_defer > 0 {
+                    swap_checkpoint.remaining = remaining_for_defer.clone();
+                    self.set_swap_check_point(swap_checkpoint);
+                    return Ok(remaining_for_defer.clone())
+                }
+            },
+            FundType::UnStaked => {
+                let remaining = self.fund_transf_module().swap_unstaked_to_deferred_payment(
+                    &swap_checkpoint.remaining,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
+                if remaining > 0 {
+                    swap_checkpoint.remaining = remaining.clone();
+                    self.set_swap_check_point(swap_checkpoint);
+                    return Ok(remaining);
+                }
+            },
+            _ => return sc_error!("invalid fund type, impossible error"),
+        }
+
+        self.set_global_check_point_in_progress(false);
+        self.set_swap_in_progress(false);
+        Ok(BigUint::zero())
+    }
+
     fn save_swapping_checkpoint(&self, swap_initial_type: FundType, remaining: BigUint, start_amount: BigUint) {
         let swap_checkpoint = SwapCheckpoint{
             initial:   start_amount,
@@ -191,6 +253,7 @@ pub trait ResetCheckpointsModule {
             f_type:    swap_initial_type,
         };
         self.set_swap_check_point(swap_checkpoint);
+        self.set_swap_in_progress(true);
     }
 
     fn start_checkpoint_compute(&self, total_cap: BigUint, total_to_swap: BigUint) {
@@ -232,7 +295,7 @@ pub trait ResetCheckpointsModule {
         let total_to_swap : BigUint;
         if curr_delegation_cap > new_total_cap {
             total_to_swap = curr_delegation_cap - new_total_cap.clone();
-            if total_to_swap < self.rewards().total_unprotected() {
+            if total_to_swap > self.rewards().total_unprotected() {
                 return sc_error!("not enough funds in contract to pay those who are forced unstaked");
             }
         } else {
