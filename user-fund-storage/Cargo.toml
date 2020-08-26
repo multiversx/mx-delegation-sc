@@ -12,3 +12,6 @@ elrond-wasm-derive = "0.6.0"
 # elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
 # elrond-wasm-node = { path = "../../elrond-wasm-rs/elrond-wasm-node" }
 # elrond-wasm-derive = { path = "../../elrond-wasm-rs/elrond-wasm-derive" }
+
+[dev-dependencies]
+elrond-wasm-debug = "0.6.0"
