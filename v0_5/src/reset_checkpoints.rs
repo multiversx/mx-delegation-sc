@@ -142,9 +142,11 @@ pub trait ResetCheckpointsModule {
             if curr_global_checkpoint.total_delegation_cap < old_delegation_cap {
                 // move active to unstake to deferred
                 let amount_to_swap = &old_delegation_cap - &curr_global_checkpoint.total_delegation_cap;
+                let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
 
+                let amount_to_unstake = core::cmp::min(BigUint::zero(), amount_to_swap.clone() - total_unstaked);
                 let (_, remaining) = self.fund_transf_module().swap_active_to_unstaked(
-                    &amount_to_swap,
+                    &amount_to_unstake,
                     || self.get_gas_left() < STOP_AT_GASLIMIT
                 );
                 if remaining > 0 {
@@ -293,7 +295,7 @@ pub trait ResetCheckpointsModule {
         let total_to_swap : BigUint;
         if curr_delegation_cap > new_total_cap {
             total_to_swap = curr_delegation_cap - new_total_cap.clone();
-            if total_to_swap < self.rewards().total_unprotected() {
+            if total_to_swap > self.rewards().total_unprotected() {
                 return sc_error!("not enough funds in contract to pay those who are forced unstaked");
             }
         } else {
