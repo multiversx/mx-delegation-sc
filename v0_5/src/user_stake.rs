@@ -59,16 +59,19 @@ pub trait UserStakeModule {
 
         let total_staked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
         let total_delegation_cap = self.settings().get_total_delegation_cap();
-        let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
 
-        let total_free = total_delegation_cap - total_staked + total_unstaked;
+        let total_free = total_delegation_cap - total_staked;
         if total_free == 0 {
             return Ok(());
         }
         let swappable = core::cmp::min(&amount_to_stake, &total_free);
 
         // swap unStaked to deferred payment
-        let _ = self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable, || false);
+        let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
+        if total_unstaked > 0 {
+            let unstaked_swappable = core::cmp::min(&swappable, &total_unstaked);
+            let _ = self.fund_transf_module().swap_unstaked_to_deferred_payment(&unstaked_swappable, || false);
+        }
 
         // swap waiting to active
         let (affected_users, remaining) = self.fund_transf_module().swap_waiting_to_active(&swappable, || false);
