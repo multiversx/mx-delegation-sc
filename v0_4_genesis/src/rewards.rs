@@ -7,7 +7,7 @@ use node_storage::node_config::*;
 use user_fund_storage_genesis::user_data::*;
 use user_fund_storage_genesis::fund_transf_module::*;
 use user_fund_storage_genesis::fund_view_module::*;
-use features_module::*;
+use elrond_wasm_module_features::*;
 
 imports!();
 

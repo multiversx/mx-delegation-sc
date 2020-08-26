@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 node-storage = { path = "../node-storage" }
 user-fund-storage = { path = "../user-fund-storage" }
-features-module = { path = "../features-module" }
+elrond-wasm-module-features = "0.6.0"
 
 elrond-wasm = "0.6.0"
 elrond-wasm-node = "0.6.0"
