@@ -69,7 +69,8 @@ pub trait UserStakeModule {
         // swap unStaked to deferred payment
         let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
         if total_unstaked > 0 {
-            let unstaked_swappable = core::cmp::min(&swappable, &total_unstaked);
+            let all_unstaked = &total_unstaked;
+            let unstaked_swappable = core::cmp::min(&swappable, &all_unstaked);
             let _ = self.fund_transf_module().swap_unstaked_to_deferred_payment(&unstaked_swappable, || false);
         }
 
