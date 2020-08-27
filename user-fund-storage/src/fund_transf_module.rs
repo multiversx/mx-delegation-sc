@@ -52,19 +52,31 @@ pub trait FundTransformationsModule {
         Ok(())
     }
 
-    fn swap_waiting_to_active<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I, dry_run: bool) -> (Vec<usize>, BigUint) {
+    fn swap_waiting_to_active<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {
         let mut stake_to_activate = amount.clone();
         let mut affected_users: Vec<usize> = Vec::new();
         self.fund_module().split_convert_max_by_type(
             Some(&mut stake_to_activate),
             FundType::Waiting,
             SwapDirection::Forwards,
-            |user_id, _| {
-                affected_users.push(user_id);
-                Some(FundDescription::Active)
-            },
+            |_, _| Some(FundDescription::Active),
             interrupt,
-            dry_run
+        );
+        affected_users.sort();
+        affected_users.dedup();
+
+        (affected_users, stake_to_activate)
+    }
+
+    fn simulate_swap_waiting_to_active<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {
+        let mut stake_to_activate = amount.clone();
+        let mut affected_users: Vec<usize> = Vec::new();
+        self.fund_module().simulate_split_convert_max_by_type(
+            Some(&mut stake_to_activate),
+            FundType::Waiting,
+            SwapDirection::Forwards,
+            |_, _| true,
+            interrupt,
         );
         affected_users.sort();
         affected_users.dedup();
@@ -85,7 +97,6 @@ pub trait FundTransformationsModule {
                 Some(FundDescription::UnStaked{ created: current_bl_nonce })
             },
             interrupt,
-            false
         );
         affected_users.sort();
         affected_users.dedup();
@@ -104,7 +115,6 @@ pub trait FundTransformationsModule {
                _ => None
             },
             interrupt,
-            false
         );
 
         unstaked_to_convert

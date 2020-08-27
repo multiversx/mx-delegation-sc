@@ -157,13 +157,12 @@ fn test_transfer_funds_1() {
         RustBigUint::from(1234u32),
         fund_module.query_sum_all_funds_brute_force(|_, fund_desc| fund_desc == FundDescription::Waiting));
 
-    fund_module.split_convert_max_by_type(
+    let _ = fund_module.split_convert_max_by_type(
         None,
         FundType::Waiting,
         SwapDirection::Forwards,
         |_, _| Some(FundDescription::Active),
         || false,
-        false
     );
 
     assert_eq!(
@@ -200,18 +199,13 @@ fn test_transfer_funds_2() {
     fund_module.increase_fund_balance(user_2, FundDescription::Waiting, 34u32.into());
     fund_module.increase_fund_balance(user_3, FundDescription::Waiting, 11u32.into());
 
-    let mut affected_users: Vec<usize> = Vec::new();
     let mut amount = RustBigUint::from(1000u32);
-    fund_module.split_convert_max_by_type(
+    let affected_users = fund_module.split_convert_max_by_type(
         Some(&mut amount),
         FundType::Waiting,
         SwapDirection::Forwards,
-        |user_id, _| {
-            affected_users.push(user_id);
-            Some(FundDescription::Active)
-        },
+        |_, _| Some(FundDescription::Active),
         || false,
-        false
     );
 
     assert_eq!(affected_users, vec![user_1]);
@@ -239,7 +233,7 @@ fn test_transfer_funds_3() {
 
     let mut affected_users: Vec<usize> = Vec::new();
     let mut amount = RustBigUint::from(40u32);
-    fund_module.split_convert_max_by_type(
+    let returned_affected_users = fund_module.split_convert_max_by_type(
         Some(&mut amount),
         FundType::Waiting,
         SwapDirection::Backwards,
@@ -248,10 +242,11 @@ fn test_transfer_funds_3() {
             Some(FundDescription::Active)
         },
         || false,
-        false
     );
 
-    assert_eq!(affected_users, vec![user_3, user_2]);
+    assert_eq!(returned_affected_users, vec![user_2, user_3]);
+    affected_users.sort();
+    assert_eq!(returned_affected_users, affected_users);
     assert_eq!(amount, RustBigUint::zero());
 
     assert_eq!(
@@ -276,19 +271,20 @@ fn test_transfer_funds_4() {
 
     let mut affected_users: Vec<usize> = Vec::new();
     let mut amount = RustBigUint::from(40u32);
-    fund_module.split_convert_max_by_type(
+    let returned_affected_users = fund_module.simulate_split_convert_max_by_type(
         Some(&mut amount),
         FundType::Waiting,
         SwapDirection::Backwards,
         |user_id, _| {
             affected_users.push(user_id);
-            Some(FundDescription::Active)
+            true
         },
         || false,
-        true
     );
 
     assert_eq!(affected_users, vec![user_3, user_2]);
+    affected_users.sort();
+    assert_eq!(returned_affected_users, affected_users);
     assert_eq!(amount, RustBigUint::zero());
 
     assert_eq!(

@@ -283,13 +283,13 @@ pub trait FundModule {
         source_type: FundType,
         direction: SwapDirection,
         mut filter_transform: F,
-        interrupt: I,
-        dry_run: bool)
+        interrupt: I) -> Vec<usize>
     where 
         F: FnMut(usize, FundDescription) -> Option<FundDescription>,
         I: Fn() -> bool
     {
         let type_list = self.get_fund_list_by_type(source_type);
+        let mut affected_users: Vec<usize> = Vec::new();
         let mut id = match direction {
             SwapDirection::Forwards => type_list.first,
             SwapDirection::Backwards => type_list.last,
@@ -298,45 +298,89 @@ pub trait FundModule {
         while id > 0 && !interrupt() {
             if let Some(max_amount) = &opt_max_amount {
                 if **max_amount == 0 {
-                    return; // do not process anything after the max_amount is completely drained
+                    break; // do not process anything after the max_amount is completely drained
                 }
             }
 
             let mut fund_item = self.get_mut_fund_by_id(id);
+            affected_users.push(fund_item.user_id);
             let next_id = match direction { // save next id now, because fund_item can be destroyed
                 SwapDirection::Forwards => fund_item.type_list_next,
                 SwapDirection::Backwards => fund_item.type_list_prev,
             };
 
             if let Some(transformed) = filter_transform(fund_item.user_id, fund_item.fund_desc) {
-                if dry_run {
-                    // only decrease max_amount
-                    if let Some(max_amount) = opt_max_amount {
-                        if fund_item.balance >= *max_amount {
-                            *max_amount = BigUint::zero();
-                        } else {
-                            *max_amount -= &fund_item.balance;
-                        }
-                        opt_max_amount = Some(max_amount); // move back
-                    }
+                // extract / decrease
+                let extracted_balance: BigUint;
+                if let Some(max_amount) = opt_max_amount {
+                    extracted_balance = self.decrease_fund_balance(max_amount, &mut *fund_item);
+                    opt_max_amount = Some(max_amount); // move back
                 } else {
-                    // extract / decrease
-                    let extracted_balance: BigUint;
-                    if let Some(max_amount) = opt_max_amount {
-                        extracted_balance = self.decrease_fund_balance(max_amount, &mut *fund_item);
-                        opt_max_amount = Some(max_amount); // move back
+                    extracted_balance = self.delete_fund(&mut *fund_item);
+                }
+                // create / increase
+                self.increase_fund_balance(
+                    (*fund_item).user_id,
+                    transformed,
+                    extracted_balance);
+                
+            }
+            id = next_id;
+        }
+
+        affected_users.sort();
+        affected_users.dedup();
+        affected_users
+    }
+
+    /// Same as split_convert_max_by_type, but does not change any of the 
+    fn simulate_split_convert_max_by_type<F, I>(&self,
+        mut opt_max_amount: Option<&mut BigUint>,
+        source_type: FundType,
+        direction: SwapDirection,
+        mut filter: F,
+        interrupt: I) -> Vec<usize>
+    where 
+        F: FnMut(usize, FundDescription) -> bool,
+        I: Fn() -> bool
+    {
+        let type_list = self.get_fund_list_by_type(source_type);
+        let mut affected_users: Vec<usize> = Vec::new();
+        let mut id = match direction {
+            SwapDirection::Forwards => type_list.first,
+            SwapDirection::Backwards => type_list.last,
+        };
+
+        while id > 0 && !interrupt() {
+            if let Some(max_amount) = &opt_max_amount {
+                if **max_amount == 0 {
+                    break; // do not process anything after the max_amount is completely drained
+                }
+            }
+
+            let fund_item = self.get_mut_fund_by_id(id);
+            affected_users.push(fund_item.user_id);
+            let next_id = match direction { // save next id now, because fund_item can be destroyed
+                SwapDirection::Forwards => fund_item.type_list_next,
+                SwapDirection::Backwards => fund_item.type_list_prev,
+            };
+
+            if filter(fund_item.user_id, fund_item.fund_desc) {
+                if let Some(max_amount) = opt_max_amount {
+                    if fund_item.balance >= *max_amount {
+                        *max_amount = BigUint::zero();
                     } else {
-                        extracted_balance = self.delete_fund(&mut *fund_item);
+                        *max_amount -= &fund_item.balance;
                     }
-                    // create / increase
-                    self.increase_fund_balance(
-                        (*fund_item).user_id,
-                        transformed,
-                        extracted_balance);
+                    opt_max_amount = Some(max_amount); // move back
                 }
             }
             id = next_id;
         }
+
+        affected_users.sort();
+        affected_users.dedup();
+        affected_users
     }
 
     fn split_convert_max_by_user<F>(&self,
