@@ -167,7 +167,8 @@ pub trait ResetCheckpointsModule {
                 let amount_to_swap = curr_global_checkpoint.total_delegation_cap.clone() - old_delegation_cap.clone();
                 let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(
                     &amount_to_swap,
-                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                    || self.get_gas_left() < STOP_AT_GASLIMIT,
+                    false
                 );
                 if remaining > 0 {
                     self.save_swapping_checkpoint(FundType::Waiting, remaining.clone(), amount_to_swap);
@@ -198,7 +199,8 @@ pub trait ResetCheckpointsModule {
             FundType::Waiting => {
                 let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(
                     &swap_checkpoint.remaining,
-                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                    || self.get_gas_left() < STOP_AT_GASLIMIT,
+                    false
                 );
                 if remaining > 0 {
                     swap_checkpoint.remaining = remaining.clone();

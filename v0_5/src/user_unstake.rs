@@ -75,7 +75,7 @@ pub trait UserUnStakeModule {
             return Ok(())
         }
         let swappable = core::cmp::min(&amount, &total_waiting);
-        let (affected_users, remained) = self.fund_transf_module().swap_waiting_to_active(&swappable, || false);
+        let (affected_users, remained) = self.fund_transf_module().swap_waiting_to_active(&swappable, || false, false);
         if remained > 0 {
             return sc_error!("error swapping waiting to active")
         }
