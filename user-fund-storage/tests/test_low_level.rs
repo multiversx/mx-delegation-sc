@@ -271,7 +271,7 @@ fn test_transfer_funds_4() {
 
     let mut affected_users: Vec<usize> = Vec::new();
     let mut amount = RustBigUint::from(40u32);
-    let returned_affected_users = fund_module.simulate_split_convert_max_by_type(
+    let returned_affected_users = fund_module.get_affected_users_of_swap(
         Some(&mut amount),
         FundType::Waiting,
         SwapDirection::Backwards,

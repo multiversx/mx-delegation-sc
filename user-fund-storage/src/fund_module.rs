@@ -334,7 +334,7 @@ pub trait FundModule {
     }
 
     /// Same as split_convert_max_by_type, but does not change any of the 
-    fn simulate_split_convert_max_by_type<F, I>(&self,
+    fn get_affected_users_of_swap<F, I>(&self,
         mut opt_max_amount: Option<&mut BigUint>,
         source_type: FundType,
         direction: SwapDirection,
