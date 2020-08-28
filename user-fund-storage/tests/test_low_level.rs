@@ -163,6 +163,7 @@ fn test_transfer_funds_1() {
         SwapDirection::Forwards,
         |_, _| Some(FundDescription::Active),
         || false,
+        false,
     );
 
     assert_eq!(
@@ -206,6 +207,7 @@ fn test_transfer_funds_2() {
         SwapDirection::Forwards,
         |_, _| Some(FundDescription::Active),
         || false,
+        false,
     );
 
     assert_eq!(affected_users, vec![user_1]);
@@ -242,6 +244,7 @@ fn test_transfer_funds_3() {
             Some(FundDescription::Active)
         },
         || false,
+        false,
     );
 
     assert_eq!(returned_affected_users, vec![user_2, user_3]);
@@ -271,15 +274,16 @@ fn test_transfer_funds_4() {
 
     let mut affected_users: Vec<usize> = Vec::new();
     let mut amount = RustBigUint::from(40u32);
-    let returned_affected_users = fund_module.get_affected_users_of_swap(
+    let returned_affected_users = fund_module.split_convert_max_by_type(
         Some(&mut amount),
         FundType::Waiting,
         SwapDirection::Backwards,
         |user_id, _| {
             affected_users.push(user_id);
-            true
+            Some(FundDescription::Active)
         },
         || false,
+        true,
     );
 
     assert_eq!(affected_users, vec![user_3, user_2]);

@@ -61,6 +61,7 @@ pub trait FundTransformationsModule {
             SwapDirection::Forwards,
             |_, _| Some(FundDescription::Active),
             interrupt,
+            false,
         );
 
         (affected_users, stake_to_activate)
@@ -69,12 +70,13 @@ pub trait FundTransformationsModule {
     fn simulate_swap_waiting_to_active<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {
         let mut stake_to_activate = amount.clone();
         let affected_users: Vec<usize> = Vec::new();
-        self.fund_module().get_affected_users_of_swap(
+        self.fund_module().split_convert_max_by_type(
             Some(&mut stake_to_activate),
             FundType::Waiting,
             SwapDirection::Forwards,
-            |_, _| true,
+            |_, _| Some(FundDescription::Active),
             interrupt,
+            true,
         );
 
         (affected_users, stake_to_activate)
@@ -93,6 +95,7 @@ pub trait FundTransformationsModule {
                 Some(FundDescription::UnStaked{ created: current_bl_nonce })
             },
             interrupt,
+            true,
         );
 
         (affected_users, amount_to_unstake)
@@ -109,6 +112,7 @@ pub trait FundTransformationsModule {
                _ => None
             },
             interrupt,
+            false,
         );
 
         unstaked_to_convert
