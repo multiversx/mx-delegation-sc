@@ -96,6 +96,19 @@ pub trait FundTransformationsModule {
         unstaked_to_convert
     }
 
+    fn swap_active_to_deferred_payment<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> BigUint {
+        let mut remaining = amount.clone();
+        let current_bl_nonce = self.get_block_nonce();
+        let _ = self.fund_module().split_convert_max_by_type(
+            Some(&mut remaining),
+            FundType::Active,
+            |_, _| Some(FundDescription::DeferredPayment{ created: current_bl_nonce }),
+            interrupt
+        );
+
+        remaining
+    }
+
     fn eligible_deferred_payment(&self, 
         user_id: usize, 
         n_blocks_before_claim: u64) -> BigUint {

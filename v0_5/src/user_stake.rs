@@ -98,9 +98,9 @@ pub trait UserStakeModule {
         if payment < self.settings().get_minimum_stake() {
             return sc_error!("cannot stake less than minimum stake")
         }
-        if self.reset_checkpoints().get_global_check_point_in_progress() {
-            return sc_error!("staking is temporarily paused as checkpoint is reset")
-        }
+
+        require!(!self.reset_checkpoints().is_interrupted_computation(),
+            "staking is temporarily paused as checkpoint is reset");
 
         self.process_stake(payment)
     }

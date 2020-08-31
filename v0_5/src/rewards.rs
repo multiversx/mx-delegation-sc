@@ -198,12 +198,10 @@ pub trait RewardsModule {
 
         let caller = self.get_caller();
         let user_id = self.user_data().get_user_id(&caller);
-        if user_id == 0 {
-            return sc_error!("unknown caller")
-        }
-        if self.reset_checkpoints().get_global_check_point_in_progress() {
-            return sc_error!("claim rewards is temporarily paused as checkpoint is reset")
-        }
+        require!(user_id != 0, "unknown caller");
+
+        require!(!self.reset_checkpoints().is_interrupted_computation(),
+            "claim rewards is temporarily paused as checkpoint is reset");
 
         let mut user_data = self.load_updated_user_rewards(user_id);
         
