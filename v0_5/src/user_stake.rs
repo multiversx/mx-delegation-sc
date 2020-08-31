@@ -74,14 +74,20 @@ pub trait UserStakeModule {
             let _ = self.fund_transf_module().swap_unstaked_to_deferred_payment(&unstaked_swappable, || false);
         }
 
-        // swap waiting to active
-        let (affected_users, remaining) = self.fund_transf_module().swap_waiting_to_active(&swappable, || false);
+        // dry run of swap, to get the affected users
+        let (affected_users, remaining) = self.fund_transf_module().simulate_swap_waiting_to_active(&swappable.clone(), || false);
         if remaining > 0 {
             return sc_error!("error swapping waiting to active")
         }
 
         for user_id in affected_users.iter() {
             self.rewards().compute_one_user_reward(*user_id);
+        }
+
+        // actual swap of waiting to active
+        let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(&swappable, || false);
+        if remaining > 0 {
+            return sc_error!("error swapping waiting to active")
         }
 
         Ok(())
