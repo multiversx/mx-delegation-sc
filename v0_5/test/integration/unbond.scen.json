@@ -23,7 +23,7 @@
         },
         {
             "step": "externalSteps",
-            "path": "unstake_2.steps.json"
+            "path": "unstake.steps.json"
         },
         {
             "step": "setState",
@@ -68,12 +68,25 @@
             },
             "expect": {
                 "out": [
-                    "0", "0", "1,000,000,000", "032,999,000,000,000", "0"
+                    "0", "0", "50,000,000,000,000", "50,000,000,000,000", "0"
                 ],
                 "status": "",
                 "logs": [],
                 "gas": "*",
                 "refund": "*"
+            }
+        },
+        {
+            "step": "checkState",
+            "accounts": {
+                "''delegator_1___________________s1": {
+                    "nonce": "*",
+                    "balance": "1,000,000,000",
+                    "storage": {},
+                    "code": "",
+                    "asyncCallData": "payment for stake"
+                },
+                "+": ""
             }
         }
     ]

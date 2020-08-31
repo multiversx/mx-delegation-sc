@@ -23,7 +23,7 @@
         },
         {
             "step": "externalSteps",
-            "path": "unstake_2.steps.json"
+            "path": "unstake.steps.json"
         }
     ]
 }
