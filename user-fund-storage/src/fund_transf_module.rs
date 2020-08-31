@@ -54,43 +54,65 @@ pub trait FundTransformationsModule {
 
     fn swap_waiting_to_active<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {
         let mut stake_to_activate = amount.clone();
-        let mut affected_states = self.fund_module().split_convert_max_by_type(
+        let affected_users: Vec<usize> = Vec::new();
+        self.fund_module().split_convert_max_by_type(
             Some(&mut stake_to_activate),
             FundType::Waiting,
+            SwapDirection::Forwards,
             |_, _| Some(FundDescription::Active),
-            interrupt
+            interrupt,
+            false,
         );
-        affected_states.sort();
-        affected_states.dedup();
 
-        (affected_states, stake_to_activate)
+        (affected_users, stake_to_activate)
+    }
+
+    fn get_affected_users_of_swap_waiting_to_active<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {
+        let mut stake_to_activate = amount.clone();
+        let affected_users: Vec<usize> = Vec::new();
+        self.fund_module().split_convert_max_by_type(
+            Some(&mut stake_to_activate),
+            FundType::Waiting,
+            SwapDirection::Forwards,
+            |_, _| Some(FundDescription::Active),
+            interrupt,
+            true,
+        );
+
+        (affected_users, stake_to_activate)
     }
 
     fn swap_active_to_unstaked<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {
         let mut amount_to_unstake = amount.clone();
         let current_bl_nonce = self.get_block_nonce();
-        let mut affected_states = self.fund_module().split_convert_max_by_type(
+        let mut affected_users: Vec<usize> = Vec::new();
+        self.fund_module().split_convert_max_by_type(
             Some(&mut amount_to_unstake),
             FundType::Active,
-            |_, _| Some(FundDescription::UnStaked{ created: current_bl_nonce }),
-            interrupt
+            SwapDirection::Backwards,
+            |user_id, _| {
+                affected_users.push(user_id);
+                Some(FundDescription::UnStaked{ created: current_bl_nonce })
+            },
+            interrupt,
+            true,
         );
-        affected_states.sort();
-        affected_states.dedup();
 
-        (affected_states, amount_to_unstake)
+        (affected_users, amount_to_unstake)
     }
 
     fn swap_unstaked_to_deferred_payment<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> BigUint {
         let mut unstaked_to_convert = amount.clone();
-        let _ = self.fund_module().split_convert_max_by_type(
+        self.fund_module().split_convert_max_by_type(
             Some(&mut unstaked_to_convert),
             FundType::UnStaked,
+            SwapDirection::Forwards,
             |_, fund_info| match fund_info {
                 FundDescription::UnStaked{ created } => Some(FundDescription::DeferredPayment{ created }),
                _ => None
             },
-            interrupt
+            interrupt,
+            false,
         );
 
         unstaked_to_convert
