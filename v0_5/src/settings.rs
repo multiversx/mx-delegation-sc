@@ -92,12 +92,6 @@ pub trait SettingsModule {
     #[storage_set("service_fee")]
     fn set_service_fee(&self, service_fee: BigUint);
 
-    #[storage_get("new_service_fee")]
-    fn get_new_service_fee(&self) -> BigUint;
-
-    #[storage_set("new_service_fee")]
-    fn set_new_service_fee(&self, service_fee: BigUint);
-
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setServiceFee)]
@@ -111,20 +105,14 @@ pub trait SettingsModule {
         require!(!self.reset_checkpoints().is_interrupted_computation(),
             "global checkpoint is in progress");
         
-        let next_service_fee = BigUint::from(service_fee_per_10000);
-        if self.get_service_fee() == next_service_fee {
+        let new_service_fee = BigUint::from(service_fee_per_10000);
+        if self.get_service_fee() == new_service_fee {
             return Ok(COMPUTATION_DONE)
         }
 
-        self.set_new_service_fee(next_service_fee);
-
-        self.reset_checkpoints().continue_computation(ExtendedComputation{
-            total_delegation_cap: self.get_total_delegation_cap(),
-            remaining_swap_waiting_to_active: BigUint::zero(),
-            remaining_swap_active_to_def_p: BigUint::zero(),
-            remaining_swap_unstaked_to_def_p: BigUint::zero(),
-            computation_type: ComputationType::ChangeServiceFee,
-            step: ComputationStep::ComputeAllRewards(ComputeAllRewardsData::new(self.get_block_epoch())),
+        self.reset_checkpoints().continue_computation(ExtendedComputation::ChangeServiceFee{
+            new_service_fee,
+            compute_rewards_data: ComputeAllRewardsData::new(self.get_block_epoch()),
         })
     }
     

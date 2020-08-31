@@ -13,7 +13,7 @@ imports!();
 pub static STOP_AT_GASLIMIT: i64 = 1000000;
 
 pub const COMPUTATION_DONE: bool = false;
-pub const MORE_TO_COMPUTE: bool = true;
+pub const OUT_OF_GAS: bool = true;
 
 #[elrond_wasm_derive::module(ResetCheckpointsModuleImpl)]
 pub trait ResetCheckpointsModule {
@@ -79,110 +79,129 @@ pub trait ResetCheckpointsModule {
     }
 
     fn continue_computation(&self, mut ec: ExtendedComputation<BigUint>) -> SCResult<bool> {
-        while !ec.is_empty() {
-            let (out_of_gas, new_ic) = self.perform_interrupted_computation_step(ec);
-            ec = new_ic;
-            if out_of_gas {
-                self.set_interrupted_computation(&ec);
-                return Ok(MORE_TO_COMPUTE);
-            }
+        let mut out_of_gas = false;
+        while !out_of_gas && !ec.is_none() {
+            let result = self.perform_interrupted_computation_step(ec);
+            out_of_gas = result.0;
+            ec = result.1;
         }
 
         self.set_interrupted_computation(&ec); 
-        Ok(COMPUTATION_DONE)
+        Ok(out_of_gas)
     }
 
     fn perform_interrupted_computation_step(&self, ec: ExtendedComputation<BigUint>) -> (bool, ExtendedComputation<BigUint>) {
-        match ec.computation_type {
-            ComputationType::ChangeServiceFee => {
-                if let ComputationStep::ComputeAllRewards(data) = ec.step {
-                    if let Some(more_computation) = self.compute_all_rewards(data) {
-                        return (true, ExtendedComputation{
-                            step: ComputationStep::ComputeAllRewards(more_computation),
-                            ..ec
-                        })
-                    } else {
-                        self.settings().set_service_fee(self.settings().get_new_service_fee());
-                    }
-                }
-                
-                (false, ExtendedComputation{
-                    step: ComputationStep::None,
-                    ..ec
-                })
-            },
-            ComputationType::ModifyTotalDelegationCap => {
-                match ec.step {
-                    ComputationStep::ComputeAllRewards(data) => {
+        match ec {
+            ExtendedComputation::None => (false, ec),
+            ExtendedComputation::ModifyTotalDelegationCap{
+                new_delegation_cap,
+                remaining_swap_waiting_to_active,
+                remaining_swap_active_to_def_p,
+                remaining_swap_unstaked_to_def_p,
+                step,
+            } => {
+                match step {
+                    ModifyDelegationCapStep::ComputeAllRewards(data) => {
                         if let Some(more_computation) = self.compute_all_rewards(data) {
-                            (true, ExtendedComputation{
-                                step: ComputationStep::ComputeAllRewards(more_computation),
-                                ..ec
+                            (OUT_OF_GAS, ExtendedComputation::ModifyTotalDelegationCap{
+                                new_delegation_cap,
+                                remaining_swap_waiting_to_active,
+                                remaining_swap_active_to_def_p,
+                                remaining_swap_unstaked_to_def_p,
+                                step: ModifyDelegationCapStep::ComputeAllRewards(more_computation),
                             })
                         } else {
-                            (false, ExtendedComputation{
-                                step: ComputationStep::SwapUnstakedToDeferredPayment,
-                                ..ec
+                            (COMPUTATION_DONE, ExtendedComputation::ModifyTotalDelegationCap{
+                                new_delegation_cap,
+                                remaining_swap_waiting_to_active,
+                                remaining_swap_active_to_def_p,
+                                remaining_swap_unstaked_to_def_p,
+                                step: ModifyDelegationCapStep::SwapUnstakedToDeferredPayment,
                             })
                         }
                     },
-                    ComputationStep::SwapWaitingToActive => {
+                    ModifyDelegationCapStep::SwapWaitingToActive => {
                         let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(
-                            &ec.remaining_swap_waiting_to_active,
+                            &remaining_swap_waiting_to_active,
                             || self.get_gas_left() < STOP_AT_GASLIMIT
                         );
                         if remaining > 0 {
-                            (true, ExtendedComputation{
+                            (OUT_OF_GAS, ExtendedComputation::ModifyTotalDelegationCap{
+                                new_delegation_cap,
                                 remaining_swap_waiting_to_active: remaining,
-                                ..ec
+                                remaining_swap_active_to_def_p,
+                                remaining_swap_unstaked_to_def_p,
+                                step,
                             })
                         } else {
-                            (false, ExtendedComputation{
+                            (COMPUTATION_DONE, ExtendedComputation::ModifyTotalDelegationCap{
+                                new_delegation_cap,
                                 remaining_swap_waiting_to_active: BigUint::zero(),
-                                step: ComputationStep::SwapUnstakedToDeferredPayment,
-                                ..ec
+                                remaining_swap_active_to_def_p,
+                                remaining_swap_unstaked_to_def_p,
+                                step: ModifyDelegationCapStep::SwapUnstakedToDeferredPayment,
                             })
                         }
                     },
-                    ComputationStep::SwapUnstakedToDeferredPayment => {
+                    ModifyDelegationCapStep::SwapUnstakedToDeferredPayment => {
                         let remaining = self.fund_transf_module().swap_unstaked_to_deferred_payment(
-                            &ec.remaining_swap_unstaked_to_def_p,
+                            &remaining_swap_unstaked_to_def_p,
                             || self.get_gas_left() < STOP_AT_GASLIMIT
                         );
                         if remaining > 0 {
-                            (true, ExtendedComputation{
+                            (OUT_OF_GAS, ExtendedComputation::ModifyTotalDelegationCap{
+                                new_delegation_cap,
+                                remaining_swap_waiting_to_active,
+                                remaining_swap_active_to_def_p,
                                 remaining_swap_unstaked_to_def_p: remaining,
-                                ..ec
+                                step,
                             })
                         } else {
-                            (false, ExtendedComputation{
+                            (COMPUTATION_DONE, ExtendedComputation::ModifyTotalDelegationCap{
+                                new_delegation_cap,
+                                remaining_swap_waiting_to_active,
+                                remaining_swap_active_to_def_p,
                                 remaining_swap_unstaked_to_def_p: BigUint::zero(),
-                                step: ComputationStep::SwapActiveToDeferredPayment,
-                                ..ec
+                                step: ModifyDelegationCapStep::SwapActiveToDeferredPayment,
                             })
                         }
                     },
-                    ComputationStep::SwapActiveToDeferredPayment => {
+                    ModifyDelegationCapStep::SwapActiveToDeferredPayment => {
                         let remaining = self.fund_transf_module().swap_active_to_deferred_payment(
-                            &ec.remaining_swap_active_to_def_p,
+                            &remaining_swap_active_to_def_p,
                             || self.get_gas_left() < STOP_AT_GASLIMIT
                         );
                         if remaining > 0 {
-                            (true, ExtendedComputation{
+                            (OUT_OF_GAS, ExtendedComputation::ModifyTotalDelegationCap{
+                                new_delegation_cap,
+                                remaining_swap_waiting_to_active,
                                 remaining_swap_active_to_def_p: remaining,
-                                ..ec
+                                remaining_swap_unstaked_to_def_p,
+                                step,
                             })
                         } else {
-                            (false, ExtendedComputation{
-                                remaining_swap_active_to_def_p: BigUint::zero(),
-                                step: ComputationStep::None,
-                                ..ec
-                            })
+                            // finish
+                            self.settings().set_total_delegation_cap(new_delegation_cap);
+                            (COMPUTATION_DONE, ExtendedComputation::None)
                         }
                     },
-                    ComputationStep::None => (false, ec),               
                 }
-            }
+            },
+            ExtendedComputation::ChangeServiceFee{
+                new_service_fee,
+                compute_rewards_data,
+            } => {
+                if let Some(more_computation) = self.compute_all_rewards(compute_rewards_data) {
+                    (OUT_OF_GAS, ExtendedComputation::ChangeServiceFee{
+                        new_service_fee,
+                        compute_rewards_data: more_computation,
+                    })
+                } else {
+                    // finish
+                    self.settings().set_service_fee(new_service_fee);
+                    (COMPUTATION_DONE, ExtendedComputation::None)
+                }
+            },
         }
     }
 
@@ -410,13 +429,12 @@ pub trait ResetCheckpointsModule {
                     "no unstaked funds should be present when increasing delegation cap");
 
                 let swap_amount = &new_total_cap - &curr_delegation_cap;
-                ExtendedComputation{
-                    total_delegation_cap: new_total_cap,
+                ExtendedComputation::ModifyTotalDelegationCap{
+                    new_delegation_cap: new_total_cap,
                     remaining_swap_waiting_to_active: swap_amount,
                     remaining_swap_active_to_def_p: BigUint::zero(),
                     remaining_swap_unstaked_to_def_p: BigUint::zero(),
-                    computation_type: ComputationType::ModifyTotalDelegationCap,
-                    step: ComputationStep::ComputeAllRewards(ComputeAllRewardsData::new(self.get_block_epoch())),
+                    step: ModifyDelegationCapStep::ComputeAllRewards(ComputeAllRewardsData::new(self.get_block_epoch())),
                 }
             },
             Ordering::Less => { // cap decreases
@@ -436,13 +454,12 @@ pub trait ResetCheckpointsModule {
                     swap_unstaked_to_def_p = total_unstaked;
                 }
                 
-                ExtendedComputation{
-                    total_delegation_cap: new_total_cap,
+                ExtendedComputation::ModifyTotalDelegationCap{
+                    new_delegation_cap: new_total_cap,
                     remaining_swap_waiting_to_active: BigUint::zero(),
                     remaining_swap_active_to_def_p: swap_active_to_def_p,
                     remaining_swap_unstaked_to_def_p: swap_unstaked_to_def_p,
-                    computation_type: ComputationType::ModifyTotalDelegationCap,
-                    step: ComputationStep::ComputeAllRewards(ComputeAllRewardsData::new(self.get_block_epoch())),
+                    step: ModifyDelegationCapStep::ComputeAllRewards(ComputeAllRewardsData::new(self.get_block_epoch())),
                 }
             }
         };

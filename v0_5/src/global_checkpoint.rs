@@ -1,91 +1,96 @@
 use elrond_wasm::elrond_codec::*;
 use elrond_wasm::BigUintApi;
 use elrond_wasm::Vec;
-use user_fund_storage::types::*;
+// use user_fund_storage::types::*;
 
-#[derive(Clone, PartialEq)]
-pub struct GlobalCheckpoint<BigUint:BigUintApi> {
-    pub total_delegation_cap: BigUint,
-    pub sum_unclaimed:        BigUint,
-    pub total_to_swap:        BigUint,
-    pub last_id:              usize,
-    pub epoch:                u64,
-}
+// #[derive(Clone, PartialEq)]
+// pub struct GlobalCheckpoint<BigUint:BigUintApi> {
+//     pub total_delegation_cap: BigUint,
+//     pub sum_unclaimed:        BigUint,
+//     pub total_to_swap:        BigUint,
+//     pub last_id:              usize,
+//     pub epoch:                u64,
+// }
 
-impl<BigUint:BigUintApi> Encode for GlobalCheckpoint<BigUint> {
-    fn dep_encode_to<O: Output>(&self, dest: &mut O)  -> Result<(), EncodeError> {
-        self.total_delegation_cap.dep_encode_to(dest)?;
-        self.sum_unclaimed.dep_encode_to(dest)?;
-        self.total_to_swap.dep_encode_to(dest)?;
-        self.last_id.dep_encode_to(dest)?;
-        self.epoch.dep_encode_to(dest)?;
-        Ok(())
-    }
-}
+// impl<BigUint:BigUintApi> Encode for GlobalCheckpoint<BigUint> {
+//     fn dep_encode_to<O: Output>(&self, dest: &mut O)  -> Result<(), EncodeError> {
+//         self.total_delegation_cap.dep_encode_to(dest)?;
+//         self.sum_unclaimed.dep_encode_to(dest)?;
+//         self.total_to_swap.dep_encode_to(dest)?;
+//         self.last_id.dep_encode_to(dest)?;
+//         self.epoch.dep_encode_to(dest)?;
+//         Ok(())
+//     }
+// }
 
-impl<BigUint:BigUintApi> Decode for GlobalCheckpoint<BigUint> {
-    fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
-        Ok(GlobalCheckpoint{
-            total_delegation_cap: BigUint::dep_decode(input)?,
-            sum_unclaimed:        BigUint::dep_decode(input)?,
-            total_to_swap:        BigUint::dep_decode(input)?,
-            last_id:              usize::dep_decode(input)?,
-            epoch:                u64::dep_decode(input)?,
-        })
-    }
-}
+// impl<BigUint:BigUintApi> Decode for GlobalCheckpoint<BigUint> {
+//     fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
+//         Ok(GlobalCheckpoint{
+//             total_delegation_cap: BigUint::dep_decode(input)?,
+//             sum_unclaimed:        BigUint::dep_decode(input)?,
+//             total_to_swap:        BigUint::dep_decode(input)?,
+//             last_id:              usize::dep_decode(input)?,
+//             epoch:                u64::dep_decode(input)?,
+//         })
+//     }
+// }
 
-#[derive(Clone, PartialEq)]
-pub struct SwapCheckpoint<BigUint:BigUintApi> {
-    pub initial:   BigUint,
-    pub remaining: BigUint,
-    pub f_type: FundType,
-}
+// #[derive(Clone, PartialEq)]
+// pub struct SwapCheckpoint<BigUint:BigUintApi> {
+//     pub initial:   BigUint,
+//     pub remaining: BigUint,
+//     pub f_type: FundType,
+// }
 
-impl<BigUint:BigUintApi> Encode for SwapCheckpoint<BigUint> {
-    fn dep_encode_to<O: Output>(&self, dest: &mut O)  -> Result<(), EncodeError> {
-        self.initial.dep_encode_to(dest)?;
-        self.remaining.dep_encode_to(dest)?;
-        self.f_type.dep_encode_to(dest)?;
-        Ok(())
-    }
-}
+// impl<BigUint:BigUintApi> Encode for SwapCheckpoint<BigUint> {
+//     fn dep_encode_to<O: Output>(&self, dest: &mut O)  -> Result<(), EncodeError> {
+//         self.initial.dep_encode_to(dest)?;
+//         self.remaining.dep_encode_to(dest)?;
+//         self.f_type.dep_encode_to(dest)?;
+//         Ok(())
+//     }
+// }
 
-impl<BigUint:BigUintApi> Decode for SwapCheckpoint<BigUint> {
-    fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
-        Ok(SwapCheckpoint{
-            initial:   BigUint::dep_decode(input)?,
-            remaining: BigUint::dep_decode(input)?,
-            f_type:    FundType::dep_decode(input)?,
-        })
-    }
-}
+// impl<BigUint:BigUintApi> Decode for SwapCheckpoint<BigUint> {
+//     fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
+//         Ok(SwapCheckpoint{
+//             initial:   BigUint::dep_decode(input)?,
+//             remaining: BigUint::dep_decode(input)?,
+//             f_type:    FundType::dep_decode(input)?,
+//         })
+//     }
+// }
+
+
+
 
 #[derive(PartialEq)]
-pub struct ExtendedComputation<BigUint:BigUintApi> {
-    pub total_delegation_cap: BigUint,
-    pub remaining_swap_waiting_to_active: BigUint,
-    pub remaining_swap_active_to_def_p: BigUint,
-    pub remaining_swap_unstaked_to_def_p: BigUint,
-    
-    pub computation_type: ComputationType,
-    pub step: ComputationStep<BigUint>,
+pub enum ExtendedComputation<BigUint:BigUintApi> {
+    None,
+    ModifyTotalDelegationCap{
+        new_delegation_cap: BigUint,
+        remaining_swap_waiting_to_active: BigUint,
+        remaining_swap_active_to_def_p: BigUint,
+        remaining_swap_unstaked_to_def_p: BigUint,
+        step: ModifyDelegationCapStep<BigUint>,
+    },
+    ChangeServiceFee{
+        new_service_fee: BigUint,
+        compute_rewards_data: ComputeAllRewardsData<BigUint>,
+    },
 }
 
 impl<BigUint:BigUintApi> ExtendedComputation<BigUint> {
-    pub fn is_empty(&self) -> bool {
-        self.step == ComputationStep::None &&
-        self.remaining_swap_waiting_to_active == 0 &&
-        self.remaining_swap_active_to_def_p == 0 &&
-        self.remaining_swap_unstaked_to_def_p == 0
+    #[inline]
+    pub fn is_none(&self) -> bool {
+        *self == ExtendedComputation::<BigUint>::None
     }
 }
-
 impl<BigUint:BigUintApi> Encode for ExtendedComputation<BigUint> {
     fn using_top_encoded<F: FnOnce(&[u8])>(&self, f: F) -> Result<(), EncodeError> {
         // delete storage when the balance reaches 0
         // also require links to have been reset (this check is not strictly necessary, but improves safety)
-        if self.is_empty() {
+        if let ExtendedComputation::None = self {
             f(&[]);
         } else {
             let mut result: Vec<u8> = Vec::new();
@@ -96,12 +101,33 @@ impl<BigUint:BigUintApi> Encode for ExtendedComputation<BigUint> {
     }
 
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
-        self.total_delegation_cap.dep_encode_to(dest)?;
-        self.remaining_swap_waiting_to_active.dep_encode_to(dest)?;
-        self.remaining_swap_active_to_def_p.dep_encode_to(dest)?;
-        self.remaining_swap_unstaked_to_def_p.dep_encode_to(dest)?;
-        self.computation_type.dep_encode_to(dest)?;
-        self.step.dep_encode_to(dest)?;
+        match self {
+            ExtendedComputation::None => {
+                dest.push_byte(0);
+            },
+            ExtendedComputation::ModifyTotalDelegationCap{
+                new_delegation_cap,
+                remaining_swap_waiting_to_active,
+                remaining_swap_active_to_def_p,
+                remaining_swap_unstaked_to_def_p,
+                step,
+            } => {
+                dest.push_byte(1);
+                new_delegation_cap.dep_encode_to(dest)?;
+                remaining_swap_waiting_to_active.dep_encode_to(dest)?;
+                remaining_swap_active_to_def_p.dep_encode_to(dest)?;
+                remaining_swap_unstaked_to_def_p.dep_encode_to(dest)?;
+                step.dep_encode_to(dest)?;
+            },
+            ExtendedComputation::ChangeServiceFee{
+                new_service_fee,
+                compute_rewards_data,
+            } => {
+                dest.push_byte(2);
+                new_service_fee.dep_encode_to(dest)?;
+                compute_rewards_data.dep_encode_to(dest)?;
+            },
+        }
         Ok(())
 	}
 }
@@ -110,14 +136,7 @@ impl<BigUint:BigUintApi> Decode for ExtendedComputation<BigUint> {
     fn top_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         if input.remaining_len() == 0 {
             // does not exist in storage 
-            Ok(ExtendedComputation{
-                total_delegation_cap: BigUint::zero(),
-                remaining_swap_waiting_to_active: BigUint::zero(),
-                remaining_swap_active_to_def_p: BigUint::zero(),
-                remaining_swap_unstaked_to_def_p: BigUint::zero(),
-                computation_type: ComputationType::ModifyTotalDelegationCap,
-                step: ComputationStep::None,
-            })
+            Ok(ExtendedComputation::None)
         } else {
             let result = Self::dep_decode(input)?;
             if input.remaining_len() > 0 {
@@ -128,79 +147,57 @@ impl<BigUint:BigUintApi> Decode for ExtendedComputation<BigUint> {
     }
 
     fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
-        Ok(ExtendedComputation {
-            total_delegation_cap: BigUint::dep_decode(input)?,
-            remaining_swap_waiting_to_active: BigUint::dep_decode(input)?,
-            remaining_swap_active_to_def_p: BigUint::dep_decode(input)?,
-            remaining_swap_unstaked_to_def_p: BigUint::dep_decode(input)?,
-            computation_type: ComputationType::dep_decode(input)?,
-            step: ComputationStep::dep_decode(input)?,
-        })
+        let discriminant = input.read_byte()?;
+        match discriminant {
+            0 => Ok(ExtendedComputation::None),
+            1 => Ok(ExtendedComputation::ModifyTotalDelegationCap{
+                new_delegation_cap: BigUint::dep_decode(input)?,
+                remaining_swap_waiting_to_active: BigUint::dep_decode(input)?,
+                remaining_swap_active_to_def_p: BigUint::dep_decode(input)?,
+                remaining_swap_unstaked_to_def_p: BigUint::dep_decode(input)?,
+                step: ModifyDelegationCapStep::dep_decode(input)?,
+            }),
+            2 => Ok(ExtendedComputation::ChangeServiceFee{
+                new_service_fee: BigUint::dep_decode(input)?,
+                compute_rewards_data: ComputeAllRewardsData::dep_decode(input)?,
+            }),
+            _ => Err(DecodeError::InvalidValue),
+        }
     }
 }
 
 
 #[derive(PartialEq)]
-pub enum ComputationStep<BigUint:BigUintApi> {
-    None,
+pub enum ModifyDelegationCapStep<BigUint:BigUintApi> {
     ComputeAllRewards(ComputeAllRewardsData<BigUint>),
     SwapWaitingToActive,
     SwapUnstakedToDeferredPayment,
     SwapActiveToDeferredPayment,
 }
 
-impl<BigUint:BigUintApi> Encode for ComputationStep<BigUint> {
+impl<BigUint:BigUintApi> Encode for ModifyDelegationCapStep<BigUint> {
     fn dep_encode_to<O: Output>(&self, dest: &mut O)  -> Result<(), EncodeError> {
         match self {
-            ComputationStep::None => { dest.push_byte(0); },
-            ComputationStep::ComputeAllRewards(data) => {
-                dest.push_byte(1);
+            ModifyDelegationCapStep::ComputeAllRewards(data) => {
+                dest.push_byte(0);
                 data.dep_encode_to(dest)?;
             },
-            ComputationStep::SwapWaitingToActive => { dest.push_byte(2); },
-            ComputationStep::SwapUnstakedToDeferredPayment => { dest.push_byte(3); },
-            ComputationStep::SwapActiveToDeferredPayment => { dest.push_byte(4); },
+            ModifyDelegationCapStep::SwapWaitingToActive => { dest.push_byte(1); },
+            ModifyDelegationCapStep::SwapUnstakedToDeferredPayment => { dest.push_byte(2); },
+            ModifyDelegationCapStep::SwapActiveToDeferredPayment => { dest.push_byte(3); },
         }
         Ok(())
     }
 }
 
-impl<BigUint:BigUintApi> Decode for ComputationStep<BigUint> {
+impl<BigUint:BigUintApi> Decode for ModifyDelegationCapStep<BigUint> {
     fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         let discriminant = input.read_byte()?;
         match discriminant {
-            0 => Ok(ComputationStep::None),
-            1 => Ok(ComputationStep::ComputeAllRewards(ComputeAllRewardsData::dep_decode(input)?)),
-            2 => Ok(ComputationStep::SwapWaitingToActive),
-            3 => Ok(ComputationStep::SwapUnstakedToDeferredPayment),
-            4 => Ok(ComputationStep::SwapActiveToDeferredPayment),
-            _ => Err(DecodeError::InvalidValue),
-        }
-    }
-}
-
-#[derive(PartialEq)]
-pub enum ComputationType {
-    ModifyTotalDelegationCap,
-    ChangeServiceFee,
-}
-
-impl Encode for ComputationType {
-    fn dep_encode_to<O: Output>(&self, dest: &mut O)  -> Result<(), EncodeError> {
-        match self {
-            ComputationType::ModifyTotalDelegationCap => { dest.push_byte(0); },
-            ComputationType::ChangeServiceFee => { dest.push_byte(1); },
-        }
-        Ok(())
-    }
-}
-
-impl Decode for ComputationType {
-    fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
-        let discriminant = input.read_byte()?;
-        match discriminant {
-            0 => Ok(ComputationType::ModifyTotalDelegationCap),
-            1 => Ok(ComputationType::ChangeServiceFee),
+            0 => Ok(ModifyDelegationCapStep::ComputeAllRewards(ComputeAllRewardsData::dep_decode(input)?)),
+            1 => Ok(ModifyDelegationCapStep::SwapWaitingToActive),
+            2 => Ok(ModifyDelegationCapStep::SwapUnstakedToDeferredPayment),
+            3 => Ok(ModifyDelegationCapStep::SwapActiveToDeferredPayment),
             _ => Err(DecodeError::InvalidValue),
         }
     }
