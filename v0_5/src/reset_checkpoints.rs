@@ -5,7 +5,7 @@ use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
 use user_fund_storage::types::*;
-use crate::global_checkpoint::*;
+use crate::extended_comp_types::*;
 use core::cmp::Ordering;
 
 imports!();
@@ -48,37 +48,15 @@ pub trait ResetCheckpointsModule {
         self.storage_load_len(&b"interrupted_computation"[..]) > 0
     }
 
-    // #[storage_get("global_check_point")]
-    // fn get_global_check_point(&self) -> Option<GlobalCheckpoint<BigUint>>;
-
-    // #[storage_set("global_check_point")]
-    // fn set_global_check_point(&self, user: Option<GlobalCheckpoint<BigUint>>);
-
-    // #[storage_get("swap_check_point")]
-    // fn get_swap_check_point(&self) -> SwapCheckpoint<BigUint>;
-
-    // #[storage_set("swap_check_point")]
-    // fn set_swap_check_point(&self, user: SwapCheckpoint<BigUint>);
-
-    // #[storage_get("global_check_point_in_progress")]
-    // fn get_global_check_point_in_progress(&self) -> bool;
-
-    // #[storage_set("global_check_point_in_progress")]
-    // fn set_global_check_point_in_progress(&self, in_progress: bool);
-
-    // #[storage_get("swap_in_progress")]
-    // fn get_swap_in_progress(&self) -> bool;
-
-    // #[storage_set("swap_in_progress")]
-    // fn set_swap_in_progress(&self, in_progress: bool);
-
+    /// Continues executing any interrupted operation.
+    /// Returns true if still out of gas, false if computation completed.
     #[endpoint(continueComputation)]
     fn continue_computation_endpoint(&self) -> SCResult<bool> {
         let ec = self.get_interrupted_computation();
-        self.continue_computation(ec)
+        self.perform_extended_computation(ec)
     }
 
-    fn continue_computation(&self, mut ec: ExtendedComputation<BigUint>) -> SCResult<bool> {
+    fn perform_extended_computation(&self, mut ec: ExtendedComputation<BigUint>) -> SCResult<bool> {
         let mut out_of_gas = false;
         while !out_of_gas && !ec.is_none() {
             let result = self.perform_interrupted_computation_step(ec);
@@ -206,13 +184,13 @@ pub trait ResetCheckpointsModule {
     }
 
 
-    /// when there is a change of the base cap from where the rewards are computed
-    /// the checkpoints must be reset for all the delegators
-    /// this process might be longer then one block - reaching the gaslimit
-    /// thus will do it by saving where it left before reaching out of gas
-    /// no change in the delegators total cap is allowed until all the checkpoints are not recalculated
+    /// When there is a change of the base cap from which the rewards are computed,
+    /// the checkpoints must be reset for all the delegators.
+    /// This process might be longer then one block - reaching the gaslimit
+    /// thus will do it by saving where it left before reaching out of gas.
+    /// No change in the delegators total cap is allowed before all the checkpoints are recalculated.
     /// 
-    /// returns something if not done computing
+    /// Returns something if there is more computing to be done.
     fn compute_all_rewards(&self, mut data: ComputeAllRewardsData<BigUint>) -> Option<ComputeAllRewardsData<BigUint>> {
         // if epoch changed, computation must be started from scratch
         // TODO: base this on reward checkpoint instead of epoch to fix edge case
@@ -249,160 +227,8 @@ pub trait ResetCheckpointsModule {
         None
     }
 
-    // might be called only if checkpoint is finished, but globak checkpoint is still in progress as the swap
-    // of user funds from waiting to staking, or from staking to unstaked to deffered payment must be made before restarting
-    // all the other functions. 
-    // As this process might be long as well - swapping multiple funds - the function can be called multiple times to resolve all
-    // #[endpoint(endCheckpointCompute)]
-    // fn end_checkpoint_compute(&self) -> SCResult<BigUint> {
-    //     if !self.get_global_check_point_in_progress() {
-    //         return sc_error!("cannot call end checkpoint as checkpoint reset is not in progress");
-    //     }
-    //     if self.get_swap_in_progress() {
-    //         return sc_error!("cannot call end checkpoint compute as swap is not in progress");
-    //     }
-
-    //     let opt_global_checkpoint = self.get_global_check_point();
-    //     if let Some(curr_global_checkpoint) = opt_global_checkpoint {
-    //         if curr_global_checkpoint.last_id != 0 {
-    //             return sc_error!("cannot call end checkpoint as compute all rewards has not finished");
-    //         }
-
-    //         let old_delegation_cap = self.settings().get_total_delegation_cap();
-    //         self.settings().set_total_delegation_cap(curr_global_checkpoint.total_delegation_cap.clone());
-
-    //         if curr_global_checkpoint.total_delegation_cap < old_delegation_cap {
-    //             // move active to unstake to deferred
-    //             let amount_to_swap = &old_delegation_cap - &curr_global_checkpoint.total_delegation_cap;
-    //             let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
-
-    //             let amount_to_unstake = core::cmp::min(BigUint::zero(), amount_to_swap.clone() - total_unstaked);
-    //             let (_, remaining) = self.fund_transf_module().swap_active_to_unstaked(
-    //                 &amount_to_unstake,
-    //                 || self.get_gas_left() < STOP_AT_GASLIMIT
-    //             );
-    //             if remaining > 0 {
-    //                 self.save_swapping_checkpoint(FundType::Active, remaining.clone(), amount_to_swap);
-    //                 return Ok(remaining.clone());
-    //             }
-
-    //             let remaining_for_defer = self.fund_transf_module().swap_unstaked_to_deferred_payment(
-    //                 &amount_to_swap,
-    //                 || self.get_gas_left() < STOP_AT_GASLIMIT
-    //             );
-    //             if remaining_for_defer > 0 {
-    //                 self.save_swapping_checkpoint(FundType::UnStaked, remaining_for_defer.clone(), amount_to_swap);
-    //                 return Ok(remaining_for_defer.clone());
-    //             }
-    //         } else if curr_global_checkpoint.total_delegation_cap > old_delegation_cap {
-    //             // move waiting to active
-    //             let amount_to_swap = curr_global_checkpoint.total_delegation_cap.clone() - old_delegation_cap.clone();
-    //             let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(
-    //                 &amount_to_swap,
-    //                 || self.get_gas_left() < STOP_AT_GASLIMIT
-    //             );
-    //             if remaining > 0 {
-    //                 self.save_swapping_checkpoint(FundType::Waiting, remaining.clone(), amount_to_swap);
-    //                 return Ok(remaining.clone());
-    //             }
-    //         } else {
-    //             self.settings().set_service_fee(self.settings().get_new_service_fee());
-    //         }
-
-    //         self.set_swap_in_progress(false);
-    //         self.set_global_check_point_in_progress(false);
-    //         return Ok(BigUint::zero());
-
-    //     } else {
-    //         return sc_error!("impossible error")
-    //     }
-    // }
-
-    // // continues to swap the pending action
-    // #[endpoint(continueSwap)]
-    // fn continue_swap(&self) -> SCResult<BigUint> {
-    //     if !self.get_swap_in_progress() {
-    //         return sc_error!("there is no swap in progress");
-    //     }
-
-    //     let mut swap_checkpoint = self.get_swap_check_point();
-    //     match swap_checkpoint.f_type {
-    //         FundType::Waiting => {
-    //             let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(
-    //                 &swap_checkpoint.remaining,
-    //                 || self.get_gas_left() < STOP_AT_GASLIMIT
-    //             );
-    //             if remaining > 0 {
-    //                 swap_checkpoint.remaining = remaining.clone();
-    //                 self.set_swap_check_point(swap_checkpoint);
-    //                 return Ok(remaining);
-    //             }
-    //         },
-    //         FundType::Active => {
-    //             let (_, remaining) = self.fund_transf_module().swap_active_to_unstaked(
-    //                 &swap_checkpoint.remaining,
-    //                 || self.get_gas_left() < STOP_AT_GASLIMIT
-    //             );
-    //             if remaining > 0 {
-    //                 swap_checkpoint.remaining = remaining.clone();
-    //                 self.set_swap_check_point(swap_checkpoint);
-    //                 return Ok(remaining.clone());
-    //             }
-
-    //             let remaining_for_defer = self.fund_transf_module().swap_unstaked_to_deferred_payment(
-    //                 &swap_checkpoint.initial,
-    //                 || self.get_gas_left() < STOP_AT_GASLIMIT
-    //             );
-    //             if remaining_for_defer > 0 {
-    //                 swap_checkpoint.remaining = remaining_for_defer.clone();
-    //                 self.set_swap_check_point(swap_checkpoint);
-    //                 return Ok(remaining_for_defer.clone())
-    //             }
-    //         },
-    //         FundType::UnStaked => {
-    //             let remaining = self.fund_transf_module().swap_unstaked_to_deferred_payment(
-    //                 &swap_checkpoint.remaining,
-    //                 || self.get_gas_left() < STOP_AT_GASLIMIT
-    //             );
-    //             if remaining > 0 {
-    //                 swap_checkpoint.remaining = remaining.clone();
-    //                 self.set_swap_check_point(swap_checkpoint);
-    //                 return Ok(remaining);
-    //             }
-    //         },
-    //         _ => return sc_error!("invalid fund type, impossible error"),
-    //     }
-
-    //     self.set_global_check_point_in_progress(false);
-    //     self.set_swap_in_progress(false);
-    //     Ok(BigUint::zero())
-    // }
-
-    // fn save_swapping_checkpoint(&self, swap_initial_type: FundType, remaining: BigUint, start_amount: BigUint) {
-    //     let swap_checkpoint = SwapCheckpoint{
-    //         initial:   start_amount,
-    //         remaining: remaining,
-    //         f_type:    swap_initial_type,
-    //     };
-    //     self.set_swap_check_point(swap_checkpoint);
-    //     self.set_swap_in_progress(true);
-    // }
-
-    // fn start_checkpoint_compute(&self, total_cap: BigUint, total_to_swap: BigUint) {
-    //     let opt_global_checkpoint = Some(GlobalCheckpoint {
-    //         total_delegation_cap: total_cap,
-    //         last_id:              1,
-    //         sum_unclaimed:        BigUint::zero(),
-    //         total_to_swap:        total_to_swap,
-    //         epoch:                self.get_block_epoch(),
-    //     });
-
-    //     self.set_global_check_point_in_progress(true);
-    //     self.set_global_check_point(opt_global_checkpoint);
-    // }
-
-    // total delegation cap can be modified by owner only, it will recalculate and set the checkpoint for all the delegators
-    // can be called only by owner - it might be used only in accordance with the delegators
+    /// Total delegation cap can be modified by owner only.
+    /// It will recalculate and set the checkpoint for all the delegators
     #[endpoint(modifyTotalDelegationCap)]
     fn modify_total_delegation_cap(&self, new_total_cap: BigUint) -> SCResult<bool> {
         require!(self.settings().owner_called(),
@@ -464,6 +290,6 @@ pub trait ResetCheckpointsModule {
             }
         };
 
-        self.continue_computation(ec)
+        self.perform_extended_computation(ec)
     }
 }
