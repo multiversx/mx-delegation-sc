@@ -3,7 +3,7 @@ use elrond_wasm::BigUintApi;
 use elrond_wasm::Vec;
 
 /// Models any computation that can pause itself when it runs out of gas and continue in another block.
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum ExtendedComputation<BigUint:BigUintApi> {
     None,
     ModifyTotalDelegationCap{
@@ -106,7 +106,7 @@ impl<BigUint:BigUintApi> Decode for ExtendedComputation<BigUint> {
 }
 
 /// Models the steps that need to be executed when modifying the total delegation cap.
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum ModifyDelegationCapStep<BigUint:BigUintApi> {
     ComputeAllRewards(ComputeAllRewardsData<BigUint>),
     SwapWaitingToActive,
@@ -143,7 +143,7 @@ impl<BigUint:BigUintApi> Decode for ModifyDelegationCapStep<BigUint> {
 }
 
 /// Models the interrupted state of compute_all_rewards.
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub struct ComputeAllRewardsData<BigUint:BigUintApi> {
     pub last_id:              usize,
     pub sum_unclaimed:        BigUint,
