@@ -4,6 +4,7 @@ use user_fund_storage::fund_transf_module::*;
 use node_storage::node_config::*;
 use crate::rewards::*;
 use crate::reset_checkpoints::*;
+use crate::extended_comp_types::*;
 
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
@@ -91,35 +92,28 @@ pub trait SettingsModule {
     #[storage_set("service_fee")]
     fn set_service_fee(&self, service_fee: BigUint);
 
-    #[storage_get("new_service_fee")]
-    fn get_new_service_fee(&self) -> BigUint;
-
-    #[storage_set("new_service_fee")]
-    fn set_new_service_fee(&self, service_fee: BigUint);
-
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setServiceFee)]
-    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> SCResult<()> {
-        if !self.owner_called() {
-            return sc_error!("only owner can change service fee"); 
-        }
-        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
-            return sc_error!("service fee out of range");
-        }
-        if self.reset_checkpoints().get_global_check_point_in_progress() {
-            return sc_error!("global checkpoint is in progress");
-        }
-        let next_service_fee = BigUint::from(service_fee_per_10000);
-        if self.get_service_fee() == next_service_fee {
-            return Ok(())
+    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> SCResult<bool> {
+        require!(self.owner_called(),
+            "only owner can change service fee");
+
+        require!(service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
+            "service fee out of range");
+
+        require!(!self.reset_checkpoints().is_interrupted_computation(),
+            "global checkpoint is in progress");
+        
+        let new_service_fee = BigUint::from(service_fee_per_10000);
+        if self.get_service_fee() == new_service_fee {
+            return Ok(COMPUTATION_DONE)
         }
 
-        let total_delegation_cap = self.get_total_delegation_cap();
-        self.reset_checkpoints().start_checkpoint_compute(total_delegation_cap.clone(), total_delegation_cap);
-
-        self.set_new_service_fee(next_service_fee);
-        Ok(())
+        self.reset_checkpoints().perform_extended_computation(ExtendedComputation::ChangeServiceFee{
+            new_service_fee,
+            compute_rewards_data: ComputeAllRewardsData::new(self.get_block_epoch()),
+        })
     }
     
     #[view(getTotalDelegationCap)]

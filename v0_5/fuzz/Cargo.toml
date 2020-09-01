@@ -1,0 +1,28 @@
+
+[package]
+name = "delegation_v0_5-fuzz"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.3"
+elrond-wasm = "0.6.0"
+elrond-wasm-debug = "0.6.0"
+
+[dependencies.delegation_v0_5]
+path = ".."
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "fuzz_extended_comp_types"
+path = "fuzz_targets/fuzz_extended_comp_types.rs"
+test = false
+doc = false

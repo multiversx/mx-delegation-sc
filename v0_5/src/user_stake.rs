@@ -75,7 +75,7 @@ pub trait UserStakeModule {
         }
 
         // dry run of swap, to get the affected users
-        let (affected_users, remaining) = self.fund_transf_module().simulate_swap_waiting_to_active(&swappable.clone(), || false);
+        let (affected_users, remaining) = self.fund_transf_module().get_affected_users_of_swap_waiting_to_active(&swappable.clone(), || false);
         if remaining > 0 {
             return sc_error!("error swapping waiting to active")
         }
@@ -104,9 +104,9 @@ pub trait UserStakeModule {
         if payment < self.settings().get_minimum_stake() {
             return sc_error!("cannot stake less than minimum stake")
         }
-        if self.reset_checkpoints().get_global_check_point_in_progress() {
-            return sc_error!("staking is temporarily paused as checkpoint is reset")
-        }
+
+        require!(!self.reset_checkpoints().is_interrupted_computation(),
+            "staking is temporarily paused as checkpoint is reset");
 
         self.process_stake(payment)
     }

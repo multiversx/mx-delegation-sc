@@ -2,6 +2,7 @@
 #![no_std]
 #![allow(non_snake_case)]
 #![allow(unused_attributes)]
+#![allow(clippy::ptr_arg)]
 
 imports!();
 
@@ -18,16 +19,16 @@ pub trait AuctionMockStorage {
     fn set_num_nodes(&self, num_nodes: usize);
 
     #[storage_set("stake_bls_key")]
-    fn set_stake_bls_key(&self, node_index: usize, bls_key: &Vec<u8>);
+    fn set_stake_bls_key(&self, node_index: usize, bls_key: &[u8]);
 
     #[storage_set("stake_bls_sig")]
-    fn set_stake_bls_signature(&self, node_index: usize, bls_signature: &Vec<u8>);
+    fn set_stake_bls_signature(&self, node_index: usize, bls_signature: &[u8]);
 
     #[storage_set("unStake_bls_key")]
-    fn set_unStake_bls_key(&self, node_index: usize, bls_key: &Vec<u8>);
+    fn set_unStake_bls_key(&self, node_index: usize, bls_key: &[u8]);
 
     #[storage_set("unBond_bls_key")]
-    fn set_unBond_bls_key(&self, node_index: usize, bls_key: &Vec<u8>);
+    fn set_unBond_bls_key(&self, node_index: usize, bls_key: &[u8]);
 
     #[storage_set("staking_failure")]
     fn setStakingFailure(&self, will_fail: bool);

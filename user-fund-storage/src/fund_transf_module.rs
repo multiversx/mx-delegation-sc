@@ -67,7 +67,7 @@ pub trait FundTransformationsModule {
         (affected_users, stake_to_activate)
     }
 
-    fn simulate_swap_waiting_to_active<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {
+    fn get_affected_users_of_swap_waiting_to_active<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {
         let mut stake_to_activate = amount.clone();
         let affected_users: Vec<usize> = Vec::new();
         self.fund_module().split_convert_max_by_type(
@@ -116,6 +116,21 @@ pub trait FundTransformationsModule {
         );
 
         unstaked_to_convert
+    }
+
+    fn swap_active_to_deferred_payment<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> BigUint {
+        let mut remaining = amount.clone();
+        let current_bl_nonce = self.get_block_nonce();
+        let _ = self.fund_module().split_convert_max_by_type(
+            Some(&mut remaining),
+            FundType::Active,
+            SwapDirection::Backwards,
+            |_, _| Some(FundDescription::DeferredPayment{ created: current_bl_nonce }),
+            interrupt,
+            false,
+        );
+
+        remaining
     }
 
     fn eligible_deferred_payment(&self, 
