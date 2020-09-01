@@ -49,16 +49,16 @@ pub trait ResetCheckpointsModule {
 
     /// Continues executing any interrupted operation.
     /// Returns true if still out of gas, false if computation completed.
-    #[endpoint(continueResetCheckPoint)]
-    fn continue_reset_checkpoint_endpoint(&self) -> SCResult<bool> {
+    #[endpoint(continueGlobalOperation)]
+    fn continue_global_operation_endpoint(&self) -> SCResult<bool> {
         let orc = self.get_global_op_checkpoint();
-        self.continue_reset_checkpoint(orc)
+        self.continue_global_operation(orc)
     }
 
-    fn continue_reset_checkpoint(&self, mut orc: GlobalOperationCheckpoint<BigUint>) -> SCResult<bool> {
+    fn continue_global_operation(&self, mut orc: GlobalOperationCheckpoint<BigUint>) -> SCResult<bool> {
         let mut out_of_gas = false;
         while !out_of_gas && !orc.is_none() {
-            let (new_out_of_gas, new_orc) = self.continue_reset_checkpoint_step(orc);
+            let (new_out_of_gas, new_orc) = self.continue_global_operation_step(orc);
             out_of_gas = new_out_of_gas;
             orc = new_orc;
         }
@@ -67,7 +67,7 @@ pub trait ResetCheckpointsModule {
         Ok(out_of_gas)
     }
 
-    fn continue_reset_checkpoint_step(&self, orc: GlobalOperationCheckpoint<BigUint>) -> (bool, GlobalOperationCheckpoint<BigUint>) {
+    fn continue_global_operation_step(&self, orc: GlobalOperationCheckpoint<BigUint>) -> (bool, GlobalOperationCheckpoint<BigUint>) {
         match orc {
             GlobalOperationCheckpoint::None => (false, orc),
             GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data) =>
@@ -251,6 +251,6 @@ pub trait ResetCheckpointsModule {
             }
         };
 
-        self.continue_reset_checkpoint(orc)
+        self.continue_global_operation(orc)
     }
 }

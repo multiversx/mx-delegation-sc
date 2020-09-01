@@ -110,7 +110,7 @@ pub trait SettingsModule {
             return Ok(COMPUTATION_DONE)
         }
 
-        self.reset_checkpoints().continue_reset_checkpoint(GlobalOperationCheckpoint::ChangeServiceFee{
+        self.reset_checkpoints().continue_global_operation(GlobalOperationCheckpoint::ChangeServiceFee{
             new_service_fee,
             compute_rewards_data: ComputeAllRewardsData::new(self.get_block_epoch()),
         })
