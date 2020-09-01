@@ -2,7 +2,7 @@
 use libfuzzer_sys::fuzz_target;
 
 use elrond_wasm::elrond_codec::*;
-use delegation_v0_5::extended_comp_types::*;
+use delegation_v0_5::reset_checkpoint_types::*;
 use elrond_wasm_debug::*;
 
 fuzz_target!(|data: &[u8]| {

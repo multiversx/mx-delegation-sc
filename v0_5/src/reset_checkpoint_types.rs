@@ -4,7 +4,7 @@ use elrond_wasm::Vec;
 
 /// Models any computation that can pause itself when it runs out of gas and continue in another block.
 #[derive(PartialEq, Debug)]
-pub enum ExtendedComputation<BigUint:BigUintApi> {
+pub enum OngoingResetCheckpoint<BigUint:BigUintApi> {
     None,
     ModifyTotalDelegationCap{
         new_delegation_cap: BigUint,
@@ -19,17 +19,17 @@ pub enum ExtendedComputation<BigUint:BigUintApi> {
     },
 }
 
-impl<BigUint:BigUintApi> ExtendedComputation<BigUint> {
+impl<BigUint:BigUintApi> OngoingResetCheckpoint<BigUint> {
     #[inline]
     pub fn is_none(&self) -> bool {
-        *self == ExtendedComputation::<BigUint>::None
+        *self == OngoingResetCheckpoint::<BigUint>::None
     }
 }
 
-impl<BigUint:BigUintApi> Encode for ExtendedComputation<BigUint> {
+impl<BigUint:BigUintApi> Encode for OngoingResetCheckpoint<BigUint> {
     fn using_top_encoded<F: FnOnce(&[u8])>(&self, f: F) -> Result<(), EncodeError> {
         // None clears the storage
-        if let ExtendedComputation::None = self {
+        if let OngoingResetCheckpoint::None = self {
             f(&[]);
         } else {
             let mut result: Vec<u8> = Vec::new();
@@ -41,10 +41,10 @@ impl<BigUint:BigUintApi> Encode for ExtendedComputation<BigUint> {
 
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
-            ExtendedComputation::None => {
+            OngoingResetCheckpoint::None => {
                 dest.push_byte(0);
             },
-            ExtendedComputation::ModifyTotalDelegationCap{
+            OngoingResetCheckpoint::ModifyTotalDelegationCap{
                 new_delegation_cap,
                 remaining_swap_waiting_to_active,
                 remaining_swap_active_to_def_p,
@@ -58,7 +58,7 @@ impl<BigUint:BigUintApi> Encode for ExtendedComputation<BigUint> {
                 remaining_swap_unstaked_to_def_p.dep_encode_to(dest)?;
                 step.dep_encode_to(dest)?;
             },
-            ExtendedComputation::ChangeServiceFee{
+            OngoingResetCheckpoint::ChangeServiceFee{
                 new_service_fee,
                 compute_rewards_data,
             } => {
@@ -71,11 +71,11 @@ impl<BigUint:BigUintApi> Encode for ExtendedComputation<BigUint> {
 	}
 }
 
-impl<BigUint:BigUintApi> Decode for ExtendedComputation<BigUint> {
+impl<BigUint:BigUintApi> Decode for OngoingResetCheckpoint<BigUint> {
     fn top_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         if input.remaining_len() == 0 {
             // does not exist in storage 
-            Ok(ExtendedComputation::None)
+            Ok(OngoingResetCheckpoint::None)
         } else {
             let result = Self::dep_decode(input)?;
             if input.remaining_len() > 0 {
@@ -88,15 +88,15 @@ impl<BigUint:BigUintApi> Decode for ExtendedComputation<BigUint> {
     fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         let discriminant = input.read_byte()?;
         match discriminant {
-            0 => Ok(ExtendedComputation::None),
-            1 => Ok(ExtendedComputation::ModifyTotalDelegationCap{
+            0 => Ok(OngoingResetCheckpoint::None),
+            1 => Ok(OngoingResetCheckpoint::ModifyTotalDelegationCap{
                 new_delegation_cap: BigUint::dep_decode(input)?,
                 remaining_swap_waiting_to_active: BigUint::dep_decode(input)?,
                 remaining_swap_active_to_def_p: BigUint::dep_decode(input)?,
                 remaining_swap_unstaked_to_def_p: BigUint::dep_decode(input)?,
                 step: ModifyDelegationCapStep::dep_decode(input)?,
             }),
-            2 => Ok(ExtendedComputation::ChangeServiceFee{
+            2 => Ok(OngoingResetCheckpoint::ChangeServiceFee{
                 new_service_fee: BigUint::dep_decode(input)?,
                 compute_rewards_data: ComputeAllRewardsData::dep_decode(input)?,
             }),

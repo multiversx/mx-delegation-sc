@@ -5,7 +5,7 @@ use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
 use user_fund_storage::types::*;
-use crate::extended_comp_types::*;
+use crate::reset_checkpoint_types::*;
 use core::cmp::Ordering;
 
 imports!();
@@ -36,10 +36,10 @@ pub trait ResetCheckpointsModule {
 
     #[view(getInterruptedComputation)]
     #[storage_get("interrupted_computation")]
-    fn get_interrupted_computation(&self) -> ExtendedComputation<BigUint>;
+    fn get_interrupted_computation(&self) -> OngoingResetCheckpoint<BigUint>;
 
     #[storage_set("interrupted_computation")]
-    fn set_interrupted_computation(&self, ec: &ExtendedComputation<BigUint>);
+    fn set_interrupted_computation(&self, ec: &OngoingResetCheckpoint<BigUint>);
 
     #[view(isInterruptedComputation)]
     fn is_interrupted_computation(&self) -> bool {
@@ -56,7 +56,7 @@ pub trait ResetCheckpointsModule {
         self.perform_extended_computation(ec)
     }
 
-    fn perform_extended_computation(&self, mut ec: ExtendedComputation<BigUint>) -> SCResult<bool> {
+    fn perform_extended_computation(&self, mut ec: OngoingResetCheckpoint<BigUint>) -> SCResult<bool> {
         let mut out_of_gas = false;
         while !out_of_gas && !ec.is_none() {
             let result = self.perform_interrupted_computation_step(ec);
@@ -68,10 +68,10 @@ pub trait ResetCheckpointsModule {
         Ok(out_of_gas)
     }
 
-    fn perform_interrupted_computation_step(&self, ec: ExtendedComputation<BigUint>) -> (bool, ExtendedComputation<BigUint>) {
+    fn perform_interrupted_computation_step(&self, ec: OngoingResetCheckpoint<BigUint>) -> (bool, OngoingResetCheckpoint<BigUint>) {
         match ec {
-            ExtendedComputation::None => (false, ec),
-            ExtendedComputation::ModifyTotalDelegationCap{
+            OngoingResetCheckpoint::None => (false, ec),
+            OngoingResetCheckpoint::ModifyTotalDelegationCap{
                 new_delegation_cap,
                 remaining_swap_waiting_to_active,
                 remaining_swap_active_to_def_p,
@@ -81,7 +81,7 @@ pub trait ResetCheckpointsModule {
                 match step {
                     ModifyDelegationCapStep::ComputeAllRewards(data) => {
                         if let Some(more_computation) = self.compute_all_rewards(data) {
-                            (OUT_OF_GAS, ExtendedComputation::ModifyTotalDelegationCap{
+                            (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap{
                                 new_delegation_cap,
                                 remaining_swap_waiting_to_active,
                                 remaining_swap_active_to_def_p,
@@ -89,7 +89,7 @@ pub trait ResetCheckpointsModule {
                                 step: ModifyDelegationCapStep::ComputeAllRewards(more_computation),
                             })
                         } else {
-                            (COMPUTATION_DONE, ExtendedComputation::ModifyTotalDelegationCap{
+                            (COMPUTATION_DONE, OngoingResetCheckpoint::ModifyTotalDelegationCap{
                                 new_delegation_cap,
                                 remaining_swap_waiting_to_active,
                                 remaining_swap_active_to_def_p,
@@ -104,7 +104,7 @@ pub trait ResetCheckpointsModule {
                             || self.get_gas_left() < STOP_AT_GASLIMIT
                         );
                         if remaining > 0 {
-                            (OUT_OF_GAS, ExtendedComputation::ModifyTotalDelegationCap{
+                            (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap{
                                 new_delegation_cap,
                                 remaining_swap_waiting_to_active: remaining,
                                 remaining_swap_active_to_def_p,
@@ -112,7 +112,7 @@ pub trait ResetCheckpointsModule {
                                 step,
                             })
                         } else {
-                            (COMPUTATION_DONE, ExtendedComputation::ModifyTotalDelegationCap{
+                            (COMPUTATION_DONE, OngoingResetCheckpoint::ModifyTotalDelegationCap{
                                 new_delegation_cap,
                                 remaining_swap_waiting_to_active: BigUint::zero(),
                                 remaining_swap_active_to_def_p,
@@ -127,7 +127,7 @@ pub trait ResetCheckpointsModule {
                             || self.get_gas_left() < STOP_AT_GASLIMIT
                         );
                         if remaining > 0 {
-                            (OUT_OF_GAS, ExtendedComputation::ModifyTotalDelegationCap{
+                            (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap{
                                 new_delegation_cap,
                                 remaining_swap_waiting_to_active,
                                 remaining_swap_active_to_def_p,
@@ -135,7 +135,7 @@ pub trait ResetCheckpointsModule {
                                 step,
                             })
                         } else {
-                            (COMPUTATION_DONE, ExtendedComputation::ModifyTotalDelegationCap{
+                            (COMPUTATION_DONE, OngoingResetCheckpoint::ModifyTotalDelegationCap{
                                 new_delegation_cap,
                                 remaining_swap_waiting_to_active,
                                 remaining_swap_active_to_def_p,
@@ -150,7 +150,7 @@ pub trait ResetCheckpointsModule {
                             || self.get_gas_left() < STOP_AT_GASLIMIT
                         );
                         if remaining > 0 {
-                            (OUT_OF_GAS, ExtendedComputation::ModifyTotalDelegationCap{
+                            (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap{
                                 new_delegation_cap,
                                 remaining_swap_waiting_to_active,
                                 remaining_swap_active_to_def_p: remaining,
@@ -160,24 +160,24 @@ pub trait ResetCheckpointsModule {
                         } else {
                             // finish
                             self.settings().set_total_delegation_cap(new_delegation_cap);
-                            (COMPUTATION_DONE, ExtendedComputation::None)
+                            (COMPUTATION_DONE, OngoingResetCheckpoint::None)
                         }
                     },
                 }
             },
-            ExtendedComputation::ChangeServiceFee{
+            OngoingResetCheckpoint::ChangeServiceFee{
                 new_service_fee,
                 compute_rewards_data,
             } => {
                 if let Some(more_computation) = self.compute_all_rewards(compute_rewards_data) {
-                    (OUT_OF_GAS, ExtendedComputation::ChangeServiceFee{
+                    (OUT_OF_GAS, OngoingResetCheckpoint::ChangeServiceFee{
                         new_service_fee,
                         compute_rewards_data: more_computation,
                     })
                 } else {
                     // finish
                     self.settings().set_service_fee(new_service_fee);
-                    (COMPUTATION_DONE, ExtendedComputation::None)
+                    (COMPUTATION_DONE, OngoingResetCheckpoint::None)
                 }
             },
         }
@@ -255,7 +255,7 @@ pub trait ResetCheckpointsModule {
                     "no unstaked funds should be present when increasing delegation cap");
 
                 let swap_amount = &new_total_cap - &curr_delegation_cap;
-                ExtendedComputation::ModifyTotalDelegationCap{
+                OngoingResetCheckpoint::ModifyTotalDelegationCap{
                     new_delegation_cap: new_total_cap,
                     remaining_swap_waiting_to_active: swap_amount,
                     remaining_swap_active_to_def_p: BigUint::zero(),
@@ -280,7 +280,7 @@ pub trait ResetCheckpointsModule {
                     swap_unstaked_to_def_p = total_unstaked;
                 }
                 
-                ExtendedComputation::ModifyTotalDelegationCap{
+                OngoingResetCheckpoint::ModifyTotalDelegationCap{
                     new_delegation_cap: new_total_cap,
                     remaining_swap_waiting_to_active: BigUint::zero(),
                     remaining_swap_active_to_def_p: swap_active_to_def_p,
