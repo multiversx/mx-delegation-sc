@@ -4,7 +4,7 @@ use user_fund_storage::fund_transf_module::*;
 use node_storage::node_config::*;
 use crate::rewards::*;
 use crate::reset_checkpoints::*;
-use crate::extended_comp_types::*;
+use crate::reset_checkpoint_types::*;
 
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
@@ -102,7 +102,7 @@ pub trait SettingsModule {
         require!(service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
             "service fee out of range");
 
-        require!(!self.reset_checkpoints().is_interrupted_computation(),
+        require!(!self.reset_checkpoints().is_global_op_in_progress(),
             "global checkpoint is in progress");
         
         let new_service_fee = BigUint::from(service_fee_per_10000);
@@ -110,7 +110,7 @@ pub trait SettingsModule {
             return Ok(COMPUTATION_DONE)
         }
 
-        self.reset_checkpoints().perform_extended_computation(ExtendedComputation::ChangeServiceFee{
+        self.reset_checkpoints().continue_reset_checkpoint(GlobalOperationCheckpoint::ChangeServiceFee{
             new_service_fee,
             compute_rewards_data: ComputeAllRewardsData::new(self.get_block_epoch()),
         })

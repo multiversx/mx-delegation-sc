@@ -16,7 +16,7 @@ pub mod user_unstake;
 pub mod user_stake;
 pub mod settings;
 pub mod reset_checkpoints;
-pub mod extended_comp_types;
+pub mod reset_checkpoint_types;
 
 use node_storage::types::*;
 use crate::events::*;

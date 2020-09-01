@@ -22,7 +22,7 @@ path = ".."
 members = ["."]
 
 [[bin]]
-name = "fuzz_extended_comp_types"
-path = "fuzz_targets/fuzz_extended_comp_types.rs"
+name = "fuzz_reset_checkpoint_types"
+path = "fuzz_targets/fuzz_reset_checkpoint_types.rs"
 test = false
 doc = false

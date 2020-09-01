@@ -4,32 +4,26 @@ use elrond_wasm::Vec;
 
 /// Models any computation that can pause itself when it runs out of gas and continue in another block.
 #[derive(PartialEq, Debug)]
-pub enum ExtendedComputation<BigUint:BigUintApi> {
+pub enum GlobalOperationCheckpoint<BigUint:BigUintApi> {
     None,
-    ModifyTotalDelegationCap{
-        new_delegation_cap: BigUint,
-        remaining_swap_waiting_to_active: BigUint,
-        remaining_swap_active_to_def_p: BigUint,
-        remaining_swap_unstaked_to_def_p: BigUint,
-        step: ModifyDelegationCapStep<BigUint>,
-    },
+    ModifyTotalDelegationCap(ModifyTotalDelegationCapData<BigUint>),
     ChangeServiceFee{
         new_service_fee: BigUint,
         compute_rewards_data: ComputeAllRewardsData<BigUint>,
     },
 }
 
-impl<BigUint:BigUintApi> ExtendedComputation<BigUint> {
+impl<BigUint:BigUintApi> GlobalOperationCheckpoint<BigUint> {
     #[inline]
     pub fn is_none(&self) -> bool {
-        *self == ExtendedComputation::<BigUint>::None
+        *self == GlobalOperationCheckpoint::<BigUint>::None
     }
 }
 
-impl<BigUint:BigUintApi> Encode for ExtendedComputation<BigUint> {
+impl<BigUint:BigUintApi> Encode for GlobalOperationCheckpoint<BigUint> {
     fn using_top_encoded<F: FnOnce(&[u8])>(&self, f: F) -> Result<(), EncodeError> {
         // None clears the storage
-        if let ExtendedComputation::None = self {
+        if let GlobalOperationCheckpoint::None = self {
             f(&[]);
         } else {
             let mut result: Vec<u8> = Vec::new();
@@ -41,24 +35,14 @@ impl<BigUint:BigUintApi> Encode for ExtendedComputation<BigUint> {
 
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
-            ExtendedComputation::None => {
+            GlobalOperationCheckpoint::None => {
                 dest.push_byte(0);
             },
-            ExtendedComputation::ModifyTotalDelegationCap{
-                new_delegation_cap,
-                remaining_swap_waiting_to_active,
-                remaining_swap_active_to_def_p,
-                remaining_swap_unstaked_to_def_p,
-                step,
-            } => {
+            GlobalOperationCheckpoint::ModifyTotalDelegationCap(data) => {
                 dest.push_byte(1);
-                new_delegation_cap.dep_encode_to(dest)?;
-                remaining_swap_waiting_to_active.dep_encode_to(dest)?;
-                remaining_swap_active_to_def_p.dep_encode_to(dest)?;
-                remaining_swap_unstaked_to_def_p.dep_encode_to(dest)?;
-                step.dep_encode_to(dest)?;
+                data.dep_encode_to(dest)?;
             },
-            ExtendedComputation::ChangeServiceFee{
+            GlobalOperationCheckpoint::ChangeServiceFee{
                 new_service_fee,
                 compute_rewards_data,
             } => {
@@ -71,11 +55,11 @@ impl<BigUint:BigUintApi> Encode for ExtendedComputation<BigUint> {
 	}
 }
 
-impl<BigUint:BigUintApi> Decode for ExtendedComputation<BigUint> {
+impl<BigUint:BigUintApi> Decode for GlobalOperationCheckpoint<BigUint> {
     fn top_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         if input.remaining_len() == 0 {
             // does not exist in storage 
-            Ok(ExtendedComputation::None)
+            Ok(GlobalOperationCheckpoint::None)
         } else {
             let result = Self::dep_decode(input)?;
             if input.remaining_len() > 0 {
@@ -88,20 +72,49 @@ impl<BigUint:BigUintApi> Decode for ExtendedComputation<BigUint> {
     fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         let discriminant = input.read_byte()?;
         match discriminant {
-            0 => Ok(ExtendedComputation::None),
-            1 => Ok(ExtendedComputation::ModifyTotalDelegationCap{
-                new_delegation_cap: BigUint::dep_decode(input)?,
-                remaining_swap_waiting_to_active: BigUint::dep_decode(input)?,
-                remaining_swap_active_to_def_p: BigUint::dep_decode(input)?,
-                remaining_swap_unstaked_to_def_p: BigUint::dep_decode(input)?,
-                step: ModifyDelegationCapStep::dep_decode(input)?,
-            }),
-            2 => Ok(ExtendedComputation::ChangeServiceFee{
+            0 => Ok(GlobalOperationCheckpoint::None),
+            1 => Ok(GlobalOperationCheckpoint::ModifyTotalDelegationCap(
+                ModifyTotalDelegationCapData::dep_decode(input)?
+            )),
+            2 => Ok(GlobalOperationCheckpoint::ChangeServiceFee{
                 new_service_fee: BigUint::dep_decode(input)?,
                 compute_rewards_data: ComputeAllRewardsData::dep_decode(input)?,
             }),
             _ => Err(DecodeError::InvalidValue),
         }
+    }
+}
+
+/// Contains data needed to be persisted while performing a change in the total delegation cap.
+#[derive(PartialEq, Debug)]
+pub struct ModifyTotalDelegationCapData<BigUint:BigUintApi> {
+    pub new_delegation_cap: BigUint,
+    pub remaining_swap_waiting_to_active: BigUint,
+    pub remaining_swap_active_to_def_p: BigUint,
+    pub remaining_swap_unstaked_to_def_p: BigUint,
+    pub step: ModifyDelegationCapStep<BigUint>,
+}
+
+impl<BigUint:BigUintApi> Encode for ModifyTotalDelegationCapData<BigUint> {
+	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
+        self.new_delegation_cap.dep_encode_to(dest)?;
+        self.remaining_swap_waiting_to_active.dep_encode_to(dest)?;
+        self.remaining_swap_active_to_def_p.dep_encode_to(dest)?;
+        self.remaining_swap_unstaked_to_def_p.dep_encode_to(dest)?;
+        self.step.dep_encode_to(dest)?;
+        Ok(())
+	}
+}
+
+impl<BigUint:BigUintApi> Decode for ModifyTotalDelegationCapData<BigUint> {
+    fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
+        Ok(ModifyTotalDelegationCapData{
+            new_delegation_cap: BigUint::dep_decode(input)?,
+            remaining_swap_waiting_to_active: BigUint::dep_decode(input)?,
+            remaining_swap_active_to_def_p: BigUint::dep_decode(input)?,
+            remaining_swap_unstaked_to_def_p: BigUint::dep_decode(input)?,
+            step: ModifyDelegationCapStep::dep_decode(input)?,
+        })
     }
 }
 
