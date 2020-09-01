@@ -10,8 +10,7 @@ use core::cmp::Ordering;
 
 imports!();
 
-pub static STOP_AT_GASLIMIT: i64 = 1000000;
-
+pub const STOP_AT_GASLIMIT: i64 = 1000000;
 pub const COMPUTATION_DONE: bool = false;
 pub const OUT_OF_GAS: bool = true;
 
