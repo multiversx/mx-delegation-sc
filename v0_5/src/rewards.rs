@@ -253,8 +253,13 @@ pub trait RewardsModule {
         let total_deferred = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::DeferredPayment);
         let total_withdraw = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly);
 
-        let unprotected = self.get_sc_balance() + sent_rewards - total_rewards - total_waiting - total_unstaked - total_deferred - total_withdraw;
-        return unprotected
+        let mut unprotected = self.get_sc_balance() + sent_rewards;
+        unprotected -= total_rewards;
+        unprotected -= total_waiting; 
+        unprotected -= total_unstaked; 
+        unprotected -= total_deferred; 
+        unprotected -= total_withdraw;
+        unprotected
     }
 
 }
