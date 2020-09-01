@@ -4,7 +4,7 @@ use elrond_wasm::Vec;
 
 /// Models any computation that can pause itself when it runs out of gas and continue in another block.
 #[derive(PartialEq, Debug)]
-pub enum OngoingResetCheckpoint<BigUint:BigUintApi> {
+pub enum GlobalOperationCheckpoint<BigUint:BigUintApi> {
     None,
     ModifyTotalDelegationCap(ModifyTotalDelegationCapData<BigUint>),
     ChangeServiceFee{
@@ -13,17 +13,17 @@ pub enum OngoingResetCheckpoint<BigUint:BigUintApi> {
     },
 }
 
-impl<BigUint:BigUintApi> OngoingResetCheckpoint<BigUint> {
+impl<BigUint:BigUintApi> GlobalOperationCheckpoint<BigUint> {
     #[inline]
     pub fn is_none(&self) -> bool {
-        *self == OngoingResetCheckpoint::<BigUint>::None
+        *self == GlobalOperationCheckpoint::<BigUint>::None
     }
 }
 
-impl<BigUint:BigUintApi> Encode for OngoingResetCheckpoint<BigUint> {
+impl<BigUint:BigUintApi> Encode for GlobalOperationCheckpoint<BigUint> {
     fn using_top_encoded<F: FnOnce(&[u8])>(&self, f: F) -> Result<(), EncodeError> {
         // None clears the storage
-        if let OngoingResetCheckpoint::None = self {
+        if let GlobalOperationCheckpoint::None = self {
             f(&[]);
         } else {
             let mut result: Vec<u8> = Vec::new();
@@ -35,14 +35,14 @@ impl<BigUint:BigUintApi> Encode for OngoingResetCheckpoint<BigUint> {
 
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
-            OngoingResetCheckpoint::None => {
+            GlobalOperationCheckpoint::None => {
                 dest.push_byte(0);
             },
-            OngoingResetCheckpoint::ModifyTotalDelegationCap(data) => {
+            GlobalOperationCheckpoint::ModifyTotalDelegationCap(data) => {
                 dest.push_byte(1);
                 data.dep_encode_to(dest)?;
             },
-            OngoingResetCheckpoint::ChangeServiceFee{
+            GlobalOperationCheckpoint::ChangeServiceFee{
                 new_service_fee,
                 compute_rewards_data,
             } => {
@@ -55,11 +55,11 @@ impl<BigUint:BigUintApi> Encode for OngoingResetCheckpoint<BigUint> {
 	}
 }
 
-impl<BigUint:BigUintApi> Decode for OngoingResetCheckpoint<BigUint> {
+impl<BigUint:BigUintApi> Decode for GlobalOperationCheckpoint<BigUint> {
     fn top_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         if input.remaining_len() == 0 {
             // does not exist in storage 
-            Ok(OngoingResetCheckpoint::None)
+            Ok(GlobalOperationCheckpoint::None)
         } else {
             let result = Self::dep_decode(input)?;
             if input.remaining_len() > 0 {
@@ -72,11 +72,11 @@ impl<BigUint:BigUintApi> Decode for OngoingResetCheckpoint<BigUint> {
     fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         let discriminant = input.read_byte()?;
         match discriminant {
-            0 => Ok(OngoingResetCheckpoint::None),
-            1 => Ok(OngoingResetCheckpoint::ModifyTotalDelegationCap(
+            0 => Ok(GlobalOperationCheckpoint::None),
+            1 => Ok(GlobalOperationCheckpoint::ModifyTotalDelegationCap(
                 ModifyTotalDelegationCapData::dep_decode(input)?
             )),
-            2 => Ok(OngoingResetCheckpoint::ChangeServiceFee{
+            2 => Ok(GlobalOperationCheckpoint::ChangeServiceFee{
                 new_service_fee: BigUint::dep_decode(input)?,
                 compute_rewards_data: ComputeAllRewardsData::dep_decode(input)?,
             }),
