@@ -4,6 +4,7 @@ use crate::pause::*;
 use crate::rewards::*;
 use crate::settings::*;
 use crate::reset_checkpoints::*;
+use crate::user_stake::*;
 use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
@@ -25,6 +26,9 @@ pub trait UserUnStakeModule {
 
     #[module(FundViewModuleImpl)]
     fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
+
+    #[module(UserStakeModuleImpl)]
+    fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
 
     #[module(PauseModuleImpl)]
     fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
@@ -74,19 +78,14 @@ pub trait UserUnStakeModule {
         if total_waiting == 0 {
             return Ok(())
         }
-        let swappable = core::cmp::min(&amount, &total_waiting);
-        let (affected_users, remained) = self.fund_transf_module().swap_waiting_to_active(&swappable, || false);
-        if remained > 0 {
-            return sc_error!("error swapping waiting to active")
-        }
+        let swappable = core::cmp::min(amount, total_waiting);
 
-        for user_id in affected_users.iter() {
-            self.rewards().compute_one_user_reward(*user_id);
-        }
+        sc_try!(self.user_stake().swap_waiting_to_active_compute_rewards(&swappable));
 
         // convert UnStaked to defered payment
-        let remained = self.fund_transf_module().swap_unstaked_to_deferred_payment(&swappable, || false);
-        if remained > 0 {
+        let mut unstaked_swappable = swappable;
+        self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swappable, || false);
+        if unstaked_swappable > 0 {
             return sc_error!("error swapping unstaked to deferred payment")
         }
 

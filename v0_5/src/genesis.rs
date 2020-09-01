@@ -65,7 +65,8 @@ pub trait GenesisModule {
         }
 
         let total_inactive_stake = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
-        let _ = self.fund_transf_module().swap_waiting_to_active(&total_inactive_stake, || false);
+        let mut remaining = total_inactive_stake.clone();
+        let _ = self.fund_transf_module().swap_waiting_to_active(&mut remaining, || false);
         self.settings().set_total_delegation_cap(total_inactive_stake);
 
         self.events().stake_node_ok_event(());
