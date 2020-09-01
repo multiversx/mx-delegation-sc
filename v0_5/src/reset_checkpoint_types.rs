@@ -6,13 +6,7 @@ use elrond_wasm::Vec;
 #[derive(PartialEq, Debug)]
 pub enum OngoingResetCheckpoint<BigUint:BigUintApi> {
     None,
-    ModifyTotalDelegationCap{
-        new_delegation_cap: BigUint,
-        remaining_swap_waiting_to_active: BigUint,
-        remaining_swap_active_to_def_p: BigUint,
-        remaining_swap_unstaked_to_def_p: BigUint,
-        step: ModifyDelegationCapStep<BigUint>,
-    },
+    ModifyTotalDelegationCap(ModifyTotalDelegationCapData<BigUint>),
     ChangeServiceFee{
         new_service_fee: BigUint,
         compute_rewards_data: ComputeAllRewardsData<BigUint>,
@@ -44,19 +38,9 @@ impl<BigUint:BigUintApi> Encode for OngoingResetCheckpoint<BigUint> {
             OngoingResetCheckpoint::None => {
                 dest.push_byte(0);
             },
-            OngoingResetCheckpoint::ModifyTotalDelegationCap{
-                new_delegation_cap,
-                remaining_swap_waiting_to_active,
-                remaining_swap_active_to_def_p,
-                remaining_swap_unstaked_to_def_p,
-                step,
-            } => {
+            OngoingResetCheckpoint::ModifyTotalDelegationCap(data) => {
                 dest.push_byte(1);
-                new_delegation_cap.dep_encode_to(dest)?;
-                remaining_swap_waiting_to_active.dep_encode_to(dest)?;
-                remaining_swap_active_to_def_p.dep_encode_to(dest)?;
-                remaining_swap_unstaked_to_def_p.dep_encode_to(dest)?;
-                step.dep_encode_to(dest)?;
+                data.dep_encode_to(dest)?;
             },
             OngoingResetCheckpoint::ChangeServiceFee{
                 new_service_fee,
@@ -89,19 +73,48 @@ impl<BigUint:BigUintApi> Decode for OngoingResetCheckpoint<BigUint> {
         let discriminant = input.read_byte()?;
         match discriminant {
             0 => Ok(OngoingResetCheckpoint::None),
-            1 => Ok(OngoingResetCheckpoint::ModifyTotalDelegationCap{
-                new_delegation_cap: BigUint::dep_decode(input)?,
-                remaining_swap_waiting_to_active: BigUint::dep_decode(input)?,
-                remaining_swap_active_to_def_p: BigUint::dep_decode(input)?,
-                remaining_swap_unstaked_to_def_p: BigUint::dep_decode(input)?,
-                step: ModifyDelegationCapStep::dep_decode(input)?,
-            }),
+            1 => Ok(OngoingResetCheckpoint::ModifyTotalDelegationCap(
+                ModifyTotalDelegationCapData::dep_decode(input)?
+            )),
             2 => Ok(OngoingResetCheckpoint::ChangeServiceFee{
                 new_service_fee: BigUint::dep_decode(input)?,
                 compute_rewards_data: ComputeAllRewardsData::dep_decode(input)?,
             }),
             _ => Err(DecodeError::InvalidValue),
         }
+    }
+}
+
+/// Contains data needed to be persisted while performing a change in the total delegation cap.
+#[derive(PartialEq, Debug)]
+pub struct ModifyTotalDelegationCapData<BigUint:BigUintApi> {
+    pub new_delegation_cap: BigUint,
+    pub remaining_swap_waiting_to_active: BigUint,
+    pub remaining_swap_active_to_def_p: BigUint,
+    pub remaining_swap_unstaked_to_def_p: BigUint,
+    pub step: ModifyDelegationCapStep<BigUint>,
+}
+
+impl<BigUint:BigUintApi> Encode for ModifyTotalDelegationCapData<BigUint> {
+	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
+        self.new_delegation_cap.dep_encode_to(dest)?;
+        self.remaining_swap_waiting_to_active.dep_encode_to(dest)?;
+        self.remaining_swap_active_to_def_p.dep_encode_to(dest)?;
+        self.remaining_swap_unstaked_to_def_p.dep_encode_to(dest)?;
+        self.step.dep_encode_to(dest)?;
+        Ok(())
+	}
+}
+
+impl<BigUint:BigUintApi> Decode for ModifyTotalDelegationCapData<BigUint> {
+    fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
+        Ok(ModifyTotalDelegationCapData{
+            new_delegation_cap: BigUint::dep_decode(input)?,
+            remaining_swap_waiting_to_active: BigUint::dep_decode(input)?,
+            remaining_swap_active_to_def_p: BigUint::dep_decode(input)?,
+            remaining_swap_unstaked_to_def_p: BigUint::dep_decode(input)?,
+            step: ModifyDelegationCapStep::dep_decode(input)?,
+        })
     }
 }
 
