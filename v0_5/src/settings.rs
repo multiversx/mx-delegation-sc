@@ -102,7 +102,7 @@ pub trait SettingsModule {
         require!(service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
             "service fee out of range");
 
-        require!(!self.reset_checkpoints().is_interrupted_computation(),
+        require!(!self.reset_checkpoints().is_reset_checkpoint_ongoing(),
             "global checkpoint is in progress");
         
         let new_service_fee = BigUint::from(service_fee_per_10000);
@@ -110,7 +110,7 @@ pub trait SettingsModule {
             return Ok(COMPUTATION_DONE)
         }
 
-        self.reset_checkpoints().perform_extended_computation(OngoingResetCheckpoint::ChangeServiceFee{
+        self.reset_checkpoints().continue_reset_checkpoint(OngoingResetCheckpoint::ChangeServiceFee{
             new_service_fee,
             compute_rewards_data: ComputeAllRewardsData::new(self.get_block_epoch()),
         })

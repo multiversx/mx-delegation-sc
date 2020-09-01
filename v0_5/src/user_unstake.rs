@@ -46,7 +46,7 @@ pub trait UserUnStakeModule {
             return sc_error!("unstake is currently disabled");
         }
 
-        require!(!self.reset_checkpoints().is_interrupted_computation(),
+        require!(!self.reset_checkpoints().is_reset_checkpoint_ongoing(),
             "unstaking is temporarily paused as checkpoint is reset");
         
         let caller = self.get_caller();

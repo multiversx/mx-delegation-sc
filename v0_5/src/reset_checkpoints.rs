@@ -34,43 +34,43 @@ pub trait ResetCheckpointsModule {
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
 
-    #[view(getInterruptedComputation)]
-    #[storage_get("interrupted_computation")]
-    fn get_interrupted_computation(&self) -> OngoingResetCheckpoint<BigUint>;
+    #[view(getOngoingResetCheckpoint)]
+    #[storage_get("ongoing_reset_checkpoint")]
+    fn get_ongoing_reset_checkpoint(&self) -> OngoingResetCheckpoint<BigUint>;
 
-    #[storage_set("interrupted_computation")]
-    fn set_interrupted_computation(&self, ec: &OngoingResetCheckpoint<BigUint>);
+    #[storage_set("ongoing_reset_checkpoint")]
+    fn set_ongoing_reset_checkpoint(&self, orc: &OngoingResetCheckpoint<BigUint>);
 
-    #[view(isInterruptedComputation)]
-    fn is_interrupted_computation(&self) -> bool {
+    #[view(isResetCheckpointOngoing)]
+    fn is_reset_checkpoint_ongoing(&self) -> bool {
         // TODO: make this pattern into an attribute just like storage_get/storage_set in elrond_wasm
         // something like storage_is_empty
-        self.storage_load_len(&b"interrupted_computation"[..]) > 0
+        self.storage_load_len(&b"ongoing_reset_checkpoint"[..]) > 0
     }
 
     /// Continues executing any interrupted operation.
     /// Returns true if still out of gas, false if computation completed.
-    #[endpoint(continueComputation)]
-    fn continue_computation_endpoint(&self) -> SCResult<bool> {
-        let ec = self.get_interrupted_computation();
-        self.perform_extended_computation(ec)
+    #[endpoint(continueResetCheckPoint)]
+    fn continue_reset_checkpoint_endpoint(&self) -> SCResult<bool> {
+        let orc = self.get_ongoing_reset_checkpoint();
+        self.continue_reset_checkpoint(orc)
     }
 
-    fn perform_extended_computation(&self, mut ec: OngoingResetCheckpoint<BigUint>) -> SCResult<bool> {
+    fn continue_reset_checkpoint(&self, mut orc: OngoingResetCheckpoint<BigUint>) -> SCResult<bool> {
         let mut out_of_gas = false;
-        while !out_of_gas && !ec.is_none() {
-            let result = self.continue_reset_checkpoint_step(ec);
-            out_of_gas = result.0;
-            ec = result.1;
+        while !out_of_gas && !orc.is_none() {
+            let (new_out_of_gas, new_orc) = self.continue_reset_checkpoint_step(orc);
+            out_of_gas = new_out_of_gas;
+            orc = new_orc;
         }
 
-        self.set_interrupted_computation(&ec); 
+        self.set_ongoing_reset_checkpoint(&orc); 
         Ok(out_of_gas)
     }
 
-    fn continue_reset_checkpoint_step(&self, ec: OngoingResetCheckpoint<BigUint>) -> (bool, OngoingResetCheckpoint<BigUint>) {
-        match ec {
-            OngoingResetCheckpoint::None => (false, ec),
+    fn continue_reset_checkpoint_step(&self, orc: OngoingResetCheckpoint<BigUint>) -> (bool, OngoingResetCheckpoint<BigUint>) {
+        match orc {
+            OngoingResetCheckpoint::None => (false, orc),
             OngoingResetCheckpoint::ModifyTotalDelegationCap(mdcap_data) =>
                 self.continue_modify_total_delegation_cap_step(mdcap_data),
             OngoingResetCheckpoint::ChangeServiceFee{
@@ -214,7 +214,7 @@ pub trait ResetCheckpointsModule {
         require!(self.settings().owner_called(),
             "only owner allowed to modify delegation cap");
 
-        require!(!self.is_interrupted_computation(),
+        require!(!self.is_reset_checkpoint_ongoing(),
             "cannot modify total delegation cap when last is in progress");
 
         let curr_delegation_cap = self.settings().get_total_delegation_cap();
@@ -226,7 +226,7 @@ pub trait ResetCheckpointsModule {
         require!(new_total_cap <= max_available,
             "new delegation cap must be less or equal to total active + waiting");
 
-        let ec = match new_total_cap.cmp(&curr_delegation_cap) {
+        let orc = match new_total_cap.cmp(&curr_delegation_cap) {
             Ordering::Equal => { // nothing changes
                 return Ok(COMPUTATION_DONE)
             },
@@ -270,6 +270,6 @@ pub trait ResetCheckpointsModule {
             }
         };
 
-        self.perform_extended_computation(ec)
+        self.continue_reset_checkpoint(orc)
     }
 }
