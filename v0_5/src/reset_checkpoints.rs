@@ -59,7 +59,7 @@ pub trait ResetCheckpointsModule {
     fn perform_extended_computation(&self, mut ec: OngoingResetCheckpoint<BigUint>) -> SCResult<bool> {
         let mut out_of_gas = false;
         while !out_of_gas && !ec.is_none() {
-            let result = self.perform_interrupted_computation_step(ec);
+            let result = self.continue_reset_checkpoint_step(ec);
             out_of_gas = result.0;
             ec = result.1;
         }
@@ -68,78 +68,11 @@ pub trait ResetCheckpointsModule {
         Ok(out_of_gas)
     }
 
-    fn perform_interrupted_computation_step(&self, ec: OngoingResetCheckpoint<BigUint>) -> (bool, OngoingResetCheckpoint<BigUint>) {
+    fn continue_reset_checkpoint_step(&self, ec: OngoingResetCheckpoint<BigUint>) -> (bool, OngoingResetCheckpoint<BigUint>) {
         match ec {
             OngoingResetCheckpoint::None => (false, ec),
-            OngoingResetCheckpoint::ModifyTotalDelegationCap(mdcap_data) => {
-                match mdcap_data.step {
-                    ModifyDelegationCapStep::ComputeAllRewards(car_data) => {
-                        if let Some(more_computation) = self.compute_all_rewards(car_data) {
-                            (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
-                                step: ModifyDelegationCapStep::ComputeAllRewards(more_computation),
-                                ..mdcap_data
-                            }))
-                        } else {
-                            (COMPUTATION_DONE, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
-                                step: ModifyDelegationCapStep::SwapUnstakedToDeferredPayment,
-                                ..mdcap_data
-                            }))
-                        }
-                    },
-                    ModifyDelegationCapStep::SwapWaitingToActive => {
-                        let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(
-                            &mdcap_data.remaining_swap_waiting_to_active,
-                            || self.get_gas_left() < STOP_AT_GASLIMIT
-                        );
-                        if remaining > 0 {
-                            (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
-                                remaining_swap_waiting_to_active: remaining,
-                                ..mdcap_data
-                            }))
-                        } else {
-                            (COMPUTATION_DONE, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
-                                remaining_swap_waiting_to_active: BigUint::zero(),
-                                step: ModifyDelegationCapStep::SwapUnstakedToDeferredPayment,
-                                ..mdcap_data
-                            }))
-                        }
-                    },
-                    ModifyDelegationCapStep::SwapUnstakedToDeferredPayment => {
-                        let remaining = self.fund_transf_module().swap_unstaked_to_deferred_payment(
-                            &mdcap_data.remaining_swap_unstaked_to_def_p,
-                            || self.get_gas_left() < STOP_AT_GASLIMIT
-                        );
-                        if remaining > 0 {
-                            (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
-                                remaining_swap_unstaked_to_def_p: remaining,
-                                ..mdcap_data
-                            }))
-                        } else {
-                            (COMPUTATION_DONE, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
-                                remaining_swap_unstaked_to_def_p: BigUint::zero(),
-                                step: ModifyDelegationCapStep::SwapActiveToDeferredPayment,
-                                ..mdcap_data
-                            }))
-                        }
-                    },
-                    ModifyDelegationCapStep::SwapActiveToDeferredPayment => {
-                        let remaining = self.fund_transf_module().swap_active_to_deferred_payment(
-                            &mdcap_data.remaining_swap_active_to_def_p,
-                            || self.get_gas_left() < STOP_AT_GASLIMIT
-                        );
-                        if remaining > 0 {
-                            (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
-                                remaining_swap_active_to_def_p: remaining,
-                                ..mdcap_data
-                            }))
-                        } else {
-                            // finish
-                            self.settings().set_total_delegation_cap(mdcap_data.new_delegation_cap);
-                            (COMPUTATION_DONE, OngoingResetCheckpoint::None)
-                        }
-                    },
-                }
-            },
+            OngoingResetCheckpoint::ModifyTotalDelegationCap(mdcap_data) =>
+                self.continue_modify_total_delegation_cap_step(mdcap_data),
             OngoingResetCheckpoint::ChangeServiceFee{
                 new_service_fee,
                 compute_rewards_data,
@@ -152,6 +85,78 @@ pub trait ResetCheckpointsModule {
                 } else {
                     // finish
                     self.settings().set_service_fee(new_service_fee);
+                    (COMPUTATION_DONE, OngoingResetCheckpoint::None)
+                }
+            },
+        }
+    }
+
+    fn continue_modify_total_delegation_cap_step(&self, 
+        mdcap_data: ModifyTotalDelegationCapData<BigUint>) -> (bool, OngoingResetCheckpoint<BigUint>) {
+        
+        match mdcap_data.step {
+            ModifyDelegationCapStep::ComputeAllRewards(car_data) => {
+                if let Some(more_computation) = self.compute_all_rewards(car_data) {
+                    (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+                        step: ModifyDelegationCapStep::ComputeAllRewards(more_computation),
+                        ..mdcap_data
+                    }))
+                } else {
+                    (COMPUTATION_DONE, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+                        step: ModifyDelegationCapStep::SwapUnstakedToDeferredPayment,
+                        ..mdcap_data
+                    }))
+                }
+            },
+            ModifyDelegationCapStep::SwapWaitingToActive => {
+                let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(
+                    &mdcap_data.remaining_swap_waiting_to_active,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
+                if remaining > 0 {
+                    (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+                        remaining_swap_waiting_to_active: remaining,
+                        ..mdcap_data
+                    }))
+                } else {
+                    (COMPUTATION_DONE, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+                        remaining_swap_waiting_to_active: BigUint::zero(),
+                        step: ModifyDelegationCapStep::SwapUnstakedToDeferredPayment,
+                        ..mdcap_data
+                    }))
+                }
+            },
+            ModifyDelegationCapStep::SwapUnstakedToDeferredPayment => {
+                let remaining = self.fund_transf_module().swap_unstaked_to_deferred_payment(
+                    &mdcap_data.remaining_swap_unstaked_to_def_p,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
+                if remaining > 0 {
+                    (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+                        remaining_swap_unstaked_to_def_p: remaining,
+                        ..mdcap_data
+                    }))
+                } else {
+                    (COMPUTATION_DONE, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+                        remaining_swap_unstaked_to_def_p: BigUint::zero(),
+                        step: ModifyDelegationCapStep::SwapActiveToDeferredPayment,
+                        ..mdcap_data
+                    }))
+                }
+            },
+            ModifyDelegationCapStep::SwapActiveToDeferredPayment => {
+                let remaining = self.fund_transf_module().swap_active_to_deferred_payment(
+                    &mdcap_data.remaining_swap_active_to_def_p,
+                    || self.get_gas_left() < STOP_AT_GASLIMIT
+                );
+                if remaining > 0 {
+                    (OUT_OF_GAS, OngoingResetCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+                        remaining_swap_active_to_def_p: remaining,
+                        ..mdcap_data
+                    }))
+                } else {
+                    // finish
+                    self.settings().set_total_delegation_cap(mdcap_data.new_delegation_cap);
                     (COMPUTATION_DONE, OngoingResetCheckpoint::None)
                 }
             },
