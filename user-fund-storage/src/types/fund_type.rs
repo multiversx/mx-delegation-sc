@@ -106,7 +106,6 @@ impl FundType {
 }
 
 impl Encode for FundDescription {
-    #[inline]
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
             FundDescription::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
@@ -126,7 +125,6 @@ impl Encode for FundDescription {
 }
 
 impl Decode for FundDescription {
-    #[inline]
 	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         let discriminant = input.read_byte()?;
         match discriminant {
@@ -145,7 +143,6 @@ impl Decode for FundDescription {
 }
 
 impl Encode for FundType {
-    #[inline]
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
             FundType::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
@@ -159,7 +156,6 @@ impl Encode for FundType {
 }
 
 impl Decode for FundType {
-    #[inline]
 	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
         let discriminant = input.read_byte()?;
         match discriminant {

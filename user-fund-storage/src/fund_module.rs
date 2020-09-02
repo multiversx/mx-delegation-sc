@@ -1,7 +1,6 @@
 imports!();
 
-use crate::types::fund_item::*;
-use crate::types::fund_type::*;
+use crate::types::*;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum SwapDirection {
@@ -159,6 +158,10 @@ pub trait FundModule {
     }
 
     fn create_fund(&self, user_id: usize, fund_desc: FundDescription, balance: BigUint) {
+        if balance == 0 {
+            return;
+        }
+
         // add fund
         let mut fund_max_id = self.get_fund_max_id();
         fund_max_id += 1;
@@ -181,6 +184,10 @@ pub trait FundModule {
     }
 
     fn increase_fund_balance(&self, user_id: usize, fund_desc: FundDescription, amount: BigUint) {
+        if amount == 0 {
+            return;
+        }
+
         // attempt to coalesce into 1 fund item
         if fund_desc.fund_type().allow_coalesce() { // not all types can be coalesced, anything involving queues cannot
             let user_list = self.get_fund_list_by_user(user_id, fund_desc.fund_type());

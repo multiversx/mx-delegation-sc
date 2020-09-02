@@ -1,0 +1,41 @@
+
+[package]
+name = "user-fund-storage-fuzz"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.3"
+elrond-wasm = "0.6.0"
+elrond-wasm-debug = "0.6.0"
+
+
+[dependencies.user-fund-storage]
+path = ".."
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "fuzz_fund_item"
+path = "fuzz_targets/fuzz_fund_item.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_fund_list_info"
+path = "fuzz_targets/fuzz_fund_list_info.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_fund_description"
+path = "fuzz_targets/fuzz_fund_description.rs"
+test = false
+doc = false
