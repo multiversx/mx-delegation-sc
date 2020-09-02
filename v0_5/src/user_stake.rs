@@ -70,22 +70,31 @@ pub trait UserStakeModule {
         let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
         if total_unstaked > 0 {
             let all_unstaked = &total_unstaked;
-            let unstaked_swappable = core::cmp::min(&swappable, &all_unstaked);
-            let _ = self.fund_transf_module().swap_unstaked_to_deferred_payment(&unstaked_swappable, || false);
+            let mut unstaked_swappable = core::cmp::min(swappable, all_unstaked).clone();
+            self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swappable, || false);
         }
 
+        self.swap_waiting_to_active_compute_rewards(&swappable)
+    }
+
+    /// Swaps waiting stake to active within given limits,
+    /// and also computes rewards for all affected users before performing the swap itself.
+    fn swap_waiting_to_active_compute_rewards(&self, swappable: &BigUint) -> SCResult<()> {
         // dry run of swap, to get the affected users
-        let (affected_users, remaining) = self.fund_transf_module().get_affected_users_of_swap_waiting_to_active(&swappable.clone(), || false);
+        let (affected_users, remaining) = 
+            self.fund_transf_module().get_affected_users_of_swap_waiting_to_active(swappable, || false);
         if remaining > 0 {
             return sc_error!("error swapping waiting to active")
         }
 
+        // compute rewards for all affected users
         for user_id in affected_users.iter() {
             self.rewards().compute_one_user_reward(*user_id);
         }
 
         // actual swap of waiting to active
-        let (_, remaining) = self.fund_transf_module().swap_waiting_to_active(&swappable, || false);
+        let mut remaining = swappable.clone();
+        let _ = self.fund_transf_module().swap_waiting_to_active(&mut remaining, || false);
         if remaining > 0 {
             return sc_error!("error swapping waiting to active")
         }
@@ -104,9 +113,9 @@ pub trait UserStakeModule {
         if payment < self.settings().get_minimum_stake() {
             return sc_error!("cannot stake less than minimum stake")
         }
-        if self.reset_checkpoints().get_global_check_point_in_progress() {
-            return sc_error!("staking is temporarily paused as checkpoint is reset")
-        }
+
+        require!(!self.reset_checkpoints().is_global_op_in_progress(),
+            "staking is temporarily paused as checkpoint is reset");
 
         self.process_stake(payment)
     }

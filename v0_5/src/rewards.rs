@@ -198,12 +198,10 @@ pub trait RewardsModule {
 
         let caller = self.get_caller();
         let user_id = self.user_data().get_user_id(&caller);
-        if user_id == 0 {
-            return sc_error!("unknown caller")
-        }
-        if self.reset_checkpoints().get_global_check_point_in_progress() {
-            return sc_error!("claim rewards is temporarily paused as checkpoint is reset")
-        }
+        require!(user_id != 0, "unknown caller");
+
+        require!(!self.reset_checkpoints().is_global_op_in_progress(),
+            "claim rewards is temporarily paused as checkpoint is reset");
 
         let mut user_data = self.load_updated_user_rewards(user_id);
         
@@ -255,8 +253,13 @@ pub trait RewardsModule {
         let total_deferred = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::DeferredPayment);
         let total_withdraw = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly);
 
-        let unprotected = self.get_sc_balance() + sent_rewards - total_rewards - total_waiting - total_unstaked - total_deferred - total_withdraw;
-        return unprotected
+        let mut unprotected = self.get_sc_balance() + sent_rewards;
+        unprotected -= total_rewards;
+        unprotected -= total_waiting; 
+        unprotected -= total_unstaked; 
+        unprotected -= total_deferred; 
+        unprotected -= total_withdraw;
+        unprotected
     }
 
 }
