@@ -40,6 +40,14 @@ pub enum FundType {
 }
 
 impl FundType {
+    pub const ALL_TYPES: &'static [FundType] = &[
+        FundType::WithdrawOnly,
+        FundType::Waiting,
+        FundType::Active,
+        FundType::UnStaked,
+        FundType::DeferredPayment,
+    ];
+
     pub fn allow_coalesce(&self) -> bool {
         match self {
             FundType::WithdrawOnly |

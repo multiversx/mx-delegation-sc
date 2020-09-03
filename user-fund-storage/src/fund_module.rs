@@ -214,15 +214,17 @@ pub trait FundModule {
             let mut prev = self.get_mut_fund_by_id(fund_item.type_list_prev);
             (*prev).type_list_next = fund_item.type_list_next;
         }
-        fund_item.type_list_prev = 0; // also clear own prev, so the item can be deleted
-
+        
         if fund_item.type_list_next == 0 {
             type_list.last = fund_item.type_list_prev;
         } else {
             let mut next = self.get_mut_fund_by_id(fund_item.type_list_next);
             (*next).type_list_prev = fund_item.type_list_prev;
         }
-        fund_item.type_list_next = 0; // also clear own next, so the item can be deleted
+
+        // also clear own next/prev, so the item can be deleted from storage
+        fund_item.type_list_prev = 0; 
+        fund_item.type_list_next = 0;
     }
 
     fn delete_fund_from_user_list(&self,
@@ -235,15 +237,17 @@ pub trait FundModule {
             let mut prev = self.get_mut_fund_by_id(fund_item.user_list_prev);
             (*prev).user_list_next = fund_item.user_list_next;
         }
-        fund_item.user_list_prev = 0; // also clear own prev, so the item can be deleted
-    
+        
         if fund_item.user_list_next == 0 {
             user_list.last = fund_item.user_list_prev;
         } else {
             let mut next = self.get_mut_fund_by_id(fund_item.user_list_next);
             (*next).user_list_prev = fund_item.user_list_prev;
         }
-        fund_item.user_list_next = 0; // also clear own next, so the item can be deleted
+
+        // also clear own next/prev, so the item can be deleted from storage
+        fund_item.user_list_prev = 0;
+        fund_item.user_list_next = 0;
     }
 
     /// Returns the old balance of the deleted item.
