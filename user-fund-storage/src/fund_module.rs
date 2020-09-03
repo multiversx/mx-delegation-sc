@@ -190,12 +190,19 @@ pub trait FundModule {
 
         // attempt to coalesce into 1 fund item
         if fund_desc.fund_type().allow_coalesce() { // not all types can be coalesced, anything involving queues cannot
-            let user_list = self.get_fund_list_by_user(user_id, fund_desc.fund_type());
-            if !user_list.is_empty() { // at least 1 item must exist for user
-                let mut last_item = self.get_fund_by_id(user_list.last);
+            let mut user_list = self.get_mut_fund_list_by_user(user_id, fund_desc.fund_type());
+            if !user_list.is_empty() { // at least 1 other item must exist for user
+                let mut last_item = self.get_mut_fund_by_id(user_list.last);
                 if last_item.fund_desc == fund_desc { // specific item descriptions need to be identical
+                    // update fund item
                     last_item.balance += &amount;
-                    self.set_fund_by_id(user_list.last, &last_item);
+
+                    // update user list
+                    user_list.total_balance += &amount;
+
+                    // update type list
+                    let mut type_list = self.get_mut_fund_list_by_type(last_item.fund_desc.fund_type());
+                    type_list.total_balance += &amount;
                     return;
                 }
             }

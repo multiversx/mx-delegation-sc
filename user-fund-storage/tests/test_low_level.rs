@@ -235,7 +235,7 @@ fn test_transfer_funds_2() {
 
 // Going backwards
 #[test]
-fn test_transfer_funds_3() {
+fn test_transfer_funds_3_backwards() {
     let fund_module = set_up_module_to_test();
     let user_1 = 2;
     let user_2 = 3;
@@ -275,7 +275,7 @@ fn test_transfer_funds_3() {
 
 // Dry run.
 #[test]
-fn test_transfer_funds_4() {
+fn test_transfer_funds_4_dry_run() {
     let fund_module = set_up_module_to_test();
     let user_1 = 5;
     let user_2 = 7;
@@ -309,5 +309,35 @@ fn test_transfer_funds_4() {
         fund_module.query_sum_all_funds_brute_force(|_, fund_desc| fund_desc == FundDescription::Active));
     assert_eq!(
         RustBigUint::from(1245u32),
+        fund_module.query_sum_all_funds_brute_force(|_, fund_desc| fund_desc == FundDescription::Waiting));
+}
+
+#[test]
+fn test_transfer_funds_5_coalesce() {
+    let fund_module = set_up_module_to_test();
+    let user_1 = 2;
+
+    fund_module.increase_fund_balance(user_1, FundDescription::Waiting, 1000u32.into());
+    fund_module.increase_fund_balance(user_1, FundDescription::Waiting, 1000u32.into());
+
+    let mut amount = RustBigUint::from(2000u32);
+    let affected_users = fund_module.split_convert_max_by_type(
+        Some(&mut amount),
+        FundType::Waiting,
+        SwapDirection::Forwards,
+        |_, _| Some(FundDescription::WithdrawOnly),
+        || false,
+        false,
+    );
+
+    assert_eq!(affected_users, vec![user_1]);
+    assert_eq!(amount, RustBigUint::zero());
+
+    fund_module_check::check_consistency(&fund_module, 5);
+    assert_eq!(
+        RustBigUint::from(2000u32),
+        fund_module.query_sum_all_funds_brute_force(|_, fund_desc| fund_desc == FundDescription::WithdrawOnly));
+    assert_eq!(
+        RustBigUint::zero(),
         fund_module.query_sum_all_funds_brute_force(|_, fund_desc| fund_desc == FundDescription::Waiting));
 }
