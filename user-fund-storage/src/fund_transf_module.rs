@@ -11,11 +11,8 @@ pub trait FundTransformationsModule {
     #[module(FundModuleImpl)]
     fn fund_module(&self) -> FundModuleImpl<T, BigInt, BigUint>;
 
-    #[module(FundTransformationsModuleImpl)]
-    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
-
     fn create_waiting(&self, user_id: usize, balance: BigUint) {
-        self.fund_module().create_fund(user_id, FundDescription::Waiting, balance);
+        self.fund_module().increase_fund_balance(user_id, FundDescription::Waiting, balance);
     }
 
     fn liquidate_free_stake(&self, user_id: usize, amount: &mut BigUint) -> SCResult<()> {
@@ -36,20 +33,14 @@ pub trait FundTransformationsModule {
         Ok(())
     }
 
-    fn unstake_transf(&self, unstake_user_id: usize, amount: &BigUint) -> SCResult<()> {
-        let mut amount_to_unstake = amount.clone();
+    fn unstake_transf(&self, unstake_user_id: usize, amount: &mut BigUint) {
         let current_bl_nonce = self.get_block_nonce();
-        let _ = sc_try!(self.fund_module().split_convert_max_by_user(
-            Some(&mut amount_to_unstake),
+        let _ = self.fund_module().split_convert_max_by_user(
+            Some(amount),
             unstake_user_id,
             FundType::Active,
             |_| Some(FundDescription::UnStaked{ created: current_bl_nonce })
-        ));
-        if amount_to_unstake > 0 {
-            return sc_error!("cannot offer more than the user active stake");
-        }
-
-        Ok(())
+        );
     }
 
     fn swap_waiting_to_active<I: Fn() -> bool>(&self, remaining: &mut BigUint, interrupt: I) -> Vec<usize> {
@@ -114,7 +105,7 @@ pub trait FundTransformationsModule {
             FundType::DeferredPayment,
             |fund_desc| {
                 if let FundDescription::DeferredPayment{ created } = fund_desc {
-                    current_bl_nonce > created + n_blocks_before_claim 
+                    current_bl_nonce >= created + n_blocks_before_claim 
                 } else {
                     false
                 }
@@ -124,7 +115,7 @@ pub trait FundTransformationsModule {
 
     fn claim_all_eligible_deferred_payments(&self,
         user_id: usize,
-        n_blocks_before_claim: u64) -> SCResult<BigUint> {
+        n_blocks_before_claim: u64) -> BigUint {
         
         let current_bl_nonce = self.get_block_nonce();
         self.fund_module().split_convert_max_by_user(
@@ -133,7 +124,7 @@ pub trait FundTransformationsModule {
             FundType::DeferredPayment,
             |fund_desc| {
                 if let FundDescription::DeferredPayment{ created } = fund_desc {
-                    if current_bl_nonce > created + n_blocks_before_claim {
+                    if current_bl_nonce >= created + n_blocks_before_claim {
                         return Some(FundDescription::WithdrawOnly)
                     }
                 }
