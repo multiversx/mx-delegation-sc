@@ -25,6 +25,47 @@ fn set_up_module_to_test() -> FundTransformationsModuleImpl<ArwenMockRef, RustBi
     FundTransformationsModuleImpl::new(mock_ref.clone())
 }
 
+
+#[test]
+fn test_create_destroy() {
+    let transf_module = set_up_module_to_test();
+    let fund_module = transf_module.fund_module();
+
+    let user_id = 2;
+
+    transf_module.create_waiting(user_id, 5000u32.into());
+
+    fund_module_check::check_consistency(&fund_module, 3);
+    assert_eq!(
+        RustBigUint::from(5000u32),
+        fund_module.query_sum_funds_by_type(FundType::Waiting, |_, _| true));
+    assert_eq!(1,
+        fund_module.count_fund_items_by_type(FundType::Waiting, |_, _| true));
+    assert_eq!(
+        RustBigUint::from(5000u32),
+        fund_module.query_sum_funds_by_user_type(user_id, FundType::Waiting, |_| true));
+    assert_eq!(1,
+        fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true));
+
+    let mut amount = RustBigUint::from(5000u32);
+    let result = transf_module.liquidate_free_stake(user_id, &mut amount);
+    assert!(result.is_ok());
+    assert_eq!(amount, RustBigUint::zero());
+
+    fund_module_check::check_consistency(&fund_module, 3);
+
+    assert_eq!(
+        RustBigUint::from(0u32),
+        fund_module.query_sum_funds_by_type(FundType::Waiting, |_, _| true));
+    assert_eq!(0,
+        fund_module.count_fund_items_by_type(FundType::Waiting, |_, _| true));
+    assert_eq!(
+        RustBigUint::from(0u32),
+        fund_module.query_sum_funds_by_user_type(user_id, FundType::Waiting, |_| true));
+    assert_eq!(0,
+        fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true));
+}
+
 #[test]
 fn test_create_transf_1() {
     let transf_module = set_up_module_to_test();
