@@ -1,5 +1,5 @@
 {
-    "name": "unstake-2",
+    "name": "activate nodes scenario",
     "steps": [
         {
             "step": "externalSteps",
@@ -23,7 +23,7 @@
         },
         {
             "step": "externalSteps",
-            "path": "unstake.steps.json"
+            "path": "activate_nodes.steps.json"
         }
     ]
 }

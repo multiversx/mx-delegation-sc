@@ -1,5 +1,6 @@
 {
     "name": "unstake-1",
+    "comment":"unstake a portion, and check that it is replaced from waiting",
     "steps": [
         {
             "step": "externalSteps",

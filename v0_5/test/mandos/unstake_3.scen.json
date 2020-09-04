@@ -1,5 +1,6 @@
 {
-    "name": "withdraw inactive",
+    "name": "unstake-3",
+    "comment":"unstake more than it is delegated",
     "steps": [
         {
             "step": "externalSteps",
@@ -23,39 +24,42 @@
         },
         {
             "step": "scCall",
-            "txId": "withdraw-inactive-stake",
+            "txId": "user-unstake",
             "tx": {
-                "from": "''delegator_2___________________s1",
+                "from": "''delegator_1___________________s1",
                 "to": "''delegation_contract___________s1",
                 "value": "0",
-                "function": "withdrawInactiveStake",
-                "arguments": ["1,000,000,000"],
-                "gasLimit": "1,000,000,000",
+                "function": "unStake",
+                "arguments": ["200,001,000,000,000"],
+                "gasLimit": "100,000,000",
                 "gasPrice": "0"
             },
             "expect": {
                 "out": [],
-                "status": "",
-                "logs": "*",
+                "status": "4",
+                "message":"cannot offer more than the user active stake",
+                "logs": [],
                 "gas": "*",
                 "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "txId": "check-stake-by-type-total",
+            "txId": "check-stake-by-type-1",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
                 "value": "0",
-                "function": "getTotalStakeByType",
-                "arguments": [],
+                "function": "getUserStakeByType",
+                "arguments": [
+                    "''delegator_1___________________s1"
+                ],
                 "gasLimit": "1,000,000",
                 "gasPrice": "0"
             },
             "expect": {
                 "out": [
-                   "0",  "0", "300,000,000,000,000", "0", "0"
+                    "0","0", "100,001,000,000,000", "0", "0"
                 ],
                 "status": "",
                 "logs": [],
@@ -79,7 +83,7 @@
             },
             "expect": {
                 "out": [
-                    "0", "0", "199,999,000,000,000", "0", "0"
+                    "0", "1,000,000,000","199,999,000,000,000", "0","0"
                 ],
                 "status": "",
                 "logs": [],
@@ -88,16 +92,25 @@
             }
         },
         {
-            "step": "checkState",
-            "accounts": {
-                "''delegator_2___________________s1": {
-                    "nonce": "*",
-                    "balance": "1,000,000,000",
-                    "storage": {},
-                    "code": "",
-                    "asyncCallData": "delegation withdraw inactive stake"
-                },
-                "+": ""
+            "step": "scCall",
+            "txId": "check-stake-by-type-total",
+            "tx": {
+                "from": "''someone_______________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "getTotalStakeByType",
+                "arguments": [],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [
+                   "0", "1,000,000,000", "300,000,000,000,000",  "0", "0"
+                ],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
             }
         }
     ]

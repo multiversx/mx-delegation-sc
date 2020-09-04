@@ -1,5 +1,6 @@
 {
-    "name": "activate nodes scenario",
+    "name": "unstake-2",
+    "comment":"unstake more than available in waiting, and check that staked is changed to unstaked",
     "steps": [
         {
             "step": "externalSteps",
@@ -23,7 +24,7 @@
         },
         {
             "step": "externalSteps",
-            "path": "activate_nodes.steps.json"
+            "path": "unstake.steps.json"
         }
     ]
 }

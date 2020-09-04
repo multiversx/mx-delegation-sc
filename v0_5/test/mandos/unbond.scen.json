@@ -1,5 +1,5 @@
 {
-    "name": "increase delegation cap scenario",
+    "name": "unbonding scenario",
     "steps": [
         {
             "step": "externalSteps",
@@ -22,19 +22,24 @@
             "path": "increase_cap.steps.json"
         },
         {
+            "step": "externalSteps",
+            "path": "unstake.steps.json"
+        },
+        {
             "step": "scCall",
-            "txId": "check-delegation-cap",
+            "comment": "unbond before unbonding period over should not unbond",
+            "txId": "unBond",
             "tx": {
-                "from": "''node_address__________________s1",
+                "from": "''delegator_1___________________s1",
                 "to": "''delegation_contract___________s1",
                 "value": "0",
-                "function": "getTotalDelegationCap",
+                "function": "unBond",
                 "arguments": [],
-                "gasLimit": "1,000,000",
+                "gasLimit": "100,000,000",
                 "gasPrice": "0"
             },
             "expect": {
-                "out": [ "300,000,000,000,000" ],
+                "out": [],
                 "status": "",
                 "logs": [],
                 "gas": "*",
@@ -57,7 +62,7 @@
             },
             "expect": {
                 "out": [
-                    "0","0", "100,001,000,000,000", "0","0"
+                    "0", "0", "50,000,000,000,000", "50,000,000,000,000", "1,000,000,000"
                 ],
                 "status": "",
                 "logs": [],
@@ -66,22 +71,62 @@
             }
         },
         {
+            "step": "checkState",
+            "accounts": {
+                "''delegator_1___________________s1": {
+                    "nonce": "*",
+                    "balance": "0",
+                    "storage": {},
+                    "code": ""
+                },
+                "+": ""
+            }
+        },
+        {
+            "step": "setState",
+            "comment": "block nonce for unbond, just in time",
+            "currentBlockInfo": {
+                "blockNonce": "61"
+            }
+        },
+        {
             "step": "scCall",
-            "txId": "check-stake-by-type-2",
+            "comment": "unbond after unbonding period over should work",
+            "txId": "unBond",
+            "tx": {
+                "from": "''delegator_1___________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "unBond",
+                "arguments": [],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "check-stake-by-type-1",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
                 "value": "0",
                 "function": "getUserStakeByType",
                 "arguments": [
-                    "''delegator_2___________________s1"
+                    "''delegator_1___________________s1"
                 ],
                 "gasLimit": "1,000,000",
                 "gasPrice": "0"
             },
             "expect": {
                 "out": [
-                    "0", "1,000,000,000","199,999,000,000,000", "0","0"
+                    "0", "0", "50,000,000,000,000", "50,000,000,000,000", "0"
                 ],
                 "status": "",
                 "logs": [],
@@ -90,25 +135,16 @@
             }
         },
         {
-            "step": "scCall",
-            "txId": "check-stake-by-type-total",
-            "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
-                "value": "0",
-                "function": "getTotalStakeByType",
-                "arguments": [],
-                "gasLimit": "1,000,000",
-                "gasPrice": "0"
-            },
-            "expect": {
-                "out": [
-                   "0", "1,000,000,000", "300,000,000,000,000",  "0", "0"
-                ],
-                "status": "",
-                "logs": [],
-                "gas": "*",
-                "refund": "*"
+            "step": "checkState",
+            "accounts": {
+                "''delegator_1___________________s1": {
+                    "nonce": "*",
+                    "balance": "1,000,000,000",
+                    "storage": {},
+                    "code": "",
+                    "asyncCallData": "payment for stake"
+                },
+                "+": ""
             }
         }
     ]
