@@ -67,12 +67,13 @@ fn test_create_destroy() {
 }
 
 #[test]
-fn test_create_transf_1() {
+fn test_full_cycle_1() {
     let transf_module = set_up_module_to_test();
     let fund_module = transf_module.fund_module();
 
     let user_id = 2;
 
+    // create -> Waiting
     transf_module.create_waiting(user_id, 5000u32.into());
 
     fund_module_check::check_consistency(&fund_module, 3);
@@ -87,13 +88,13 @@ fn test_create_transf_1() {
     assert_eq!(1,
         fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true));
 
+    // Waiting -> Active
     let mut amount = RustBigUint::from(5000u32);
     let affected_users = transf_module.swap_waiting_to_active(&mut amount, || false);
     assert_eq!(affected_users, vec![user_id]);
     assert_eq!(amount, RustBigUint::zero());
 
     fund_module_check::check_consistency(&fund_module, 3);
-
     assert_eq!(
         RustBigUint::from(0u32),
         fund_module.query_sum_funds_by_type(FundType::Waiting, |_, _| true));
@@ -115,4 +116,73 @@ fn test_create_transf_1() {
         fund_module.query_sum_funds_by_user_type(user_id, FundType::Active, |_| true));
     assert_eq!(1,
         fund_module.count_fund_items_by_user_type(user_id, FundType::Active, |_| true));
+
+    // Active -> Unstaked
+    let mut amount = RustBigUint::from(5000u32);
+    transf_module.unstake_transf(user_id, &mut amount);
+    assert_eq!(amount, RustBigUint::zero());
+
+    fund_module_check::check_consistency(&fund_module, 3);
+    assert_eq!(
+        RustBigUint::from(5000u32),
+        fund_module.query_sum_funds_by_type(FundType::UnStaked, |_, _| true));
+    assert_eq!(1,
+        fund_module.count_fund_items_by_type(FundType::UnStaked, |_, _| true));
+    assert_eq!(
+        RustBigUint::from(5000u32),
+        fund_module.query_sum_funds_by_user_type(user_id, FundType::UnStaked, |_| true));
+    assert_eq!(1,
+        fund_module.count_fund_items_by_user_type(user_id, FundType::UnStaked, |_| true));
+
+    // Unstaked -> DeferredPayment
+    let mut amount = RustBigUint::from(5000u32);
+    transf_module.swap_unstaked_to_deferred_payment(&mut amount, || false);
+    assert_eq!(amount, RustBigUint::zero());
+
+    fund_module_check::check_consistency(&fund_module, 3);
+    assert_eq!(
+        RustBigUint::from(5000u32),
+        fund_module.query_sum_funds_by_type(FundType::DeferredPayment, |_, _| true));
+    assert_eq!(1,
+        fund_module.count_fund_items_by_type(FundType::DeferredPayment, |_, _| true));
+    assert_eq!(
+        RustBigUint::from(5000u32),
+        fund_module.query_sum_funds_by_user_type(user_id, FundType::DeferredPayment, |_| true));
+    assert_eq!(1,
+        fund_module.count_fund_items_by_user_type(user_id, FundType::DeferredPayment, |_| true));
+
+    // DeferredPayment -> WithdrawOnly
+    let claimed_amount = transf_module.claim_all_eligible_deferred_payments(user_id, 0);
+    assert_eq!(claimed_amount, RustBigUint::from(5000u32));
+
+    fund_module_check::check_consistency(&fund_module, 3);
+    assert_eq!(
+        RustBigUint::from(5000u32),
+        fund_module.query_sum_funds_by_type(FundType::WithdrawOnly, |_, _| true));
+    assert_eq!(1,
+        fund_module.count_fund_items_by_type(FundType::WithdrawOnly, |_, _| true));
+    assert_eq!(
+        RustBigUint::from(5000u32),
+        fund_module.query_sum_funds_by_user_type(user_id, FundType::WithdrawOnly, |_| true));
+    assert_eq!(1,
+        fund_module.count_fund_items_by_user_type(user_id, FundType::WithdrawOnly, |_| true));
+
+    // WithdrawOnly -> liquidate
+    let mut amount = RustBigUint::from(5000u32);
+    let result = transf_module.liquidate_free_stake(user_id, &mut amount);
+    assert!(result.is_ok());
+    assert_eq!(amount, RustBigUint::zero());
+
+    fund_module_check::check_consistency(&fund_module, 3);
+
+    assert_eq!(
+        RustBigUint::from(0u32),
+        fund_module.query_sum_funds_by_type(FundType::WithdrawOnly, |_, _| true));
+    assert_eq!(0,
+        fund_module.count_fund_items_by_type(FundType::WithdrawOnly, |_, _| true));
+    assert_eq!(
+        RustBigUint::from(0u32),
+        fund_module.query_sum_funds_by_user_type(user_id, FundType::WithdrawOnly, |_| true));
+    assert_eq!(0,
+        fund_module.count_fund_items_by_user_type(user_id, FundType::WithdrawOnly, |_| true));
 }

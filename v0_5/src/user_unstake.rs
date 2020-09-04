@@ -72,7 +72,9 @@ pub trait UserUnStakeModule {
         self.rewards().compute_one_user_reward(unstake_user_id);
 
         // convert Active of this user -> UnStaked
-        sc_try!(self.fund_transf_module().unstake_transf(unstake_user_id, &amount));
+        let mut unstake_amount = amount.clone();
+        self.fund_transf_module().unstake_transf(unstake_user_id, &mut unstake_amount);
+        require!(unstake_amount == 0, "error converting stake to UnStaked");
 
         // convert Waiting from other users -> Active
         let total_waiting = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
@@ -102,10 +104,10 @@ pub trait UserUnStakeModule {
         }
 
         let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
-        let claimed_payments = sc_try!(self.fund_transf_module().claim_all_eligible_deferred_payments(
+        let claimed_payments = self.fund_transf_module().claim_all_eligible_deferred_payments(
             caller_id,
             n_blocks_before_unbond
-        ));
+        );
 
         let mut amount_to_withdraw = claimed_payments.clone();
         sc_try!(self.fund_transf_module().liquidate_free_stake(caller_id, &mut amount_to_withdraw));

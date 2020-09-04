@@ -379,7 +379,7 @@ pub trait FundModule {
         mut opt_max_amount: Option<&mut BigUint>,
         user_id: usize,
         source_type: FundType,
-        filter_transform: F) -> SCResult<BigUint> 
+        filter_transform: F) -> BigUint
     where 
         F: Fn(FundDescription) -> Option<FundDescription>,
     {
@@ -411,7 +411,7 @@ pub trait FundModule {
             id = next_id;
         }
 
-        Ok(total_transformed)
+        total_transformed
     }
 
     fn destroy_max_for_user(&self,
