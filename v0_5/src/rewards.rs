@@ -130,21 +130,32 @@ pub trait RewardsModule {
         // delegators are entitled to: tot_new_rewards * (1 - service_fee / NODE_DENOMINATOR)
         let (service_rewards, total_delegators_rewards) = self.split_service_reward(&tot_new_rewards);
         
+        let delegation_cap = self.settings().get_total_delegation_cap();
+        
         // update node rewards, if applicable
         if user_id == OWNER_USER_ID {
             // the owner gets the service fee
             user_data.unclaimed_rewards += &service_rewards;
+
+            // the owner gets the rewards for the missing active (unstaked) stake
+            let tot_stake_active = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+            if tot_stake_active < delegation_cap {
+                let missing_stake = &delegation_cap - &tot_stake_active;
+                let mut owner_unstaked_rewards = total_delegators_rewards.clone();
+                owner_unstaked_rewards *= &missing_stake;
+                owner_unstaked_rewards /= &delegation_cap;
+                user_data.unclaimed_rewards += &owner_unstaked_rewards;
+            }
         }
 
         // update delegator rewards based on Active stake
-        let total_active_stake = self.settings().get_total_delegation_cap();
         let u_stake_active = self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active);
         if u_stake_active > 0 {
             // delegator reward is:
-            // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total stake
+            // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total delegation cap
             let mut delegator_new_rewards = total_delegators_rewards;
             delegator_new_rewards *= &u_stake_active;
-            delegator_new_rewards /= &total_active_stake;
+            delegator_new_rewards /= &delegation_cap;
             user_data.unclaimed_rewards += &delegator_new_rewards;
         }
 

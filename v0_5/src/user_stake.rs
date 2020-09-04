@@ -88,6 +88,7 @@ pub trait UserStakeModule {
         }
 
         // compute rewards for all affected users
+        self.rewards().compute_one_user_reward(OWNER_USER_ID);
         for user_id in affected_users.iter() {
             self.rewards().compute_one_user_reward(*user_id);
         }

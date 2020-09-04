@@ -68,6 +68,7 @@ pub trait UserUnStakeModule {
             return sc_error!("cannot unstake less than minimum stake")
         }
 
+        self.rewards().compute_one_user_reward(OWNER_USER_ID);
         self.rewards().compute_one_user_reward(unstake_user_id);
 
         // convert Active of this user -> UnStaked
