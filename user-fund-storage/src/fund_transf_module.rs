@@ -11,9 +11,6 @@ pub trait FundTransformationsModule {
     #[module(FundModuleImpl)]
     fn fund_module(&self) -> FundModuleImpl<T, BigInt, BigUint>;
 
-    #[module(FundTransformationsModuleImpl)]
-    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
-
     fn create_waiting(&self, user_id: usize, balance: BigUint) {
         self.fund_module().increase_fund_balance(user_id, FundDescription::Waiting, balance);
     }
