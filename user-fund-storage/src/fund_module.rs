@@ -1,7 +1,6 @@
 imports!();
 
-use crate::types::fund_item::*;
-use crate::types::fund_type::*;
+use crate::types::*;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum SwapDirection {
@@ -159,6 +158,10 @@ pub trait FundModule {
     }
 
     fn create_fund(&self, user_id: usize, fund_desc: FundDescription, balance: BigUint) {
+        if balance == 0 {
+            return;
+        }
+
         // add fund
         let mut fund_max_id = self.get_fund_max_id();
         fund_max_id += 1;
@@ -181,14 +184,25 @@ pub trait FundModule {
     }
 
     fn increase_fund_balance(&self, user_id: usize, fund_desc: FundDescription, amount: BigUint) {
+        if amount == 0 {
+            return;
+        }
+
         // attempt to coalesce into 1 fund item
         if fund_desc.fund_type().allow_coalesce() { // not all types can be coalesced, anything involving queues cannot
-            let user_list = self.get_fund_list_by_user(user_id, fund_desc.fund_type());
-            if !user_list.is_empty() { // at least 1 item must exist for user
-                let mut last_item = self.get_fund_by_id(user_list.last);
+            let mut user_list = self.get_mut_fund_list_by_user(user_id, fund_desc.fund_type());
+            if !user_list.is_empty() { // at least 1 other item must exist for user
+                let mut last_item = self.get_mut_fund_by_id(user_list.last);
                 if last_item.fund_desc == fund_desc { // specific item descriptions need to be identical
+                    // update fund item
                     last_item.balance += &amount;
-                    self.set_fund_by_id(user_list.last, &last_item);
+
+                    // update user list
+                    user_list.total_balance += &amount;
+
+                    // update type list
+                    let mut type_list = self.get_mut_fund_list_by_type(last_item.fund_desc.fund_type());
+                    type_list.total_balance += &amount;
                     return;
                 }
             }
@@ -207,15 +221,17 @@ pub trait FundModule {
             let mut prev = self.get_mut_fund_by_id(fund_item.type_list_prev);
             (*prev).type_list_next = fund_item.type_list_next;
         }
-        fund_item.type_list_prev = 0; // also clear own prev, so the item can be deleted
-
+        
         if fund_item.type_list_next == 0 {
             type_list.last = fund_item.type_list_prev;
         } else {
             let mut next = self.get_mut_fund_by_id(fund_item.type_list_next);
             (*next).type_list_prev = fund_item.type_list_prev;
         }
-        fund_item.type_list_next = 0; // also clear own next, so the item can be deleted
+
+        // also clear own next/prev, so the item can be deleted from storage
+        fund_item.type_list_prev = 0; 
+        fund_item.type_list_next = 0;
     }
 
     fn delete_fund_from_user_list(&self,
@@ -228,15 +244,17 @@ pub trait FundModule {
             let mut prev = self.get_mut_fund_by_id(fund_item.user_list_prev);
             (*prev).user_list_next = fund_item.user_list_next;
         }
-        fund_item.user_list_prev = 0; // also clear own prev, so the item can be deleted
-    
+        
         if fund_item.user_list_next == 0 {
             user_list.last = fund_item.user_list_prev;
         } else {
             let mut next = self.get_mut_fund_by_id(fund_item.user_list_next);
             (*next).user_list_prev = fund_item.user_list_prev;
         }
-        fund_item.user_list_next = 0; // also clear own next, so the item can be deleted
+
+        // also clear own next/prev, so the item can be deleted from storage
+        fund_item.user_list_prev = 0;
+        fund_item.user_list_next = 0;
     }
 
     /// Returns the old balance of the deleted item.
@@ -361,7 +379,7 @@ pub trait FundModule {
         mut opt_max_amount: Option<&mut BigUint>,
         user_id: usize,
         source_type: FundType,
-        filter_transform: F) -> SCResult<BigUint> 
+        filter_transform: F) -> BigUint
     where 
         F: Fn(FundDescription) -> Option<FundDescription>,
     {
@@ -393,7 +411,7 @@ pub trait FundModule {
             id = next_id;
         }
 
-        Ok(total_transformed)
+        total_transformed
     }
 
     fn destroy_max_for_user(&self,

@@ -52,9 +52,10 @@ pub trait ContractStakeModule {
 
         for bls_key in bls_keys.iter() {
             let node_id = self.node_config().get_node_id(&bls_key);
-            if self.node_config().get_node_state(node_id) != NodeState::Inactive {
-                continue;
-            }
+            require!(node_id != 0, "unknown node provided");
+
+            require!(self.node_config().get_node_state(node_id) == NodeState::Inactive,
+                "node must be inactive");
 
             node_ids.push(node_id);
             bls_keys_signatures.push(bls_key.to_vec());
