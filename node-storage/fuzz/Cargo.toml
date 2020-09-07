@@ -1,0 +1,33 @@
+
+[package]
+name = "node-storage-fuzz"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.3"
+elrond-wasm = "0.6.0"
+
+[dependencies.node-storage]
+path = ".."
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "fuzz_node_state"
+path = "fuzz_targets/fuzz_node_state.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_bls_key"
+path = "fuzz_targets/fuzz_bls_key.rs"
+test = false
+doc = false
