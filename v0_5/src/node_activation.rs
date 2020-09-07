@@ -382,4 +382,27 @@ pub trait ContractStakeModule {
         Ok(())
     }
 
+    #[payable]
+    #[endpoint(unJailNodes)]
+    fn unjail_nodes(&self,
+            #[var_args] bls_keys: VarArgs<BLSKey>,
+            #[payment] fine_payment: &BigUint) -> SCResult<()> {
+
+        // validation only
+        for bls_key in bls_keys.iter() {
+            let node_id = self.node_config().get_node_id(&bls_key);
+            require!(node_id != 0, "unknown node provided");
+
+            require!(self.node_config().get_node_state(node_id) == NodeState::Active,
+                "node must be active");
+        }
+
+        // send unJail command to Auction SC
+        let auction_contract_addr = self.settings().get_auction_contract_address();
+        let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
+        auction_contract.unJail(bls_keys, fine_payment);
+
+        Ok(())
+    }
+
 }

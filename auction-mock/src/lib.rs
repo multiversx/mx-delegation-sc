@@ -8,6 +8,8 @@ use storage::*;
 
 imports!();
 
+use node_storage::types::bls_key::*;
+
 #[elrond_wasm_derive::contract(AuctionMockImpl)]
 pub trait AuctionMock {
 
@@ -106,6 +108,16 @@ pub trait AuctionMock {
 
     #[endpoint]
     fn claim(&self) -> SCResult<()> {
+        Ok(())
+    }
+
+    #[payable]
+    #[endpoint(unJail)]
+    fn unjail_endpoint(&self,
+        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[payment] _fine_payment: BigUint) -> SCResult<()> {
+
+        self.storage().set_unjailed(&bls_keys.into_vec());
         Ok(())
     }
 }
