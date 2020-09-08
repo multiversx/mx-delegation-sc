@@ -7,23 +7,23 @@
         },
         {
             "step": "externalSteps",
-            "path": "deploy.steps.json"
+            "path": "steps/deploy.steps.json"
         },
         {
             "step": "externalSteps",
-            "path": "add_nodes.steps.json"
+            "path": "steps/add_nodes.steps.json"
         }, 
         {
             "step": "externalSteps",
-            "path": "stake_1.steps.json"
+            "path": "steps/stake_1.steps.json"
         }, 
         {
             "step": "externalSteps",
-            "path": "increase_cap.steps.json"
+            "path": "steps/increase_cap.steps.json"
         },
         {
             "step": "externalSteps",
-            "path": "activate_nodes.steps.json"
+            "path": "steps/activate_nodes.steps.json"
         }
     ]
 }

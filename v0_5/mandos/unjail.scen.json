@@ -7,23 +7,23 @@
         },
         {
             "step": "externalSteps",
-            "path": "deploy.steps.json"
+            "path": "steps/deploy.steps.json"
         },
         {
             "step": "externalSteps",
-            "path": "add_nodes.steps.json"
+            "path": "steps/add_nodes.steps.json"
         }, 
         {
             "step": "externalSteps",
-            "path": "stake_1.steps.json"
+            "path": "steps/stake_1.steps.json"
         }, 
         {
             "step": "externalSteps",
-            "path": "increase_cap.steps.json"
+            "path": "steps/increase_cap.steps.json"
         },
         {
             "step": "externalSteps",
-            "path": "activate_nodes.steps.json"
+            "path": "steps/activate_nodes.steps.json"
         },
         {
             "step": "checkState",
@@ -65,7 +65,7 @@
             "expect": {
                 "out": [],
                 "status": "4",
-                "message":"node must be active",
+                "message": "''node must be active",
                 "logs": [],
                 "gas": "*",
                 "refund": "*"
@@ -89,7 +89,7 @@
             "expect": {
                 "out": [],
                 "status": "4",
-                "message":"unknown node provided",
+                "message": "''''unknown node provided",
                 "logs": [],
                 "gas": "*",
                 "refund": "*"
@@ -117,6 +117,9 @@
                 "gas": "*",
                 "refund": "*"
             }
+        },
+        {
+            "step": "dumpState"
         },
         {
             "step": "checkState",
