@@ -334,50 +334,17 @@ pub trait ContractStakeModule {
         Ok(())
     }
 
-    /// Claims unstaked stake from the auction smart contract.
-    #[endpoint(claimInactive)]
-    fn claim_inactive_stake(&self) -> SCResult<()> {
-        if !self.settings().owner_called() {
-            return sc_error!("only owner can activate nodes individually"); 
-        }
+    /// Claims from auction SC funds that were sent but are not required to run the nodes.
+    #[endpoint(claimUnusedFunds)]
+    fn claim_unused_funds(&self) -> SCResult<()> {
 
-        let mut node_id = self.node_config().get_num_nodes();
-        let mut node_ids = Vec::<usize>::new();
-        while node_id >= 1 {
-            if self.node_config().get_node_state(node_id) == NodeState::ActivationFailed {
-                node_ids.push(node_id);
-            }
-            node_id -= 1;
-        }
-
-        if node_ids.is_empty() {
-            return Ok(())
-        }
+        require!(self.settings().owner_called(),
+            "only owner can claim inactive stake from auction");
 
         // send claim command to Auction SC
         let auction_contract_addr = self.settings().get_auction_contract_address();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
-        auction_contract.claim(node_ids);
-
-        Ok(())
-    }
-
-    /// Set nodes and stake to inactive, but only after call to auction claim completed.
-    /// #[callback] can only be declared in lib.rs for the moment.
-    fn auction_claim_callback(&self,
-            node_ids: Vec<usize>, // #[callback_arg]
-            call_result: AsyncCallResult<()>) -> SCResult<()> {
-
-        match call_result {
-            AsyncCallResult::Ok(()) => {
-                // set nodes to Inactive
-                for &node_id in node_ids.iter() {
-                    self.node_config().set_node_state(node_id, NodeState::Inactive);
-                }
-            },
-            AsyncCallResult::Err(_) => {
-            }
-        }
+        auction_contract.claim();
 
         Ok(())
     }

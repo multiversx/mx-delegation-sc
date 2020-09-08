@@ -23,9 +23,7 @@ pub trait Auction {
         #[callback_arg] node_ids: Vec<usize>,
         #[var_args] bls_keys_signatures: VarArgs<BLSKey>);
 
-    #[callback(auction_claim_callback)]
-    fn claim(&self,
-        #[callback_arg] node_ids: Vec<usize>);
+    fn claim(&self);
 
     #[payable]
     fn unJail(&self,
