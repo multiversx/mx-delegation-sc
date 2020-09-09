@@ -38,9 +38,8 @@ pub trait ContractStakeModule {
     fn stake_nodes(&self, amount_to_stake: BigUint,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
 
-        if !self.settings().owner_called() {
-            return sc_error!("caller not allowed to stake node");
-        }
+        require!(self.settings().owner_called(), "only owner allowed to stake nodes");
+
         if self.rewards().total_unprotected() < amount_to_stake {
             return sc_error!("not enough funds in contract to stake nodes");
         }
@@ -142,9 +141,7 @@ pub trait ContractStakeModule {
     fn unstake_nodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
 
-        if !self.settings().owner_called() {
-            return sc_error!("caller not allowed to unstake node");
-        }
+        require!(self.settings().owner_called(), "only owner allowed to unstake nodes");
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
@@ -236,9 +233,8 @@ pub trait ContractStakeModule {
     /// Calls unbond for all nodes that are in the unbond period and are due.
     #[endpoint(unBondNodes)]
     fn unbond_all_available(&self) -> SCResult<()> {
-        if !self.settings().caller_can_activate() {
-            return sc_error!("caller not allowed to unbond nodes");
-        }
+
+        require!(self.settings().owner_called(), "only owner allowed to unbond nodes");
 
         let mut node_id = self.node_config().get_num_nodes();
         let mut node_ids = Vec::<usize>::new();
@@ -354,6 +350,8 @@ pub trait ContractStakeModule {
     fn unjail_nodes(&self,
             #[var_args] bls_keys: VarArgs<BLSKey>,
             #[payment] fine_payment: &BigUint) -> SCResult<()> {
+        
+        require!(self.settings().owner_called(), "only owner allowed to unjail nodes");
 
         // validation only
         for bls_key in bls_keys.iter() {
