@@ -89,7 +89,7 @@
             "expect": {
                 "out": [],
                 "status": "4",
-                "message": "''''unknown node provided",
+                "message": "''unknown node provided",
                 "logs": [],
                 "gas": "*",
                 "refund": "*"
@@ -117,9 +117,6 @@
                 "gas": "*",
                 "refund": "*"
             }
-        },
-        {
-            "step": "dumpState"
         },
         {
             "step": "checkState",
