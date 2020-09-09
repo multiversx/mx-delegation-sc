@@ -356,8 +356,8 @@ pub trait ContractStakeModule {
         // validation only
         for bls_key in bls_keys.iter() {
             let node_id = self.node_config().get_node_id(&bls_key);
-            require!(node_id != 0, "unknown node provided");
-
+            require!(node_id != 0,
+                "unknown node provided");
             require!(self.node_config().get_node_state(node_id) == NodeState::Active,
                 "node must be active");
         }
