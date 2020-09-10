@@ -11,7 +11,6 @@ pub mod events;
 pub mod genesis;
 pub mod rewards;
 pub mod node_activation;
-pub mod pause;
 pub mod user_unstake;
 pub mod user_stake;
 pub mod settings;
@@ -23,7 +22,6 @@ use crate::events::*;
 use node_storage::node_config::*;
 use crate::rewards::*;
 use crate::node_activation::*;
-use crate::pause::*;
 use crate::user_stake::*;
 use crate::user_unstake::*;
 use user_fund_storage::user_data::*;
@@ -31,6 +29,7 @@ use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
 use crate::settings::*;
 use crate::reset_checkpoints::*;
+use elrond_wasm_module_pause::*;
 
 imports!();
 

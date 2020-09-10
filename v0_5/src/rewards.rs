@@ -9,6 +9,7 @@ use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
 use elrond_wasm_module_features::*;
+use elrond_wasm_module_pause::*;
 
 imports!();
 
@@ -48,6 +49,9 @@ pub trait RewardsModule {
 
     #[module(FeaturesModuleImpl)]
     fn features_module(&self) -> FeaturesModuleImpl<T, BigInt, BigUint>;
+
+    #[module(PauseModuleImpl)]
+    fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
 
     /// Claiming rewards has 2 steps:
     /// 1. computing the delegator rewards out of the total rewards, and
@@ -205,6 +209,7 @@ pub trait RewardsModule {
     /// - rewards that were previously computed but not sent
     #[endpoint(claimRewards)]
     fn claim_rewards(&self) -> SCResult<()> {
+        require!(self.pause().not_paused(), "contract paused");
         feature_guard!(self.features_module(), b"claimRewards", true);
 
         let caller = self.get_caller();

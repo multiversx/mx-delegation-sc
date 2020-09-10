@@ -1,6 +1,5 @@
 
 use crate::events::*;
-use crate::pause::*;
 use crate::rewards::*;
 use crate::settings::*;
 use crate::reset_checkpoints::*;
@@ -8,6 +7,7 @@ use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
 use user_fund_storage::types::*;
+use elrond_wasm_module_pause::*;
 
 imports!();
 
@@ -108,9 +108,8 @@ pub trait UserStakeModule {
     #[payable]
     #[endpoint(stake)]
     fn stake_endpoint(&self, #[payment] payment: BigUint) -> SCResult<()> {
-        if self.pause().is_staking_paused() {
-            return sc_error!("staking paused");
-        }
+        require!(self.pause().not_paused(), "contract paused");
+
         if payment < self.settings().get_minimum_stake() {
             return sc_error!("cannot stake less than minimum stake")
         }
@@ -125,6 +124,8 @@ pub trait UserStakeModule {
 
     #[endpoint(withdrawInactiveStake)]
     fn withdraw_inactive_stake(&self, amount: BigUint) -> SCResult<()> {
+        require!(self.pause().not_paused(), "contract paused");
+
         if amount == 0 {
             return Ok(());
         }

@@ -8,6 +8,7 @@ edition = "2018"
 node-storage = { path = "../node-storage" }
 user-fund-storage = { path = "../user-fund-storage" }
 elrond-wasm-module-features = "0.6.0"
+elrond-wasm-module-pause = "0.6.0"
 
 elrond-wasm = "0.6.0"
 elrond-wasm-node = "0.6.0"
