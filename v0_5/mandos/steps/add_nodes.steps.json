@@ -198,7 +198,7 @@
             "expect": {
                 "out": [],
                 "status": "4",
-                "message": "node not registered",
+                "message": "''node not registered",
                 "logs": [],
                 "gas": "*",
                 "refund": "*"
@@ -221,7 +221,7 @@
             "expect": {
                 "out": [],
                 "status": "4",
-                "message": "only inactive nodes can be removed",
+                "message": "''only inactive nodes can be removed",
                 "logs": [],
                 "gas": "*",
                 "refund": "*"

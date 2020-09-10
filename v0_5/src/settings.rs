@@ -149,38 +149,6 @@ pub trait SettingsModule {
     #[storage_set("n_blocks_before_unbond")]
     fn set_n_blocks_before_unbond(&self, n_blocks_before_unbond: u64);
 
-    /// Determines who can call stakeAllAvailable.
-    /// If true, anyone can call.
-    /// If false, only owner can call.
-    #[view(anyoneCanActivate)]
-    #[storage_get("anyone_can_activate")]
-    fn anyone_can_activate(&self) -> bool;
-
-    #[storage_set("anyone_can_activate")]
-    fn set_anyone_can_activate(&self, anyone_can_activate: bool);
-
-    #[endpoint(setAnyoneCanActivate)]
-    fn set_anyone_can_activate_endpoint(&self) -> SCResult<()>{
-        if !self.owner_called() {
-            return sc_error!("only owner can enable auto activation");
-        }
-        self.set_anyone_can_activate(true);
-        Ok(())
-    }
-
-    #[endpoint(setOnlyOwnerCanActivate)]
-    fn set_only_owner_can_activate_endpoint(&self) -> SCResult<()>{
-        if !self.owner_called() {
-            return sc_error!("only owner can disable auto activation");
-        }
-        self.set_anyone_can_activate(false);
-        Ok(())
-    }
-
-    fn caller_can_activate(&self) -> bool {
-        self.anyone_can_activate() || self.owner_called()
-    }
-
     /// Delegators are not allowed make transactions with less then this amount of stake (of any type).
     /// Zero means disabled.
     #[view(getMinimumStake)]

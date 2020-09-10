@@ -5,6 +5,8 @@ authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
 [dependencies]
+node-storage = { path = "../node-storage" }
+
 elrond-wasm = "0.6.0"
 elrond-wasm-node = "0.6.0"
 elrond-wasm-derive = "0.6.0"

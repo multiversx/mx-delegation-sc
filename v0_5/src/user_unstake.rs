@@ -1,6 +1,5 @@
 
 use crate::events::*;
-use crate::pause::*;
 use crate::rewards::*;
 use crate::settings::*;
 use crate::reset_checkpoints::*;
@@ -9,6 +8,7 @@ use user_fund_storage::user_data::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
 use user_fund_storage::types::*;
+use elrond_wasm_module_pause::*;
 
 imports!();
 
@@ -46,9 +46,7 @@ pub trait UserUnStakeModule {
     /// selected funds will change from active to inactive, but claimable only after unBond period ends
     #[endpoint(unStake)]
     fn unstake_endpoint(&self, amount: BigUint) -> SCResult<()> {
-        if !self.settings().is_unstake_enabled() {
-            return sc_error!("unstake is currently disabled");
-        }
+        require!(self.pause().not_paused(), "contract paused");
 
         require!(!self.reset_checkpoints().is_global_op_in_progress(),
             "unstaking is temporarily paused as checkpoint is reset");
@@ -97,6 +95,8 @@ pub trait UserUnStakeModule {
 
     #[endpoint(unBond)]
     fn unbond_user(&self) -> SCResult<()> {
+        require!(self.pause().not_paused(), "contract paused");
+
         let caller = self.get_caller();
         let caller_id = self.user_data().get_user_id(&caller);
         if caller_id == 0 {

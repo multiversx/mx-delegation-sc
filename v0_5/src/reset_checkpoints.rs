@@ -6,6 +6,8 @@ use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::fund_view_module::*;
 use user_fund_storage::types::*;
 use crate::reset_checkpoint_types::*;
+use elrond_wasm_module_features::*;
+use elrond_wasm_module_pause::*;
 use core::cmp::Ordering;
 
 imports!();
@@ -32,6 +34,11 @@ pub trait ResetCheckpointsModule {
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
+    #[module(PauseModuleImpl)]
+    fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
+
+    #[module(FeaturesModuleImpl)]
+    fn features_module(&self) -> FeaturesModuleImpl<T, BigInt, BigUint>;
 
     #[view(getGlobalOperationCheckpoint)]
     #[storage_get("global_op_checkpoint")]
@@ -51,6 +58,8 @@ pub trait ResetCheckpointsModule {
     /// Returns true if still out of gas, false if computation completed.
     #[endpoint(continueGlobalOperation)]
     fn continue_global_operation_endpoint(&self) -> SCResult<bool> {
+        feature_guard!(self.features_module(), b"continueGlobalOperation", true);
+
         let orc = self.get_global_op_checkpoint();
         self.continue_global_operation(orc)
     }

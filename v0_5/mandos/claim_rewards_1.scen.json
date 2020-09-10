@@ -7,19 +7,19 @@
         },
         {
             "step": "externalSteps",
-            "path": "deploy.steps.json"
+            "path": "steps/deploy.steps.json"
         },
         {
             "step": "externalSteps",
-            "path": "add_nodes.steps.json"
+            "path": "steps/add_nodes.steps.json"
         }, 
         {
             "step": "externalSteps",
-            "path": "stake_1.steps.json"
+            "path": "steps/stake_1.steps.json"
         }, 
         {
             "step": "externalSteps",
-            "path": "increase_cap.steps.json"
+            "path": "steps/increase_cap.steps.json"
         },
         {
             "step": "validatorReward",
@@ -152,14 +152,14 @@
                     "nonce": "*",
                     "balance": "300,001,083,333,167",
                     "storage": "*",
-                    "code": "file:../../output/delegation.wasm"
+                    "code": "file:../output/delegation.wasm"
                 },
                 "''delegator_1___________________s1": {
                     "nonce": "*",
                     "balance": "16,666,833",
                     "storage": {},
                     "code": "",
-                    "asyncCallData": "delegation rewards claim"
+                    "asyncCallData": "''delegation rewards claim"
                 },
                 "''delegator_2___________________s1": {
                     "nonce": "*",

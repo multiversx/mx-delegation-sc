@@ -6,6 +6,8 @@
 
 imports!();
 
+use node_storage::types::bls_key::*;
+
 #[elrond_wasm_derive::module(AuctionMockStorageImpl)]
 pub trait AuctionMockStorage {
 
@@ -44,4 +46,6 @@ pub trait AuctionMockStorage {
     #[storage_get("bls_deliberate_error")]
     fn get_bls_deliberate_error(&self, bls_key: &Vec<u8>) -> u8;
 
+    #[storage_set("unJailed")]
+    fn set_unjailed(&self, bls_keys: &Vec<BLSKey>);
 }
