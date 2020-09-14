@@ -212,7 +212,7 @@ pub trait ResetCheckpointsModule {
         let total_active = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
         let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
 
-        let max_available = &total_active + &total_waiting;
+        let max_available = &(&total_active + &total_waiting) + &total_unstaked;
         require!(new_total_cap <= max_available,
             "new delegation cap must be less or equal to total active + waiting");
 
