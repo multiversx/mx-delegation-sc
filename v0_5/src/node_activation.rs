@@ -146,6 +146,7 @@ pub trait ContractStakeModule {
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
             let node_id = self.node_config().get_node_id(&bls_key);
+            require!(node_id != 0, "unknown node provided");
             node_ids.push(node_id);
         }
 
@@ -246,6 +247,7 @@ pub trait ContractStakeModule {
         let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
         for bls_key in bls_keys.iter() {
             let node_id = self.node_config().get_node_id(&bls_key);
+            require!(node_id != 0, "unknown node provided");
             require!(self.prepare_node_for_unbond_if_possible(node_id, bl_nonce, n_blocks_before_unbond),
                 "node cannot be unbonded");
             node_ids.push(node_id);
