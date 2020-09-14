@@ -388,6 +388,12 @@ pub trait FundModule {
         let mut total_transformed = BigUint::zero();
 
         while id > 0 {
+            if let Some(max_amount) = &opt_max_amount {
+                if **max_amount == 0 {
+                    break; // do not process anything after the max_amount is completely drained
+                }
+            }
+
             let mut fund_item = self.get_mut_fund_by_id(id);
             let next_id = fund_item.user_list_next; // save next id now, because fund_item can be destroyed
 
@@ -422,7 +428,7 @@ pub trait FundModule {
         let user_list = self.get_fund_list_by_user(user_id, source_type);
         let mut id = user_list.first;
 
-        while id > 0 {
+        while id > 0 && *amount > 0 {
             let mut fund_item = self.get_mut_fund_by_id(id);
             let next_id = fund_item.user_list_next; // save next id now, because fund_item can be destroyed
 
