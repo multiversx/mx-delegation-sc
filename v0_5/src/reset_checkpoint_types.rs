@@ -2,6 +2,37 @@ use elrond_wasm::elrond_codec::*;
 use elrond_wasm::BigUintApi;
 use elrond_wasm::Vec;
 
+/// Functions return this as status, if operation was completed or not.
+#[derive(PartialEq, Debug)]
+pub enum GlobalOperationStatus {
+    Done,
+    OutOfGas
+}
+
+impl GlobalOperationStatus {
+    fn to_i64(&self) -> i64 {
+        match self {
+            GlobalOperationStatus::Done => 0,
+            GlobalOperationStatus::OutOfGas => 1,
+        } 
+    }
+
+    pub fn is_done(&self) -> bool {
+        *self == GlobalOperationStatus::Done
+    }
+}
+
+impl Encode for GlobalOperationStatus {
+    fn top_encode_as_i64(&self) -> Option<Result<i64, EncodeError>> {
+        Some(Ok(self.to_i64()))
+    }
+    
+    fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
+        self.to_i64().dep_encode_to(dest)?;
+        Ok(())
+    }
+}
+
 /// Models any computation that can pause itself when it runs out of gas and continue in another block.
 #[derive(PartialEq, Debug)]
 pub enum GlobalOperationCheckpoint<BigUint:BigUintApi> {

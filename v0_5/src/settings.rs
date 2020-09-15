@@ -95,7 +95,7 @@ pub trait SettingsModule {
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setServiceFee)]
-    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> SCResult<bool> {
+    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> SCResult<GlobalOperationStatus> {
         require!(self.owner_called(),
             "only owner can change service fee");
 
@@ -107,7 +107,7 @@ pub trait SettingsModule {
         
         let new_service_fee = BigUint::from(service_fee_per_10000);
         if self.get_service_fee() == new_service_fee {
-            return Ok(COMPUTATION_DONE)
+            return Ok(GlobalOperationStatus::Done)
         }
 
         self.reset_checkpoints().continue_global_operation(GlobalOperationCheckpoint::ChangeServiceFee{
