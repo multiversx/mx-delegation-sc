@@ -56,8 +56,7 @@ pub trait FundTransformationsModule {
 
     fn get_affected_users_of_swap_waiting_to_active<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {
         let mut stake_to_activate = amount.clone();
-        let affected_users: Vec<usize> = Vec::new();
-        self.fund_module().split_convert_max_by_type(
+        let affected_users = self.fund_module().split_convert_max_by_type(
             Some(&mut stake_to_activate),
             FundType::Waiting,
             SwapDirection::Forwards,
