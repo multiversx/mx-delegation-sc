@@ -237,10 +237,7 @@ pub trait ContractStakeModule {
         #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
 
         require!(self.settings().owner_called(), "only owner allowed to unbond nodes");
-
-        if bls_keys.is_empty() {
-            return Ok(());
-        }
+        require!(!bls_keys.is_empty(), "no BLS keys provided");
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         let bl_nonce = self.get_block_nonce();
