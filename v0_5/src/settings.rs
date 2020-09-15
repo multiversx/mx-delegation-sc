@@ -69,10 +69,6 @@ pub trait SettingsModule {
         Ok(())
     }
 
-    fn owner_called(&self) -> bool {
-        self.get_caller() == self.get_owner_address()
-    }
-
     /// Yields the address of the contract with which staking will be performed.
     /// This address is standard in the protocol, but it is saved in storage to avoid hardcoding it.
     #[view(getAuctionContractAddress)]
@@ -96,8 +92,7 @@ pub trait SettingsModule {
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setServiceFee)]
     fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> SCResult<GlobalOperationStatus> {
-        require!(self.owner_called(),
-            "only owner can change service fee");
+        only_owner!(self, "only owner can change service fee");
 
         require!(service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
             "service fee out of range");
@@ -160,9 +155,7 @@ pub trait SettingsModule {
 
     #[endpoint(setMinimumStake)]
     fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> SCResult<()> {
-        if !self.owner_called() {
-            return sc_error!("only owner can set minimum stake");
-        }
+        only_owner!(self, "only owner can set minimum stake");
         self.set_minimum_stake(minimum_stake);
         Ok(())
     }
@@ -180,18 +173,14 @@ pub trait SettingsModule {
 
     #[endpoint(enableUnStake)]
     fn enable_unstake(&self) -> SCResult<()>{
-        if !self.owner_called() {
-            return sc_error!("only owner can enable unStake");
-        }
+        only_owner!(self, "only owner can enable unStake");
         self.set_unstake_enabled(true);
         Ok(())
     }
 
     #[endpoint(disableUnStake)]
     fn disable_unstake(&self) -> SCResult<()>{
-        if !self.owner_called() {
-            return sc_error!("only owner can disable unStake");
-        }
+        only_owner!(self, "only owner can set disable unStake");
         self.set_unstake_enabled(false);
         Ok(())
     }

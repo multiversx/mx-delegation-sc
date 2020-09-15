@@ -202,7 +202,7 @@ pub trait ResetCheckpointsModule {
     /// It will recalculate and set the checkpoint for all the delegators
     #[endpoint(modifyTotalDelegationCap)]
     fn modify_total_delegation_cap(&self, new_total_cap: BigUint) -> SCResult<GlobalOperationStatus> {
-        require!(self.settings().owner_called(),
+        only_owner!(self,
             "only owner allowed to modify delegation cap");
 
         require!(!self.is_global_op_in_progress(),
