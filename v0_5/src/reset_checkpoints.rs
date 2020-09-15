@@ -173,7 +173,7 @@ pub trait ResetCheckpointsModule {
 
         let num_nodes = self.user_data().get_num_users();
 
-        while data.last_id <= num_nodes {
+        while data.last_id < num_nodes {
             if self.get_gas_left() < STOP_AT_GASLIMIT {
                 return Some(data);
             }
