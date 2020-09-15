@@ -5,8 +5,8 @@ authors = ["andrei-marinica <andrei_m_marinica@yahoo.com>"]
 edition = "2018"
 
 [dependencies]
-elrond-wasm = "0.6.0"
-elrond-wasm-debug = "0.6.0"
+elrond-wasm = "0.6.1"
+elrond-wasm-debug = "0.6.1"
 
 # elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
 # elrond-wasm-debug = { path = "../../elrond-wasm-rs/elrond-wasm-debug" }
