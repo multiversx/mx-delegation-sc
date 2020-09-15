@@ -78,7 +78,7 @@ pub trait ResetCheckpointsModule {
 
     fn continue_global_operation_step(&self, orc: GlobalOperationCheckpoint<BigUint>) -> (bool, GlobalOperationCheckpoint<BigUint>) {
         match orc {
-            GlobalOperationCheckpoint::None => (false, orc),
+            GlobalOperationCheckpoint::None => (COMPUTATION_DONE, orc),
             GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data) =>
                 self.continue_modify_total_delegation_cap_step(mdcap_data),
             GlobalOperationCheckpoint::ChangeServiceFee{
