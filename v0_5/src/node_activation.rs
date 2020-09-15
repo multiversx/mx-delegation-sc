@@ -146,6 +146,7 @@ pub trait ContractStakeModule {
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
             let node_id = self.node_config().get_node_id(&bls_key);
+            require!(node_id != 0, "unknown node provided");
             node_ids.push(node_id);
         }
 
@@ -230,9 +231,32 @@ pub trait ContractStakeModule {
     }
 
     // UNBOND
-    /// Calls unbond for all nodes that are in the unbond period and are due.
+    /// Calls unbond for all provided nodes. Will fail if node cannot be unbonded.
     #[endpoint(unBondNodes)]
-    fn unbond_all_available(&self) -> SCResult<()> {
+    fn unbond_specific_nodes(&self,
+        #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
+
+        require!(self.settings().owner_called(), "only owner allowed to unbond nodes");
+        require!(!bls_keys.is_empty(), "no BLS keys provided");
+
+        let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
+        let bl_nonce = self.get_block_nonce();
+        let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
+        for bls_key in bls_keys.iter() {
+            let node_id = self.node_config().get_node_id(&bls_key);
+            require!(node_id != 0, "unknown node provided");
+            require!(self.prepare_node_for_unbond_if_possible(node_id, bl_nonce, n_blocks_before_unbond),
+                "node cannot be unbonded");
+            node_ids.push(node_id);
+        }
+
+        self.perform_unbond(node_ids, bls_keys.into_vec())
+    }
+
+    /// Calls unbond for all nodes that are in the unbond period and are due.
+    /// Nothing happens if no nodes can be unbonded.
+    #[endpoint(unBondAllPossibleNodes)]
+    fn unbond_all_possible_nodes(&self) -> SCResult<()> {
 
         require!(self.settings().owner_called(), "only owner allowed to unbond nodes");
 
@@ -242,12 +266,9 @@ pub trait ContractStakeModule {
         let bl_nonce = self.get_block_nonce();
         let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
         while node_id >= 1 {
-            if let NodeState::UnBondPeriod{ started } = self.node_config().get_node_state(node_id) {
-                if bl_nonce >= started + n_blocks_before_unbond {
-                    self.node_config().set_node_state(node_id, NodeState::PendingUnBond{ unbond_started: started });
-                    node_ids.push(node_id);
-                    bls_keys.push(self.node_config().get_node_id_to_bls(node_id));
-                }
+            if self.prepare_node_for_unbond_if_possible(node_id, bl_nonce, n_blocks_before_unbond) {
+                node_ids.push(node_id);
+                bls_keys.push(self.node_config().get_node_id_to_bls(node_id));
             }
 
             node_id -= 1;
@@ -258,6 +279,20 @@ pub trait ContractStakeModule {
         }
 
         self.perform_unbond(node_ids, bls_keys)
+    }
+
+    fn prepare_node_for_unbond_if_possible(&self, node_id: usize,
+        current_bl_nonce: u64,
+        n_blocks_before_unbond: u64) -> bool {
+
+        if let NodeState::UnBondPeriod{ started } = self.node_config().get_node_state(node_id) {
+            if current_bl_nonce >= started + n_blocks_before_unbond {
+                self.node_config().set_node_state(node_id, NodeState::PendingUnBond{ unbond_started: started });
+                return true;
+            }
+        }
+
+        false
     }
 
     fn perform_unbond(&self,
