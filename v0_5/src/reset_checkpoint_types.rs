@@ -160,15 +160,15 @@ impl<BigUint:BigUintApi> Decode for ModifyDelegationCapStep<BigUint> {
 pub struct ComputeAllRewardsData<BigUint:BigUintApi> {
     pub last_id:              usize,
     pub sum_unclaimed:        BigUint,
-    pub epoch:                u64,
+    pub rewards_checkpoint:   BigUint,
 }
 
 impl<BigUint:BigUintApi> ComputeAllRewardsData<BigUint> {
-    pub fn new(epoch: u64) -> ComputeAllRewardsData<BigUint> {
+    pub fn new(rewards_checkpoint: BigUint) -> ComputeAllRewardsData<BigUint> {
         ComputeAllRewardsData {
             last_id: 0,
             sum_unclaimed: BigUint::zero(),
-            epoch,
+            rewards_checkpoint,
         }
     }
 }
@@ -177,7 +177,7 @@ impl<BigUint:BigUintApi> Encode for ComputeAllRewardsData<BigUint> {
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         self.last_id.dep_encode_to(dest)?;
         self.sum_unclaimed.dep_encode_to(dest)?;
-        self.epoch.dep_encode_to(dest)?;
+        self.rewards_checkpoint.dep_encode_to(dest)?;
         Ok(())
 	}
 }
@@ -187,7 +187,7 @@ impl<BigUint:BigUintApi> Decode for ComputeAllRewardsData<BigUint> {
         Ok(ComputeAllRewardsData{
             last_id: usize::dep_decode(input)?,
             sum_unclaimed: BigUint::dep_decode(input)?,
-            epoch: u64::dep_decode(input)?,
+            rewards_checkpoint: BigUint::dep_decode(input)?,
         })
     }
 }

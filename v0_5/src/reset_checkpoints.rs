@@ -162,13 +162,13 @@ pub trait ResetCheckpointsModule {
     /// 
     /// Returns something if there is more computing to be done.
     fn compute_all_rewards(&self, mut data: ComputeAllRewardsData<BigUint>) -> Option<ComputeAllRewardsData<BigUint>> {
-        // if epoch changed, computation must be started from scratch
-        // TODO: base this on reward checkpoint instead of epoch to fix edge case
-        let curr_epoch = self.get_block_epoch();
-        if data.epoch != curr_epoch {
+        // if more rewards arrived since computation started,
+        // it must be restarted from scratch
+        let curr_rewards_checkpoint = self.rewards().get_total_cumulated_rewards();
+        if data.rewards_checkpoint != curr_rewards_checkpoint {
             data.last_id = 0;
             data.sum_unclaimed = BigUint::zero();
-            data.epoch = curr_epoch;
+            data.rewards_checkpoint = curr_rewards_checkpoint;
         }
 
         let num_nodes = self.user_data().get_num_users();
@@ -230,7 +230,7 @@ pub trait ResetCheckpointsModule {
                     remaining_swap_waiting_to_active: swap_amount,
                     remaining_swap_active_to_def_p: BigUint::zero(),
                     remaining_swap_unstaked_to_def_p: BigUint::zero(),
-                    step: ModifyDelegationCapStep::ComputeAllRewards(ComputeAllRewardsData::new(self.get_block_epoch())),
+                    step: ModifyDelegationCapStep::ComputeAllRewards(ComputeAllRewardsData::new(self.rewards().get_total_cumulated_rewards())),
                 })
             },
             Ordering::Less => { // cap decreases
@@ -255,7 +255,7 @@ pub trait ResetCheckpointsModule {
                     remaining_swap_waiting_to_active: BigUint::zero(),
                     remaining_swap_active_to_def_p: swap_active_to_def_p,
                     remaining_swap_unstaked_to_def_p: swap_unstaked_to_def_p,
-                    step: ModifyDelegationCapStep::ComputeAllRewards(ComputeAllRewardsData::new(self.get_block_epoch())),
+                    step: ModifyDelegationCapStep::ComputeAllRewards(ComputeAllRewardsData::new(self.rewards().get_total_cumulated_rewards())),
                 })
             }
         };

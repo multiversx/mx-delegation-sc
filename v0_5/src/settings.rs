@@ -112,7 +112,7 @@ pub trait SettingsModule {
 
         self.reset_checkpoints().continue_global_operation(GlobalOperationCheckpoint::ChangeServiceFee{
             new_service_fee,
-            compute_rewards_data: ComputeAllRewardsData::new(self.get_block_epoch()),
+            compute_rewards_data: ComputeAllRewardsData::new(self.rewards().get_total_cumulated_rewards()),
         })
     }
     
