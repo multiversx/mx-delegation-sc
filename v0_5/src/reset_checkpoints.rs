@@ -87,7 +87,7 @@ pub trait ResetCheckpointsModule {
                 compute_rewards_data,
             } => {
                 if let Some(more_computation) = self.compute_all_rewards(compute_rewards_data) {
-                    (GlobalOperationStatus::OutOfGas, GlobalOperationCheckpoint::ChangeServiceFee{
+                    (GlobalOperationStatus::StoppedBeforeOutOfGas, GlobalOperationCheckpoint::ChangeServiceFee{
                         new_service_fee,
                         compute_rewards_data: more_computation,
                     })
@@ -108,7 +108,7 @@ pub trait ResetCheckpointsModule {
             ModifyDelegationCapStep::ComputeAllRewards(car_data) => {
                 if let Some(more_computation) = self.compute_all_rewards(car_data) {
                     mdcap_data.step = ModifyDelegationCapStep::ComputeAllRewards(more_computation);
-                    (GlobalOperationStatus::OutOfGas, GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data))
+                    (GlobalOperationStatus::StoppedBeforeOutOfGas, GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data))
                 } else {
                     mdcap_data.step = ModifyDelegationCapStep::SwapWaitingToActive;
                     (GlobalOperationStatus::Done, GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data))
@@ -120,7 +120,7 @@ pub trait ResetCheckpointsModule {
                     || self.get_gas_left() < STOP_AT_GASLIMIT
                 );
                 if mdcap_data.remaining_swap_waiting_to_active > 0 {
-                    (GlobalOperationStatus::OutOfGas, GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data))
+                    (GlobalOperationStatus::StoppedBeforeOutOfGas, GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data))
                 } else {
                     mdcap_data.step = ModifyDelegationCapStep::SwapUnstakedToDeferredPayment;
                     (GlobalOperationStatus::Done, GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data))
@@ -132,7 +132,7 @@ pub trait ResetCheckpointsModule {
                     || self.get_gas_left() < STOP_AT_GASLIMIT
                 );
                 if mdcap_data.remaining_swap_unstaked_to_def_p > 0 {
-                    (GlobalOperationStatus::OutOfGas, GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data))
+                    (GlobalOperationStatus::StoppedBeforeOutOfGas, GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data))
                 } else {
                     mdcap_data.step = ModifyDelegationCapStep::SwapActiveToDeferredPayment;
                     (GlobalOperationStatus::Done, GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data))
@@ -144,7 +144,7 @@ pub trait ResetCheckpointsModule {
                     || self.get_gas_left() < STOP_AT_GASLIMIT
                 );
                 if mdcap_data.remaining_swap_active_to_def_p > 0 {
-                    (GlobalOperationStatus::OutOfGas, GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data))
+                    (GlobalOperationStatus::StoppedBeforeOutOfGas, GlobalOperationCheckpoint::ModifyTotalDelegationCap(mdcap_data))
                 } else {
                     // finish
                     self.settings().set_total_delegation_cap(mdcap_data.new_delegation_cap);

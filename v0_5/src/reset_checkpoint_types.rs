@@ -6,14 +6,14 @@ use elrond_wasm::Vec;
 #[derive(PartialEq, Debug)]
 pub enum GlobalOperationStatus {
     Done,
-    OutOfGas
+    StoppedBeforeOutOfGas
 }
 
 impl GlobalOperationStatus {
     fn to_i64(&self) -> i64 {
         match self {
             GlobalOperationStatus::Done => 0,
-            GlobalOperationStatus::OutOfGas => 1,
+            GlobalOperationStatus::StoppedBeforeOutOfGas => 1,
         } 
     }
 
