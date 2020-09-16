@@ -10,6 +10,8 @@ use user_fund_storage::fund_view_module::*;
 use user_fund_storage::types::*;
 use elrond_wasm_module_pause::*;
 
+use core::num::NonZeroUsize;
+
 imports!();
 
 #[elrond_wasm_derive::module(UserUnStakeModuleImpl)]
@@ -52,26 +54,23 @@ pub trait UserUnStakeModule {
             "unstaking is temporarily paused as checkpoint is reset");
         
         let caller = self.get_caller();
-        let unstake_user_id = self.user_data().get_user_id(&caller);
-        if unstake_user_id == 0 {
-            return sc_error!("only delegators can unstake")
-        }
+        let unstake_user_id = non_zero_usize!(
+            self.user_data().get_user_id(&caller),
+            "only delegators can unstake");
 
         // check that amount does not exceed existing active stake
-        let stake = self.fund_view_module().get_user_stake_of_type(unstake_user_id, FundType::Active);
-        if amount > stake {
-            return sc_error!("cannot offer more than the user active stake")
-        }
-        if amount != stake && amount < self.settings().get_minimum_stake() {
-            return sc_error!("cannot unstake less than minimum stake")
-        }
+        let stake = self.fund_view_module().get_user_stake_of_type(unstake_user_id.get(), FundType::Active);
+        require!(amount <= stake,
+            "cannot offer more than the user active stake");
+        require!(amount == stake || amount >= self.settings().get_minimum_stake(),
+            "cannot unstake less than minimum stake");
 
         self.rewards().compute_one_user_reward(OWNER_USER_ID);
         self.rewards().compute_one_user_reward(unstake_user_id);
 
         // convert Active of this user -> UnStaked
         let mut unstake_amount = amount.clone();
-        self.fund_transf_module().unstake_transf(unstake_user_id, &mut unstake_amount);
+        self.fund_transf_module().unstake_transf(unstake_user_id.get(), &mut unstake_amount);
         require!(unstake_amount == 0, "error converting stake to UnStaked");
 
         // convert Waiting from other users -> Active
@@ -86,9 +85,7 @@ pub trait UserUnStakeModule {
         // convert UnStaked to defered payment
         let mut unstaked_swappable = swappable;
         self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swappable, || false);
-        if unstaked_swappable > 0 {
-            return sc_error!("error swapping unstaked to deferred payment")
-        }
+        require!(unstaked_swappable == 0, "error swapping unstaked to deferred payment");
 
         Ok(())
     }
@@ -99,9 +96,7 @@ pub trait UserUnStakeModule {
 
         let caller = self.get_caller();
         let caller_id = self.user_data().get_user_id(&caller);
-        if caller_id == 0 {
-            return sc_error!("unknown caller");
-        }
+        require!(caller_id > 0, "unknown caller");
 
         let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
         let claimed_payments = self.fund_transf_module().claim_all_eligible_deferred_payments(
@@ -111,9 +106,7 @@ pub trait UserUnStakeModule {
 
         let mut amount_to_withdraw = claimed_payments.clone();
         sc_try!(self.fund_transf_module().liquidate_free_stake(caller_id, &mut amount_to_withdraw));
-        if amount_to_withdraw > 0 {
-            return sc_error!("cannot withdraw more than inactive stake");
-        }
+        require!(amount_to_withdraw == 0, "cannot withdraw more than inactive stake");
 
         if claimed_payments > 0 {
             // forward payment to seller

@@ -120,9 +120,7 @@ pub trait NodeModule {
             #[var_args] bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>)
         -> SCResult<()> {
 
-        if self.get_caller() != self.get_owner_address() {
-            return sc_error!("only owner can add nodes"); 
-        }
+        only_owner!(self, "only owner can add nodes");
 
         let mut num_nodes = self.get_mut_num_nodes();
         for bls_sig_pair_arg in bls_keys_signatures.into_vec().into_iter() {
@@ -147,18 +145,14 @@ pub trait NodeModule {
 
     #[endpoint(removeNodes)]
     fn remove_nodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
-        if self.get_caller() != self.get_owner_address() {
-            return sc_error!("only owner can remove nodes"); 
-        }
+        only_owner!(self, "only owner can remove nodes");
 
         for bls_key in bls_keys.iter() {
             let node_id = self.get_node_id(bls_key);
-            if node_id == 0 {
-                return sc_error!("node not registered");
-            }
-            if self.get_node_state(node_id) != NodeState::Inactive {
-                return sc_error!("only inactive nodes can be removed");
-            }
+            require!(node_id != 0,
+                "node not registered");
+            require!(self.get_node_state(node_id) == NodeState::Inactive,
+                "only inactive nodes can be removed");
             self.set_node_state(node_id, NodeState::Removed);
         }
 

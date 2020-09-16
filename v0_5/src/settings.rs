@@ -6,6 +6,10 @@ use crate::rewards::*;
 use crate::reset_checkpoints::*;
 use crate::reset_checkpoint_types::*;
 
+use core::num::NonZeroUsize;
+
+imports!();
+
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
 /// Percents + 2 decimals -> 10000.
@@ -13,9 +17,7 @@ pub static PERCENTAGE_DENOMINATOR: usize = 10000;
 
 /// Validator reward destination will always be user with id 1.
 /// This can also count as a delegator (if the owner adds stake into the contract) or not.
-pub static OWNER_USER_ID: usize = 1;
-
-imports!();
+pub static OWNER_USER_ID: NonZeroUsize = unsafe{ NonZeroUsize::new_unchecked(1) };
 
 /// The module deals with initializaton and the global contract settings.
 /// 
@@ -48,14 +50,14 @@ pub trait SettingsModule {
     ) -> SCResult<()> {
 
         let owner = self.get_caller();
-        self.user_data().set_user_id(&owner, OWNER_USER_ID); // node reward destination will be user #1
+        self.user_data().set_user_id(&owner, OWNER_USER_ID.get()); // node reward destination will be user #1
         self.user_data().set_num_users(1);
 
         self.set_auction_addr(&auction_contract_addr);
 
-        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
-            return sc_error!("service fee out of range");
-        }
+        require!(service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
+            "service fee out of range");
+
         let next_service_fee = BigUint::from(service_fee_per_10000);
         self.set_service_fee(next_service_fee);
 
@@ -67,10 +69,6 @@ pub trait SettingsModule {
         self.set_total_delegation_cap(min_stake_2);
 
         Ok(())
-    }
-
-    fn owner_called(&self) -> bool {
-        self.get_caller() == self.get_owner_address()
     }
 
     /// Yields the address of the contract with which staking will be performed.
@@ -95,9 +93,8 @@ pub trait SettingsModule {
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setServiceFee)]
-    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> SCResult<bool> {
-        require!(self.owner_called(),
-            "only owner can change service fee");
+    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> SCResult<GlobalOperationStatus> {
+        only_owner!(self, "only owner can change service fee");
 
         require!(service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
             "service fee out of range");
@@ -107,7 +104,7 @@ pub trait SettingsModule {
         
         let new_service_fee = BigUint::from(service_fee_per_10000);
         if self.get_service_fee() == new_service_fee {
-            return Ok(COMPUTATION_DONE)
+            return Ok(GlobalOperationStatus::Done)
         }
 
         self.reset_checkpoints().continue_global_operation(GlobalOperationCheckpoint::ChangeServiceFee{
@@ -133,9 +130,8 @@ pub trait SettingsModule {
     fn set_owner_min_stake_share(&self, owner_min_stake_share: usize);
 
     fn set_owner_min_stake_share_validated(&self, owner_min_stake_share_per_10000: usize) -> SCResult<()> {
-        if owner_min_stake_share_per_10000 > PERCENTAGE_DENOMINATOR {
-            return sc_error!("owner min stake share out of range");
-        }
+        require!(owner_min_stake_share_per_10000 <= PERCENTAGE_DENOMINATOR,
+            "owner min stake share out of range");
 
         self.set_owner_min_stake_share(owner_min_stake_share_per_10000);
         Ok(())
@@ -160,9 +156,7 @@ pub trait SettingsModule {
 
     #[endpoint(setMinimumStake)]
     fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> SCResult<()> {
-        if !self.owner_called() {
-            return sc_error!("only owner can set minimum stake");
-        }
+        only_owner!(self, "only owner can set minimum stake");
         self.set_minimum_stake(minimum_stake);
         Ok(())
     }
@@ -180,18 +174,14 @@ pub trait SettingsModule {
 
     #[endpoint(enableUnStake)]
     fn enable_unstake(&self) -> SCResult<()>{
-        if !self.owner_called() {
-            return sc_error!("only owner can enable unStake");
-        }
+        only_owner!(self, "only owner can enable unStake");
         self.set_unstake_enabled(true);
         Ok(())
     }
 
     #[endpoint(disableUnStake)]
     fn disable_unstake(&self) -> SCResult<()>{
-        if !self.owner_called() {
-            return sc_error!("only owner can disable unStake");
-        }
+        only_owner!(self, "only owner can set disable unStake");
         self.set_unstake_enabled(false);
         Ok(())
     }

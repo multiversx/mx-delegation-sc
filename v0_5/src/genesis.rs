@@ -36,9 +36,7 @@ pub trait GenesisModule {
     /// Cannot perform payments during genesis block, so we update state but not the balance.
     #[endpoint(stakeGenesis)]
     fn stake_genesis(&self, stake: BigUint) -> SCResult<()> {
-        if self.get_block_nonce() > 0 {
-            return sc_error!("genesis block only")
-        }
+        require!(self.get_block_nonce() == 0 , "genesis block only");
         self.user_stake().process_stake(stake)
     }
 
@@ -46,9 +44,7 @@ pub trait GenesisModule {
     /// Cannot perform payments during genesis block, so we update state but do not receive or send funds.
     #[endpoint(activateGenesis)]
     fn activate_genesis(&self) -> SCResult<()> {
-        if self.get_block_nonce() > 0 {
-            return sc_error!("genesis block only")
-        }
+        require!(self.get_block_nonce() == 0 , "genesis block only");
 
         // set nodes to Active, and count how many not deleted
         let num_nodes = self.node_config().get_num_nodes();

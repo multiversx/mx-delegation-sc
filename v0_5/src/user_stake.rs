@@ -9,6 +9,8 @@ use user_fund_storage::fund_view_module::*;
 use user_fund_storage::types::*;
 use elrond_wasm_module_pause::*;
 
+use core::num::NonZeroUsize;
+
 imports!();
 
 /// Contains endpoints for staking/withdrawing stake.
@@ -83,22 +85,19 @@ pub trait UserStakeModule {
         // dry run of swap, to get the affected users
         let (affected_users, remaining) = 
             self.fund_transf_module().get_affected_users_of_swap_waiting_to_active(swappable, || false);
-        if remaining > 0 {
-            return sc_error!("error swapping waiting to active")
-        }
+        require!(remaining == 0, "error swapping waiting to active");
 
         // compute rewards for all affected users
         self.rewards().compute_one_user_reward(OWNER_USER_ID);
         for user_id in affected_users.iter() {
-            self.rewards().compute_one_user_reward(*user_id);
+            let user_id_nz = non_zero_usize!(*user_id, "bad user_id");
+            self.rewards().compute_one_user_reward(user_id_nz);
         }
 
         // actual swap of waiting to active
         let mut remaining = swappable.clone();
         let _ = self.fund_transf_module().swap_waiting_to_active(&mut remaining, || false);
-        if remaining > 0 {
-            return sc_error!("error swapping waiting to active")
-        }
+        require!(remaining == 0, "error swapping waiting to active");
 
         Ok(())
     }
@@ -110,9 +109,8 @@ pub trait UserStakeModule {
     fn stake_endpoint(&self, #[payment] payment: BigUint) -> SCResult<()> {
         require!(self.pause().not_paused(), "contract paused");
 
-        if payment < self.settings().get_minimum_stake() {
-            return sc_error!("cannot stake less than minimum stake")
-        }
+        require!(payment >= self.settings().get_minimum_stake(),
+            "cannot stake less than minimum stake");
 
         require!(!self.reset_checkpoints().is_global_op_in_progress(),
             "staking is temporarily paused as checkpoint is reset");
@@ -132,15 +130,13 @@ pub trait UserStakeModule {
 
         let caller = self.get_caller();
         let user_id = self.user_data().get_user_id(&caller);
-        if user_id == 0 {
-            return sc_error!("only delegators can withdraw inactive stake");
-        }
+        require!(user_id > 0,
+            "only delegators can withdraw inactive stake");
 
         let mut amount_to_withdraw = amount.clone();
         sc_try!(self.fund_transf_module().liquidate_free_stake(user_id, &mut amount_to_withdraw));
-        if amount_to_withdraw > 0 {
-            return sc_error!("cannot withdraw more than inactive stake");
-        }
+        require!(amount_to_withdraw == 0,
+            "cannot withdraw more than inactive stake");
 
         sc_try!(self.validate_total_user_stake(user_id));
 
@@ -153,19 +149,21 @@ pub trait UserStakeModule {
 
     fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
         let user_total = self.fund_view_module().get_user_total_stake(user_id);
-        if user_total > 0 && user_total < self.settings().get_minimum_stake() {
-            return sc_error!("cannot have less stake than minimum stake");
-        }
+        require!(user_total == 0 || user_total >= self.settings().get_minimum_stake(),
+            "cannot have less stake than minimum stake");
         Ok(())
     }
 
     fn validate_owner_stake_share(&self) -> SCResult<()> {
         // owner total stake / contract total stake < owner_min_stake_share / 10000
         // reordered to avoid divisions
-        if self.fund_view_module().get_user_stake_of_type(OWNER_USER_ID, FundType::Active) * BigUint::from(PERCENTAGE_DENOMINATOR) <
-        self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active) * self.settings().get_owner_min_stake_share() {
-                return sc_error!("owner doesn't have enough stake in the contract");
-            }
+        require!(
+            self.fund_view_module().get_user_stake_of_type(OWNER_USER_ID.get(), FundType::Active) * 
+            BigUint::from(PERCENTAGE_DENOMINATOR)
+            >=
+            self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active) *
+            self.settings().get_owner_min_stake_share(),
+            "owner doesn't have enough stake in the contract");
         Ok(())
     }
     
