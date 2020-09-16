@@ -40,9 +40,8 @@ pub trait ContractStakeModule {
 
         only_owner!(self, "only owner allowed to stake nodes");
 
-        if self.rewards().total_unprotected() < amount_to_stake {
-            return sc_error!("not enough funds in contract to stake nodes");
-        }
+        require!(self.rewards().total_unprotected() >= amount_to_stake,
+            "not enough funds in contract to stake nodes");
 
         sc_try!(self.user_stake().validate_owner_stake_share());
 
@@ -159,9 +158,9 @@ pub trait ContractStakeModule {
 
         // convert node state to PendingDeactivation
         for &node_id in node_ids.iter() {
-            if self.node_config().get_node_state(node_id) != NodeState::Active {
-                return sc_error!("node not active");
-            }
+            require!(self.node_config().get_node_state(node_id) == NodeState::Active,
+                "node not active");
+                
             self.node_config().set_node_state(node_id, NodeState::PendingDeactivation);
         }
 

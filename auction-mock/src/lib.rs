@@ -29,15 +29,13 @@ pub trait AuctionMock {
 
         let bls_keys_signatures = bls_keys_signatures_args.into_vec();
 
-        if self.storage().is_staking_failure() {
-            return sc_error!("auction smart contract deliberate error");
-        }
+        require!(!self.storage().is_staking_failure(),
+            "auction smart contract deliberate error");
 
         let mut new_num_nodes = self.storage().get_num_nodes();
         let expected_payment = BigUint::from(num_nodes) * self.storage().get_stake_per_node();
-        if payment != &expected_payment {
-            return sc_error!("incorrect payment to auction mock");
-        }
+        require!(payment == &expected_payment,
+            "incorrect payment to auction mock");
 
         let mut result_err_data: Vec<Vec<u8>> = Vec::new();
         for n in 0..num_nodes {
@@ -63,9 +61,8 @@ pub trait AuctionMock {
     fn unstake_endpoint(&self,
             #[var_args] bls_keys: VarArgs<Vec<u8>>) -> SCResult<MultiResultVec<Vec<u8>>> {
 
-        if self.storage().is_staking_failure() {
-            return sc_error!("auction smart contract deliberate error");
-        }
+        require!(!self.storage().is_staking_failure(),
+            "auction smart contract deliberate error");
 
         let mut result_err_data: Vec<Vec<u8>> = Vec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
@@ -85,9 +82,8 @@ pub trait AuctionMock {
     fn unbond_endpoint(&self,
             #[var_args] bls_keys: VarArgs<Vec<u8>>) -> SCResult<MultiResultVec<Vec<u8>>> {
 
-        if self.storage().is_staking_failure() {
-            return sc_error!("auction smart contract deliberate error");
-        }
+        require!(!self.storage().is_staking_failure(),
+            "auction smart contract deliberate error");
 
         let mut result_err_data: Vec<Vec<u8>> = Vec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {

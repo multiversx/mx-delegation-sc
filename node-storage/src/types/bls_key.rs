@@ -21,9 +21,8 @@ impl BLSKey {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> SCResult<Self> {
-        if bytes.len() != BLS_KEY_BYTE_LENGTH {
-            return sc_error!("bad BLS key length");
-        }
+        require!(bytes.len() == BLS_KEY_BYTE_LENGTH, "bad BLS key length");
+        
         let mut arr = [0u8; BLS_KEY_BYTE_LENGTH];
         for (i, &b) in bytes.iter().enumerate() {
             arr[i] = b;

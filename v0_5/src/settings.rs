@@ -55,9 +55,9 @@ pub trait SettingsModule {
 
         self.set_auction_addr(&auction_contract_addr);
 
-        if service_fee_per_10000 > PERCENTAGE_DENOMINATOR {
-            return sc_error!("service fee out of range");
-        }
+        require!(service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
+            "service fee out of range");
+
         let next_service_fee = BigUint::from(service_fee_per_10000);
         self.set_service_fee(next_service_fee);
 
@@ -130,9 +130,8 @@ pub trait SettingsModule {
     fn set_owner_min_stake_share(&self, owner_min_stake_share: usize);
 
     fn set_owner_min_stake_share_validated(&self, owner_min_stake_share_per_10000: usize) -> SCResult<()> {
-        if owner_min_stake_share_per_10000 > PERCENTAGE_DENOMINATOR {
-            return sc_error!("owner min stake share out of range");
-        }
+        require!(owner_min_stake_share_per_10000 <= PERCENTAGE_DENOMINATOR,
+            "owner min stake share out of range");
 
         self.set_owner_min_stake_share(owner_min_stake_share_per_10000);
         Ok(())
