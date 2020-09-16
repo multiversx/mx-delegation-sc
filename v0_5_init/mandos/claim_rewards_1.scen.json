@@ -152,7 +152,7 @@
                     "nonce": "*",
                     "balance": "300,001,083,333,167",
                     "storage": "*",
-                    "code": "file:../output/delegation.wasm"
+                    "code": "file:../output/delegation_v0_5_init.wasm"
                 },
                 "''delegator_1___________________s1": {
                     "nonce": "*",

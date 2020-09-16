@@ -5,6 +5,6 @@ members = [
   
   "auction-mock",
   "v0_5",
-  "v0_5/debug",
+  "v0_5_init",
   
 ]

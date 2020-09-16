@@ -17,7 +17,7 @@
             "tx": {
                 "from": "''node_address__________________s1",
                 "value": "0",
-                "contractCode": "file:../../output/delegation.wasm",
+                "contractCode": "file:../../output/delegation_v0_5_init.wasm",
                 "arguments": [
                     "''auction_contract______________s1",
                     "5000",
