@@ -9,6 +9,8 @@ use user_fund_storage::fund_view_module::*;
 use user_fund_storage::types::*;
 use elrond_wasm_module_pause::*;
 
+use core::num::NonZeroUsize;
+
 imports!();
 
 /// Contains endpoints for staking/withdrawing stake.
@@ -90,7 +92,8 @@ pub trait UserStakeModule {
         // compute rewards for all affected users
         self.rewards().compute_one_user_reward(OWNER_USER_ID);
         for user_id in affected_users.iter() {
-            self.rewards().compute_one_user_reward(*user_id);
+            let user_id_nz = non_zero_usize!(*user_id, "bad user_id");
+            self.rewards().compute_one_user_reward(user_id_nz);
         }
 
         // actual swap of waiting to active
@@ -162,7 +165,7 @@ pub trait UserStakeModule {
     fn validate_owner_stake_share(&self) -> SCResult<()> {
         // owner total stake / contract total stake < owner_min_stake_share / 10000
         // reordered to avoid divisions
-        if self.fund_view_module().get_user_stake_of_type(OWNER_USER_ID, FundType::Active) * BigUint::from(PERCENTAGE_DENOMINATOR) <
+        if self.fund_view_module().get_user_stake_of_type(OWNER_USER_ID.get(), FundType::Active) * BigUint::from(PERCENTAGE_DENOMINATOR) <
         self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active) * self.settings().get_owner_min_stake_share() {
                 return sc_error!("owner doesn't have enough stake in the contract");
             }

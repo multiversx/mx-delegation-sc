@@ -6,6 +6,10 @@ use crate::rewards::*;
 use crate::reset_checkpoints::*;
 use crate::reset_checkpoint_types::*;
 
+use core::num::NonZeroUsize;
+
+imports!();
+
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
 /// Percents + 2 decimals -> 10000.
@@ -13,9 +17,7 @@ pub static PERCENTAGE_DENOMINATOR: usize = 10000;
 
 /// Validator reward destination will always be user with id 1.
 /// This can also count as a delegator (if the owner adds stake into the contract) or not.
-pub static OWNER_USER_ID: usize = 1;
-
-imports!();
+pub static OWNER_USER_ID: NonZeroUsize = unsafe{ NonZeroUsize::new_unchecked(1) };
 
 /// The module deals with initializaton and the global contract settings.
 /// 
@@ -48,7 +50,7 @@ pub trait SettingsModule {
     ) -> SCResult<()> {
 
         let owner = self.get_caller();
-        self.user_data().set_user_id(&owner, OWNER_USER_ID); // node reward destination will be user #1
+        self.user_data().set_user_id(&owner, OWNER_USER_ID.get()); // node reward destination will be user #1
         self.user_data().set_num_users(1);
 
         self.set_auction_addr(&auction_contract_addr);

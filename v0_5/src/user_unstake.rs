@@ -10,6 +10,8 @@ use user_fund_storage::fund_view_module::*;
 use user_fund_storage::types::*;
 use elrond_wasm_module_pause::*;
 
+use core::num::NonZeroUsize;
+
 imports!();
 
 #[elrond_wasm_derive::module(UserUnStakeModuleImpl)]
@@ -52,13 +54,12 @@ pub trait UserUnStakeModule {
             "unstaking is temporarily paused as checkpoint is reset");
         
         let caller = self.get_caller();
-        let unstake_user_id = self.user_data().get_user_id(&caller);
-        if unstake_user_id == 0 {
-            return sc_error!("only delegators can unstake")
-        }
+        let unstake_user_id = non_zero_usize!(
+            self.user_data().get_user_id(&caller),
+            "only delegators can unstake");
 
         // check that amount does not exceed existing active stake
-        let stake = self.fund_view_module().get_user_stake_of_type(unstake_user_id, FundType::Active);
+        let stake = self.fund_view_module().get_user_stake_of_type(unstake_user_id.get(), FundType::Active);
         if amount > stake {
             return sc_error!("cannot offer more than the user active stake")
         }
@@ -71,7 +72,7 @@ pub trait UserUnStakeModule {
 
         // convert Active of this user -> UnStaked
         let mut unstake_amount = amount.clone();
-        self.fund_transf_module().unstake_transf(unstake_user_id, &mut unstake_amount);
+        self.fund_transf_module().unstake_transf(unstake_user_id.get(), &mut unstake_amount);
         require!(unstake_amount == 0, "error converting stake to UnStaked");
 
         // convert Waiting from other users -> Active

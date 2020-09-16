@@ -179,11 +179,11 @@ pub trait ResetCheckpointsModule {
                 return Some(data);
             }
 
-            let current_user_id = data.last_id + 1;
+            let current_user_id = non_zero_usize_from_n_plus_1(data.last_id);
             let user_data = self.rewards().load_updated_user_rewards(current_user_id);
             self.rewards().store_user_reward_data(current_user_id, &user_data);
             data.sum_unclaimed += user_data.unclaimed_rewards;
-            data.last_id = current_user_id;
+            data.last_id = current_user_id.get();
         }
 
         // divisions are inexact so a small remainder can remain after distributing rewards
