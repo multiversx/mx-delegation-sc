@@ -8,7 +8,6 @@ pub mod auction_proxy;
 
 // modules
 pub mod events;
-pub mod genesis;
 pub mod rewards;
 pub mod node_activation;
 pub mod user_unstake;
