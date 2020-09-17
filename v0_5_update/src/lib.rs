@@ -59,7 +59,6 @@ pub trait Delegation {
 
     #[init]
     fn init(&self) -> SCResult<()> {
-        self.pause().set_paused(true);
         Ok(())
     }
 
