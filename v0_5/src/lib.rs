@@ -26,6 +26,7 @@ pub use crate::user_unstake::*;
 pub use user_fund_storage::user_data::*;
 pub use user_fund_storage::fund_transf_module::*;
 pub use user_fund_storage::fund_view_module::*;
+pub use user_fund_storage::types::*;
 pub use crate::settings::*;
 pub use crate::reset_checkpoints::*;
 pub use elrond_wasm_module_pause::*;
