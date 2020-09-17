@@ -120,9 +120,9 @@ pub trait ContractStakeModule {
             return Ok(());
         }
 
-        // set nodes to ActivationFailed
+        // set nodes to Inactive
         for &node_id in node_ids.iter() {
-            self.node_config().set_node_state(node_id, NodeState::ActivationFailed);
+            self.node_config().set_node_state(node_id, NodeState::Inactive);
         }
 
         // log failure event (no data)
