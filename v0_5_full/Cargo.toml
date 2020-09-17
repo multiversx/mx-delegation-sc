@@ -1,5 +1,5 @@
 [package]
-name = "delegation_v0_5_init"
+name = "delegation_v0_5_full"
 version = "0.5.0"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
