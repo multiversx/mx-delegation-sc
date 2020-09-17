@@ -1,0 +1,20 @@
+[package]
+name = "delegation_v0_5_full"
+version = "0.5.0"
+authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
+edition = "2018"
+
+[dependencies]
+delegation_v0_5 = { path = "../v0_5" }
+
+elrond-wasm-module-features = "0.6.2"
+elrond-wasm-module-pause = "0.6.2"
+
+elrond-wasm = "0.6.2"
+elrond-wasm-node = "0.6.2"
+elrond-wasm-derive = "0.6.2"
+
+# elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
+# elrond-wasm-node = { path = "../../elrond-wasm-rs/elrond-wasm-node" }
+# elrond-wasm-derive = { path = "../../elrond-wasm-rs/elrond-wasm-derive" }
+

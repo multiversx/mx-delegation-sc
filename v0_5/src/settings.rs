@@ -39,38 +39,6 @@ pub trait SettingsModule {
     #[module(ResetCheckpointsModuleImpl)]
     fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, BigUint>;
 
-    /// This is the contract constructor, called only once when the contract is deployed.
-    #[init]
-    fn init(&self,
-        auction_contract_addr: &Address,
-        service_fee_per_10000: usize,
-        owner_min_stake_share_per_10000: usize,
-        n_blocks_before_unbond: u64,
-        minimum_stake: BigUint,
-    ) -> SCResult<()> {
-
-        let owner = self.get_caller();
-        self.user_data().set_user_id(&owner, OWNER_USER_ID.get()); // node reward destination will be user #1
-        self.user_data().set_num_users(1);
-
-        self.set_auction_addr(&auction_contract_addr);
-
-        require!(service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
-            "service fee out of range");
-
-        let next_service_fee = BigUint::from(service_fee_per_10000);
-        self.set_service_fee(next_service_fee);
-
-        sc_try!(self.set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
-
-        self.set_n_blocks_before_unbond(n_blocks_before_unbond);
-        let min_stake_2 = minimum_stake.clone();
-        self.set_minimum_stake(minimum_stake);
-        self.set_total_delegation_cap(min_stake_2);
-
-        Ok(())
-    }
-
     /// Yields the address of the contract with which staking will be performed.
     /// This address is standard in the protocol, but it is saved in storage to avoid hardcoding it.
     #[view(getAuctionContractAddress)]
