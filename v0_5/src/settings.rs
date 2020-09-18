@@ -75,10 +75,16 @@ pub trait SettingsModule {
             return Ok(GlobalOperationStatus::Done)
         }
 
-        self.reset_checkpoints().continue_global_operation(GlobalOperationCheckpoint::ChangeServiceFee{
-            new_service_fee,
-            compute_rewards_data: ComputeAllRewardsData::new(self.rewards().get_total_cumulated_rewards()),
-        })
+        if self.is_bootstrap_mode() {
+            // no rewards to compute
+            Ok(GlobalOperationStatus::Done)
+        } else {
+            // start compute all rewards
+            self.reset_checkpoints().continue_global_operation(GlobalOperationCheckpoint::ChangeServiceFee{
+                new_service_fee,
+                compute_rewards_data: ComputeAllRewardsData::new(self.rewards().get_total_cumulated_rewards()),
+            })
+        }
     }
     
     #[view(getTotalDelegationCap)]
@@ -87,6 +93,13 @@ pub trait SettingsModule {
 
     #[storage_set("total_delegation_cap")]
     fn set_total_delegation_cap(&self, amount: BigUint);
+
+    #[view(isBootstrapMode)]
+    #[storage_get("bootstrap_mode")]
+    fn is_bootstrap_mode(&self) -> bool;
+
+    #[storage_set("bootstrap_mode")]
+    fn set_bootstrap_mode(&self, bootstrap_mode: bool); 
 
     /// The minimum proportion of stake that has to be provided by the owner.
     /// 10000 = 100%.

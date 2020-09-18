@@ -72,21 +72,46 @@ pub trait UserStakeModule {
     /// Note that this operation preserves the invariant that active + unstaked == delegation_cap.
     fn use_waiting_to_replace_unstaked(&self) -> SCResult<()> {
         let total_waiting = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
-        let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
+        let mut total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
 
-        let swappable = core::cmp::min(&total_waiting, &total_unstaked);
+        if self.settings().is_bootstrap_mode() {
+            // bootstrap mode!
+            // the total delegation cap is not filled
 
-        if *swappable == 0 {
-            return Ok(())
+            // all unstaked funds can go away immediately
+            self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut total_unstaked, || false);
+            require!(total_unstaked == 0, "error swapping unstaked to deferred payment");
+
+            // we need to see how much of the delegation cap remains unfilled
+            let total_active = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+            let total_delegation_cap = self.settings().get_total_delegation_cap();
+            let mut fillable_active_stake = &total_delegation_cap - &total_active;
+            
+            // swap waiting -> active, but no more than fillable
+            // no need to worry about rewards here, because there shouldn't be any
+            let _ = self.fund_transf_module().swap_waiting_to_active(&mut fillable_active_stake, || false);
+            if fillable_active_stake == 0 {
+                // this happens only when waiting was enough to fill the delegation cap
+                self.settings().set_bootstrap_mode(false);
+            }
+            Ok(())
+        } else {
+            // regular scenario
+            // exactly the same amount is swapped from waiting -> active, as from unstaked -> deferred payment
+            let swappable = core::cmp::min(&total_waiting, &total_unstaked);
+
+            if *swappable == 0 {
+                return Ok(())
+            }
+
+            // swap unStaked -> deferred payment
+            let mut unstaked_swap_remaining = swappable.clone();
+            self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swap_remaining, || false);
+            require!(unstaked_swap_remaining == 0, "error swapping unstaked to deferred payment");
+
+            // swap waiting -> active (also fix rewards)
+            self.swap_waiting_to_active_compute_rewards(&swappable)
         }
-
-        // swap unStaked -> deferred payment
-        let mut unstaked_swap_remaining = swappable.clone();
-        self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swap_remaining, || false);
-        require!(unstaked_swap_remaining == 0, "error swapping unstaked to deferred payment");
-
-        // swap waiting -> active
-        self.swap_waiting_to_active_compute_rewards(&swappable)
     }
 
     /// Swaps waiting stake to active within given limits,
@@ -184,12 +209,18 @@ pub trait UserStakeModule {
     /// Invariant: should never return error.
     #[view(validateDelegationCapInvariant)]
     fn validate_delegation_cap_invariant(&self) -> SCResult<()> {
-        let total_staked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+        let total_active = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
         let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
         let total_delegation_cap = self.settings().get_total_delegation_cap();
         
-        require!(&total_staked + &total_unstaked == total_delegation_cap,
-            "delegation cap invariant violated");
+        if self.settings().is_bootstrap_mode() {
+            require!(&total_active + &total_unstaked < total_delegation_cap,
+                "delegation cap invariant violated");
+        } else {
+            require!(&total_active + &total_unstaked == total_delegation_cap,
+                "delegation cap invariant violated");
+        }
+        
         Ok(())
     }
     

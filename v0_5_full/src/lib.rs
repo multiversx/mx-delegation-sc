@@ -65,6 +65,7 @@ pub trait Delegation {
         owner_min_stake_share_per_10000: usize,
         n_blocks_before_unbond: u64,
         minimum_stake: BigUint,
+        total_delegation_cap: BigUint,
     ) -> SCResult<()> {
 
         let owner = self.get_caller();
@@ -83,6 +84,9 @@ pub trait Delegation {
 
         self.settings().set_n_blocks_before_unbond(n_blocks_before_unbond);
         self.settings().set_minimum_stake(&minimum_stake);
+
+        self.settings().set_total_delegation_cap(total_delegation_cap);
+        self.settings().set_bootstrap_mode(true);
 
         Ok(())
     }
