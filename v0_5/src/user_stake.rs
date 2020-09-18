@@ -148,8 +148,6 @@ pub trait UserStakeModule {
         require!(amount_to_withdraw == 0,
             "cannot withdraw more than inactive stake");
 
-        sc_try!(self.validate_total_user_stake(user_id));
-
         // send stake to delegator
         self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
 
