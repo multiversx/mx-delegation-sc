@@ -77,7 +77,7 @@ pub trait UserUnStakeModule {
         sc_try!(self.user_stake().use_waiting_to_replace_unstaked());
 
         // check that minimum stake was not violated
-        sc_try!(self.user_stake().validate_total_user_stake(unstake_user_id.get()));
+        sc_try!(self.user_stake().validate_user_minimum_stake(unstake_user_id.get()));
 
         Ok(())
     }

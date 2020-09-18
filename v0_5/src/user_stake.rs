@@ -155,13 +155,14 @@ pub trait UserStakeModule {
         Ok(())
     }
 
+    /// Mostly invariant: modifyTotalDelegationCap can violate this rule.
+    fn validate_user_minimum_stake(&self, user_id: usize) -> SCResult<()> {
+        let waiting = self.fund_view_module().get_user_stake_of_type(user_id, FundType::Waiting);
+        let active = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+        let relevant_stake = &waiting + &active;
 
-    /// Invariant: should never return error for any user id.
-    #[view(validateTotalUserStake)]
-    fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
-        let user_total = self.fund_view_module().get_user_total_stake(user_id);
-        require!(user_total == 0 || user_total >= self.settings().get_minimum_stake(),
-            "cannot have less stake than minimum stake");
+        require!(relevant_stake == 0 || relevant_stake >= self.settings().get_minimum_stake(),
+            "cannot have waiting + active stake less than minimum stake");
         Ok(())
     }
 
