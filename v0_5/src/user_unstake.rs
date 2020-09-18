@@ -69,9 +69,9 @@ pub trait UserUnStakeModule {
         self.rewards().compute_one_user_reward(unstake_user_id);
 
         // convert Active of this user -> UnStaked
-        let mut unstake_amount = amount.clone();
-        self.fund_transf_module().unstake_transf(unstake_user_id.get(), &mut unstake_amount);
-        require!(unstake_amount == 0, "error converting stake to UnStaked");
+        let mut unstake_remaining = amount;
+        self.fund_transf_module().unstake_transf(unstake_user_id.get(), &mut unstake_remaining);
+        require!(unstake_remaining == 0, "error converting stake to UnStaked");
 
         // move funds around
         self.user_stake().use_waiting_to_replace_unstaked()
