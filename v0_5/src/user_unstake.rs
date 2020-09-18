@@ -73,21 +73,8 @@ pub trait UserUnStakeModule {
         self.fund_transf_module().unstake_transf(unstake_user_id.get(), &mut unstake_amount);
         require!(unstake_amount == 0, "error converting stake to UnStaked");
 
-        // convert Waiting from other users -> Active
-        let total_waiting = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
-        if total_waiting == 0 {
-            return Ok(())
-        }
-        let swappable = core::cmp::min(amount, total_waiting);
-
-        sc_try!(self.user_stake().swap_waiting_to_active_compute_rewards(&swappable));
-
-        // convert UnStaked to defered payment
-        let mut unstaked_swappable = swappable;
-        self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swappable, || false);
-        require!(unstaked_swappable == 0, "error swapping unstaked to deferred payment");
-
-        Ok(())
+        // move funds around
+        self.user_stake().use_waiting_to_replace_unstaked()
     }
 
     #[endpoint(unBond)]

@@ -120,12 +120,12 @@ pub trait SettingsModule {
     fn get_minimum_stake(&self) -> BigUint;
 
     #[storage_set("min_stake")]
-    fn set_minimum_stake(&self, minimum_stake: BigUint);
+    fn set_minimum_stake(&self, minimum_stake: &BigUint);
 
     #[endpoint(setMinimumStake)]
     fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> SCResult<()> {
         only_owner!(self, "only owner can set minimum stake");
-        self.set_minimum_stake(minimum_stake);
+        self.set_minimum_stake(&minimum_stake);
         Ok(())
     }
 

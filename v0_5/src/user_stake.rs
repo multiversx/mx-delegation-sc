@@ -56,26 +56,36 @@ pub trait UserStakeModule {
         self.events().stake_event(&caller, &payment);
 
         // create stake funds
-        let amount_to_stake = payment.clone();
         self.fund_transf_module().create_waiting(user_id, payment);
 
-        let total_staked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
-        let total_delegation_cap = self.settings().get_total_delegation_cap();
+        // check invariant
+        sc_try!(self.validate_delegation_cap_invariant());
 
-        let total_free = total_delegation_cap - total_staked;
-        if total_free == 0 {
-            return Ok(());
-        }
-        let swappable = core::cmp::min(&amount_to_stake, &total_free);
+        // move funds around
+        self.use_waiting_to_replace_unstaked()
+    }
 
-        // swap unStaked to deferred payment
+    /// The contract can be either overstaked (waiting > 0) or understaked (unstaked > 0).
+    /// Cannot have both, since waiting should "cancel out" the unstaked.
+    /// This operation does this. It takes min(waiting, unstaked) and converts this amount
+    /// from waiting to active and from unstaked to deferred payment. 
+    /// Note that this operation preserves the invariant that active + unstaked == delegation_cap.
+    fn use_waiting_to_replace_unstaked(&self) -> SCResult<()> {
+        let total_waiting = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
         let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
-        if total_unstaked > 0 {
-            let all_unstaked = &total_unstaked;
-            let mut unstaked_swappable = core::cmp::min(swappable, all_unstaked).clone();
-            self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swappable, || false);
+
+        let swappable = core::cmp::min(&total_waiting, &total_unstaked);
+
+        if *swappable == 0 {
+            return Ok(())
         }
 
+        // swap unStaked -> deferred payment
+        let mut unstaked_swap_remaining = swappable.clone();
+        self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swap_remaining, || false);
+        require!(unstaked_swap_remaining == 0, "error swapping unstaked to deferred payment");
+
+        // swap waiting -> active
         self.swap_waiting_to_active_compute_rewards(&swappable)
     }
 
@@ -147,6 +157,9 @@ pub trait UserStakeModule {
         Ok(())
     }
 
+
+    /// Invariant: should never return error for any user id.
+    #[view(validateTotalUserStake)]
     fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
         let user_total = self.fund_view_module().get_user_total_stake(user_id);
         require!(user_total == 0 || user_total >= self.settings().get_minimum_stake(),
@@ -154,6 +167,8 @@ pub trait UserStakeModule {
         Ok(())
     }
 
+    /// Invariant: should never return error.
+    #[view(validateOwnerStakeShare)]
     fn validate_owner_stake_share(&self) -> SCResult<()> {
         // owner total stake / contract total stake < owner_min_stake_share / 10000
         // reordered to avoid divisions
@@ -164,6 +179,18 @@ pub trait UserStakeModule {
             self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active) *
             self.settings().get_owner_min_stake_share(),
             "owner doesn't have enough stake in the contract");
+        Ok(())
+    }
+
+    /// Invariant: should never return error.
+    #[view(validateDelegationCapInvariant)]
+    fn validate_delegation_cap_invariant(&self) -> SCResult<()> {
+        let total_staked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+        let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
+        let total_delegation_cap = self.settings().get_total_delegation_cap();
+        
+        require!(&total_staked + &total_unstaked == total_delegation_cap,
+            "delegation cap invariant violated");
         Ok(())
     }
     

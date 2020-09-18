@@ -82,9 +82,7 @@ pub trait Delegation {
         sc_try!(self.settings().set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
 
         self.settings().set_n_blocks_before_unbond(n_blocks_before_unbond);
-        let min_stake_2 = minimum_stake.clone();
-        self.settings().set_minimum_stake(minimum_stake);
-        self.settings().set_total_delegation_cap(min_stake_2);
+        self.settings().set_minimum_stake(&minimum_stake);
 
         Ok(())
     }
