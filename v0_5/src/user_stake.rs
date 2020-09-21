@@ -88,7 +88,7 @@ pub trait UserStakeModule {
             let mut fillable_active_stake = &total_delegation_cap - &total_active;
             
             // swap waiting -> active, but no more than fillable
-            // no need to worry about rewards here, because there shouldn't be any
+            // no need to worry about rewards here, because there aren't any
             let _ = self.fund_transf_module().swap_waiting_to_active(&mut fillable_active_stake, || false);
             if fillable_active_stake == 0 {
                 // this happens only when waiting was enough to fill the delegation cap
@@ -99,7 +99,6 @@ pub trait UserStakeModule {
             // regular scenario
             // exactly the same amount is swapped from waiting -> active, as from unstaked -> deferred payment
             let swappable = core::cmp::min(&total_waiting, &total_unstaked);
-
             if *swappable == 0 {
                 return Ok(())
             }
@@ -109,7 +108,7 @@ pub trait UserStakeModule {
             self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swap_remaining, || false);
             require!(unstaked_swap_remaining == 0, "error swapping unstaked to deferred payment");
 
-            // swap waiting -> active (also fix rewards)
+            // swap waiting -> active (also compute rewards)
             self.swap_waiting_to_active_compute_rewards(&swappable)
         }
     }

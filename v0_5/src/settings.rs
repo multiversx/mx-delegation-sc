@@ -77,6 +77,8 @@ pub trait SettingsModule {
 
         if self.is_bootstrap_mode() {
             // no rewards to compute
+            // change service fee directly
+            self.set_service_fee(new_service_fee);
             Ok(GlobalOperationStatus::Done)
         } else {
             // start compute all rewards

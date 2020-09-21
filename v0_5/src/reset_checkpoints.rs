@@ -220,6 +220,7 @@ pub trait ResetCheckpointsModule {
                 // and so nothing else to be done here:
                 // compute all rewards not necessary - no rewards yet
                 // swap not necessary - there cannot be any waiting or unstaked funds
+                self.settings().set_total_delegation_cap(new_total_cap);
                 return Ok(GlobalOperationStatus::Done);
             } else {
                 // bootstrap mode is over
