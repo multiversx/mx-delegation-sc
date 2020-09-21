@@ -75,10 +75,18 @@ pub trait SettingsModule {
             return Ok(GlobalOperationStatus::Done)
         }
 
-        self.reset_checkpoints().continue_global_operation(GlobalOperationCheckpoint::ChangeServiceFee{
-            new_service_fee,
-            compute_rewards_data: ComputeAllRewardsData::new(self.rewards().get_total_cumulated_rewards()),
-        })
+        if self.is_bootstrap_mode() {
+            // no rewards to compute
+            // change service fee directly
+            self.set_service_fee(new_service_fee);
+            Ok(GlobalOperationStatus::Done)
+        } else {
+            // start compute all rewards
+            self.reset_checkpoints().continue_global_operation(GlobalOperationCheckpoint::ChangeServiceFee{
+                new_service_fee,
+                compute_rewards_data: ComputeAllRewardsData::new(self.rewards().get_total_cumulated_rewards()),
+            })
+        }
     }
     
     #[view(getTotalDelegationCap)]
@@ -87,6 +95,13 @@ pub trait SettingsModule {
 
     #[storage_set("total_delegation_cap")]
     fn set_total_delegation_cap(&self, amount: BigUint);
+
+    #[view(isBootstrapMode)]
+    #[storage_get("bootstrap_mode")]
+    fn is_bootstrap_mode(&self) -> bool;
+
+    #[storage_set("bootstrap_mode")]
+    fn set_bootstrap_mode(&self, bootstrap_mode: bool); 
 
     /// The minimum proportion of stake that has to be provided by the owner.
     /// 10000 = 100%.
@@ -120,12 +135,12 @@ pub trait SettingsModule {
     fn get_minimum_stake(&self) -> BigUint;
 
     #[storage_set("min_stake")]
-    fn set_minimum_stake(&self, minimum_stake: BigUint);
+    fn set_minimum_stake(&self, minimum_stake: &BigUint);
 
     #[endpoint(setMinimumStake)]
     fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> SCResult<()> {
         only_owner!(self, "only owner can set minimum stake");
-        self.set_minimum_stake(minimum_stake);
+        self.set_minimum_stake(&minimum_stake);
         Ok(())
     }
 

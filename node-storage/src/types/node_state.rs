@@ -10,6 +10,7 @@ pub enum NodeState {
     PendingActivation,
 
     /// Node stake was sent to the auction SC, but the transaction failed for the node.
+    /// No longer used.
     ActivationFailed,
 
     /// Node is registered in the auction SC, active and producing rewards.
@@ -36,12 +37,12 @@ impl NodeState {
         match self {
             NodeState::Inactive => 0,
             NodeState::PendingActivation => 1,
-            NodeState::Active => 2,
-            NodeState::PendingDeactivation => 3,
-            NodeState::UnBondPeriod{..} => 4,
-            NodeState::PendingUnBond{..} => 5,
-            NodeState::Removed => 6,
-            NodeState::ActivationFailed => 7,
+            NodeState::ActivationFailed => 2,
+            NodeState::Active => 3,
+            NodeState::PendingDeactivation => 4,
+            NodeState::UnBondPeriod{..} => 5,
+            NodeState::PendingUnBond{..} => 6,
+            NodeState::Removed => 7,
         }
     }
 }

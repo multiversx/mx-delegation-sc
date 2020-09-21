@@ -65,6 +65,7 @@ pub trait Delegation {
         owner_min_stake_share_per_10000: usize,
         n_blocks_before_unbond: u64,
         minimum_stake: BigUint,
+        total_delegation_cap: BigUint,
     ) -> SCResult<()> {
 
         let owner = self.get_caller();
@@ -82,9 +83,10 @@ pub trait Delegation {
         sc_try!(self.settings().set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
 
         self.settings().set_n_blocks_before_unbond(n_blocks_before_unbond);
-        let min_stake_2 = minimum_stake.clone();
-        self.settings().set_minimum_stake(minimum_stake);
-        self.settings().set_total_delegation_cap(min_stake_2);
+        self.settings().set_minimum_stake(&minimum_stake);
+
+        self.settings().set_total_delegation_cap(total_delegation_cap);
+        self.settings().set_bootstrap_mode(true);
 
         Ok(())
     }

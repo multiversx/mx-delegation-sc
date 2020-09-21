@@ -69,23 +69,15 @@ pub trait UserUnStakeModule {
         self.rewards().compute_one_user_reward(unstake_user_id);
 
         // convert Active of this user -> UnStaked
-        let mut unstake_amount = amount.clone();
-        self.fund_transf_module().unstake_transf(unstake_user_id.get(), &mut unstake_amount);
-        require!(unstake_amount == 0, "error converting stake to UnStaked");
+        let mut unstake_remaining = amount;
+        self.fund_transf_module().unstake_transf(unstake_user_id.get(), &mut unstake_remaining);
+        require!(unstake_remaining == 0, "error converting stake to UnStaked");
 
-        // convert Waiting from other users -> Active
-        let total_waiting = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
-        if total_waiting == 0 {
-            return Ok(())
-        }
-        let swappable = core::cmp::min(amount, total_waiting);
+        // move funds around
+        sc_try!(self.user_stake().use_waiting_to_replace_unstaked());
 
-        sc_try!(self.user_stake().swap_waiting_to_active_compute_rewards(&swappable));
-
-        // convert UnStaked to defered payment
-        let mut unstaked_swappable = swappable;
-        self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swappable, || false);
-        require!(unstaked_swappable == 0, "error swapping unstaked to deferred payment");
+        // check that minimum stake was not violated
+        sc_try!(self.user_stake().validate_user_minimum_stake(unstake_user_id.get()));
 
         Ok(())
     }

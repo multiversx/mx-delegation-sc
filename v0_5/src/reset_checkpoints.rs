@@ -214,8 +214,25 @@ pub trait ResetCheckpointsModule {
         let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
 
         let max_available = &(&total_active + &total_waiting) + &total_unstaked;
-        require!(new_total_cap <= max_available,
-            "new delegation cap must be less or equal to total active + waiting");
+        if self.settings().is_bootstrap_mode() {
+            if new_total_cap > max_available {
+                // we remain in bootstrap mode
+                // and so nothing else to be done here:
+                // compute all rewards not necessary - no rewards yet
+                // swap not necessary - there cannot be any waiting or unstaked funds
+                self.settings().set_total_delegation_cap(new_total_cap);
+                return Ok(GlobalOperationStatus::Done);
+            } else {
+                // bootstrap mode is over
+                // no rewards to compute, but
+                // swap might be necessary
+                self.settings().set_bootstrap_mode(false);
+            }
+        } else {
+            // if no longer in bootstrap mode, total delegation cap can never exceed the max available
+            require!(new_total_cap <= max_available,
+                "new delegation cap must be less or equal to total active + waiting");
+        }
 
         let orc = match new_total_cap.cmp(&curr_delegation_cap) {
             Ordering::Equal => { // nothing changes

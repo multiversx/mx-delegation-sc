@@ -56,27 +56,61 @@ pub trait UserStakeModule {
         self.events().stake_event(&caller, &payment);
 
         // create stake funds
-        let amount_to_stake = payment.clone();
         self.fund_transf_module().create_waiting(user_id, payment);
 
-        let total_staked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
-        let total_delegation_cap = self.settings().get_total_delegation_cap();
+        // check invariant
+        sc_try!(self.validate_delegation_cap_invariant());
 
-        let total_free = total_delegation_cap - total_staked;
-        if total_free == 0 {
-            return Ok(());
+        // move funds around
+        self.use_waiting_to_replace_unstaked()
+    }
+
+    /// The contract can be either overstaked (waiting > 0) or understaked (unstaked > 0).
+    /// Cannot have both, since waiting should "cancel out" the unstaked.
+    /// This operation does this. It takes min(waiting, unstaked) and converts this amount
+    /// from waiting to active and from unstaked to deferred payment. 
+    /// Note that this operation preserves the invariant that active + unstaked == delegation_cap.
+    fn use_waiting_to_replace_unstaked(&self) -> SCResult<()> {
+        let total_waiting = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
+        let mut total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
+
+        if self.settings().is_bootstrap_mode() {
+            // bootstrap mode!
+            // the total delegation cap is not filled
+
+            // all unstaked funds can go away immediately
+            self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut total_unstaked, || false);
+            require!(total_unstaked == 0, "error swapping unstaked to deferred payment");
+
+            // we need to see how much of the delegation cap remains unfilled
+            let total_active = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+            let total_delegation_cap = self.settings().get_total_delegation_cap();
+            let mut fillable_active_stake = &total_delegation_cap - &total_active;
+            
+            // swap waiting -> active, but no more than fillable
+            // no need to worry about rewards here, because there aren't any
+            let _ = self.fund_transf_module().swap_waiting_to_active(&mut fillable_active_stake, || false);
+            if fillable_active_stake == 0 {
+                // this happens only when waiting was enough to fill the delegation cap
+                self.settings().set_bootstrap_mode(false);
+            }
+            Ok(())
+        } else {
+            // regular scenario
+            // exactly the same amount is swapped from waiting -> active, as from unstaked -> deferred payment
+            let swappable = core::cmp::min(&total_waiting, &total_unstaked);
+            if *swappable == 0 {
+                return Ok(())
+            }
+
+            // swap unStaked -> deferred payment
+            let mut unstaked_swap_remaining = swappable.clone();
+            self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swap_remaining, || false);
+            require!(unstaked_swap_remaining == 0, "error swapping unstaked to deferred payment");
+
+            // swap waiting -> active (also compute rewards)
+            self.swap_waiting_to_active_compute_rewards(&swappable)
         }
-        let swappable = core::cmp::min(&amount_to_stake, &total_free);
-
-        // swap unStaked to deferred payment
-        let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
-        if total_unstaked > 0 {
-            let all_unstaked = &total_unstaked;
-            let mut unstaked_swappable = core::cmp::min(swappable, all_unstaked).clone();
-            self.fund_transf_module().swap_unstaked_to_deferred_payment(&mut unstaked_swappable, || false);
-        }
-
-        self.swap_waiting_to_active_compute_rewards(&swappable)
     }
 
     /// Swaps waiting stake to active within given limits,
@@ -138,8 +172,6 @@ pub trait UserStakeModule {
         require!(amount_to_withdraw == 0,
             "cannot withdraw more than inactive stake");
 
-        sc_try!(self.validate_total_user_stake(user_id));
-
         // send stake to delegator
         self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
 
@@ -147,13 +179,19 @@ pub trait UserStakeModule {
         Ok(())
     }
 
-    fn validate_total_user_stake(&self, user_id: usize) -> SCResult<()> {
-        let user_total = self.fund_view_module().get_user_total_stake(user_id);
-        require!(user_total == 0 || user_total >= self.settings().get_minimum_stake(),
-            "cannot have less stake than minimum stake");
+    /// Mostly invariant: modifyTotalDelegationCap can violate this rule.
+    fn validate_user_minimum_stake(&self, user_id: usize) -> SCResult<()> {
+        let waiting = self.fund_view_module().get_user_stake_of_type(user_id, FundType::Waiting);
+        let active = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+        let relevant_stake = &waiting + &active;
+
+        require!(relevant_stake == 0 || relevant_stake >= self.settings().get_minimum_stake(),
+            "cannot have waiting + active stake less than minimum stake");
         Ok(())
     }
 
+    /// Invariant: should never return error.
+    #[view(validateOwnerStakeShare)]
     fn validate_owner_stake_share(&self) -> SCResult<()> {
         // owner total stake / contract total stake < owner_min_stake_share / 10000
         // reordered to avoid divisions
@@ -164,6 +202,24 @@ pub trait UserStakeModule {
             self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active) *
             self.settings().get_owner_min_stake_share(),
             "owner doesn't have enough stake in the contract");
+        Ok(())
+    }
+
+    /// Invariant: should never return error.
+    #[view(validateDelegationCapInvariant)]
+    fn validate_delegation_cap_invariant(&self) -> SCResult<()> {
+        let total_active = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+        let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
+        let total_delegation_cap = self.settings().get_total_delegation_cap();
+        
+        if self.settings().is_bootstrap_mode() {
+            require!(&total_active + &total_unstaked < total_delegation_cap,
+                "delegation cap invariant violated");
+        } else {
+            require!(&total_active + &total_unstaked == total_delegation_cap,
+                "delegation cap invariant violated");
+        }
+        
         Ok(())
     }
     
