@@ -1,5 +1,5 @@
 {
-    "name": "activate nodes scenario",
+    "name": "change service fee scenario",
     "steps": [
         {
             "step": "externalSteps",

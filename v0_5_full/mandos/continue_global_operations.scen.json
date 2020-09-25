@@ -1,5 +1,5 @@
 {
-    "name": "activate nodes scenario",
+    "name": "continue global operation scenarios",
     "steps": [
         {
             "step": "externalSteps",

@@ -1,5 +1,5 @@
 {
-    "name": "claim rewards scenario",
+    "name": "owner with stake claims rewards scenario",
     "steps": [
         {
             "step": "externalSteps",
@@ -22,8 +22,94 @@
             "path": "steps/increase_cap.steps.json"
         },
         {
+            "step": "scCall",
+            "txId": "user-unstake",
+            "tx": {
+                "from": "''delegator_1___________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "unStake",
+                "arguments": ["1,000,000,000"],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "transfer",
+            "txId": "supply owner",
+            "tx": {
+                "from": "''endless_sack_of_erd___________s1",
+                "to": "''node_address__________________s1",
+                "value": "100,000,000,000,000"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "owner stake",
+            "tx": {
+                "from": "''node_address__________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "100,000,000,000,000",
+                "function": "stake",
+                "arguments": [],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": [
+                    {
+                        "address": "''delegation_contract___________s1",
+                        "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
+                        "topics": [
+                            "''node_address__________________s1"
+                        ],
+                        "data": "100,000,000,000,000"
+                    }
+                ],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
             "step": "validatorReward",
             "txId": "validatorReward-1",
+            "tx": {
+                "to": "''delegation_contract___________s1",
+                "value": "100,000,000"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "user-unstake",
+            "tx": {
+                "from": "''delegator_2___________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "unStake",
+                "arguments": ["100,000,000,000,000"],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "validatorReward",
+            "txId": "validatorReward-2",
             "tx": {
                 "to": "''delegation_contract___________s1",
                 "value": "100,000,000"
@@ -43,7 +129,7 @@
             },
             "expect": {
                 "out": [
-                    "100,000,000"
+                    "200,000,000"
                 ],
                 "status": "",
                 "logs": [],
@@ -67,7 +153,7 @@
             },
             "expect": {
                 "out": [
-                    "50,000,000"
+                    "116,666,666"
                 ],
                 "status": "",
                 "logs": [],
@@ -91,7 +177,7 @@
             },
             "expect": {
                 "out": [
-                    "16,666,833"
+                    "33,333,333"
                 ],
                 "status": "",
                 "logs": [],
@@ -115,7 +201,7 @@
             },
             "expect": {
                 "out": [
-                    "33,333,166"
+                    "49,999,999"
                 ],
                 "status": "",
                 "logs": [],
@@ -144,26 +230,72 @@
             }
         },
         {
+            "step": "scCall",
+            "txId": "delegator 2 claim 1",
+            "tx": {
+                "from": "''delegator_2___________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "claimRewards",
+                "arguments": [],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": "*",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "delegator 0 claim 1",
+            "tx": {
+                "from": "''node_address__________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "claimRewards",
+                "arguments": [],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": "*",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
             "step": "checkState",
             "comment": "check that rewards were received",
             "accounts": {
                 "''delegation_contract___________s1": {
                     "comment": "inactive stake + unclaimed rewards",
                     "nonce": "*",
-                    "balance": "300,001,083,333,167",
+                    "balance": "400,001,000,000,002",
                     "storage": "*",
                     "code": "file:../output/delegation_v0_5_full.wasm"
                 },
                 "''delegator_1___________________s1": {
                     "nonce": "*",
-                    "balance": "16,666,833",
+                    "balance": "33,333,333",
                     "storage": {},
                     "code": "",
                     "asyncCallData": "''delegation rewards claim"
                 },
                 "''delegator_2___________________s1": {
                     "nonce": "*",
-                    "balance": "0",
+                    "balance": "49,999,999",
+                    "storage": {},
+                    "code": ""
+                },
+                "''node_address__________________s1": {
+                    "nonce": "*",
+                    "balance": "116,666,666",
                     "storage": {},
                     "code": ""
                 },
