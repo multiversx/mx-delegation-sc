@@ -16,24 +16,13 @@ pub trait FundTransformationsModule {
     }
 
     fn liquidate_free_stake(&self, user_id: usize, amount: &mut BigUint) -> SCResult<()> {
-        // first withdraw from withdraw-only inactive stake
-        sc_try!(self.fund_module().destroy_max_for_user(
+        self.fund_module().destroy_max_for_user(
             amount,
             user_id,
-            FundType::WithdrawOnly));
-
-        // if that is not enough, retrieve proper inactive stake
-        if *amount > 0 {
-            sc_try!(self.fund_module().destroy_max_for_user(
-                amount,
-                user_id,
-                FundType::Waiting));
-        }
-        
-        Ok(())
+            FundType::WithdrawOnly)
     }
 
-    fn unstake_transf(&self, unstake_user_id: usize, amount: &mut BigUint) {
+    fn swap_user_active_to_unstaked(&self, unstake_user_id: usize, amount: &mut BigUint) {
         let current_bl_nonce = self.get_block_nonce();
         let _ = self.fund_module().split_convert_max_by_user(
             Some(amount),
@@ -52,6 +41,15 @@ pub trait FundTransformationsModule {
             interrupt,
             false,
         )
+    }
+
+    fn swap_user_waiting_to_withdraw_only(&self, user_id: usize, remaining: &mut BigUint) {
+        let _ = self.fund_module().split_convert_max_by_user(
+            Some(remaining),
+            user_id,
+            FundType::Waiting,
+            |_| Some(FundDescription::WithdrawOnly),
+        );
     }
 
     fn get_affected_users_of_swap_waiting_to_active<I: Fn() -> bool>(&self, amount: &BigUint, interrupt: I) -> (Vec<usize>, BigUint) {

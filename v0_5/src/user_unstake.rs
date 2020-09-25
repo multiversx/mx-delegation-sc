@@ -11,6 +11,7 @@ use user_fund_storage::types::*;
 use elrond_wasm_module_pause::*;
 
 use core::num::NonZeroUsize;
+use core::cmp::Ordering;
 
 imports!();
 
@@ -44,6 +45,22 @@ pub trait UserUnStakeModule {
     #[module(SettingsModuleImpl)]
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
+    fn validate_unstake_amount(&self, user_id: usize, amount: &BigUint) -> SCResult<()> {
+        let max_unstake = 
+            self.fund_view_module().get_user_stake_of_type(user_id, FundType::Waiting) +
+            self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active);
+        match amount.cmp(&max_unstake) {
+            Ordering::Greater =>
+                sc_error!("cannot unstake more than the user waiting + active stake"),
+            Ordering::Equal => Ok(()),
+            Ordering::Less => {
+                require!(*amount >= self.settings().get_minimum_stake(),
+                    "cannot unstake less than minimum stake");
+                Ok(())
+            }
+        }
+    }
+
     /// unStake - the user will announce that he wants to get out of the contract
     /// selected funds will change from active to inactive, but claimable only after unBond period ends
     #[endpoint(unStake)]
@@ -58,20 +75,25 @@ pub trait UserUnStakeModule {
             self.user_data().get_user_id(&caller),
             "only delegators can unstake");
 
-        // check that amount does not exceed existing active stake
-        let stake = self.fund_view_module().get_user_stake_of_type(unstake_user_id.get(), FundType::Active);
-        require!(amount <= stake,
-            "cannot offer more than the user active stake");
-        require!(amount == stake || amount >= self.settings().get_minimum_stake(),
-            "cannot unstake less than minimum stake");
+        // validate that amount does not exceed existing waiting + active stake
+        sc_try!(self.validate_unstake_amount(unstake_user_id.get(), &amount));
 
+        // first try to remove funds from waiting list
+        let mut remaining = amount;
+        self.fund_transf_module().swap_user_waiting_to_withdraw_only(unstake_user_id.get(), &mut remaining);
+
+        if remaining == 0 {
+            // waiting list entries covered the whole sum
+            return Ok(());
+        }
+
+        // compute rewards before converting Active -> UnStaked
         self.rewards().compute_one_user_reward(OWNER_USER_ID);
         self.rewards().compute_one_user_reward(unstake_user_id);
 
-        // convert Active of this user -> UnStaked
-        let mut unstake_remaining = amount;
-        self.fund_transf_module().unstake_transf(unstake_user_id.get(), &mut unstake_remaining);
-        require!(unstake_remaining == 0, "error converting stake to UnStaked");
+        // convert Active -> UnStaked
+        self.fund_transf_module().swap_user_active_to_unstaked(unstake_user_id.get(), &mut remaining);
+        require!(remaining == 0, "error converting Active to UnStaked");
 
         // move funds around
         sc_try!(self.user_stake().use_waiting_to_replace_unstaked());

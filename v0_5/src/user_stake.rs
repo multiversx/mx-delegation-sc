@@ -152,33 +152,6 @@ pub trait UserStakeModule {
         self.process_stake(payment)
     }
 
-    // WITHDRAW INACTIVE
-
-    #[endpoint(withdrawInactiveStake)]
-    fn withdraw_inactive_stake(&self, amount: BigUint) -> SCResult<()> {
-        require!(self.pause().not_paused(), "contract paused");
-
-        if amount == 0 {
-            return Ok(());
-        }
-
-        let caller = self.get_caller();
-        let user_id = self.user_data().get_user_id(&caller);
-        require!(user_id > 0,
-            "only delegators can withdraw inactive stake");
-
-        let mut amount_to_withdraw = amount.clone();
-        sc_try!(self.fund_transf_module().liquidate_free_stake(user_id, &mut amount_to_withdraw));
-        require!(amount_to_withdraw == 0,
-            "cannot withdraw more than inactive stake");
-
-        // send stake to delegator
-        self.send_tx(&caller, &amount, "delegation withdraw inactive stake");
-
-        self.events().unstake_event(&caller, &amount);
-        Ok(())
-    }
-
     /// Mostly invariant: modifyTotalDelegationCap can violate this rule.
     fn validate_user_minimum_stake(&self, user_id: usize) -> SCResult<()> {
         let waiting = self.fund_view_module().get_user_stake_of_type(user_id, FundType::Waiting);
