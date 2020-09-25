@@ -48,7 +48,11 @@ fn test_create_destroy() {
         fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true));
 
     let mut amount = RustBigUint::from(5000u32);
-    let result = transf_module.liquidate_free_stake(user_id, &mut amount);
+    transf_module.swap_user_waiting_to_withdraw_only(user_id, &mut amount);
+    assert_eq!(amount, RustBigUint::zero());
+
+    let mut amount = RustBigUint::from(5000u32);
+    let result = transf_module.liquidate_withdraw_only(user_id, &mut amount);
     assert!(result.is_ok());
     assert_eq!(amount, RustBigUint::zero());
 
@@ -119,7 +123,7 @@ fn test_full_cycle_1() {
 
     // Active -> Unstaked
     let mut amount = RustBigUint::from(5000u32);
-    transf_module.unstake_transf(user_id, &mut amount);
+    transf_module.swap_user_active_to_unstaked(user_id, &mut amount);
     assert_eq!(amount, RustBigUint::zero());
 
     fund_module_check::check_consistency(&fund_module, 3);
@@ -169,7 +173,7 @@ fn test_full_cycle_1() {
 
     // WithdrawOnly -> liquidate
     let mut amount = RustBigUint::from(5000u32);
-    let result = transf_module.liquidate_free_stake(user_id, &mut amount);
+    let result = transf_module.liquidate_withdraw_only(user_id, &mut amount);
     assert!(result.is_ok());
     assert_eq!(amount, RustBigUint::zero());
 
