@@ -81,7 +81,6 @@ pub trait UserUnStakeModule {
         // first try to remove funds from waiting list
         let mut remaining = amount;
         self.fund_transf_module().swap_user_waiting_to_withdraw_only(unstake_user_id.get(), &mut remaining);
-
         if remaining == 0 {
             // waiting list entries covered the whole sum
             return Ok(());
