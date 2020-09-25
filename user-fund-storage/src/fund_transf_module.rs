@@ -15,7 +15,7 @@ pub trait FundTransformationsModule {
         self.fund_module().increase_fund_balance(user_id, FundDescription::Waiting, balance);
     }
 
-    fn liquidate_free_stake(&self, user_id: usize, amount: &mut BigUint) -> SCResult<()> {
+    fn liquidate_withdraw_only(&self, user_id: usize, amount: &mut BigUint) -> SCResult<()> {
         self.fund_module().destroy_max_for_user(
             amount,
             user_id,

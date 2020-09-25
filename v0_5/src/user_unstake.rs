@@ -119,7 +119,7 @@ pub trait UserUnStakeModule {
         );
 
         let mut amount_to_withdraw = claimed_payments.clone();
-        sc_try!(self.fund_transf_module().liquidate_free_stake(caller_id, &mut amount_to_withdraw));
+        sc_try!(self.fund_transf_module().liquidate_withdraw_only(caller_id, &mut amount_to_withdraw));
         require!(amount_to_withdraw == 0, "cannot withdraw more than inactive stake");
 
         if claimed_payments > 0 {

@@ -52,7 +52,7 @@ fn test_create_destroy() {
     assert_eq!(amount, RustBigUint::zero());
 
     let mut amount = RustBigUint::from(5000u32);
-    let result = transf_module.liquidate_free_stake(user_id, &mut amount);
+    let result = transf_module.liquidate_withdraw_only(user_id, &mut amount);
     assert!(result.is_ok());
     assert_eq!(amount, RustBigUint::zero());
 
@@ -173,7 +173,7 @@ fn test_full_cycle_1() {
 
     // WithdrawOnly -> liquidate
     let mut amount = RustBigUint::from(5000u32);
-    let result = transf_module.liquidate_free_stake(user_id, &mut amount);
+    let result = transf_module.liquidate_withdraw_only(user_id, &mut amount);
     assert!(result.is_ok());
     assert_eq!(amount, RustBigUint::zero());
 
