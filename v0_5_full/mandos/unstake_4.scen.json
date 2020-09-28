@@ -135,7 +135,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-stake-by-type-1",
+            "txId": "check-stake-by-type-3",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",
@@ -217,7 +217,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-stake-by-type-2",
+            "txId": "check-stake-by-type-4",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",

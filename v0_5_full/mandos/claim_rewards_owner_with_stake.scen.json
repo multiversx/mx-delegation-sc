@@ -23,6 +23,7 @@
         },
         {
             "step": "scCall",
+            "comment": "unStake 1,000,000,000 from delegator_1 so that the first delegator has 33,(3)% stake, and the secon one 66,(6)%",
             "txId": "user-unstake",
             "tx": {
                 "from": "''delegator_1___________________s1",
