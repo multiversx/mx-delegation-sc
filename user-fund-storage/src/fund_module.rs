@@ -97,7 +97,7 @@ pub trait FundModule {
         direction: SwapDirection,
         mut closure: F)
     where 
-        F: FnMut(FundDescription, &BigUint),
+        F: FnMut(FundItem<BigUint>),
     {
         let user_list = self.get_fund_list_by_user(user_id, fund_type);
         let mut id = match direction {
@@ -106,11 +106,12 @@ pub trait FundModule {
         };
         while id > 0 {
             let fund_item = self.get_fund_by_id(id);
-            closure(fund_item.fund_desc, &fund_item.balance);
-            id = match direction {
+            let next_id = match direction {
                 SwapDirection::Forwards => fund_item.user_list_next,
                 SwapDirection::Backwards => fund_item.user_list_prev,
             };
+            closure(fund_item);
+            id = next_id;
         }
     }
 

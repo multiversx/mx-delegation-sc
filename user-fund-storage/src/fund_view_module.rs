@@ -168,9 +168,9 @@ pub trait FundViewModule {
                 user_id,
                 FundType::DeferredPayment,
                 SwapDirection::Forwards,
-                |fund_desc, balance| {
-                    if let FundDescription::DeferredPayment{ created } = fund_desc {
-                        result.push((balance.clone(), created));
+                |fund_item| {
+                    if let FundDescription::DeferredPayment{ created } = fund_item.fund_desc {
+                        result.push((fund_item.balance, created));
                     }
                 }
             );
