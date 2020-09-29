@@ -121,7 +121,7 @@ pub trait UserUnStakeModule {
 
         if amount_liquidated > 0 {
             // forward payment to seller
-            self.send_tx(&caller, &amount_liquidated, "payment for stake");
+            self.send_tx(&caller, &amount_liquidated, "delegation stake unbond");
         }
 
         Ok(())
