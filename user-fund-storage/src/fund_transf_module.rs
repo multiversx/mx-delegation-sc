@@ -91,24 +91,6 @@ pub trait FundTransformationsModule {
         );
     }
 
-    fn eligible_deferred_payment(&self, 
-        user_id: usize, 
-        n_blocks_before_claim: u64) -> BigUint {
-
-        let current_bl_nonce = self.get_block_nonce();
-        self.fund_module().query_sum_funds_by_user_type(
-            user_id,
-            FundType::DeferredPayment,
-            |fund_desc| {
-                if let FundDescription::DeferredPayment{ created } = fund_desc {
-                    current_bl_nonce >= created + n_blocks_before_claim 
-                } else {
-                    false
-                }
-            }
-        )
-    }
-
     fn swap_eligible_deferred_to_withdraw(&self,
         user_id: usize,
         n_blocks_before_claim: u64) -> BigUint {
