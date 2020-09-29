@@ -1,14 +1,9 @@
 imports!();
 
-// use crate::types::fund_list::*;
-// use crate::types::fund_item::*;
 use crate::types::fund_type::*;
-// use crate::node_config::PERCENTAGE_DENOMINATOR;
-
 
 use crate::fund_module::*;
 use crate::user_data::*;
-// use crate::settings::*;
 
 /// Storing total stake per type the same way as we store it for users, but with user_id 0.
 /// There can be no user with id 0, so the value is safe to use.
