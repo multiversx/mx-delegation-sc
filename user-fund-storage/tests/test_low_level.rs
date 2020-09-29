@@ -43,9 +43,8 @@ fn test_fund_inc_dec_1() {
     assert_eq!(1,
         fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true));
 
-    let mut destroy = RustBigUint::from(1234u32);
-    let sc_res = fund_module.destroy_max_for_user(&mut destroy, user_id, FundType::Waiting);
-    assert!(sc_res.is_ok());
+    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting);
+    assert_eq!(destroyed, RustBigUint::from(1234u32));
 
     fund_module_check::check_consistency(&fund_module, 3);
     assert_eq!(
@@ -80,28 +79,25 @@ fn test_fund_inc_dec_2() {
     assert_eq!(2,
         fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true));
 
-    let mut destroy = RustBigUint::from(1200u32);
-    let sc_res = fund_module.destroy_max_for_user(&mut destroy, user_id, FundType::Waiting);
-    assert!(sc_res.is_ok());
+    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting);
+    assert_eq!(destroyed, RustBigUint::from(1234u32));
 
     fund_module_check::check_consistency(&fund_module, 3);
     assert_eq!(
-        RustBigUint::from(34u32),
+        RustBigUint::from(0u32),
         fund_module.query_sum_funds_by_type(FundType::Waiting, |_, _| true));
-    assert_eq!(1,
+    assert_eq!(0,
         fund_module.count_fund_items_by_type(FundType::Waiting, |_, _| true));
     assert_eq!(
-        RustBigUint::from(34u32),
+        RustBigUint::from(0u32),
         fund_module.query_sum_funds_by_user_type(user_id, FundType::Waiting, |_| true));
-    assert_eq!(1,
+    assert_eq!(0,
         fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true));
 
-    let mut destroy = RustBigUint::from(1000034u32);
-    let sc_res = fund_module.destroy_max_for_user(&mut destroy, user_id, FundType::Waiting);
-    assert!(sc_res.is_ok());
+    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting);
+    assert_eq!(destroyed, RustBigUint::from(0u32));
 
     fund_module_check::check_consistency(&fund_module, 3);
-    assert_eq!(RustBigUint::from(1000000u32), destroy);
 
     assert_eq!(
         RustBigUint::zero(),
@@ -135,21 +131,19 @@ fn test_fund_inc_dec_3() {
     assert_eq!(2,
         fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true));
 
-    let mut destroy = RustBigUint::from(1230u32);
-    let sc_res = fund_module.destroy_max_for_user(&mut destroy, user_id, FundType::Waiting);
-    assert!(sc_res.is_ok());
-    assert_eq!(destroy, RustBigUint::zero());
+    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting);
+    assert_eq!(destroyed, RustBigUint::from(1234u32));
 
     fund_module_check::check_consistency(&fund_module, 3);
     assert_eq!(
-        RustBigUint::from(4u32),
+        RustBigUint::from(0u32),
         fund_module.query_sum_funds_by_type(FundType::Waiting, |_, _| true));
-    assert_eq!(1,
+    assert_eq!(0,
         fund_module.count_fund_items_by_type(FundType::Waiting, |_, _| true));
     assert_eq!(
-        RustBigUint::from(4u32),
+        RustBigUint::from(0u32),
         fund_module.query_sum_funds_by_user_type(user_id, FundType::Waiting, |_| true));
-    assert_eq!(1,
+    assert_eq!(0,
         fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true));
 }
 
