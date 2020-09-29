@@ -16,8 +16,7 @@ pub trait FundTransformationsModule {
     }
 
     fn liquidate_all_withdraw_only(&self, user_id: usize) -> BigUint {
-        self.fund_module().destroy_max_for_user(
-            None,
+        self.fund_module().destroy_all_for_user(
             user_id,
             FundType::WithdrawOnly)
     }
