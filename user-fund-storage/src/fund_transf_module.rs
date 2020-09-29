@@ -15,9 +15,9 @@ pub trait FundTransformationsModule {
         self.fund_module().increase_fund_balance(user_id, FundDescription::Waiting, balance);
     }
 
-    fn liquidate_withdraw_only(&self, user_id: usize, amount: &mut BigUint) -> SCResult<()> {
+    fn liquidate_all_withdraw_only(&self, user_id: usize) -> BigUint {
         self.fund_module().destroy_max_for_user(
-            amount,
+            None,
             user_id,
             FundType::WithdrawOnly)
     }
@@ -110,7 +110,7 @@ pub trait FundTransformationsModule {
         )
     }
 
-    fn claim_all_eligible_deferred_payments(&self,
+    fn swap_eligible_deferred_to_withdraw(&self,
         user_id: usize,
         n_blocks_before_claim: u64) -> BigUint {
         

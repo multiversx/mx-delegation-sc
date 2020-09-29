@@ -421,21 +421,39 @@ pub trait FundModule {
     }
 
     fn destroy_max_for_user(&self,
-        amount: &mut BigUint,
+        mut opt_max_amount: Option<&mut BigUint>,
         user_id: usize,
-        source_type: FundType) -> SCResult<()> {
+        source_type: FundType) -> BigUint {
 
         let user_list = self.get_fund_list_by_user(user_id, source_type);
         let mut id = user_list.first;
+        let mut total_destroyed = BigUint::zero();
 
-        while id > 0 && *amount > 0 {
+        while id > 0 {
+            if let Some(max_amount) = &opt_max_amount {
+                if **max_amount == 0 {
+                    break; // do not destroy anything after the max_amount is completely drained
+                }
+            }
+
             let mut fund_item = self.get_mut_fund_by_id(id);
             let next_id = fund_item.user_list_next; // save next id now, because fund_item can be destroyed
 
-            let _ = self.decrease_fund_balance(amount, &mut *fund_item);
+            // extract / decrease
+            let extracted_balance: BigUint;
+            if let Some(max_amount) = opt_max_amount {
+                extracted_balance = self.decrease_fund_balance(max_amount, &mut *fund_item);
+                opt_max_amount = Some(max_amount); // move back
+            } else {
+                extracted_balance = self.delete_fund(&mut *fund_item);
+            }
+            
+            // add to sum
+            total_destroyed += &extracted_balance;
+
             id = next_id;
         }
 
-        Ok(())
+        total_destroyed
     }
 }
