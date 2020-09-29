@@ -156,4 +156,25 @@ pub trait FundViewModule {
     fn get_total_stake_by_type_endpoint(&self) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
+
+    // DEFERRED PAYMENT BREAKDOWN
+
+    #[view(getUserDeferredPaymentList)]
+    fn get_user_deferred_payment_list(&self, user_address: &Address) -> MultiResultVec<(BigUint, u64)> {
+        let mut result = Vec::<(BigUint, u64)>::new();
+        let user_id = self.user_data().get_user_id(&user_address);
+        if user_id > 0 {
+            let _ = self.fund_module().foreach_fund_by_user_type(
+                user_id,
+                FundType::DeferredPayment,
+                SwapDirection::Forwards,
+                |fund_desc, balance| {
+                    if let FundDescription::DeferredPayment{ created } = fund_desc {
+                        result.push((balance.clone(), created));
+                    }
+                }
+            );
+        }
+        result.into()
+    }
 }
