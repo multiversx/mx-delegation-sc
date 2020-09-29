@@ -113,18 +113,16 @@ pub trait UserUnStakeModule {
         require!(caller_id > 0, "unknown caller");
 
         let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
-        let claimed_payments = self.fund_transf_module().claim_all_eligible_deferred_payments(
+        let _ = self.fund_transf_module().swap_eligible_deferred_to_withdraw(
             caller_id,
             n_blocks_before_unbond
         );
 
-        let mut amount_to_withdraw = claimed_payments.clone();
-        sc_try!(self.fund_transf_module().liquidate_withdraw_only(caller_id, &mut amount_to_withdraw));
-        require!(amount_to_withdraw == 0, "cannot withdraw more than inactive stake");
+        let amount_liquidated = self.fund_transf_module().liquidate_all_withdraw_only(caller_id);
 
-        if claimed_payments > 0 {
+        if amount_liquidated > 0 {
             // forward payment to seller
-            self.send_tx(&caller, &claimed_payments, "payment for stake");
+            self.send_tx(&caller, &amount_liquidated, "payment for stake");
         }
 
         Ok(())
