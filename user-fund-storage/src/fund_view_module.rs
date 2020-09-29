@@ -21,6 +21,8 @@ pub trait FundViewModule {
     #[module(UserDataModuleImpl)]
     fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
 
+    // UTILS
+
     fn get_user_stake_of_type(&self, user_id: usize, fund_type: FundType) -> BigUint {
         if user_id == USER_STAKE_TOTALS_ID {
             let type_list = self.fund_module().get_fund_list_by_type(fund_type);
@@ -41,6 +43,8 @@ pub trait FundViewModule {
         sum
     }
 
+    // GRAND TOTAL
+
     #[view(totalStake)]
     fn get_total_stake(&self) -> BigUint {
         self.get_user_total_stake(USER_STAKE_TOTALS_ID)
@@ -57,26 +61,70 @@ pub trait FundViewModule {
         }
     }
 
-    #[view(getUserActiveStake)]
-    fn get_user_active_stake_endpoint(&self, user_address: Address) -> BigUint {
+    // PER USER+TYPE
+
+    fn get_user_stake_of_type_by_address(&self, user_address: Address, fund_type: FundType) -> BigUint {
         let user_id = self.user_data().get_user_id(&user_address);
         if user_id == 0 {
             BigUint::zero()
         } else {
-            self.get_user_stake_of_type(user_id, FundType::Active)
+            self.get_user_stake_of_type(user_id, fund_type)
         }
     }
 
-    #[view(getUserInactiveStake)]
-    fn get_user_inactive_stake_endpoint(&self, user_address: Address) -> BigUint {
-        let user_id = self.user_data().get_user_id(&user_address);
-        if user_id == 0 {
-            BigUint::zero()
-        } else {
-            self.get_user_stake_of_type(user_id, FundType::Waiting) +
-            self.get_user_stake_of_type(user_id, FundType::WithdrawOnly)
-        }
+    #[view(getUserWithdrawOnlyStake)]
+    fn get_user_withdraw_only_stake(&self, user_address: Address) -> BigUint {
+        self.get_user_stake_of_type_by_address(user_address, FundType::WithdrawOnly)
     }
+
+    #[view(getUserWaitingStake)]
+    fn get_user_waiting_stake(&self, user_address: Address) -> BigUint {
+        self.get_user_stake_of_type_by_address(user_address, FundType::Waiting)
+    }
+
+    #[view(getUserActiveStake)]
+    fn get_user_active_stake(&self, user_address: Address) -> BigUint {
+        self.get_user_stake_of_type_by_address(user_address, FundType::Active)
+    }
+
+    #[view(getUserUnstakedStake)]
+    fn get_user_unstaked_stake(&self, user_address: Address) -> BigUint {
+        self.get_user_stake_of_type_by_address(user_address, FundType::UnStaked)
+    }
+
+    #[view(getUserDeferredPaymentStake)]
+    fn get_user_deferred_payment_stake(&self, user_address: Address) -> BigUint {
+        self.get_user_stake_of_type_by_address(user_address, FundType::DeferredPayment)
+    }
+
+    // TOTAL PER TYPE
+
+    #[view(getTotalWithdrawOnlyStake)]
+    fn get_total_withdraw_only_stake(&self) -> BigUint {
+        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly)
+    }
+
+    #[view(getTotalWaitingStake)]
+    fn get_total_waiting_stake(&self) -> BigUint {
+        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting)
+    }
+
+    #[view(getTotalActiveStake)]
+    fn get_total_active_stake(&self) -> BigUint {
+        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active)
+    }
+
+    #[view(getTotalUnstakedStake)]
+    fn get_total_unstaked_stake(&self) -> BigUint {
+        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked)
+    }
+
+    #[view(getTotalDeferredPaymentStake)]
+    fn get_total_deferred_payment_stake(&self) -> BigUint {
+        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::DeferredPayment)
+    }
+
+    // BREAKDOWN BY TYPE
 
     fn get_user_stake_by_type(&self, user_id: usize) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
         (
@@ -108,16 +156,4 @@ pub trait FundViewModule {
     fn get_total_stake_by_type_endpoint(&self) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
-
-    #[view(getTotalActiveStake)]
-    fn get_total_active_stake(&self) -> BigUint {
-        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active)
-    }
-
-    #[view(getTotalInactiveStake)]
-    fn get_total_inactive_stake(&self) -> BigUint {
-        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting) +
-        self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly)
-    }
-
 }
