@@ -146,7 +146,7 @@ pub trait UserUnStakeModule {
         } else {
             let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
             self.fund_view_module().eligible_deferred_payment(user_id, n_blocks_before_unbond) +
-            self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active)
+            self.fund_view_module().get_user_stake_of_type(user_id, FundType::WithdrawOnly)
         }
     }
 }
