@@ -91,6 +91,30 @@ pub trait FundModule {
         sum
     }
 
+    fn foreach_fund_by_user_type<F>(&self,
+        user_id: usize,
+        fund_type: FundType, 
+        direction: SwapDirection,
+        mut closure: F)
+    where 
+        F: FnMut(FundItem<BigUint>),
+    {
+        let user_list = self.get_fund_list_by_user(user_id, fund_type);
+        let mut id = match direction {
+            SwapDirection::Forwards => user_list.first,
+            SwapDirection::Backwards => user_list.last,
+        };
+        while id > 0 {
+            let fund_item = self.get_fund_by_id(id);
+            let next_id = match direction {
+                SwapDirection::Forwards => fund_item.user_list_next,
+                SwapDirection::Backwards => fund_item.user_list_prev,
+            };
+            closure(fund_item);
+            id = next_id;
+        }
+    }
+
     /// Mostly written for testing. The contract shouldn't care how many items there are in the list.
     fn count_fund_items_by_type<F>(&self, fund_type: FundType, filter: F) -> usize 
     where 

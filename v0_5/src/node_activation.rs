@@ -40,6 +40,9 @@ pub trait ContractStakeModule {
 
         only_owner!(self, "only owner allowed to stake nodes");
 
+        require!(!self.settings().is_bootstrap_mode(),
+            "cannot stake nodes in bootstrap mode");
+
         require!(self.rewards().total_unprotected() >= amount_to_stake,
             "not enough funds in contract to stake nodes");
 

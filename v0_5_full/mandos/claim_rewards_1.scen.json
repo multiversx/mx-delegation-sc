@@ -1,5 +1,5 @@
 {
-    "name": "increase delegation cap scenario",
+    "name": "claim rewards scenario",
     "steps": [
         {
             "step": "externalSteps",

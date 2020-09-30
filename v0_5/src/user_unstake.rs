@@ -81,7 +81,6 @@ pub trait UserUnStakeModule {
         // first try to remove funds from waiting list
         let mut remaining = amount;
         self.fund_transf_module().swap_user_waiting_to_withdraw_only(unstake_user_id.get(), &mut remaining);
-
         if remaining == 0 {
             // waiting list entries covered the whole sum
             return Ok(());
@@ -104,6 +103,17 @@ pub trait UserUnStakeModule {
         Ok(())
     }
 
+    #[view(getUnStakeable)]
+    fn get_unstakeable(&self, user_address: Address) -> BigUint {
+        let user_id = self.user_data().get_user_id(&user_address);
+        if user_id == 0 {
+            BigUint::zero()
+        } else {
+            self.fund_view_module().get_user_stake_of_type(user_id, FundType::Waiting) +
+            self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active)
+        }
+    }
+
     #[endpoint(unBond)]
     fn unbond_user(&self) -> SCResult<()> {
         require!(self.pause().not_paused(), "contract paused");
@@ -122,9 +132,21 @@ pub trait UserUnStakeModule {
 
         if amount_liquidated > 0 {
             // forward payment to seller
-            self.send_tx(&caller, &amount_liquidated, "payment for stake");
+            self.send_tx(&caller, &amount_liquidated, "delegation stake unbond");
         }
 
         Ok(())
+    }
+
+    #[view(getUnBondable)]
+    fn get_unbondable(&self, user_address: Address) -> BigUint {
+        let user_id = self.user_data().get_user_id(&user_address);
+        if user_id == 0 {
+            BigUint::zero()
+        } else {
+            let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
+            self.fund_view_module().eligible_deferred_payment(user_id, n_blocks_before_unbond) +
+            self.fund_view_module().get_user_stake_of_type(user_id, FundType::WithdrawOnly)
+        }
     }
 }
