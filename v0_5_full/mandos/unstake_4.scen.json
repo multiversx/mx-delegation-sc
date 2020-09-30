@@ -217,6 +217,27 @@
         },
         {
             "step": "scCall",
+            "comment": "unbond after unbonding period over should work",
+            "txId": "unBond",
+            "tx": {
+                "from": "''delegator_2___________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "unBond",
+                "arguments": [],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
             "txId": "check-stake-by-type-4",
             "tx": {
                 "from": "''someone_______________________s1",
