@@ -19,6 +19,14 @@ pub trait UserDataModule {
     #[storage_get("user_address")]
     fn get_user_address(&self, user_id: usize) -> Address;
 
+    fn is_empty_user_address(&self, user_id: usize) -> bool {
+        // TODO: make this pattern into an attribute just like storage_get/storage_set in elrond_wasm
+        // something like storage_is_empty
+        let mut key = b"user_address".to_vec();
+        let _ = user_id.dep_encode_to(&mut key);
+        self.storage_load_len(&key[..]) > 0
+    }
+
     #[storage_set("user_address")]
     fn set_user_address(&self, user_id: usize, address: &Address);
 
@@ -46,10 +54,12 @@ pub trait UserDataModule {
         if user_id == 0 {
             user_id = self.new_user();
             self.set_user_id(&address, user_id);
+            self.set_user_address(user_id, &address);
+        } else if self.is_empty_user_address(user_id) {
+            // update address if missing,
+            // because there are some users without address entries left over from genesis
+            self.set_user_address(user_id, &address);
         }
-        // update address every time,
-        // because there are some users without address entries left over from genesis
-        self.set_user_address(user_id, &address);
         user_id
     }
 
