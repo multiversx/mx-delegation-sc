@@ -22,7 +22,7 @@ fn test_fund_type_serialization() {
 #[test]
 fn test_fund_description_serialization() {
     check(FundDescription::WithdrawOnly);
-    check(FundDescription::Waiting);
+    check(FundDescription::Waiting{ created: 31 });
     check(FundDescription::Active);
     check(FundDescription::UnStaked{ created: 5 });
     check(FundDescription::DeferredPayment{ created: 20 });

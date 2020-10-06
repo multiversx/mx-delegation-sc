@@ -12,7 +12,13 @@ pub trait FundTransformationsModule {
     fn fund_module(&self) -> FundModuleImpl<T, BigInt, BigUint>;
 
     fn create_waiting(&self, user_id: usize, balance: BigUint) {
-        self.fund_module().increase_fund_balance(user_id, FundDescription::Waiting, balance);
+        let current_bl_nonce = self.get_block_nonce();
+        self.fund_module().increase_fund_balance(
+            user_id,
+            FundDescription::Waiting{
+                created: current_bl_nonce,
+            },
+            balance);
     }
 
     fn liquidate_all_withdraw_only(&self, user_id: usize) -> BigUint {

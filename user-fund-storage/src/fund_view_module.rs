@@ -197,4 +197,21 @@ pub trait FundViewModule {
             }
         )
     }
+
+    // FULL WAITING LIST
+
+    #[view(getFullWaitingList)]
+    fn get_full_waiting_list(&self) -> MultiResultVec<MultiResult3<usize, BigUint, u64>> {
+        let mut result = Vec::<MultiResult3<usize, BigUint, u64>>::new();
+        let _ = self.fund_module().foreach_fund_by_type(
+            FundType::Waiting,
+            SwapDirection::Forwards,
+            |fund_item| {
+                if let FundDescription::Waiting{ created } = fund_item.fund_desc {
+                    result.push(MultiResult3::from((fund_item.user_id, fund_item.balance, created)));
+                }
+            }
+        );
+        result.into()
+    }
 }
