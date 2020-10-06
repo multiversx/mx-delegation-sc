@@ -50,6 +50,7 @@ pub trait UserStakeModule {
         if user_id == 0 {
             user_id = self.user_data().new_user();
             self.user_data().set_user_id(&caller, user_id);
+            self.user_data().set_user_address(user_id, &caller);
         }
 
         // log staking event

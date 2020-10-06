@@ -15,6 +15,13 @@ pub trait UserDataModule {
     #[storage_set("user_id")]
     fn set_user_id(&self, address: &Address, user_id: usize);
 
+    #[view(getUserAddress)]
+    #[storage_get("user_address")]
+    fn get_user_address(&self, user_id: usize) -> Address;
+
+    #[storage_set("user_address")]
+    fn set_user_address(&self, user_id: usize, address: &Address);
+
     /// Retrieves the number of delegtors, including the owner,
     /// even if they no longer have anything in the contract.
     #[view(getNumUsers)]
@@ -32,5 +39,15 @@ pub trait UserDataModule {
         num_users += 1;
         self.set_num_users(num_users);
         num_users
+    }
+
+    #[endpoint(updateUserAddress)]
+    fn update_user_address(&self, #[var_args] addresses: VarArgs<Address>) -> SCResult<()> {
+        for address in addresses.into_vec() {
+            let user_id = self.get_user_id(&address);
+            require!(user_id > 0, "unknown address");
+            self.set_user_address(user_id, &address);
+        }
+        Ok(())
     }
 }
