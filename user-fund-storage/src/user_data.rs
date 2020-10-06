@@ -46,8 +46,10 @@ pub trait UserDataModule {
         if user_id == 0 {
             user_id = self.new_user();
             self.set_user_id(&address, user_id);
-            self.set_user_address(user_id, &address);
         }
+        // update address every time,
+        // because there are some users without address entries left over from genesis
+        self.set_user_address(user_id, &address);
         user_id
     }
 
