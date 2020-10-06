@@ -18,6 +18,28 @@
             "path": "steps/stake_1.steps.json"
         }, 
         {
+            "step": "scCall",
+            "txId": "get-total-cumulated-1",
+            "tx": {
+                "from": "''someone_______________________s1",
+                "to": "''delegation_contract___________s1",
+                "value": "0",
+                "function": "getFullWaitingList",
+                "arguments": [],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [
+                    "''delegator_1___________________s1","100,000,000,000,000","0","''delegator_2___________________s1","200,000,000,000,000","0"
+                ],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
             "step": "externalSteps",
             "path": "steps/increase_cap.steps.json"
         },
