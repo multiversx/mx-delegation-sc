@@ -6,7 +6,7 @@ pub enum FundDescription {
     WithdrawOnly,
 
     /// Inactive stake, waiting in the queue to be activated.
-    Waiting,
+    Waiting{ created: u64 },
 
     /// Stake is locked in the protocol and rewards are coming in.
     /// Users cannot withdraw stake, but they can exchange their share of the total stake amongst each other.
@@ -93,7 +93,7 @@ impl FundDescription {
     pub fn fund_type(&self) -> FundType {
         match self {
             FundDescription::WithdrawOnly => FundType::WithdrawOnly,
-            FundDescription::Waiting => FundType::Waiting,
+            FundDescription::Waiting{..} => FundType::Waiting,
             FundDescription::Active => FundType::Active,
             FundDescription::UnStaked{..} => FundType::UnStaked,
             FundDescription::DeferredPayment{..} => FundType::DeferredPayment,
@@ -117,7 +117,10 @@ impl Encode for FundDescription {
 	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
             FundDescription::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
-            FundDescription::Waiting => { dest.push_byte(DISCR_WAITING); },
+            FundDescription::Waiting{ created } => {
+                dest.push_byte(DISCR_WAITING);
+                created.dep_encode_to(dest)?;
+            },
             FundDescription::Active => { dest.push_byte(DISCR_ACTIVE); },
             FundDescription::UnStaked{ created } => {
                 dest.push_byte(DISCR_UNSTAKED);
@@ -137,7 +140,9 @@ impl Decode for FundDescription {
         let discriminant = input.read_byte()?;
         match discriminant {
             DISCR_WITHDRAW_ONLY => Ok(FundDescription::WithdrawOnly),
-            DISCR_WAITING => Ok(FundDescription::Waiting),
+            DISCR_WAITING => Ok(FundDescription::Waiting{
+                created: u64::dep_decode(input)?
+            }),
             DISCR_ACTIVE => Ok(FundDescription::Active),
             DISCR_UNSTAKED => Ok(FundDescription::UnStaked{
                 created: u64::dep_decode(input)?
