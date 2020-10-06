@@ -46,12 +46,7 @@ pub trait UserStakeModule {
         // we use user id as an intermediate identifier between user address and data,
         // because we might at some point need to iterate over all user data
         let caller = self.get_caller();
-        let mut user_id = self.user_data().get_user_id(&caller);
-        if user_id == 0 {
-            user_id = self.user_data().new_user();
-            self.user_data().set_user_id(&caller, user_id);
-            self.user_data().set_user_address(user_id, &caller);
-        }
+        let user_id = self.user_data().get_or_create_user(&caller);
 
         // log staking event
         self.events().stake_event(&caller, &payment);

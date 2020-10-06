@@ -41,6 +41,16 @@ pub trait UserDataModule {
         num_users
     }
 
+    fn get_or_create_user(&self, address: &Address) -> usize{
+        let mut user_id = self.get_user_id(&address);
+        if user_id == 0 {
+            user_id = self.new_user();
+            self.set_user_id(&address, user_id);
+            self.set_user_address(user_id, &address);
+        }
+        user_id
+    }
+
     #[endpoint(updateUserAddress)]
     fn update_user_address(&self, #[var_args] addresses: VarArgs<Address>) -> SCResult<()> {
         for address in addresses.into_vec() {
