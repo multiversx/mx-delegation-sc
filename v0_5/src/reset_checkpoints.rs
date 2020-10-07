@@ -1,18 +1,18 @@
 
 use crate::rewards::*;
 use crate::settings::*;
-use user_fund_storage::user_data::*;
-use user_fund_storage::fund_transf_module::*;
-use user_fund_storage::fund_view_module::*;
-use user_fund_storage::types::*;
+use super::user_fund_storage::user_data::*;
+use super::user_fund_storage::fund_transf_module::*;
+use super::user_fund_storage::fund_view_module::*;
+use super::user_fund_storage::types::*;
 use crate::reset_checkpoint_types::*;
-use elrond_wasm_module_features::*;
-use elrond_wasm_module_pause::*;
+use super::elrond_wasm_module_features::*;
+use super::elrond_wasm_module_pause::*;
 use core::cmp::Ordering;
 
 imports!();
 
-pub const STOP_AT_GASLIMIT: i64 = 1000000;
+pub const STOP_AT_GASLIMIT: u64 = 1000000;
 
 #[elrond_wasm_derive::module(ResetCheckpointsModuleImpl)]
 pub trait ResetCheckpointsModule {

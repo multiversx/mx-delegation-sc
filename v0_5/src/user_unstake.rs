@@ -4,11 +4,11 @@ use crate::rewards::*;
 use crate::settings::*;
 use crate::reset_checkpoints::*;
 use crate::user_stake::*;
-use user_fund_storage::user_data::*;
-use user_fund_storage::fund_transf_module::*;
-use user_fund_storage::fund_view_module::*;
-use user_fund_storage::types::*;
-use elrond_wasm_module_pause::*;
+use super::user_fund_storage::user_data::*;
+use super::user_fund_storage::fund_transf_module::*;
+use super::user_fund_storage::fund_view_module::*;
+use super::user_fund_storage::types::*;
+use super::elrond_wasm_module_pause::*;
 
 use core::num::NonZeroUsize;
 use core::cmp::Ordering;

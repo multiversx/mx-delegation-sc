@@ -6,7 +6,7 @@
 
 imports!();
 
-use node_storage::types::bls_key::*;
+use super::node_storage::types::bls_key::*;
 
 #[elrond_wasm_derive::module(AuctionMockStorageImpl)]
 pub trait AuctionMockStorage {
