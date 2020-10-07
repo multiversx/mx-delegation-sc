@@ -74,22 +74,6 @@ pub trait NodeModule {
         }
     }
 
-    /// True if all nodes are either inactive or removed.
-    /// Some operations (like setServiceFee and setStakePerNode) can only be performed when all nodes are idle.
-    #[view(allNodesIdle)]
-    fn all_nodes_idle(&self) -> bool {
-        let mut i = self.get_num_nodes();
-        while i > 0 {
-            let node_state = self.get_node_state(i);
-            if node_state != NodeState::Inactive && node_state != NodeState::Removed {
-                return false;
-            }
-            i -= 1;
-        }
-
-        true
-    }
-
     #[view(getAllNodeStates)]
     fn get_all_node_states(&self) -> MultiResultVec<Vec<u8>> {
         let num_nodes = self.get_num_nodes();
