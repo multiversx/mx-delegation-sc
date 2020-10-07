@@ -15,7 +15,15 @@ fn contract_map() -> ContractMap<TxContext> {
     contract_map.register_contract(
         "file:../../output/delegation_v0_5_full.wasm",
         Box::new(|context| Box::new(DelegationImpl::new(context))));
+    contract_map.register_contract(
+        "file:../output/delegation_v0_5_full.wasm",
+        Box::new(|context| Box::new(DelegationImpl::new(context))));
     contract_map
+}
+
+#[test]
+fn set_num_blocks_before_unbond() {
+    parse_execute_mandos("mandos/set_num_blocks_before_unbond.scen.json", &contract_map());
 }
 
 #[test]
