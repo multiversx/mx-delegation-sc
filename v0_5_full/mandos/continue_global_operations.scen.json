@@ -112,7 +112,7 @@
                 "arguments": [
                     "2000"
                 ],
-                "gasLimit": "1,000,000",
+                "gasLimit": "900,000",
                 "gasPrice": "0"
             },
             "expect": {
@@ -178,7 +178,7 @@
                 "value": "0",
                 "function": "continueGlobalOperation",
                 "arguments": [],
-                "gasLimit": "1,000,000",
+                "gasLimit": "900,000",
                 "gasPrice": "0"
             },
             "expect": {

@@ -1,7 +1,7 @@
 
-use user_fund_storage::user_data::*;
-use user_fund_storage::fund_transf_module::*;
-use node_storage::node_config::*;
+use super::user_fund_storage::user_data::*;
+use super::user_fund_storage::fund_transf_module::*;
+use super::node_storage::node_config::*;
 use crate::rewards::*;
 use crate::reset_checkpoints::*;
 use crate::reset_checkpoint_types::*;

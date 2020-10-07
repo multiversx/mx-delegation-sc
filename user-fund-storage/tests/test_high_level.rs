@@ -5,30 +5,12 @@ use user_fund_storage::types::*;
 
 use elrond_wasm::*;
 use elrond_wasm_debug::*;
-use elrond_wasm_debug::HashMap;
 
 mod fund_module_check;
 
-static ADDR: [u8; 32] = [11u8; 32];
-
-fn set_up_module_to_test() -> FundTransformationsModuleImpl<ArwenMockRef, RustBigInt, RustBigUint> {
-    let mock_ref = ArwenMockState::new_ref();
-    mock_ref.add_account(AccountData{
-        address: ADDR.into(),
-        nonce: 0,
-        balance: 0.into(),
-        storage: HashMap::new(),
-        contract: None,
-    });
-    mock_ref.set_dummy_tx(&ADDR.into());
-
-    FundTransformationsModuleImpl::new(mock_ref.clone())
-}
-
-
 #[test]
 fn test_create_destroy() {
-    let transf_module = set_up_module_to_test();
+    let transf_module = FundTransformationsModuleImpl::new(TxContext::dummy());();
     let fund_module = transf_module.fund_module();
 
     let user_id = 2;
@@ -70,7 +52,7 @@ fn test_create_destroy() {
 
 #[test]
 fn test_full_cycle_1() {
-    let transf_module = set_up_module_to_test();
+    let transf_module = FundTransformationsModuleImpl::new(TxContext::dummy());();
     let fund_module = transf_module.fund_module();
 
     let user_id = 2;

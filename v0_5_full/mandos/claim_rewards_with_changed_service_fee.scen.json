@@ -52,7 +52,7 @@
         },
         {
             "step": "scCall",
-            "txId": "-set-service-fee-",
+            "txId": "-set-service-fee-partial-",
             "tx": {
                 "from": "''node_address__________________s1",
                 "to": "''delegation_contract___________s1",
@@ -61,7 +61,7 @@
                 "arguments": [
                     "2000"
                 ],
-                "gasLimit": "1,000,000",
+                "gasLimit": "900,000",
                 "gasPrice": "0"
             },
             "expect": {

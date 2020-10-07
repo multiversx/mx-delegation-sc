@@ -4,14 +4,13 @@ version = "0.5.0"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
-[dependencies]
-elrond-wasm = "0.6.2"
-elrond-wasm-node = "0.6.2"
-elrond-wasm-derive = "0.6.2"
+[features]
+wasm-output-mode = ["elrond-wasm-node"]
 
-# elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
-# elrond-wasm-node = { path = "../../elrond-wasm-rs/elrond-wasm-node" }
-# elrond-wasm-derive = { path = "../../elrond-wasm-rs/elrond-wasm-derive" }
+[dependencies]
+elrond-wasm = "0.7.1"
+elrond-wasm-derive = "0.7.1"
+elrond-wasm-node = { version = "0.7.1", optional = true }
 
 [dev-dependencies]
-elrond-wasm-debug = "0.6.2"
+elrond-wasm-debug = "0.7.1"
