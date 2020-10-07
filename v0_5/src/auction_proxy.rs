@@ -1,7 +1,7 @@
 
 imports!();
 
-use node_storage::types::*;
+use super::node_storage::types::*;
 
 #[elrond_wasm_derive::callable(AuctionProxy)]
 pub trait Auction {

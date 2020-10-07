@@ -4,13 +4,23 @@ version = "0.3.4"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
+[features]
+wasm-output-mode = [
+    "elrond-wasm-node",
+    "node-storage-wasm",
+]
+
+default = [
+    "node-storage-default",
+]
+
 [dependencies]
-node-storage = { path = "../node-storage" }
+node-storage-wasm = { package = "node-storage", path = "../node-storage", features = ["wasm-output-mode"], optional = true }
+node-storage-default = { package = "node-storage", path = "../node-storage", optional = true }
 
-elrond-wasm = "0.6.2"
-elrond-wasm-node = "0.6.2"
-elrond-wasm-derive = "0.6.2"
+elrond-wasm = "0.7.0"
+elrond-wasm-derive = "0.7.0"
+elrond-wasm-node = { version = "0.7.0", optional = true }
 
-# elrond-wasm = { path = "../../elrond-wasm-rs/elrond-wasm" }
-# elrond-wasm-node = { path = "../../elrond-wasm-rs/elrond-wasm-node" }
-# elrond-wasm-derive = { path = "../../elrond-wasm-rs/elrond-wasm-derive" }
+[dev-dependencies]
+elrond-wasm-debug = "0.7.0"

@@ -3,6 +3,11 @@
 #![allow(unused_attributes)]
 #![allow(clippy::string_lit_as_bytes)]
 
+#[cfg(feature = "delegation_v0_5_default")]
+pub use delegation_v0_5_default as delegation_v0_5;
+#[cfg(feature = "delegation_v0_5_wasm")]
+pub use delegation_v0_5_wasm as delegation_v0_5;
+
 use delegation_v0_5::*;
 
 imports!();

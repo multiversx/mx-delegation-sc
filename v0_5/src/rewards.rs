@@ -1,15 +1,15 @@
 
-use user_fund_storage::types::fund_type::*;
+use super::user_fund_storage::types::fund_type::*;
 
 use super::settings::*;
 use crate::events::*;
 use crate::reset_checkpoints::*;
-use node_storage::node_config::*;
-use user_fund_storage::user_data::*;
-use user_fund_storage::fund_transf_module::*;
-use user_fund_storage::fund_view_module::*;
-use elrond_wasm_module_features::*;
-use elrond_wasm_module_pause::*;
+use super::node_storage::node_config::*;
+use super::user_fund_storage::user_data::*;
+use super::user_fund_storage::fund_transf_module::*;
+use super::user_fund_storage::fund_view_module::*;
+use super::elrond_wasm_module_features::*;
+use super::elrond_wasm_module_pause::*;
 use core::num::NonZeroUsize;
 
 imports!();

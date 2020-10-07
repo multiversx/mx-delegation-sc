@@ -15,7 +15,7 @@ debug = false
 panic = "abort"
 
 [dependencies]
-delegation_v0_5_full = { path = ".." }
-elrond-wasm-output = { version="0.6.2", features=["wasm-output-mode"]}
+delegation_v0_5_full = { path = "..", features=["wasm-output-mode"], default-features = false }
+elrond-wasm-output = { version="0.7.0", features=["wasm-output-mode"] }
 
 [workspace]

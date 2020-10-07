@@ -8,7 +8,7 @@ use elrond_wasm_debug::*;
 imports!();
 
 pub fn check_consistency_for_type(
-    module: &FundModuleImpl<ArwenMockRef, RustBigInt, RustBigUint>, 
+    module: &FundModuleImpl<TxContext, RustBigInt, RustBigUint>, 
     fund_type: FundType) {
 
     let mut sum = RustBigUint::zero();
@@ -34,7 +34,7 @@ pub fn check_consistency_for_type(
 }
 
 pub fn check_consistency_for_user_type(
-    module: &FundModuleImpl<ArwenMockRef, RustBigInt, RustBigUint>,
+    module: &FundModuleImpl<TxContext, RustBigInt, RustBigUint>,
     user_id: usize, fund_type: FundType) {
 
     let mut sum = RustBigUint::zero();
@@ -59,7 +59,7 @@ pub fn check_consistency_for_user_type(
 }
 
 pub fn check_consistency(
-    module: &FundModuleImpl<ArwenMockRef, RustBigInt, RustBigUint>,
+    module: &FundModuleImpl<TxContext, RustBigInt, RustBigUint>,
     num_users: usize) {
 
 

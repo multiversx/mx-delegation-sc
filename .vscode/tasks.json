@@ -2,17 +2,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "user-fund-storage-debug-build",
-            "command": "cargo",
-            "args": [
-                "build"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}//user-fund-storage/debug"
-            },
-            "type": "shell"
-        },
-        {
             "label": "auction-mock-debug-build",
             "command": "cargo",
             "args": [
@@ -24,24 +13,24 @@
             "type": "shell"
         },
         {
-            "label": "v0_4_genesis-debug-build",
+            "label": "v0_5_full-debug-build",
             "command": "cargo",
             "args": [
                 "build"
             ],
             "options": {
-                "cwd": "${workspaceFolder}//v0_4_genesis/debug"
+                "cwd": "${workspaceFolder}//v0_5_full/debug"
             },
             "type": "shell"
         },
         {
-            "label": "v0_5-debug-build",
+            "label": "v0_5_update-debug-build",
             "command": "cargo",
             "args": [
                 "build"
             ],
             "options": {
-                "cwd": "${workspaceFolder}//v0_5/debug"
+                "cwd": "${workspaceFolder}//v0_5_update/debug"
             },
             "type": "shell"
         }

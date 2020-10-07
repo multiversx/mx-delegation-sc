@@ -1,12 +1,12 @@
 
 use crate::auction_proxy::Auction;
-use node_storage::types::*;
+use super::node_storage::types::*;
 
 use crate::events::*;
-use node_storage::node_config::*;
+use super::node_storage::node_config::*;
 use crate::rewards::*;
 use crate::settings::*;
-use user_fund_storage::user_data::*;
+use super::user_fund_storage::user_data::*;
 use crate::user_stake::*;
 
 imports!();

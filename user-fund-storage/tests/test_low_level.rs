@@ -4,29 +4,12 @@ use user_fund_storage::types::*;
 
 use elrond_wasm::*;
 use elrond_wasm_debug::*;
-use elrond_wasm_debug::HashMap;
 
 mod fund_module_check;
 
-static ADDR: [u8; 32] = [11u8; 32];
-
-fn set_up_module_to_test() -> FundModuleImpl<ArwenMockRef, RustBigInt, RustBigUint> {
-    let mock_ref = ArwenMockState::new_ref();
-    mock_ref.add_account(AccountData{
-        address: ADDR.into(),
-        nonce: 0,
-        balance: 0.into(),
-        storage: HashMap::new(),
-        contract: None,
-    });
-    mock_ref.set_dummy_tx(&ADDR.into());
-
-    FundModuleImpl::new(mock_ref.clone())
-}
-
 #[test]
 fn test_fund_inc_dec_1() {
-    let fund_module = set_up_module_to_test();
+    let fund_module = FundModuleImpl::new(TxContext::dummy());
     let user_id = 2;
 
     fund_module.increase_fund_balance(user_id, FundDescription::Waiting, 1234u32.into());
@@ -61,7 +44,7 @@ fn test_fund_inc_dec_1() {
 
 #[test]
 fn test_fund_inc_dec_2() {
-    let fund_module = set_up_module_to_test();
+    let fund_module = FundModuleImpl::new(TxContext::dummy());
     let user_id = 1;
 
     fund_module.increase_fund_balance(user_id, FundDescription::Waiting, 1200u32.into());
@@ -113,7 +96,7 @@ fn test_fund_inc_dec_2() {
 
 #[test]
 fn test_fund_inc_dec_3() {
-    let fund_module = set_up_module_to_test();
+    let fund_module = FundModuleImpl::new(TxContext::dummy());
     let user_id = 3;
 
     fund_module.increase_fund_balance(user_id, FundDescription::Waiting, 1200u32.into());
@@ -149,7 +132,7 @@ fn test_fund_inc_dec_3() {
 
 #[test]
 fn test_transfer_funds_1() {
-    let fund_module = set_up_module_to_test();
+    let fund_module = FundModuleImpl::new(TxContext::dummy());
     let user_1 = 2;
     let user_2 = 3;
 
@@ -196,7 +179,7 @@ fn test_transfer_funds_1() {
 
 #[test]
 fn test_transfer_funds_2() {
-    let fund_module = set_up_module_to_test();
+    let fund_module = FundModuleImpl::new(TxContext::dummy());
     let user_1 = 2;
     let user_2 = 3;
     let user_3 = 5;
@@ -230,7 +213,7 @@ fn test_transfer_funds_2() {
 // Going backwards
 #[test]
 fn test_transfer_funds_3_backwards() {
-    let fund_module = set_up_module_to_test();
+    let fund_module = FundModuleImpl::new(TxContext::dummy());
     let user_1 = 2;
     let user_2 = 3;
     let user_3 = 5;
@@ -270,7 +253,7 @@ fn test_transfer_funds_3_backwards() {
 // Dry run.
 #[test]
 fn test_transfer_funds_4_dry_run() {
-    let fund_module = set_up_module_to_test();
+    let fund_module = FundModuleImpl::new(TxContext::dummy());
     let user_1 = 5;
     let user_2 = 7;
     let user_3 = 9;
@@ -308,7 +291,7 @@ fn test_transfer_funds_4_dry_run() {
 
 #[test]
 fn test_transfer_funds_5_coalesce() {
-    let fund_module = set_up_module_to_test();
+    let fund_module = FundModuleImpl::new(TxContext::dummy());
     let user_1 = 2;
 
     fund_module.increase_fund_balance(user_1, FundDescription::Waiting, 1000u32.into());
