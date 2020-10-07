@@ -160,8 +160,8 @@ pub trait FundViewModule {
     // DEFERRED PAYMENT BREAKDOWN
 
     #[view(getUserDeferredPaymentList)]
-    fn get_user_deferred_payment_list(&self, user_address: &Address) -> MultiResultVec<(BigUint, u64)> {
-        let mut result = Vec::<(BigUint, u64)>::new();
+    fn get_user_deferred_payment_list(&self, user_address: &Address) -> MultiResultVec<MultiResult2<BigUint, u64>> {
+        let mut result = Vec::<MultiResult2<BigUint, u64>>::new();
         let user_id = self.user_data().get_user_id(&user_address);
         if user_id > 0 {
             let _ = self.fund_module().foreach_fund_by_user_type(
@@ -170,7 +170,7 @@ pub trait FundViewModule {
                 SwapDirection::Forwards,
                 |fund_item| {
                     if let FundDescription::DeferredPayment{ created } = fund_item.fund_desc {
-                        result.push((fund_item.balance, created));
+                        result.push(MultiResult2::from((fund_item.balance, created)));
                     }
                 }
             );
@@ -196,5 +196,23 @@ pub trait FundViewModule {
                 }
             }
         )
+    }
+
+    // FULL WAITING LIST
+
+    #[view(getFullWaitingList)]
+    fn get_full_waiting_list(&self) -> MultiResultVec<MultiResult3<Address, BigUint, u64>> {
+        let mut result = Vec::<MultiResult3<Address, BigUint, u64>>::new();
+        let _ = self.fund_module().foreach_fund_by_type(
+            FundType::Waiting,
+            SwapDirection::Forwards,
+            |fund_item| {
+                if let FundDescription::Waiting{ created } = fund_item.fund_desc {
+                    let user_address = self.user_data().get_user_address(fund_item.user_id);
+                    result.push(MultiResult3::from((user_address, fund_item.balance, created)));
+                }
+            }
+        );
+        result.into()
     }
 }

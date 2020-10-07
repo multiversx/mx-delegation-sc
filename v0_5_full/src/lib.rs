@@ -75,6 +75,7 @@ pub trait Delegation {
 
         let owner = self.get_caller();
         self.user_data().set_user_id(&owner, OWNER_USER_ID.get()); // node reward destination will be user #1
+        self.user_data().set_user_address(OWNER_USER_ID.get(), &owner);
         self.user_data().set_num_users(1);
 
         self.settings().set_auction_addr(&auction_contract_addr);

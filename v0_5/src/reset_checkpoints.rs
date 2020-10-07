@@ -208,11 +208,11 @@ pub trait ResetCheckpointsModule {
         require!(!self.is_global_op_in_progress(),
             "cannot modify total delegation cap when last is in progress");
 
-        let curr_delegation_cap = self.settings().get_total_delegation_cap();
         let total_waiting = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
         let total_active = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
         let total_unstaked = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
 
+        let previous_total_cap: BigUint;
         let max_available = &(&total_active + &total_waiting) + &total_unstaked;
         if self.settings().is_bootstrap_mode() {
             if new_total_cap > max_available {
@@ -227,14 +227,23 @@ pub trait ResetCheckpointsModule {
                 // no rewards to compute, but
                 // swap might be necessary
                 self.settings().set_bootstrap_mode(false);
+
+                // This scenario is equivalent to performing 2 operations:
+                // 1. drop from the previous delegation cap to max_amount - nothing happens to the funds.
+                // 2. drop from max_amount to the new_total_cap. This might involve some swaps.
+                // From here on, only step 2. needs to be performed, so we set the previous cap to what te max_amount was.
+                previous_total_cap = max_available;
             }
         } else {
             // if no longer in bootstrap mode, total delegation cap can never exceed the max available
             require!(new_total_cap <= max_available,
                 "new delegation cap must be less or equal to total active + waiting");
+        
+            // The old total cap is simply the one from storage.
+            previous_total_cap = self.settings().get_total_delegation_cap();
         }
 
-        let orc = match new_total_cap.cmp(&curr_delegation_cap) {
+        let orc = match new_total_cap.cmp(&previous_total_cap) {
             Ordering::Equal => { // nothing changes
                 return Ok(GlobalOperationStatus::Done)
             },
@@ -242,7 +251,7 @@ pub trait ResetCheckpointsModule {
                 require!(total_unstaked == 0,
                     "no unstaked funds should be present when increasing delegation cap");
 
-                let swap_amount = &new_total_cap - &curr_delegation_cap;
+                let swap_amount = &new_total_cap - &previous_total_cap;
                 GlobalOperationCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
                     new_delegation_cap: new_total_cap,
                     remaining_swap_waiting_to_active: swap_amount,
@@ -252,7 +261,7 @@ pub trait ResetCheckpointsModule {
                 })
             },
             Ordering::Less => { // cap decreases
-                let swap_amount = &curr_delegation_cap - &new_total_cap;
+                let swap_amount = &previous_total_cap - &new_total_cap;
                 require!(swap_amount <= self.rewards().total_unprotected(),
                     "not enough funds in contract to pay those who are forced unstaked");
                 
