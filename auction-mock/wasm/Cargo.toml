@@ -16,6 +16,6 @@ panic = "abort"
 
 [dependencies]
 auction-mock = { path = "..", features=["wasm-output-mode"], default-features = false }
-elrond-wasm-output = { version="0.7.0", features=["wasm-output-mode"] }
+elrond-wasm-output = { version="0.7.1", features=["wasm-output-mode"] }
 
 [workspace]
