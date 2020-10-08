@@ -12,7 +12,7 @@ use core::cmp::Ordering;
 
 imports!();
 
-pub const STOP_AT_GASLIMIT: u64 = 1000000;
+pub const STOP_AT_GASLIMIT: u64 = 10000000;
 
 #[elrond_wasm_derive::module(ResetCheckpointsModuleImpl)]
 pub trait ResetCheckpointsModule {
