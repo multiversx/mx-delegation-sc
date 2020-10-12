@@ -33,6 +33,7 @@ pub trait FundTransformationsModule {
             Some(amount),
             unstake_user_id,
             FundType::Active,
+            SwapDirection::Forwards,
             |_| Some(FundDescription::UnStaked{ created: current_bl_nonce })
         );
     }
@@ -53,6 +54,7 @@ pub trait FundTransformationsModule {
             Some(remaining),
             user_id,
             FundType::Waiting,
+            SwapDirection::Backwards,
             |_| Some(FundDescription::WithdrawOnly),
         );
     }
@@ -106,6 +108,7 @@ pub trait FundTransformationsModule {
             None,
             user_id,
             FundType::DeferredPayment,
+            SwapDirection::Forwards,
             |fund_desc| {
                 if let FundDescription::DeferredPayment{ created } = fund_desc {
                     if current_bl_nonce >= created + n_blocks_before_claim {
