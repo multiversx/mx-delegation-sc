@@ -19,7 +19,7 @@
         }, 
         {
             "step": "scCall",
-            "txId": "get-total-cumulated-1",
+            "txId": "getFullWaitingList",
             "tx": {
                 "from": "''someone_______________________s1",
                 "to": "''delegation_contract___________s1",

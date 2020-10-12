@@ -24,7 +24,7 @@ pub trait UserDataModule {
         // something like storage_is_empty
         let mut key = b"user_address".to_vec();
         let _ = user_id.dep_encode_to(&mut key);
-        self.storage_load_len(&key[..]) > 0
+        self.storage_load_len(&key[..]) == 0
     }
 
     #[storage_set("user_address")]
