@@ -223,4 +223,82 @@ impl<BigUint:BigUintApi> Decode for ComputeAllRewardsData<BigUint> {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use elrond_wasm_debug::*;
+    use elrond_wasm::Vec;
 
+    fn check_global_operation_checkpoint_codec(goc: GlobalOperationCheckpoint<RustBigUint>) {
+        let top_encoded = goc.top_encode().unwrap();
+        let top_decoded = GlobalOperationCheckpoint::<RustBigUint>::top_decode(&mut &top_encoded[..]).unwrap();
+        assert_eq!(top_decoded, goc);
+
+        let mut dep_encoded = Vec::<u8>::new();
+        goc.dep_encode_to(&mut dep_encoded).unwrap();
+        let dep_decoded = GlobalOperationCheckpoint::<RustBigUint>::dep_decode(&mut &dep_encoded[..]).unwrap();
+        assert_eq!(dep_decoded, goc);
+    }
+
+    #[test]
+    fn test_global_operation_checkpoint() {
+        check_global_operation_checkpoint_codec(
+            GlobalOperationCheckpoint::None
+        );
+
+        check_global_operation_checkpoint_codec(
+            GlobalOperationCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+                new_delegation_cap: 104u32.into(),
+                remaining_swap_waiting_to_active: 105u32.into(),
+                remaining_swap_active_to_def_p: 106u32.into(),
+                remaining_swap_unstaked_to_def_p: 107u32.into(),
+                step: ModifyDelegationCapStep::ComputeAllRewards(ComputeAllRewardsData{
+                    last_id:              108,
+                    sum_unclaimed:        109u32.into(),
+                    rewards_checkpoint:   110u32.into(),
+                }),
+            })
+        );
+
+        check_global_operation_checkpoint_codec(
+            GlobalOperationCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+                new_delegation_cap: 104u32.into(),
+                remaining_swap_waiting_to_active: 105u32.into(),
+                remaining_swap_active_to_def_p: 106u32.into(),
+                remaining_swap_unstaked_to_def_p: 107u32.into(),
+                step: ModifyDelegationCapStep::SwapWaitingToActive,
+            })
+        );
+
+        check_global_operation_checkpoint_codec(
+            GlobalOperationCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+                new_delegation_cap: 104u32.into(),
+                remaining_swap_waiting_to_active: 105u32.into(),
+                remaining_swap_active_to_def_p: 106u32.into(),
+                remaining_swap_unstaked_to_def_p: 107u32.into(),
+                step: ModifyDelegationCapStep::SwapActiveToDeferredPayment,
+            })
+        );
+        
+        check_global_operation_checkpoint_codec(
+            GlobalOperationCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+                new_delegation_cap: 104u32.into(),
+                remaining_swap_waiting_to_active: 105u32.into(),
+                remaining_swap_active_to_def_p: 106u32.into(),
+                remaining_swap_unstaked_to_def_p: 107u32.into(),
+                step: ModifyDelegationCapStep::SwapUnstakedToDeferredPayment,
+            })
+        );
+
+        check_global_operation_checkpoint_codec(
+            GlobalOperationCheckpoint::ChangeServiceFee{
+                new_service_fee: 190u32.into(),
+                compute_rewards_data: ComputeAllRewardsData{
+                    last_id:              108,
+                    sum_unclaimed:        109u32.into(),
+                    rewards_checkpoint:   110u32.into(),
+                }
+            }
+        );
+    }
+}
