@@ -426,13 +426,18 @@ pub trait FundModule {
         mut opt_max_amount: Option<&mut BigUint>,
         user_id: usize,
         source_type: FundType,
+        direction: SwapDirection,
         filter_transform: F) -> BigUint
     where 
         F: Fn(FundDescription) -> Option<FundDescription>,
     {
         let user_list = self.get_fund_list_by_user(user_id, source_type);
-        let mut id = user_list.first;
         let mut total_transformed = BigUint::zero();
+
+        let mut id = match direction {
+            SwapDirection::Forwards => user_list.first,
+            SwapDirection::Backwards => user_list.last,
+        };
 
         while id > 0 {
             if let Some(max_amount) = &opt_max_amount {
@@ -442,7 +447,10 @@ pub trait FundModule {
             }
 
             let mut fund_item = self.get_mut_fund_by_id(id);
-            let next_id = fund_item.user_list_next; // save next id now, because fund_item can be destroyed
+            let next_id = match direction { // save next id now, because fund_item can be destroyed
+                SwapDirection::Forwards => fund_item.type_list_next,
+                SwapDirection::Backwards => fund_item.type_list_prev,
+            };
 
             if let Some(transformed) = filter_transform(fund_item.fund_desc) {
                 // extract / decrease
