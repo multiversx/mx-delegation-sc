@@ -132,6 +132,11 @@ fn unstake_4() {
 }
 
 #[test]
+fn unstake_5_backwards() {
+    parse_execute_mandos("mandos/unstake_5_backwards.scen.json", &contract_map());
+}
+
+#[test]
 fn user_fund_getters() {
     parse_execute_mandos("mandos/user_fund_getters.scen.json", &contract_map());
 }
