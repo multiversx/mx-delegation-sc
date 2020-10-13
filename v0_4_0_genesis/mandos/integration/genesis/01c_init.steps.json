@@ -5,8 +5,8 @@
             "step": "scCall",
             "txId": "check auction addr",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getAuctionContractAddress",
                 "arguments": [],
@@ -14,7 +14,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "out": [ "''auction_contract______________s1" ],
+                "out": [ "address:auction_contract" ],
                 "status": "",
                 "logs": [],
                 "gas": "*",
@@ -25,8 +25,8 @@
             "step": "scCall",
             "txId": "getNumBlocksBeforeForceUnstake",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getNumBlocksBeforeForceUnstake",
                 "arguments": [],
@@ -45,8 +45,8 @@
             "step": "scCall",
             "txId": "getNumBlocksBeforeUnBond",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getNumBlocksBeforeUnBond",
                 "arguments": [],
@@ -65,8 +65,8 @@
             "step": "scCall",
             "txId": "check-stake-per-node",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getStakePerNode",
                 "arguments": [],
@@ -85,8 +85,8 @@
             "step": "scCall",
             "txId": "check-fee",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getServiceFee",
                 "arguments": [],

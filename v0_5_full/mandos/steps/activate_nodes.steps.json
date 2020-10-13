@@ -5,8 +5,8 @@
             "step": "scCall",
             "txId": "activate",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "stakeNodes",
                 "arguments": [
@@ -23,7 +23,7 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "''delegation_contract___________s1",
+                        "address": "address:delegation_contract",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000003",
                         "topics": [],
                         "data": "0x"
@@ -37,8 +37,8 @@
             "step": "scCall",
             "txId": "check-node_state-4_1",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getAllNodeStates",
                 "arguments": [],
@@ -65,12 +65,12 @@
             "step": "scCall",
             "txId": "check-stake-by-type-1",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getUserStakeByType",
                 "arguments": [
-                    "''delegator_1___________________s1"
+                    "address:delegator1"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -89,12 +89,12 @@
             "step": "scCall",
             "txId": "check-stake-by-type-2",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getUserStakeByType",
                 "arguments": [
-                    "''delegator_2___________________s1"
+                    "address:delegator2"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -113,8 +113,8 @@
             "step": "scCall",
             "txId": "check-stake-by-type-total",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalStakeByType",
                 "arguments": [],
@@ -135,25 +135,25 @@
             "step": "checkState",
             "comment": "check that stake was sent",
             "accounts": {
-                "''delegation_contract___________s1": {
+                "address:delegation_contract": {
                     "nonce": "*",
                     "balance": "1,000,000,000",
                     "storage": "*",
                     "code": "file:../../output/delegation_v0_5_full.wasm"
                 },
-                "''auction_contract______________s1": {
+                "address:auction_contract": {
                     "nonce": "0",
                     "balance": "300,000,000,000,000",
                     "storage": "*",
                     "code": "file:../../../auction-mock/output/auction-mock.wasm"
                 },
-                "''delegator_1___________________s1": {
+                "address:delegator1": {
                     "nonce": "*",
                     "balance": "0",
                     "storage": {},
                     "code": ""
                 },
-                "''delegator_2___________________s1": {
+                "address:delegator2": {
                     "nonce": "*",
                     "balance": "0",
                     "storage": {},

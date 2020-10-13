@@ -26,8 +26,8 @@
             "comment": "unStake 1,000,000,000 from delegator_1 so that the first delegator has 33,(3)% stake, and the second one 66,(6)%",
             "txId": "user-unstake",
             "tx": {
-                "from": "''delegator_1___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator1",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "unStake",
                 "arguments": ["1,000,000,000"],
@@ -46,7 +46,7 @@
             "step": "validatorReward",
             "txId": "validatorReward-1",
             "tx": {
-                "to": "''delegation_contract___________s1",
+                "to": "address:delegation_contract",
                 "value": "100,000,000"
             }
         },
@@ -54,8 +54,8 @@
             "step": "scCall",
             "txId": "user-unstake",
             "tx": {
-                "from": "''delegator_2___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator2",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "unStake",
                 "arguments": ["100,000,000,000,000"],
@@ -74,8 +74,8 @@
             "step": "scCall",
             "txId": "check-stake-by-type-1",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalStakeByType",
                 "arguments": [],
@@ -96,12 +96,12 @@
             "step": "scCall",
             "txId": "claimable-0",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getClaimableRewards",
                 "arguments": [
-                    "''node_address__________________s1"
+                    "address:node_address"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -120,12 +120,12 @@
             "step": "scCall",
             "txId": "claimable-1",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getClaimableRewards",
                 "arguments": [
-                    "''delegator_1___________________s1"
+                    "address:delegator1"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -144,12 +144,12 @@
             "step": "scCall",
             "txId": "claimable-2",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getClaimableRewards",
                 "arguments": [
-                    "''delegator_2___________________s1"
+                    "address:delegator2"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -168,7 +168,7 @@
             "step": "validatorReward",
             "txId": "validatorReward-2",
             "tx": {
-                "to": "''delegation_contract___________s1",
+                "to": "address:delegation_contract",
                 "value": "100,000,000"
             }
         },
@@ -176,12 +176,12 @@
             "step": "scCall",
             "txId": "claimable-3",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getClaimableRewards",
                 "arguments": [
-                    "''node_address__________________s1"
+                    "address:node_address"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -200,12 +200,12 @@
             "step": "scCall",
             "txId": "claimable-4",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getClaimableRewards",
                 "arguments": [
-                    "''delegator_1___________________s1"
+                    "address:delegator1"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -224,12 +224,12 @@
             "step": "scCall",
             "txId": "claimable-5",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getClaimableRewards",
                 "arguments": [
-                    "''delegator_2___________________s1"
+                    "address:delegator2"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"

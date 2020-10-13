@@ -4,13 +4,13 @@
         {
             "step": "setState",
             "accounts": {
-                "''node_address__________________s1": {
+                "address:node_address": {
                     "nonce": "0",
                     "balance": "0",
                     "storage": {},
                     "code": ""
                 },
-                "''auction_contract______________s1": {
+                "address:auction_contract": {
                     "nonce": "0",
                     "balance": "0",
                     "storage": {
@@ -18,32 +18,32 @@
                     },
                     "code": "file:../../../../auction-mock/output/auction-mock.wasm"
                 },
-                "''someone_______________________s1": {
+                "address:someone": {
                     "nonce": "0",
                     "balance": "0",
                     "storage": {},
                     "code": ""
                 },
-                "''endless_sack_of_erd___________s1": {
+                "address:endless_sack_of_erd": {
                     "nonce": "0",
                     "balance": "1,000,000,000,000,000,000,000,000,000,000",
                     "storage": {},
                     "code": ""
                 },
-                "''delegator_1___________________s1": {
+                "address:delegator1": {
                     "comment": "starting with 0 balance, transferring funds only when needed to make it easier to keep track of rewards",
                     "nonce": "0",
                     "balance": "0",
                     "storage": {},
                     "code": ""
                 },
-                "''delegator_2___________________s1": {
+                "address:delegator2": {
                     "nonce": "0",
                     "balance": "0",
                     "storage": {},
                     "code": ""
                 },
-                "''delegator_3___________________s1": {
+                "address:delegator3": {
                     "nonce": "0",
                     "balance": "0",
                     "storage": {},

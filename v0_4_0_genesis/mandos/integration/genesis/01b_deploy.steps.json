@@ -5,9 +5,9 @@
             "step": "setState",
             "newAddresses": [
                 {
-                    "creatorAddress": "''node_address__________________s1",
+                    "creatorAddress": "address:node_address",
                     "creatorNonce": "0",
-                    "newAddress": "''delegation_contract___________s1"
+                    "newAddress": "address:delegation_contract"
                 }
             ]
         },
@@ -15,11 +15,11 @@
             "step": "scDeploy",
             "txId": "deploy-1",
             "tx": {
-                "from": "''node_address__________________s1",
+                "from": "address:node_address",
                 "value": "0",
                 "contractCode": "file:../../../output/delegation_v0_4_genesis.wasm",
                 "arguments": [
-                    "''auction_contract______________s1",
+                    "address:auction_contract",
                     "1",
                     "0",
                     "50",
@@ -40,8 +40,8 @@
             "step": "scCall",
             "txId": "set-stake-per-node",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "setStakePerNode",
                 "arguments": [
@@ -62,8 +62,8 @@
             "step": "scCall",
             "txId": "set-fee",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "setServiceFee",
                 "arguments": [

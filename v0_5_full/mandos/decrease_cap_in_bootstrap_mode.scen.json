@@ -9,9 +9,9 @@
             "step": "setState",
             "newAddresses": [
                 {
-                    "creatorAddress": "''node_address__________________s1",
+                    "creatorAddress": "address:node_address",
                     "creatorNonce": "0",
-                    "newAddress": "''delegation_contract___________s1"
+                    "newAddress": "address:delegation_contract"
                 }
             ]
         },
@@ -19,11 +19,11 @@
             "step": "scDeploy",
             "txId": "deploy-1",
             "tx": {
-                "from": "''node_address__________________s1",
+                "from": "address:node_address",
                 "value": "0",
                 "contractCode": "file:../output/delegation_v0_5_full.wasm",
                 "arguments": [
-                    "''auction_contract______________s1",
+                    "address:auction_contract",
                     "5000",
                     "0",
                     "60",
@@ -45,8 +45,8 @@
             "step": "transfer",
             "txId": "supply delegator 1",
             "tx": {
-                "from": "''endless_sack_of_erd___________s1",
-                "to": "''delegator_1___________________s1",
+                "from": "address:endless_sack_of_erd",
+                "to": "address:delegator1",
                 "value": "150,000,000,000"
             }
         },
@@ -54,8 +54,8 @@
             "step": "scCall",
             "txId": "delegator 1 stake",
             "tx": {
-                "from": "''delegator_1___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator1",
+                "to": "address:delegation_contract",
                 "value": "150,000,000,000",
                 "function": "stake",
                 "arguments": [],
@@ -67,10 +67,10 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "''delegation_contract___________s1",
+                        "address": "address:delegation_contract",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
                         "topics": [
-                            "''delegator_1___________________s1"
+                            "address:delegator1"
                         ],
                         "data": "150,000,000,000"
                     }
@@ -83,8 +83,8 @@
             "step": "scCall",
             "txId": "check-stake-by-type-total",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalStakeByType",
                 "arguments": [],
@@ -105,8 +105,8 @@
             "step": "scCall",
             "txId": "change-delegation-cap",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "modifyTotalDelegationCap",
                 "arguments": [
@@ -127,8 +127,8 @@
             "step": "scCall",
             "txId": "check-stake-by-type-total-2",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalStakeByType",
                 "arguments": [],
