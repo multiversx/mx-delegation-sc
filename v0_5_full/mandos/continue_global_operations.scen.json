@@ -190,6 +190,10 @@
             }
         },
         {
+            "step": "externalSteps",
+            "path": "steps/node_operations_paused.steps.json"
+        }, 
+        {
             "step": "scCall",
             "txId": "-get-service-fee-",
             "tx": {
