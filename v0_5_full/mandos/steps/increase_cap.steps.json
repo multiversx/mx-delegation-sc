@@ -5,8 +5,8 @@
             "step": "scCall",
             "txId": "increase-delegation-cap",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "modifyTotalDelegationCap",
                 "arguments": [
@@ -27,8 +27,8 @@
             "step": "scCall",
             "txId": "continue",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "continueGlobalOperation",
                 "arguments": [],

@@ -5,8 +5,8 @@
             "step": "transfer",
             "txId": "supply delegator 1",
             "tx": {
-                "from": "''endless_sack_of_erd___________s1",
-                "to": "''delegator_1___________________s1",
+                "from": "address:endless_sack_of_erd",
+                "to": "address:delegator1",
                 "value": "100,001,000,000,000"
             }
         },
@@ -14,8 +14,8 @@
             "step": "transfer",
             "txId": "supply delegator 2",
             "tx": {
-                "from": "''endless_sack_of_erd___________s1",
-                "to": "''delegator_2___________________s1",
+                "from": "address:endless_sack_of_erd",
+                "to": "address:delegator2",
                 "value": "200,000,000,000,000"
             }
         },
@@ -23,8 +23,8 @@
             "step": "scCall",
             "txId": "delegator 1 stake",
             "tx": {
-                "from": "''delegator_1___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator1",
+                "to": "address:delegation_contract",
                 "value": "100,001,000,000,000",
                 "function": "stake",
                 "arguments": [],
@@ -36,10 +36,10 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "''delegation_contract___________s1",
+                        "address": "address:delegation_contract",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
                         "topics": [
-                            "''delegator_1___________________s1"
+                            "address:delegator1"
                         ],
                         "data": "100,001,000,000,000"
                     }
@@ -52,8 +52,8 @@
             "step": "scCall",
             "txId": "delegator 2 stake 1",
             "tx": {
-                "from": "''delegator_2___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator2",
+                "to": "address:delegation_contract",
                 "value": "200,000,000,000,000",
                 "function": "stake",
                 "arguments": [],
@@ -65,10 +65,10 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "''delegation_contract___________s1",
+                        "address": "address:delegation_contract",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
                         "topics": [
-                            "''delegator_2___________________s1"
+                            "address:delegator2"
                         ],
                         "data": "200,000,000,000,000"
                     }

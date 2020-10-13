@@ -29,8 +29,8 @@
             "step": "transfer",
             "txId": "supply delegator 1",
             "tx": {
-                "from": "''endless_sack_of_erd___________s1",
-                "to": "''delegator_1___________________s1",
+                "from": "address:endless_sack_of_erd",
+                "to": "address:delegator1",
                 "value": "5,000,000,000"
             }
         },
@@ -38,8 +38,8 @@
             "step": "scCall",
             "txId": "delegator 1 stake",
             "tx": {
-                "from": "''delegator_1___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator1",
+                "to": "address:delegation_contract",
                 "value": "5,000,000,000",
                 "function": "stake",
                 "arguments": [],
@@ -58,8 +58,8 @@
             "step": "scCall",
             "txId": "get-total-stake",
             "tx": {
-                "from": "''delegator_1___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator1",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "totalStake",
                 "arguments": [],
@@ -78,8 +78,8 @@
             "step": "scCall",
             "txId": "get-total-withdraw-only",
             "tx": {
-                "from": "''delegator_2___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator2",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalWithdrawOnlyStake",
                 "arguments": [],
@@ -98,8 +98,8 @@
             "step": "scCall",
             "txId": "get-total-waiting-stake",
             "tx": {
-                "from": "''delegator_2___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator2",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalWaitingStake",
                 "arguments": [],
@@ -118,8 +118,8 @@
             "step": "scCall",
             "txId": "get-total-active-stake",
             "tx": {
-                "from": "''delegator_2___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator2",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalActiveStake",
                 "arguments": [],
@@ -138,8 +138,8 @@
             "step": "scCall",
             "txId": "get-total-unstaked-stake",
             "tx": {
-                "from": "''delegator_2___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator2",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalUnstakedStake",
                 "arguments": [],
@@ -158,8 +158,8 @@
             "step": "scCall",
             "txId": "get-total-deferred-stake",
             "tx": {
-                "from": "''delegator_2___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator2",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalDeferredPaymentStake",
                 "arguments": [],
@@ -186,11 +186,11 @@
             "step": "scCall",
             "txId": "get-user-unbondable",
             "tx": {
-                "from": "''delegator_2___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator2",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getUnBondable",
-                "arguments": ["''delegator_2___________________s1"],
+                "arguments": ["address:delegator2"],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
             },
@@ -206,11 +206,11 @@
             "step": "scCall",
             "txId": "get-user-unstakeable",
             "tx": {
-                "from": "''delegator_2___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator2",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getUnStakeable",
-                "arguments": ["''delegator_2___________________s1"],
+                "arguments": ["address:delegator2"],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
             },

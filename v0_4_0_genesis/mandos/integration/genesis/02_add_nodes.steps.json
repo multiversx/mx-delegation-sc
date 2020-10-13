@@ -5,8 +5,8 @@
             "step": "scCall",
             "txId": "add nodes",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "addNodes",
                 "arguments": [
@@ -40,8 +40,8 @@
             "step": "scCall",
             "txId": "check-node_state-2_1",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getAllNodeStates",
                 "arguments": [],
@@ -68,8 +68,8 @@
             "step": "scCall",
             "txId": "rem nodes",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "removeNodes",
                 "arguments": [
@@ -92,8 +92,8 @@
             "step": "scCall",
             "txId": "check-node_state-2_2",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getAllNodeStates",
                 "arguments": [],

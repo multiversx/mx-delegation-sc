@@ -5,8 +5,8 @@
             "step": "transfer",
             "txId": "supply delegator 3",
             "tx": {
-                "from": "''endless_sack_of_erd___________s1",
-                "to": "''delegator_3___________________s1",
+                "from": "address:endless_sack_of_erd",
+                "to": "address:delegator3",
                 "value": "200,000,000,000,000"
             }
         },
@@ -14,8 +14,8 @@
             "step": "scCall",
             "txId": "delegator 3 stake",
             "tx": {
-                "from": "''delegator_3___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator3",
+                "to": "address:delegation_contract",
                 "value": "200,000,000,000,000",
                 "function": "stake",
                 "arguments": [],
@@ -27,10 +27,10 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "''delegation_contract___________s1",
+                        "address": "address:delegation_contract",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
                         "topics": [
-                            "''delegator_3___________________s1"
+                            "address:delegator3"
                         ],
                         "data": "200,000,000,000,000"
                     }
@@ -43,8 +43,8 @@
             "step": "scCall",
             "txId": "check-stake-by-type-total",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalStakeByType",
                 "arguments": [],
@@ -65,12 +65,12 @@
             "step": "scCall",
             "txId": "check-stake-by-type",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getUserStakeByType",
                 "arguments": [
-                    "''delegator_3___________________s1"
+                    "address:delegator3"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -89,8 +89,8 @@
             "step": "scCall",
             "txId": "check-total_stake",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "totalStake",
                 "arguments": [],
