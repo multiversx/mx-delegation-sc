@@ -5,8 +5,8 @@
             "step": "scCall",
             "txId": "rem nodes bad 1",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "removeNodes",
                 "arguments": [
@@ -30,8 +30,8 @@
             "step": "scCall",
             "txId": "rem nodes bad 2",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "removeNodes",
                 "arguments": [

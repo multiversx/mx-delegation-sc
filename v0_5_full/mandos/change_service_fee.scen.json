@@ -13,8 +13,8 @@
             "step": "scCall",
             "txId": "-set-service-fee-bootstrap?-",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "isBootstrapMode",
                 "arguments": [],
@@ -33,8 +33,8 @@
             "step": "scCall",
             "txId": "-set-service-fee-",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "setServiceFee",
                 "arguments": [
@@ -55,8 +55,8 @@
             "step": "scCall",
             "txId": "-get-service-fee-",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getServiceFee",
                 "arguments": [],
@@ -87,8 +87,8 @@
             "step": "scCall",
             "txId": "-set-service-fee-bootstrap?-",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "isBootstrapMode",
                 "arguments": [],
@@ -107,8 +107,8 @@
             "step": "scCall",
             "txId": "-set-service-fee-out-of-gas-",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "setServiceFee",
                 "arguments": [
@@ -129,8 +129,8 @@
             "step": "scCall",
             "txId": "-get-service-fee-",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getServiceFee",
                 "arguments": [],
@@ -149,8 +149,8 @@
             "step": "scCall",
             "txId": "continue",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "continueGlobalOperation",
                 "arguments": [],
@@ -169,8 +169,8 @@
             "step": "scCall",
             "txId": "-get-service-fee-",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getServiceFee",
                 "arguments": [],

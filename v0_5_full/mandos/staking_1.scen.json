@@ -13,8 +13,8 @@
             "step": "scCall",
             "txId": "check auction addr",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getAuctionContractAddress",
                 "arguments": [],
@@ -22,7 +22,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "out": [ "''auction_contract______________s1" ],
+                "out": [ "address:auction_contract" ],
                 "status": "",
                 "logs": [],
                 "gas": "*",
@@ -33,8 +33,8 @@
             "step": "scCall",
             "txId": "getNumBlocksBeforeUnBond",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getNumBlocksBeforeUnBond",
                 "arguments": [],
@@ -53,8 +53,8 @@
             "step": "scCall",
             "txId": "check-fee",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getServiceFee",
                 "arguments": [],
@@ -81,8 +81,8 @@
             "step": "scCall",
             "txId": "check-total_stake",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "totalStake",
                 "arguments": [],
@@ -101,12 +101,12 @@
             "step": "scCall",
             "txId": "check-stake-by-type-1",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getUserStakeByType",
                 "arguments": [
-                    "''delegator_1___________________s1"
+                    "address:delegator1"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -125,12 +125,12 @@
             "step": "scCall",
             "txId": "check-stake-by-type-2",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getUserStakeByType",
                 "arguments": [
-                    "''delegator_2___________________s1"
+                    "address:delegator2"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -149,8 +149,8 @@
             "step": "scCall",
             "txId": "check-stake-by-type-total",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalStakeByType",
                 "arguments": [],

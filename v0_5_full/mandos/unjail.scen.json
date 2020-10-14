@@ -29,7 +29,7 @@
             "step": "checkState",
             "comment": "check that stake was sent",
             "accounts": {
-                "''auction_contract______________s1": {
+                "address:auction_contract": {
                     "nonce": "0",
                     "balance": "300,000,000,000,000",
                     "storage": "*",
@@ -42,8 +42,8 @@
             "step": "transfer",
             "txId": "supply node address",
             "tx": {
-                "from": "''endless_sack_of_erd___________s1",
-                "to":  "''node_address__________________s1",
+                "from": "address:endless_sack_of_erd",
+                "to":  "address:node_address",
                 "value": "1,000,000,000"
             }
         },
@@ -51,8 +51,8 @@
             "step": "scCall",
             "txId": "unJail inactive nodes",
             "tx": {
-                "from":  "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from":  "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "1,000,000,000",
                 "function": "unJailNodes",
                 "arguments": [
@@ -75,8 +75,8 @@
             "step": "scCall",
             "txId": "unJail unknown nodes",
             "tx": {
-                "from":  "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from":  "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "1,000,000,000",
                 "function": "unJailNodes",
                 "arguments": [
@@ -99,8 +99,8 @@
             "step": "scCall",
             "txId": "unJail nodes",
             "tx": {
-                "from":  "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from":  "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "1,000,000,000",
                 "function": "unJailNodes",
                 "arguments": [
@@ -122,7 +122,7 @@
             "step": "checkState",
             "comment": "check that stake was sent",
             "accounts": {
-                "''auction_contract______________s1": {
+                "address:auction_contract": {
                     "nonce": "0",
                     "balance": "300,001,000,000,000",
                     "storage": "*",

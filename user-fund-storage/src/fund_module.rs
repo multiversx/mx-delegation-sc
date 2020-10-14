@@ -448,8 +448,8 @@ pub trait FundModule {
 
             let mut fund_item = self.get_mut_fund_by_id(id);
             let next_id = match direction { // save next id now, because fund_item can be destroyed
-                SwapDirection::Forwards => fund_item.type_list_next,
-                SwapDirection::Backwards => fund_item.type_list_prev,
+                SwapDirection::Forwards => fund_item.user_list_next,
+                SwapDirection::Backwards => fund_item.user_list_prev,
             };
 
             if let Some(transformed) = filter_transform(fund_item.fund_desc) {

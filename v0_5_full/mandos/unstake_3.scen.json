@@ -26,8 +26,8 @@
             "step": "scCall",
             "txId": "user-unstake",
             "tx": {
-                "from": "''delegator_1___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator1",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "unStake",
                 "arguments": ["200,001,000,000,000"],
@@ -47,12 +47,12 @@
             "step": "scCall",
             "txId": "check-stake-by-type-1",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getUserStakeByType",
                 "arguments": [
-                    "''delegator_1___________________s1"
+                    "address:delegator1"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -71,12 +71,12 @@
             "step": "scCall",
             "txId": "check-stake-by-type-2",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getUserStakeByType",
                 "arguments": [
-                    "''delegator_2___________________s1"
+                    "address:delegator2"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
@@ -95,8 +95,8 @@
             "step": "scCall",
             "txId": "check-stake-by-type-total",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalStakeByType",
                 "arguments": [],

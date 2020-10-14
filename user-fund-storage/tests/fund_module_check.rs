@@ -44,6 +44,8 @@ pub fn check_consistency_for_user_type(
     while id > 0 {
         let fund_item = module.get_fund_by_id(id);
 
+        assert_eq!(fund_item.user_id, user_id, "user-type list inconsistency: bad user_id");
+
         // check next/prev
         assert_eq!(fund_item.user_list_prev, prev_id, "user-type list inconsistency: bad prev");
         if fund_item.user_list_next == 0 {

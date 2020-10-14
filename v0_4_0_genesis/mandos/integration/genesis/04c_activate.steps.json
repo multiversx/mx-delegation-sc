@@ -5,8 +5,8 @@
             "step": "scCall",
             "txId": "check-node_state-4_1",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getAllNodeStates",
                 "arguments": [],
@@ -33,8 +33,8 @@
             "step": "scCall",
             "txId": "check-stake-by-type-4_total",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalStakeByType",
                 "arguments": [],
@@ -55,12 +55,12 @@
             "step": "scCall",
             "txId": "check-stake-by-type-1",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getUserStakeByType",
                 "arguments": [
-                    "''delegator_1___________________s1"
+                    "address:delegator1"
                 ],
                 "gasLimit": "1,000,000",
                 "gasPrice": "0"
@@ -79,12 +79,12 @@
             "step": "scCall",
             "txId": "4c-check-stake-delegator-2",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getUserStakeByType",
                 "arguments": [
-                    "''delegator_2___________________s1"
+                    "address:delegator2"
                 ],
                 "gasLimit": "1,000,000",
                 "gasPrice": "0"
@@ -103,8 +103,8 @@
             "step": "scCall",
             "txId": "check-total-active",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getTotalActiveStake",
                 "arguments": [],
@@ -125,25 +125,25 @@
             "step": "checkState",
             "comment": "check that stake was sent",
             "accounts": {
-                "''delegation_contract___________s1": {
+                "address:delegation_contract": {
                     "nonce": "*",
                     "balance": "0",
                     "storage": "*",
                     "code": "file:../../../output/delegation_v0_4_genesis.wasm"
                 },
-                "''delegator_1___________________s1": {
+                "address:delegator1": {
                     "nonce": "*",
                     "balance": "0",
                     "storage": {},
                     "code": ""
                 },
-                "''delegator_2___________________s1": {
+                "address:delegator2": {
                     "nonce": "*",
                     "balance": "0",
                     "storage": {},
                     "code": ""
                 },
-                "''delegator_3___________________s1": {
+                "address:delegator3": {
                     "nonce": "*",
                     "balance": "0",
                     "storage": {},

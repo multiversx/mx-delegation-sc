@@ -30,8 +30,8 @@
             "step": "transfer",
             "txId": "supply delegator 3",
             "tx": {
-                "from": "''endless_sack_of_erd___________s1",
-                "to": "''delegator_3___________________s1",
+                "from": "address:endless_sack_of_erd",
+                "to": "address:delegator3",
                 "value": "500,000,000,000,000"
             }
         },
@@ -46,8 +46,8 @@
             "step": "scCall",
             "txId": "delegator 3 stake 1",
             "tx": {
-                "from": "''delegator_3___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator3",
+                "to": "address:delegation_contract",
                 "value": "200,000,000,000,000",
                 "function": "stake",
                 "arguments": [],
@@ -59,10 +59,10 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "''delegation_contract___________s1",
+                        "address": "address:delegation_contract",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
                         "topics": [
-                            "''delegator_3___________________s1"
+                            "address:delegator3"
                         ],
                         "data": "200,000,000,000,000"
                     }
@@ -82,8 +82,8 @@
             "step": "scCall",
             "txId": "delegator 3 stake 2",
             "tx": {
-                "from": "''delegator_3___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator3",
+                "to": "address:delegation_contract",
                 "value": "300,000,000,000,000",
                 "function": "stake",
                 "arguments": [],
@@ -95,10 +95,10 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "''delegation_contract___________s1",
+                        "address": "address:delegation_contract",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
                         "topics": [
-                            "''delegator_3___________________s1"
+                            "address:delegator3"
                         ],
                         "data": "300,000,000,000,000"
                     }
@@ -111,8 +111,8 @@
             "step": "scCall",
             "txId": "getFullWaitingList-before-unstake",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getFullWaitingList",
                 "arguments": [],
@@ -121,8 +121,8 @@
             },
             "expect": {
                 "out": [
-                    "''delegator_3___________________s1", "150,000,000,000,000", "501",
-                    "''delegator_3___________________s1", "300,000,000,000,000", "502"
+                    "address:delegator3", "150,000,000,000,000", "501",
+                    "address:delegator3", "300,000,000,000,000", "502"
                 ],
                 "status": "",
                 "logs": [],
@@ -134,8 +134,8 @@
             "step": "scCall",
             "txId": "user-unstake",
             "tx": {
-                "from": "''delegator_3___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator3",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "unStake",
                 "arguments": ["10,000,000,000,000"],
@@ -154,8 +154,8 @@
             "step": "scCall",
             "txId": "getFullWaitingList-after-unstake",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getFullWaitingList",
                 "arguments": [],
@@ -164,8 +164,8 @@
             },
             "expect": {
                 "out": [
-                    "''delegator_3___________________s1", "150,000,000,000,000", "501",
-                    "''delegator_3___________________s1", "290,000,000,000,000", "502"
+                    "address:delegator3", "150,000,000,000,000", "501",
+                    "address:delegator3", "290,000,000,000,000", "502"
                 ],
                 "status": "",
                 "logs": [],

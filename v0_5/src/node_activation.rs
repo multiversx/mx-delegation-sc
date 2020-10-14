@@ -4,6 +4,7 @@ use super::node_storage::types::*;
 
 use crate::events::*;
 use super::node_storage::node_config::*;
+use crate::reset_checkpoints::*;
 use crate::rewards::*;
 use crate::settings::*;
 use super::user_fund_storage::user_data::*;
@@ -32,6 +33,8 @@ pub trait ContractStakeModule {
     #[module(UserStakeModuleImpl)]
     fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
 
+    #[module(ResetCheckpointsModuleImpl)]
+    fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, BigUint>;
 
     /// Owner activates specific nodes.
     #[endpoint(stakeNodes)]
@@ -42,6 +45,9 @@ pub trait ContractStakeModule {
 
         require!(!self.settings().is_bootstrap_mode(),
             "cannot stake nodes in bootstrap mode");
+
+        require!(!self.reset_checkpoints().is_global_op_in_progress(),
+            "node operations are temporarily paused as checkpoint is reset");
 
         require!(self.rewards().total_unprotected() >= amount_to_stake,
             "not enough funds in contract to stake nodes");
@@ -145,6 +151,9 @@ pub trait ContractStakeModule {
 
         only_owner!(self, "only owner allowed to unstake nodes");
 
+        require!(!self.reset_checkpoints().is_global_op_in_progress(),
+            "node operations are temporarily paused as checkpoint is reset");
+
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
             let node_id = self.node_config().get_node_id(&bls_key);
@@ -239,15 +248,17 @@ pub trait ContractStakeModule {
         #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
 
         only_owner!(self, "only owner allowed to unbond nodes");
+
+        require!(!self.reset_checkpoints().is_global_op_in_progress(),
+            "node operations are temporarily paused as checkpoint is reset");
+
         require!(!bls_keys.is_empty(), "no BLS keys provided");
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
-        let bl_nonce = self.get_block_nonce();
-        let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
         for bls_key in bls_keys.iter() {
             let node_id = self.node_config().get_node_id(&bls_key);
             require!(node_id != 0, "unknown node provided");
-            require!(self.prepare_node_for_unbond_if_possible(node_id, bl_nonce, n_blocks_before_unbond),
+            require!(self.prepare_node_for_unbond_if_possible(node_id),
                 "node cannot be unbonded");
             node_ids.push(node_id);
         }
@@ -262,13 +273,14 @@ pub trait ContractStakeModule {
 
         only_owner!(self, "only owner allowed to unbond nodes");
 
+        require!(!self.reset_checkpoints().is_global_op_in_progress(),
+            "node operations are temporarily paused as checkpoint is reset");
+
         let mut node_id = self.node_config().get_num_nodes();
         let mut node_ids = Vec::<usize>::new();
         let mut bls_keys = Vec::<BLSKey>::new();
-        let bl_nonce = self.get_block_nonce();
-        let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
         while node_id >= 1 {
-            if self.prepare_node_for_unbond_if_possible(node_id, bl_nonce, n_blocks_before_unbond) {
+            if self.prepare_node_for_unbond_if_possible(node_id) {
                 node_ids.push(node_id);
                 bls_keys.push(self.node_config().get_node_id_to_bls(node_id));
             }
@@ -283,15 +295,10 @@ pub trait ContractStakeModule {
         self.perform_unbond(node_ids, bls_keys)
     }
 
-    fn prepare_node_for_unbond_if_possible(&self, node_id: usize,
-        current_bl_nonce: u64,
-        n_blocks_before_unbond: u64) -> bool {
-
+    fn prepare_node_for_unbond_if_possible(&self, node_id: usize) -> bool {
         if let NodeState::UnBondPeriod{ started } = self.node_config().get_node_state(node_id) {
-            if current_bl_nonce >= started + n_blocks_before_unbond {
-                self.node_config().set_node_state(node_id, NodeState::PendingUnBond{ unbond_started: started });
-                return true;
-            }
+            self.node_config().set_node_state(node_id, NodeState::PendingUnBond{ unbond_started: started });
+            return true;
         }
 
         false
@@ -373,6 +380,9 @@ pub trait ContractStakeModule {
 
         only_owner!(self,
             "only owner can claim inactive stake from auction");
+
+        require!(!self.reset_checkpoints().is_global_op_in_progress(),
+            "node operations are temporarily paused as checkpoint is reset");
 
         // send claim command to Auction SC
         let auction_contract_addr = self.settings().get_auction_contract_address();

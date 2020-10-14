@@ -5,8 +5,8 @@
             "step": "scCall",
             "txId": "user-unstake",
             "tx": {
-                "from": "''delegator_2___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator2",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "unStake",
                 "arguments": ["6,000,000,000"],
@@ -25,8 +25,8 @@
             "step": "transfer",
             "txId": "supply delegator 2",
             "tx": {
-                "from": "''endless_sack_of_erd___________s1",
-                "to": "''delegator_2___________________s1",
+                "from": "address:endless_sack_of_erd",
+                "to": "address:delegator2",
                 "value": "3,000,000,000"
             }
         },
@@ -34,8 +34,8 @@
             "step": "scCall",
             "txId": "delegator 2 stake",
             "tx": {
-                "from": "''delegator_2___________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:delegator2",
+                "to": "address:delegation_contract",
                 "value": "3,000,000,000",
                 "function": "stake",
                 "arguments": [],

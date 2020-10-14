@@ -5,8 +5,8 @@
             "step": "scCall",
             "txId": "activate-genesis-1",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "activateGenesis",
                 "arguments": [],
@@ -18,7 +18,7 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "''delegation_contract___________s1",
+                        "address": "address:delegation_contract",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000003",
                         "topics": [],
                         "data": "0x"

@@ -320,3 +320,47 @@ fn test_transfer_funds_5_coalesce() {
         RustBigUint::zero(),
         fund_module.query_sum_all_funds_brute_force(|_, fund_desc| fund_desc == FundDescription::Waiting{ created: WAITING_CREATED }));
 }
+
+#[test]
+fn test_user_swap_forwards() {
+    test_user_swap(SwapDirection::Forwards);
+}
+
+#[test]
+fn test_user_swap_backwards() {
+    test_user_swap(SwapDirection::Backwards);
+}
+
+fn test_user_swap(direction: SwapDirection) {
+    let fund_module = FundModuleImpl::new(TxContext::dummy());
+    let user_id_1 = 1;
+    let user_id_2 = 2;
+
+    fund_module.increase_fund_balance(user_id_1, FundDescription::Waiting{ created: WAITING_CREATED }, 1200u32.into());
+    fund_module.increase_fund_balance(user_id_2, FundDescription::Waiting{ created: WAITING_CREATED }, 34u32.into());
+    fund_module.increase_fund_balance(user_id_1, FundDescription::Waiting{ created: WAITING_CREATED }, 50u32.into());
+    
+    fund_module_check::check_consistency(&fund_module, 3);
+
+    let mut amount = RustBigUint::from(1250u32);
+    let swapped = fund_module.split_convert_max_by_user(
+        Some(&mut amount),
+        user_id_1,
+        FundType::Waiting,
+        direction,
+        |_| {
+            Some(FundDescription::WithdrawOnly)
+        },
+    );
+    assert_eq!(amount, RustBigUint::from(0u32));
+    assert_eq!(swapped, RustBigUint::from(1250u32));
+
+    fund_module_check::check_consistency(&fund_module, 3);
+
+    assert_eq!(
+        RustBigUint::from(1250u32),
+        fund_module.query_sum_funds_by_user_type(user_id_1, FundType::WithdrawOnly, |_| true));
+    assert_eq!(
+        RustBigUint::from(34u32),
+        fund_module.query_sum_funds_by_user_type(user_id_2, FundType::Waiting, |_| true));
+}

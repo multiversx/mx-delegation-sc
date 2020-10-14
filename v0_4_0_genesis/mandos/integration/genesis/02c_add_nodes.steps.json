@@ -5,8 +5,8 @@
             "step": "scCall",
             "txId": "03c-node-states",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getAllNodeStates",
                 "arguments": [],
@@ -33,8 +33,8 @@
             "step": "scCall",
             "txId": "check signature",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getNodeSignature",
                 "arguments": [
@@ -55,8 +55,8 @@
             "step": "scCall",
             "txId": "check signature for node that doesn't exist",
             "tx": {
-                "from": "''someone_______________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:someone",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getNodeSignature",
                 "arguments": [
