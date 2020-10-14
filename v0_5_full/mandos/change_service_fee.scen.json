@@ -184,6 +184,48 @@
                 "gas": "*",
                 "refund": "*"
             }
+        },
+        {
+            "step": "scCall",
+            "txId": "-set-service-fee-same-value-",
+            "tx": {
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
+                "value": "0",
+                "function": "setServiceFee",
+                "arguments": [
+                    "2000"
+                ],
+                "gasLimit": "90,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": ["0"],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "-get-service-fee-",
+            "tx": {
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
+                "value": "0",
+                "function": "getServiceFee",
+                "arguments": [],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": ["2000"],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
         }
     ]
 }
