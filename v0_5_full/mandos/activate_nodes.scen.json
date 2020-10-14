@@ -180,29 +180,6 @@
         },
         {
             "step": "scCall",
-            "txId": "unBond unStaked before unBondPeriod has passed",
-            "tx": {
-                "from": "address:node_address",
-                "to": "address:delegation_contract",
-                "value": "0",
-                "function": "unBondNodes",
-                "arguments": [
-                    "''bls_key_6_______________________________________________________________________________________"
-                ],
-                "gasLimit": "100,000,000",
-                "gasPrice": "0"
-            },
-            "expect": {
-                "out": [],
-                "status": "4",
-                "message": "''node cannot be unbonded",
-                "logs": "*",
-                "gas": "*",
-                "refund": "*"
-            }
-        },
-        {
-            "step": "scCall",
             "txId": "check-nodes_state-4",
             "tx": {
                 "from": "address:someone",
@@ -351,7 +328,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-nodes_state-5",
+            "txId": "check-nodes_state-6",
             "tx": {
                 "from": "address:someone",
                 "to": "address:delegation_contract",
@@ -399,7 +376,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-nodes_state-5",
+            "txId": "check-nodes_state-7",
             "tx": {
                 "from": "address:someone",
                 "to": "address:delegation_contract",
@@ -413,7 +390,7 @@
                 "out": [
                     "''bls_key_1_______________________________________________________________________________________", "0x07",
                     "''bls_key_2_______________________________________________________________________________________", "0x00",
-                    "''bls_key_3_______________________________________________________________________________________", "0x05",
+                    "''bls_key_3_______________________________________________________________________________________", "0x00",
                     "''bls_key_4_______________________________________________________________________________________", "0x07",
                     "''bls_key_5_______________________________________________________________________________________", "0x00",
                     "''bls_key_6_______________________________________________________________________________________", "0x00",
@@ -430,7 +407,7 @@
             "accounts": {
                 "address:auction_contract": {
                     "nonce": "0",
-                    "balance": "100,000,000,000,000",
+                    "balance": "0",
                     "storage": "*",
                     "code": "file:../../auction-mock/output/auction-mock.wasm"
                 },
