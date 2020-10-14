@@ -41,8 +41,8 @@
             "step": "scCall",
             "txId": "setMinimumStake",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "setMinimumStake",
                 "arguments": ["1,000,000,000"],

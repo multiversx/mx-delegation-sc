@@ -4,7 +4,7 @@
         {
             "step": "setState",
             "accounts": {
-                "''node_address__________________s1": {
+                "address:node_address": {
                     "nonce": "0",
                     "balance": "0",
                     "storage": {},
@@ -82,7 +82,7 @@
             "txId": "genesis delegator stake",
             "tx": {
                 "from": "''delegator_1___________________s1",
-                "to": "''delegation_contract___________s1",
+                "to": "address:delegation_contract",
                 "value": "7,777,000,000",
                 "function": "stake",
                 "arguments": [],
@@ -94,7 +94,7 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "''delegation_contract___________s1",
+                        "address": "address:delegation_contract",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
                         "topics": [
                             "''delegator_1___________________s1"
@@ -110,8 +110,8 @@
             "step": "scCall",
             "txId": "getFullWaitingList",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getFullWaitingList",
                 "arguments": [],

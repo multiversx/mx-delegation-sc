@@ -189,8 +189,8 @@
             "step": "scCall",
             "txId": "-set-service-fee-same-value-",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "setServiceFee",
                 "arguments": [
@@ -211,8 +211,8 @@
             "step": "scCall",
             "txId": "-get-service-fee-",
             "tx": {
-                "from": "''node_address__________________s1",
-                "to": "''delegation_contract___________s1",
+                "from": "address:node_address",
+                "to": "address:delegation_contract",
                 "value": "0",
                 "function": "getServiceFee",
                 "arguments": [],
