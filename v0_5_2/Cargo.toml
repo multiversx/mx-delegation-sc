@@ -1,0 +1,39 @@
+[package]
+name = "delegation_v0_5_2"
+version = "0.5.0"
+authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
+edition = "2018"
+
+[features]
+wasm-output-mode = [
+    "elrond-wasm-node",
+    "node-storage-wasm",
+    "user-fund-storage-wasm",
+    "elrond-wasm-module-features-wasm",
+    "elrond-wasm-module-pause-wasm"
+]
+
+default = [
+    "node-storage-default",
+    "user-fund-storage-default",
+    "elrond-wasm-module-features-default",
+    "elrond-wasm-module-pause-default"
+]
+
+[dependencies]
+node-storage-wasm = { package = "node-storage", path = "../node-storage", features = ["wasm-output-mode"], optional = true }
+node-storage-default = { package = "node-storage", path = "../node-storage", optional = true }
+user-fund-storage-wasm = { package = "user-fund-storage", path = "../user-fund-storage", features = ["wasm-output-mode"], optional = true }
+user-fund-storage-default = { package = "user-fund-storage", path = "../user-fund-storage", optional = true }
+
+elrond-wasm-module-features-wasm = { package = "elrond-wasm-module-features", version = "0.7.1", features = ["wasm-output-mode"], optional = true }
+elrond-wasm-module-features-default = { package = "elrond-wasm-module-features", version = "0.7.1", optional = true }
+elrond-wasm-module-pause-wasm = { package = "elrond-wasm-module-pause", version = "0.7.1", features = ["wasm-output-mode"], optional = true }
+elrond-wasm-module-pause-default = { package = "elrond-wasm-module-pause", version = "0.7.1", optional = true }
+
+elrond-wasm = "0.7.1"
+elrond-wasm-derive = "0.7.1"
+elrond-wasm-node = { version = "0.7.1", optional = true }
+
+[dev-dependencies]
+elrond-wasm-debug = "0.7.1"
