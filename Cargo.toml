@@ -4,7 +4,7 @@ members = [
   "user-fund-storage",
   
   "auction-mock",
-  "v0_5_1",
-  "v0_5_1_full",
-  "v0_5_1_update",
+  "v0_5_2",
+  "v0_5_2_full",
+  "v0_5_2_update",
 ]

@@ -13,24 +13,24 @@
             "type": "shell"
         },
         {
-            "label": "v0_5_1_full-debug-build",
+            "label": "v0_5_2_full-debug-build",
             "command": "cargo",
             "args": [
                 "build"
             ],
             "options": {
-                "cwd": "${workspaceFolder}//v0_5_1_full/debug"
+                "cwd": "${workspaceFolder}//v0_5_2_full/debug"
             },
             "type": "shell"
         },
         {
-            "label": "v0_5_1_update-debug-build",
+            "label": "v0_5_2_update-debug-build",
             "command": "cargo",
             "args": [
                 "build"
             ],
             "options": {
-                "cwd": "${workspaceFolder}//v0_5_1_update/debug"
+                "cwd": "${workspaceFolder}//v0_5_2_update/debug"
             },
             "type": "shell"
         }

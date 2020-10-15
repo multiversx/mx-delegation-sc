@@ -13,18 +13,18 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug v0_5_1_full",
-            "preLaunchTask": "v0_5_1_full-debug-build",
-            "program": "${workspaceFolder}//v0_5_1_full/debug/target/debug/v0_5_1_full-debug",
+            "name": "Debug v0_5_2_full",
+            "preLaunchTask": "v0_5_2_full-debug-build",
+            "program": "${workspaceFolder}//v0_5_2_full/debug/target/debug/v0_5_2_full-debug",
             "args": [],
             "cwd": "${workspaceFolder}"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug v0_5_1_update",
-            "preLaunchTask": "v0_5_1_update-debug-build",
-            "program": "${workspaceFolder}//v0_5_1_update/debug/target/debug/v0_5_1_update-debug",
+            "name": "Debug v0_5_2_update",
+            "preLaunchTask": "v0_5_2_update-debug-build",
+            "program": "${workspaceFolder}//v0_5_2_update/debug/target/debug/v0_5_2_update-debug",
             "args": [],
             "cwd": "${workspaceFolder}"
         }
