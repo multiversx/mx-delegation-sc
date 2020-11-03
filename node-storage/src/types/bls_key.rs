@@ -1,15 +1,11 @@
 use elrond_wasm::Box;
 use elrond_wasm::elrond_codec::*;
-use elrond_wasm::{H256, SCResult, MultiArg2, Vec};
+use elrond_wasm::{SCResult, Vec};
 
-// BLS keys have 96 bytes, signatures only 32
+// BLS keys have 96 bytes
 pub const BLS_KEY_BYTE_LENGTH: usize = 96;
-pub const BLS_SIGNATURE_BYTE_LENGTH: usize = 32;
 
 pub struct BLSKey(pub Box<[u8; BLS_KEY_BYTE_LENGTH]>);
-pub type BLSSignature = H256;
-
-pub type BLSStatusMultiArg = MultiArg2<BLSKey, i32>;
 
 impl BLSKey {
     pub fn to_vec(&self) -> Vec<u8> {
