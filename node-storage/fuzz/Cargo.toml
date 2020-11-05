@@ -21,13 +21,19 @@ path = ".."
 members = ["."]
 
 [[bin]]
-name = "fuzz_node_state"
-path = "fuzz_targets/fuzz_node_state.rs"
+name = "fuzz_bls_key"
+path = "fuzz_targets/fuzz_bls_key.rs"
 test = false
 doc = false
 
 [[bin]]
-name = "fuzz_bls_key"
-path = "fuzz_targets/fuzz_bls_key.rs"
+name = "fuzz_bls_sig"
+path = "fuzz_targets/fuzz_bls_sig.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_node_state"
+path = "fuzz_targets/fuzz_node_state.rs"
 test = false
 doc = false

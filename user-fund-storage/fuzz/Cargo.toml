@@ -39,3 +39,9 @@ name = "fuzz_fund_description"
 path = "fuzz_targets/fuzz_fund_description.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "fuzz_fund_type"
+path = "fuzz_targets/fuzz_fund_type.rs"
+test = false
+doc = false

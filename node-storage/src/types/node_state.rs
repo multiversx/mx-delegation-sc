@@ -1,7 +1,7 @@
 use elrond_wasm::elrond_codec::*;
 
 /// Status of a node.
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum NodeState {
     /// Node is registered in delegation, but not in the auction SC.
     Inactive,
