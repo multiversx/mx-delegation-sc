@@ -1,12 +1,13 @@
 
 use elrond_wasm::elrond_codec::*;
+use elrond_wasm::elrond_codec::test_util::*;
 use elrond_wasm::BigUintApi;
 use elrond_wasm_debug::*;
 use user_fund_storage::types::*;
 
-fn check<T: Encode + Decode + PartialEq + std::fmt::Debug>(t: T) {
-    let serialized_bytes = t.top_encode().unwrap();
-    let deserialized: T = decode_from_byte_slice(&serialized_bytes[..]).unwrap();
+fn check<T: TopEncode + TopDecode + PartialEq + core::fmt::Debug>(t: T) {
+    let serialized_bytes = check_top_encode(&t);
+    let deserialized: T = check_top_decode::<T>(&serialized_bytes[..]);
     assert_eq!(deserialized, t);
 }
 
@@ -40,9 +41,9 @@ fn test_fund_item_empty_serialization() {
         user_list_prev: 0,
     };
 
-    let serialized_bytes = empty.top_encode().unwrap();
+    let serialized_bytes = check_top_encode(&empty);
     assert!(serialized_bytes.is_empty());
-    let deserialized: FundItem<RustBigUint> = decode_from_byte_slice(&serialized_bytes[..]).unwrap();
+    let deserialized: FundItem<RustBigUint> = check_top_decode::<FundItem<RustBigUint>>(&serialized_bytes[..]);
     assert_eq!(deserialized, FundItem{
         fund_desc: FundDescription::WithdrawOnly,
         user_id: 0,

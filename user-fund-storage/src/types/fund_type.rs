@@ -113,30 +113,61 @@ impl FundType {
     }
 }
 
-impl Encode for FundDescription {
-	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
+impl NestedEncode for FundDescription {
+    fn dep_encode<O: NestedEncodeOutput>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
             FundDescription::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
             FundDescription::Waiting{ created } => {
                 dest.push_byte(DISCR_WAITING);
-                created.dep_encode_to(dest)?;
+                created.dep_encode(dest)?;
             },
             FundDescription::Active => { dest.push_byte(DISCR_ACTIVE); },
             FundDescription::UnStaked{ created } => {
                 dest.push_byte(DISCR_UNSTAKED);
-                created.dep_encode_to(dest)?;
+                created.dep_encode(dest)?;
             },
             FundDescription::DeferredPayment{ created } => {
                 dest.push_byte(DISCR_DEF_PAYMENT);
-                created.dep_encode_to(dest)?;
+                created.dep_encode(dest)?;
             },
         }
         Ok(())
-	}
+    }
+
+    fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(&self, dest: &mut O, c: ExitCtx, exit: fn(ExitCtx, EncodeError) -> !) {
+        match self {
+            FundDescription::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
+            FundDescription::Waiting{ created } => {
+                dest.push_byte(DISCR_WAITING);
+                created.dep_encode_or_exit(dest, c.clone(), exit);
+            },
+            FundDescription::Active => { dest.push_byte(DISCR_ACTIVE); },
+            FundDescription::UnStaked{ created } => {
+                dest.push_byte(DISCR_UNSTAKED);
+                created.dep_encode_or_exit(dest, c.clone(), exit);
+            },
+            FundDescription::DeferredPayment{ created } => {
+                dest.push_byte(DISCR_DEF_PAYMENT);
+                created.dep_encode_or_exit(dest, c.clone(), exit);
+            },
+        }
+    }
 }
 
-impl Decode for FundDescription {
-	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
+impl TopEncode for FundDescription {
+    #[inline]
+    fn top_encode<O: TopEncodeOutput>(&self, output: O) -> Result<(), EncodeError> {
+        top_encode_from_nested(self, output)
+    }
+
+    #[inline]
+    fn top_encode_or_exit<O: TopEncodeOutput, ExitCtx: Clone>(&self, output: O, c: ExitCtx, exit: fn(ExitCtx, EncodeError) -> !) {
+        top_encode_from_nested_or_exit(self, output, c, exit);
+    }
+}
+
+impl NestedDecode for FundDescription {
+    fn dep_decode<I: NestedDecodeInput>(input: &mut I) -> Result<Self, DecodeError> {
         let discriminant = input.read_byte()?;
         match discriminant {
             DISCR_WITHDRAW_ONLY => Ok(FundDescription::WithdrawOnly),
@@ -150,26 +181,76 @@ impl Decode for FundDescription {
             DISCR_DEF_PAYMENT => Ok(FundDescription::DeferredPayment{
                 created: u64::dep_decode(input)?
             }),
-            _ => Err(DecodeError::InvalidValue),
+            _ => Err(DecodeError::INVALID_VALUE),
+        }
+    }
+
+    fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(input: &mut I, c: ExitCtx, exit: fn(ExitCtx, DecodeError) -> !) -> Self {
+        let discriminant = input.read_byte_or_exit(c.clone(), exit);
+        match discriminant {
+            DISCR_WITHDRAW_ONLY => FundDescription::WithdrawOnly,
+            DISCR_WAITING => FundDescription::Waiting{
+                created: u64::dep_decode_or_exit(input, c.clone(), exit)
+            },
+            DISCR_ACTIVE => FundDescription::Active,
+            DISCR_UNSTAKED => FundDescription::UnStaked{
+                created: u64::dep_decode_or_exit(input, c.clone(), exit)
+            },
+            DISCR_DEF_PAYMENT => FundDescription::DeferredPayment{
+                created: u64::dep_decode_or_exit(input, c.clone(), exit)
+            },
+            _ => exit(c, DecodeError::INVALID_VALUE),
         }
     }
 }
 
-impl Encode for FundType {
-	fn dep_encode_to<O: Output>(&self, dest: &mut O) -> Result<(), EncodeError> {
-        match self {
-            FundType::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
-            FundType::Waiting => { dest.push_byte(DISCR_WAITING);},
-            FundType::Active => { dest.push_byte(DISCR_ACTIVE); },
-            FundType::UnStaked => { dest.push_byte(DISCR_UNSTAKED);},
-            FundType::DeferredPayment => { dest.push_byte(DISCR_DEF_PAYMENT);},
-        }
-        Ok(())
-	}
+impl TopDecode for FundDescription {
+    fn top_decode<I: TopDecodeInput>(input: I) -> Result<Self, DecodeError> {
+        top_decode_from_nested(input)
+    }
+
+    fn top_decode_or_exit<I: TopDecodeInput, ExitCtx: Clone>(input: I, c: ExitCtx, exit: fn(ExitCtx, DecodeError) -> !) -> Self {
+        top_decode_from_nested_or_exit(input, c, exit)
+    }
 }
 
-impl Decode for FundType {
-	fn dep_decode<I: Input>(input: &mut I) -> Result<Self, DecodeError> {
+impl NestedEncode for FundType {
+    fn dep_encode<O: NestedEncodeOutput>(&self, dest: &mut O) -> Result<(), EncodeError> {
+        match self {
+            FundType::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
+            FundType::Waiting => { dest.push_byte(DISCR_WAITING); },
+            FundType::Active => { dest.push_byte(DISCR_ACTIVE); },
+            FundType::UnStaked => { dest.push_byte(DISCR_UNSTAKED); },
+            FundType::DeferredPayment => { dest.push_byte(DISCR_DEF_PAYMENT); },
+        }
+        Ok(())
+    }
+
+    fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(&self, dest: &mut O, _: ExitCtx, _: fn(ExitCtx, EncodeError) -> !) {
+        match self {
+            FundType::WithdrawOnly => { dest.push_byte(DISCR_WITHDRAW_ONLY); },
+            FundType::Waiting => { dest.push_byte(DISCR_WAITING); },
+            FundType::Active => { dest.push_byte(DISCR_ACTIVE); },
+            FundType::UnStaked => { dest.push_byte(DISCR_UNSTAKED); },
+            FundType::DeferredPayment => { dest.push_byte(DISCR_DEF_PAYMENT); },
+        }
+    }
+}
+
+impl TopEncode for FundType {
+    #[inline]
+    fn top_encode<O: TopEncodeOutput>(&self, output: O) -> Result<(), EncodeError> {
+        top_encode_from_nested(self, output)
+    }
+
+    #[inline]
+    fn top_encode_or_exit<O: TopEncodeOutput, ExitCtx: Clone>(&self, output: O, c: ExitCtx, exit: fn(ExitCtx, EncodeError) -> !) {
+        top_encode_from_nested_or_exit(self, output, c, exit);
+    }
+}
+
+impl NestedDecode for FundType {
+    fn dep_decode<I: NestedDecodeInput>(input: &mut I) -> Result<Self, DecodeError> {
         let discriminant = input.read_byte()?;
         match discriminant {
             DISCR_WITHDRAW_ONLY => Ok(FundType::WithdrawOnly),
@@ -177,7 +258,29 @@ impl Decode for FundType {
             DISCR_ACTIVE => Ok(FundType::Active),
             DISCR_UNSTAKED => Ok(FundType::UnStaked),
             DISCR_DEF_PAYMENT => Ok(FundType::DeferredPayment),
-            _ => Err(DecodeError::InvalidValue),
+            _ => Err(DecodeError::INVALID_VALUE),
         }
+    }
+
+    fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(input: &mut I, c: ExitCtx, exit: fn(ExitCtx, DecodeError) -> !) -> Self {
+        let discriminant = input.read_byte_or_exit(c.clone(), exit);
+        match discriminant {
+            DISCR_WITHDRAW_ONLY => FundType::WithdrawOnly,
+            DISCR_WAITING => FundType::Waiting,
+            DISCR_ACTIVE => FundType::Active,
+            DISCR_UNSTAKED => FundType::UnStaked,
+            DISCR_DEF_PAYMENT => FundType::DeferredPayment,
+            _ => exit(c, DecodeError::INVALID_VALUE),
+        }
+    }
+}
+
+impl TopDecode for FundType {
+    fn top_decode<I: TopDecodeInput>(input: I) -> Result<Self, DecodeError> {
+        top_decode_from_nested(input)
+    }
+
+    fn top_decode_or_exit<I: TopDecodeInput, ExitCtx: Clone>(input: I, c: ExitCtx, exit: fn(ExitCtx, DecodeError) -> !) -> Self {
+        top_decode_from_nested_or_exit(input, c, exit)
     }
 }

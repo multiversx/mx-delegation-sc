@@ -23,7 +23,7 @@ pub trait UserDataModule {
         // TODO: make this pattern into an attribute just like storage_get/storage_set in elrond_wasm
         // something like storage_is_empty
         let mut key = b"user_address".to_vec();
-        let _ = user_id.dep_encode_to(&mut key);
+        let _ = user_id.dep_encode(&mut key);
         self.storage_load_len(&key[..]) == 0
     }
 
