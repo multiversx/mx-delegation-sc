@@ -1,5 +1,3 @@
-
-
 use auction_mock::*;
 extern crate delegation_v0_5_2_full;
 use delegation_v0_5_2_full::*;
@@ -10,20 +8,26 @@ fn contract_map() -> ContractMap<TxContext> {
     let mut contract_map = ContractMap::new();
     contract_map.register_contract(
         "file:../../../auction-mock/output/auction-mock.wasm",
-        Box::new(|context| Box::new(AuctionMockImpl::new(context))));
+        Box::new(|context| Box::new(AuctionMockImpl::new(context))),
+    );
 
     contract_map.register_contract(
         "file:../../output/delegation_v0_5_2_full.wasm",
-        Box::new(|context| Box::new(DelegationImpl::new(context))));
+        Box::new(|context| Box::new(DelegationImpl::new(context))),
+    );
     contract_map.register_contract(
         "file:../output/delegation_v0_5_2_full.wasm",
-        Box::new(|context| Box::new(DelegationImpl::new(context))));
+        Box::new(|context| Box::new(DelegationImpl::new(context))),
+    );
     contract_map
 }
 
 #[test]
 fn set_num_blocks_before_unbond() {
-    parse_execute_mandos("mandos/set_num_blocks_before_unbond.scen.json", &contract_map());
+    parse_execute_mandos(
+        "mandos/set_num_blocks_before_unbond.scen.json",
+        &contract_map(),
+    );
 }
 
 #[test]
@@ -43,32 +47,50 @@ fn claim_rewards_1() {
 
 #[test]
 fn claim_rewards_owner_with_stake() {
-    parse_execute_mandos("mandos/claim_rewards_owner_with_stake.scen.json", &contract_map());
+    parse_execute_mandos(
+        "mandos/claim_rewards_owner_with_stake.scen.json",
+        &contract_map(),
+    );
 }
 
 #[test]
 fn claim_rewards_with_changed_service_fee() {
-    parse_execute_mandos("mandos/claim_rewards_with_changed_service_fee.scen.json", &contract_map());
+    parse_execute_mandos(
+        "mandos/claim_rewards_with_changed_service_fee.scen.json",
+        &contract_map(),
+    );
 }
 
 #[test]
 fn claim_rewards_with_modify_delegation_cap() {
-    parse_execute_mandos("mandos/claim_rewards_with_modify_delegation_cap.scen.json", &contract_map());
+    parse_execute_mandos(
+        "mandos/claim_rewards_with_modify_delegation_cap.scen.json",
+        &contract_map(),
+    );
 }
 
 #[test]
 fn claim_rewards_with_stake_modifications() {
-    parse_execute_mandos("mandos/claim_rewards_with_stake_modifications.scen.json", &contract_map());
+    parse_execute_mandos(
+        "mandos/claim_rewards_with_stake_modifications.scen.json",
+        &contract_map(),
+    );
 }
 
 #[test]
 fn continue_global_operations() {
-    parse_execute_mandos("mandos/continue_global_operations.scen.json", &contract_map());
+    parse_execute_mandos(
+        "mandos/continue_global_operations.scen.json",
+        &contract_map(),
+    );
 }
 
 #[test]
 fn decrease_cap_in_bootstrap_mode() {
-    parse_execute_mandos("mandos/decrease_cap_in_bootstrap_mode.scen.json", &contract_map());
+    parse_execute_mandos(
+        "mandos/decrease_cap_in_bootstrap_mode.scen.json",
+        &contract_map(),
+    );
 }
 
 #[test]
@@ -78,7 +100,10 @@ fn increase_delegation_cap() {
 
 #[test]
 fn rewards_for_unstaked_go_to_the_owner() {
-    parse_execute_mandos("mandos/rewards_for_unStaked_go_to_the_owner.scen.json", &contract_map());
+    parse_execute_mandos(
+        "mandos/rewards_for_unStaked_go_to_the_owner.scen.json",
+        &contract_map(),
+    );
 }
 
 #[test]

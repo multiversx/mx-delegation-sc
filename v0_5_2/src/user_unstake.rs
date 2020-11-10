@@ -1,23 +1,21 @@
-
-use crate::events::*;
-use crate::rewards::*;
-use crate::settings::*;
-use crate::reset_checkpoints::*;
-use crate::user_stake::*;
-use super::user_fund_storage::user_data::*;
+use super::elrond_wasm_module_pause::*;
 use super::user_fund_storage::fund_transf_module::*;
 use super::user_fund_storage::fund_view_module::*;
 use super::user_fund_storage::types::*;
-use super::elrond_wasm_module_pause::*;
+use super::user_fund_storage::user_data::*;
+use crate::events::*;
+use crate::reset_checkpoints::*;
+use crate::rewards::*;
+use crate::settings::*;
+use crate::user_stake::*;
 
-use core::num::NonZeroUsize;
 use core::cmp::Ordering;
+use core::num::NonZeroUsize;
 
 imports!();
 
 #[elrond_wasm_derive::module(UserUnStakeModuleImpl)]
 pub trait UserUnStakeModule {
-
     #[module(EventsModuleImpl)]
     fn events(&self) -> EventsModuleImpl<T, BigInt, BigUint>;
 
@@ -46,16 +44,22 @@ pub trait UserUnStakeModule {
     fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
 
     fn validate_unstake_amount(&self, user_id: usize, amount: &BigUint) -> SCResult<()> {
-        let max_unstake = 
-            self.fund_view_module().get_user_stake_of_type(user_id, FundType::Waiting) +
-            self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active);
+        let max_unstake = self
+            .fund_view_module()
+            .get_user_stake_of_type(user_id, FundType::Waiting)
+            + self
+                .fund_view_module()
+                .get_user_stake_of_type(user_id, FundType::Active);
         match amount.cmp(&max_unstake) {
-            Ordering::Greater =>
-                sc_error!("cannot unstake more than the user waiting + active stake"),
+            Ordering::Greater => {
+                sc_error!("cannot unstake more than the user waiting + active stake")
+            }
             Ordering::Equal => Ok(()),
             Ordering::Less => {
-                require!(*amount >= self.settings().get_minimum_stake(),
-                    "cannot unstake less than minimum stake");
+                require!(
+                    *amount >= self.settings().get_minimum_stake(),
+                    "cannot unstake less than minimum stake"
+                );
                 Ok(())
             }
         }
@@ -67,20 +71,24 @@ pub trait UserUnStakeModule {
     fn unstake_endpoint(&self, amount: BigUint) -> SCResult<()> {
         require!(self.pause().not_paused(), "contract paused");
 
-        require!(!self.reset_checkpoints().is_global_op_in_progress(),
-            "unstaking is temporarily paused as checkpoint is reset");
-        
+        require!(
+            !self.reset_checkpoints().is_global_op_in_progress(),
+            "unstaking is temporarily paused as checkpoint is reset"
+        );
+
         let caller = self.get_caller();
         let unstake_user_id = non_zero_usize!(
             self.user_data().get_user_id(&caller),
-            "only delegators can unstake");
+            "only delegators can unstake"
+        );
 
         // validate that amount does not exceed existing waiting + active stake
         sc_try!(self.validate_unstake_amount(unstake_user_id.get(), &amount));
 
         // first try to remove funds from waiting list
         let mut remaining = amount;
-        self.fund_transf_module().swap_user_waiting_to_withdraw_only(unstake_user_id.get(), &mut remaining);
+        self.fund_transf_module()
+            .swap_user_waiting_to_withdraw_only(unstake_user_id.get(), &mut remaining);
         if remaining == 0 {
             // waiting list entries covered the whole sum
             return Ok(());
@@ -91,14 +99,17 @@ pub trait UserUnStakeModule {
         self.rewards().compute_one_user_reward(unstake_user_id);
 
         // convert Active -> UnStaked
-        self.fund_transf_module().swap_user_active_to_unstaked(unstake_user_id.get(), &mut remaining);
+        self.fund_transf_module()
+            .swap_user_active_to_unstaked(unstake_user_id.get(), &mut remaining);
         require!(remaining == 0, "error converting Active to UnStaked");
 
         // move funds around
         sc_try!(self.user_stake().use_waiting_to_replace_unstaked());
 
         // check that minimum stake was not violated
-        sc_try!(self.user_stake().validate_user_minimum_stake(unstake_user_id.get()));
+        sc_try!(self
+            .user_stake()
+            .validate_user_minimum_stake(unstake_user_id.get()));
 
         Ok(())
     }
@@ -109,8 +120,11 @@ pub trait UserUnStakeModule {
         if user_id == 0 {
             BigUint::zero()
         } else {
-            self.fund_view_module().get_user_stake_of_type(user_id, FundType::Waiting) +
-            self.fund_view_module().get_user_stake_of_type(user_id, FundType::Active)
+            self.fund_view_module()
+                .get_user_stake_of_type(user_id, FundType::Waiting)
+                + self
+                    .fund_view_module()
+                    .get_user_stake_of_type(user_id, FundType::Active)
         }
     }
 
@@ -123,12 +137,13 @@ pub trait UserUnStakeModule {
         require!(caller_id > 0, "unknown caller");
 
         let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
-        let _ = self.fund_transf_module().swap_eligible_deferred_to_withdraw(
-            caller_id,
-            n_blocks_before_unbond
-        );
+        let _ = self
+            .fund_transf_module()
+            .swap_eligible_deferred_to_withdraw(caller_id, n_blocks_before_unbond);
 
-        let amount_liquidated = self.fund_transf_module().liquidate_all_withdraw_only(caller_id);
+        let amount_liquidated = self
+            .fund_transf_module()
+            .liquidate_all_withdraw_only(caller_id);
 
         if amount_liquidated > 0 {
             // forward payment to seller
@@ -145,8 +160,11 @@ pub trait UserUnStakeModule {
             BigUint::zero()
         } else {
             let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
-            self.fund_view_module().eligible_deferred_payment(user_id, n_blocks_before_unbond) +
-            self.fund_view_module().get_user_stake_of_type(user_id, FundType::WithdrawOnly)
+            self.fund_view_module()
+                .eligible_deferred_payment(user_id, n_blocks_before_unbond)
+                + self
+                    .fund_view_module()
+                    .get_user_stake_of_type(user_id, FundType::WithdrawOnly)
         }
     }
 }

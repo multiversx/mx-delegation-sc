@@ -14,7 +14,6 @@ pub const USER_STAKE_TOTALS_ID: usize = 0;
 
 #[elrond_wasm_derive::module(FundViewModuleImpl)]
 pub trait FundViewModule {
-
     #[module(FundModuleImpl)]
     fn fund_module(&self) -> FundModuleImpl<T, BigInt, BigUint>;
 
@@ -48,7 +47,7 @@ pub trait FundViewModule {
     #[view(totalStake)]
     fn get_total_stake(&self) -> BigUint {
         self.get_user_total_stake(USER_STAKE_TOTALS_ID)
-    } 
+    }
 
     /// Yields how much a user has staked in the contract.
     #[view(getUserStake)]
@@ -63,7 +62,11 @@ pub trait FundViewModule {
 
     // PER USER+TYPE
 
-    fn get_user_stake_of_type_by_address(&self, user_address: Address, fund_type: FundType) -> BigUint {
+    fn get_user_stake_of_type_by_address(
+        &self,
+        user_address: Address,
+        fund_type: FundType,
+    ) -> BigUint {
         let user_id = self.user_data().get_user_id(&user_address);
         if user_id == 0 {
             BigUint::zero()
@@ -126,18 +129,25 @@ pub trait FundViewModule {
 
     // BREAKDOWN BY TYPE
 
-    fn get_user_stake_by_type(&self, user_id: usize) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_user_stake_by_type(
+        &self,
+        user_id: usize,
+    ) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
         (
             self.get_user_stake_of_type(user_id, FundType::WithdrawOnly),
             self.get_user_stake_of_type(user_id, FundType::Waiting),
             self.get_user_stake_of_type(user_id, FundType::Active),
             self.get_user_stake_of_type(user_id, FundType::UnStaked),
             self.get_user_stake_of_type(user_id, FundType::DeferredPayment),
-        ).into()
+        )
+            .into()
     }
 
     #[view(getUserStakeByType)]
-    fn get_user_stake_by_type_endpoint(&self, user_address: &Address) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_user_stake_by_type_endpoint(
+        &self,
+        user_address: &Address,
+    ) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
         let user_id = self.user_data().get_user_id(&user_address);
         if user_id == 0 {
             (
@@ -146,21 +156,27 @@ pub trait FundViewModule {
                 BigUint::zero(),
                 BigUint::zero(),
                 BigUint::zero(),
-            ).into()
+            )
+                .into()
         } else {
             self.get_user_stake_by_type(user_id)
         }
     }
 
     #[view(getTotalStakeByType)]
-    fn get_total_stake_by_type_endpoint(&self) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
+    fn get_total_stake_by_type_endpoint(
+        &self,
+    ) -> MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint> {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 
     // DEFERRED PAYMENT BREAKDOWN
 
     #[view(getUserDeferredPaymentList)]
-    fn get_user_deferred_payment_list(&self, user_address: &Address) -> MultiResultVec<MultiResult2<BigUint, u64>> {
+    fn get_user_deferred_payment_list(
+        &self,
+        user_address: &Address,
+    ) -> MultiResultVec<MultiResult2<BigUint, u64>> {
         let mut result = Vec::<MultiResult2<BigUint, u64>>::new();
         let user_id = self.user_data().get_user_id(&user_address);
         if user_id > 0 {
@@ -169,10 +185,10 @@ pub trait FundViewModule {
                 FundType::DeferredPayment,
                 SwapDirection::Forwards,
                 |fund_item| {
-                    if let FundDescription::DeferredPayment{ created } = fund_item.fund_desc {
+                    if let FundDescription::DeferredPayment { created } = fund_item.fund_desc {
                         result.push(MultiResult2::from((fund_item.balance, created)));
                     }
-                }
+                },
             );
         }
         result.into()
@@ -180,21 +196,18 @@ pub trait FundViewModule {
 
     // DEFERRED PAYMENT UTIL
 
-    fn eligible_deferred_payment(&self, 
-        user_id: usize, 
-        n_blocks_before_claim: u64) -> BigUint {
-
+    fn eligible_deferred_payment(&self, user_id: usize, n_blocks_before_claim: u64) -> BigUint {
         let current_bl_nonce = self.get_block_nonce();
         self.fund_module().query_sum_funds_by_user_type(
             user_id,
             FundType::DeferredPayment,
             |fund_desc| {
-                if let FundDescription::DeferredPayment{ created } = fund_desc {
-                    current_bl_nonce >= created + n_blocks_before_claim 
+                if let FundDescription::DeferredPayment { created } = fund_desc {
+                    current_bl_nonce >= created + n_blocks_before_claim
                 } else {
                     false
                 }
-            }
+            },
         )
     }
 
@@ -207,11 +220,15 @@ pub trait FundViewModule {
             FundType::Waiting,
             SwapDirection::Forwards,
             |fund_item| {
-                if let FundDescription::Waiting{ created } = fund_item.fund_desc {
+                if let FundDescription::Waiting { created } = fund_item.fund_desc {
                     let user_address = self.user_data().get_user_address(fund_item.user_id);
-                    result.push(MultiResult3::from((user_address, fund_item.balance, created)));
+                    result.push(MultiResult3::from((
+                        user_address,
+                        fund_item.balance,
+                        created,
+                    )));
                 }
-            }
+            },
         );
         result.into()
     }

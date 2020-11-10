@@ -1,5 +1,5 @@
-use elrond_wasm::{Box, Vec};
 use elrond_wasm::elrond_codec::*;
+use elrond_wasm::{Box, Vec};
 
 /// BLS signatures have 48 bytes
 pub const BLS_SIGNATURE_BYTE_LENGTH: usize = 48;
@@ -23,9 +23,14 @@ impl NestedEncode for BLSSignature {
     }
 
     #[inline]
-	fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(&self, dest: &mut O, c: ExitCtx, exit: fn(ExitCtx, EncodeError) -> !) {
-		self.0.dep_encode_or_exit(dest, c, exit);
-	}
+    fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(
+        &self,
+        dest: &mut O,
+        c: ExitCtx,
+        exit: fn(ExitCtx, EncodeError) -> !,
+    ) {
+        self.0.dep_encode_or_exit(dest, c, exit);
+    }
 }
 
 impl TopEncode for BLSSignature {
@@ -35,31 +40,52 @@ impl TopEncode for BLSSignature {
     }
 
     #[inline]
-    fn top_encode_or_exit<O: TopEncodeOutput, ExitCtx: Clone>(&self, output: O, c: ExitCtx, exit: fn(ExitCtx, EncodeError) -> !) {
-		self.0.top_encode_or_exit(output, c, exit);
-	}
+    fn top_encode_or_exit<O: TopEncodeOutput, ExitCtx: Clone>(
+        &self,
+        output: O,
+        c: ExitCtx,
+        exit: fn(ExitCtx, EncodeError) -> !,
+    ) {
+        self.0.top_encode_or_exit(output, c, exit);
+    }
 }
 
 impl NestedDecode for BLSSignature {
     #[inline]
     fn dep_decode<I: NestedDecodeInput>(input: &mut I) -> Result<Self, DecodeError> {
-        Ok(BLSSignature(Box::<[u8; BLS_SIGNATURE_BYTE_LENGTH]>::dep_decode(input)?))
+        Ok(BLSSignature(
+            Box::<[u8; BLS_SIGNATURE_BYTE_LENGTH]>::dep_decode(input)?,
+        ))
     }
 
-    fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(input: &mut I, c: ExitCtx, exit: fn(ExitCtx, DecodeError) -> !) -> Self {
-        BLSSignature(Box::<[u8; BLS_SIGNATURE_BYTE_LENGTH]>::dep_decode_or_exit(input, c, exit))
+    fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(
+        input: &mut I,
+        c: ExitCtx,
+        exit: fn(ExitCtx, DecodeError) -> !,
+    ) -> Self {
+        BLSSignature(Box::<[u8; BLS_SIGNATURE_BYTE_LENGTH]>::dep_decode_or_exit(
+            input, c, exit,
+        ))
     }
 }
 
 impl TopDecode for BLSSignature {
     #[inline]
     fn top_decode<I: TopDecodeInput>(input: I) -> Result<Self, DecodeError> {
-        Ok(BLSSignature(Box::<[u8; BLS_SIGNATURE_BYTE_LENGTH]>::top_decode(input)?))
+        Ok(BLSSignature(
+            Box::<[u8; BLS_SIGNATURE_BYTE_LENGTH]>::top_decode(input)?,
+        ))
     }
 
     #[inline]
-    fn top_decode_or_exit<I: TopDecodeInput, ExitCtx: Clone>(input: I, c: ExitCtx, exit: fn(ExitCtx, DecodeError) -> !) -> Self {
-        BLSSignature(Box::<[u8; BLS_SIGNATURE_BYTE_LENGTH]>::top_decode_or_exit(input, c, exit))
+    fn top_decode_or_exit<I: TopDecodeInput, ExitCtx: Clone>(
+        input: I,
+        c: ExitCtx,
+        exit: fn(ExitCtx, DecodeError) -> !,
+    ) -> Self {
+        BLSSignature(Box::<[u8; BLS_SIGNATURE_BYTE_LENGTH]>::top_decode_or_exit(
+            input, c, exit,
+        ))
     }
 }
 
@@ -80,8 +106,8 @@ impl fmt::Debug for BLSSignature {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use elrond_wasm::Vec;
     use elrond_wasm::elrond_codec::test_util::*;
+    use elrond_wasm::Vec;
 
     #[test]
     fn test_bls_serialization() {
@@ -103,14 +129,15 @@ mod tests {
         for _ in 0..3 {
             bls_vec.push(BLSSignature::from_array([4u8; BLS_SIGNATURE_BYTE_LENGTH]));
         }
-        let expected_bytes: &[u8] = &[4u8; BLS_SIGNATURE_BYTE_LENGTH*3];
+        let expected_bytes: &[u8] = &[4u8; BLS_SIGNATURE_BYTE_LENGTH * 3];
 
         // serialize
         let serialized_bytes = check_top_encode(&bls_vec);
         assert_eq!(serialized_bytes.as_slice(), expected_bytes);
 
         // deserialize
-        let deserialized: Vec<BLSSignature> = check_top_decode::<Vec<BLSSignature>>(&serialized_bytes[..]);
+        let deserialized: Vec<BLSSignature> =
+            check_top_decode::<Vec<BLSSignature>>(&serialized_bytes[..]);
         assert_eq!(deserialized.len(), bls_vec.len());
         for i in 0..3 {
             assert_eq!(deserialized[i].to_vec(), bls_vec[i].to_vec());

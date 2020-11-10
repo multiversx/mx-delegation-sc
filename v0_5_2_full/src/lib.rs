@@ -1,4 +1,3 @@
-
 #![no_std]
 #![allow(unused_attributes)]
 #![allow(clippy::string_lit_as_bytes)]
@@ -14,7 +13,6 @@ imports!();
 
 #[elrond_wasm_derive::contract(DelegationImpl)]
 pub trait Delegation {
-
     // METADATA
 
     #[endpoint]
@@ -64,7 +62,8 @@ pub trait Delegation {
 
     /// This is the contract constructor, called only once when the contract is deployed.
     #[init]
-    fn init(&self,
+    fn init(
+        &self,
         auction_contract_addr: &Address,
         service_fee_per_10000: usize,
         owner_min_stake_share_per_10000: usize,
@@ -72,26 +71,32 @@ pub trait Delegation {
         minimum_stake: BigUint,
         total_delegation_cap: BigUint,
     ) -> SCResult<()> {
-
         let owner = self.get_caller();
         self.user_data().set_user_id(&owner, OWNER_USER_ID.get()); // node reward destination will be user #1
-        self.user_data().set_user_address(OWNER_USER_ID.get(), &owner);
+        self.user_data()
+            .set_user_address(OWNER_USER_ID.get(), &owner);
         self.user_data().set_num_users(1);
 
         self.settings().set_auction_addr(&auction_contract_addr);
 
-        require!(service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
-            "service fee out of range");
+        require!(
+            service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
+            "service fee out of range"
+        );
 
         let next_service_fee = BigUint::from(service_fee_per_10000);
         self.settings().set_service_fee(next_service_fee);
 
-        sc_try!(self.settings().set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
+        sc_try!(self
+            .settings()
+            .set_owner_min_stake_share_validated(owner_min_stake_share_per_10000));
 
-        self.settings().set_n_blocks_before_unbond(n_blocks_before_unbond);
+        self.settings()
+            .set_n_blocks_before_unbond(n_blocks_before_unbond);
         self.settings().set_minimum_stake(&minimum_stake);
 
-        self.settings().set_total_delegation_cap(total_delegation_cap);
+        self.settings()
+            .set_total_delegation_cap(total_delegation_cap);
         self.settings().set_bootstrap_mode(true);
 
         Ok(())
@@ -100,36 +105,38 @@ pub trait Delegation {
     // Callbacks can only be declared here for the moment.
 
     #[callback]
-    fn auction_stake_callback(&self,
-            #[callback_arg] node_ids: Vec<usize>,
-            call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
-
-        self.node_activation().auction_stake_callback(
-            node_ids,
-            call_result).unwrap();
+    fn auction_stake_callback(
+        &self,
+        #[callback_arg] node_ids: Vec<usize>,
+        call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+    ) {
+        self.node_activation()
+            .auction_stake_callback(node_ids, call_result)
+            .unwrap();
         // TODO: replace unwrap with typical Result handling
     }
 
     #[callback]
-    fn auction_unstake_callback(&self,
-            #[callback_arg] node_ids: Vec<usize>,
-            call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
-
-        self.node_activation().auction_unstake_callback(
-            node_ids,
-            call_result).unwrap();
-            // TODO: replace unwrap with typical Result handling
+    fn auction_unstake_callback(
+        &self,
+        #[callback_arg] node_ids: Vec<usize>,
+        call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+    ) {
+        self.node_activation()
+            .auction_unstake_callback(node_ids, call_result)
+            .unwrap();
+        // TODO: replace unwrap with typical Result handling
     }
 
     #[callback]
-    fn auction_unbond_callback(&self,
-            #[callback_arg] node_ids: Vec<usize>,
-            call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
-
-        self.node_activation().auction_unbond_callback(
-            node_ids,
-            call_result).unwrap();
-            // TODO: replace unwrap with typical Result handling
+    fn auction_unbond_callback(
+        &self,
+        #[callback_arg] node_ids: Vec<usize>,
+        call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+    ) {
+        self.node_activation()
+            .auction_unbond_callback(node_ids, call_result)
+            .unwrap();
+        // TODO: replace unwrap with typical Result handling
     }
-
 }

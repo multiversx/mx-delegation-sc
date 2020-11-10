@@ -3,7 +3,6 @@ imports!();
 /// Deals with storage of data about delegators.
 #[elrond_wasm_derive::module(UserDataModuleImpl)]
 pub trait UserDataModule {
-
     /// Each delegator gets a user id. This is in order to be able to iterate over their data.
     /// This is a mapping from delegator address to delegator id.
     /// The key is the bytes "user_id" concatenated with their public key.
@@ -49,7 +48,7 @@ pub trait UserDataModule {
         num_users
     }
 
-    fn get_or_create_user(&self, address: &Address) -> usize{
+    fn get_or_create_user(&self, address: &Address) -> usize {
         let mut user_id = self.get_user_id(&address);
         if user_id == 0 {
             user_id = self.new_user();

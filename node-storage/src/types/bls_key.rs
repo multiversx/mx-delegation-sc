@@ -1,5 +1,5 @@
-use elrond_wasm::{Box, Vec};
 use elrond_wasm::elrond_codec::*;
+use elrond_wasm::{Box, Vec};
 
 // BLS keys have 96 bytes
 pub const BLS_KEY_BYTE_LENGTH: usize = 96;
@@ -14,7 +14,6 @@ impl BLSKey {
     pub fn from_array(arr: [u8; BLS_KEY_BYTE_LENGTH]) -> Self {
         BLSKey(Box::new(arr))
     }
-
 }
 
 impl NestedEncode for BLSKey {
@@ -24,9 +23,14 @@ impl NestedEncode for BLSKey {
     }
 
     #[inline]
-	fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(&self, dest: &mut O, c: ExitCtx, exit: fn(ExitCtx, EncodeError) -> !) {
-		self.0.dep_encode_or_exit(dest, c, exit);
-	}
+    fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(
+        &self,
+        dest: &mut O,
+        c: ExitCtx,
+        exit: fn(ExitCtx, EncodeError) -> !,
+    ) {
+        self.0.dep_encode_or_exit(dest, c, exit);
+    }
 }
 
 impl TopEncode for BLSKey {
@@ -36,9 +40,14 @@ impl TopEncode for BLSKey {
     }
 
     #[inline]
-    fn top_encode_or_exit<O: TopEncodeOutput, ExitCtx: Clone>(&self, output: O, c: ExitCtx, exit: fn(ExitCtx, EncodeError) -> !) {
-		self.0.top_encode_or_exit(output, c, exit);
-	}
+    fn top_encode_or_exit<O: TopEncodeOutput, ExitCtx: Clone>(
+        &self,
+        output: O,
+        c: ExitCtx,
+        exit: fn(ExitCtx, EncodeError) -> !,
+    ) {
+        self.0.top_encode_or_exit(output, c, exit);
+    }
 }
 
 impl NestedDecode for BLSKey {
@@ -47,8 +56,14 @@ impl NestedDecode for BLSKey {
         Ok(BLSKey(Box::<[u8; BLS_KEY_BYTE_LENGTH]>::dep_decode(input)?))
     }
 
-    fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(input: &mut I, c: ExitCtx, exit: fn(ExitCtx, DecodeError) -> !) -> Self {
-        BLSKey(Box::<[u8; BLS_KEY_BYTE_LENGTH]>::dep_decode_or_exit(input, c, exit))
+    fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(
+        input: &mut I,
+        c: ExitCtx,
+        exit: fn(ExitCtx, DecodeError) -> !,
+    ) -> Self {
+        BLSKey(Box::<[u8; BLS_KEY_BYTE_LENGTH]>::dep_decode_or_exit(
+            input, c, exit,
+        ))
     }
 }
 
@@ -59,8 +74,14 @@ impl TopDecode for BLSKey {
     }
 
     #[inline]
-    fn top_decode_or_exit<I: TopDecodeInput, ExitCtx: Clone>(input: I, c: ExitCtx, exit: fn(ExitCtx, DecodeError) -> !) -> Self {
-        BLSKey(Box::<[u8; BLS_KEY_BYTE_LENGTH]>::top_decode_or_exit(input, c, exit))
+    fn top_decode_or_exit<I: TopDecodeInput, ExitCtx: Clone>(
+        input: I,
+        c: ExitCtx,
+        exit: fn(ExitCtx, DecodeError) -> !,
+    ) -> Self {
+        BLSKey(Box::<[u8; BLS_KEY_BYTE_LENGTH]>::top_decode_or_exit(
+            input, c, exit,
+        ))
     }
 }
 
@@ -81,8 +102,8 @@ impl fmt::Debug for BLSKey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use elrond_wasm::Vec;
     use elrond_wasm::elrond_codec::test_util::*;
+    use elrond_wasm::Vec;
 
     #[test]
     fn test_bls_serialization() {
@@ -104,7 +125,7 @@ mod tests {
         for _ in 0..3 {
             bls_vec.push(BLSKey::from_array([4u8; BLS_KEY_BYTE_LENGTH]));
         }
-        let expected_bytes: &[u8] = &[4u8; BLS_KEY_BYTE_LENGTH*3];
+        let expected_bytes: &[u8] = &[4u8; BLS_KEY_BYTE_LENGTH * 3];
 
         // serialize
         let serialized_bytes = check_top_encode(&bls_vec);

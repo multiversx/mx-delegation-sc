@@ -1,4 +1,3 @@
-
 #![no_std]
 #![allow(non_snake_case)]
 #![allow(unused_attributes)]
@@ -10,7 +9,6 @@ use super::node_storage::types::bls_key::*;
 
 #[elrond_wasm_derive::module(AuctionMockStorageImpl)]
 pub trait AuctionMockStorage {
-
     #[storage_get("stake_per_node")]
     fn get_stake_per_node(&self) -> BigUint;
 

@@ -1,4 +1,3 @@
-
 #![no_std]
 #![allow(unused_attributes)]
 #![allow(clippy::string_lit_as_bytes)]
@@ -14,7 +13,6 @@ imports!();
 
 #[elrond_wasm_derive::contract(DelegationImpl)]
 pub trait Delegation {
-
     // METADATA
 
     #[endpoint]
@@ -66,7 +64,9 @@ pub trait Delegation {
     fn init(&self) -> SCResult<()> {
         // the genesis contract didn't have the concept of total delegation cap
         // so the field needs to be updated here to correspond to how much was staked
-        let total_active = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+        let total_active = self
+            .fund_view_module()
+            .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
         self.settings().set_total_delegation_cap(total_active);
 
         Ok(())
@@ -75,36 +75,38 @@ pub trait Delegation {
     // Callbacks can only be declared here for the moment.
 
     #[callback]
-    fn auction_stake_callback(&self,
-            #[callback_arg] node_ids: Vec<usize>,
-            call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
-
-        self.node_activation().auction_stake_callback(
-            node_ids,
-            call_result).unwrap();
+    fn auction_stake_callback(
+        &self,
+        #[callback_arg] node_ids: Vec<usize>,
+        call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+    ) {
+        self.node_activation()
+            .auction_stake_callback(node_ids, call_result)
+            .unwrap();
         // TODO: replace unwrap with typical Result handling
     }
 
     #[callback]
-    fn auction_unstake_callback(&self,
-            #[callback_arg] node_ids: Vec<usize>,
-            call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
-
-        self.node_activation().auction_unstake_callback(
-            node_ids,
-            call_result).unwrap();
-            // TODO: replace unwrap with typical Result handling
+    fn auction_unstake_callback(
+        &self,
+        #[callback_arg] node_ids: Vec<usize>,
+        call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+    ) {
+        self.node_activation()
+            .auction_unstake_callback(node_ids, call_result)
+            .unwrap();
+        // TODO: replace unwrap with typical Result handling
     }
 
     #[callback]
-    fn auction_unbond_callback(&self,
-            #[callback_arg] node_ids: Vec<usize>,
-            call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>) {
-
-        self.node_activation().auction_unbond_callback(
-            node_ids,
-            call_result).unwrap();
-            // TODO: replace unwrap with typical Result handling
+    fn auction_unbond_callback(
+        &self,
+        #[callback_arg] node_ids: Vec<usize>,
+        call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+    ) {
+        self.node_activation()
+            .auction_unbond_callback(node_ids, call_result)
+            .unwrap();
+        // TODO: replace unwrap with typical Result handling
     }
-
 }
