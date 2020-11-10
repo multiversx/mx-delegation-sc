@@ -3,25 +3,25 @@ use elrond_wasm::BigUintApi;
 
 /// Functions return this as status, if operation was completed or not.
 #[derive(PartialEq, Debug)]
-pub enum GlobalOperationStatus {
+pub enum GlobalOpStatus {
     Done,
     StoppedBeforeOutOfGas
 }
 
-impl GlobalOperationStatus {
+impl GlobalOpStatus {
     fn to_u64(&self) -> u64 {
         match self {
-            GlobalOperationStatus::Done => 0,
-            GlobalOperationStatus::StoppedBeforeOutOfGas => 1,
+            GlobalOpStatus::Done => 0,
+            GlobalOpStatus::StoppedBeforeOutOfGas => 1,
         } 
     }
 
     pub fn is_done(&self) -> bool {
-        *self == GlobalOperationStatus::Done
+        *self == GlobalOpStatus::Done
     }
 }
 
-impl TopEncode for GlobalOperationStatus {
+impl TopEncode for GlobalOpStatus {
     #[inline]
     fn top_encode<O: TopEncodeOutput>(&self, output: O) -> Result<(), EncodeError> {
         self.to_u64().top_encode(output)
@@ -35,7 +35,7 @@ impl TopEncode for GlobalOperationStatus {
 
 /// Models any computation that can pause itself when it runs out of gas and continue in another block.
 #[derive(PartialEq, Debug)]
-pub enum GlobalOperationCheckpoint<BigUint:BigUintApi> {
+pub enum GlobalOpCheckpoint<BigUint:BigUintApi> {
     None,
     ModifyTotalDelegationCap(ModifyTotalDelegationCapData<BigUint>),
     ChangeServiceFee{
@@ -44,10 +44,10 @@ pub enum GlobalOperationCheckpoint<BigUint:BigUintApi> {
     },
 }
 
-impl<BigUint:BigUintApi> GlobalOperationCheckpoint<BigUint> {
+impl<BigUint:BigUintApi> GlobalOpCheckpoint<BigUint> {
     #[inline]
     pub fn is_none(&self) -> bool {
-        *self == GlobalOperationCheckpoint::<BigUint>::None
+        *self == GlobalOpCheckpoint::<BigUint>::None
     }
 
     #[inline]
@@ -56,21 +56,21 @@ impl<BigUint:BigUintApi> GlobalOperationCheckpoint<BigUint> {
     }
 
     pub fn zero_value() -> Self {
-        GlobalOperationCheckpoint::None
+        GlobalOpCheckpoint::None
     }
 }
 
-impl<BigUint:BigUintApi> NestedEncode for GlobalOperationCheckpoint<BigUint> {
+impl<BigUint:BigUintApi> NestedEncode for GlobalOpCheckpoint<BigUint> {
     fn dep_encode<O: NestedEncodeOutput>(&self, dest: &mut O) -> Result<(), EncodeError> {
         match self {
-            GlobalOperationCheckpoint::None => {
+            GlobalOpCheckpoint::None => {
                 dest.push_byte(0);
             },
-            GlobalOperationCheckpoint::ModifyTotalDelegationCap(data) => {
+            GlobalOpCheckpoint::ModifyTotalDelegationCap(data) => {
                 dest.push_byte(1);
                 data.dep_encode(dest)?;
             },
-            GlobalOperationCheckpoint::ChangeServiceFee{
+            GlobalOpCheckpoint::ChangeServiceFee{
                 new_service_fee,
                 compute_rewards_data,
             } => {
@@ -84,14 +84,14 @@ impl<BigUint:BigUintApi> NestedEncode for GlobalOperationCheckpoint<BigUint> {
 
     fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(&self, dest: &mut O, c: ExitCtx, exit: fn(ExitCtx, EncodeError) -> !) {
         match self {
-            GlobalOperationCheckpoint::None => {
+            GlobalOpCheckpoint::None => {
                 dest.push_byte(0);
             },
-            GlobalOperationCheckpoint::ModifyTotalDelegationCap(data) => {
+            GlobalOpCheckpoint::ModifyTotalDelegationCap(data) => {
                 dest.push_byte(1);
                 data.dep_encode_or_exit(dest, c.clone(), exit);
             },
-            GlobalOperationCheckpoint::ChangeServiceFee{
+            GlobalOpCheckpoint::ChangeServiceFee{
                 new_service_fee,
                 compute_rewards_data,
             } => {
@@ -103,7 +103,7 @@ impl<BigUint:BigUintApi> NestedEncode for GlobalOperationCheckpoint<BigUint> {
     }
 }
 
-impl<BigUint:BigUintApi> TopEncode for GlobalOperationCheckpoint<BigUint> {
+impl<BigUint:BigUintApi> TopEncode for GlobalOpCheckpoint<BigUint> {
     #[inline]
     fn top_encode<O: TopEncodeOutput>(&self, output: O) -> Result<(), EncodeError> {
         // delete storage when the balance reaches 0
@@ -128,15 +128,15 @@ impl<BigUint:BigUintApi> TopEncode for GlobalOperationCheckpoint<BigUint> {
     }
 }
 
-impl<BigUint:BigUintApi> NestedDecode for GlobalOperationCheckpoint<BigUint> {
+impl<BigUint:BigUintApi> NestedDecode for GlobalOpCheckpoint<BigUint> {
     fn dep_decode<I: NestedDecodeInput>(input: &mut I) -> Result<Self, DecodeError> {
         let discriminant = input.read_byte()?;
         match discriminant {
-            0 => Ok(GlobalOperationCheckpoint::None),
-            1 => Ok(GlobalOperationCheckpoint::ModifyTotalDelegationCap(
+            0 => Ok(GlobalOpCheckpoint::None),
+            1 => Ok(GlobalOpCheckpoint::ModifyTotalDelegationCap(
                 ModifyTotalDelegationCapData::dep_decode(input)?
             )),
-            2 => Ok(GlobalOperationCheckpoint::ChangeServiceFee{
+            2 => Ok(GlobalOpCheckpoint::ChangeServiceFee{
                 new_service_fee: BigUint::dep_decode(input)?,
                 compute_rewards_data: ComputeAllRewardsData::dep_decode(input)?,
             }),
@@ -147,11 +147,11 @@ impl<BigUint:BigUintApi> NestedDecode for GlobalOperationCheckpoint<BigUint> {
     fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(input: &mut I, c: ExitCtx, exit: fn(ExitCtx, DecodeError) -> !) -> Self {
         let discriminant = input.read_byte_or_exit(c.clone(), exit);
         match discriminant {
-            0 => GlobalOperationCheckpoint::None,
-            1 => GlobalOperationCheckpoint::ModifyTotalDelegationCap(
+            0 => GlobalOpCheckpoint::None,
+            1 => GlobalOpCheckpoint::ModifyTotalDelegationCap(
                 ModifyTotalDelegationCapData::dep_decode_or_exit(input, c.clone(), exit),
             ),
-            2 => GlobalOperationCheckpoint::ChangeServiceFee{
+            2 => GlobalOpCheckpoint::ChangeServiceFee{
                 new_service_fee: BigUint::dep_decode_or_exit(input, c.clone(), exit),
                 compute_rewards_data: ComputeAllRewardsData::dep_decode_or_exit(input, c.clone(), exit),
             },
@@ -160,11 +160,11 @@ impl<BigUint:BigUintApi> NestedDecode for GlobalOperationCheckpoint<BigUint> {
     }
 }
 
-impl<BigUint:BigUintApi> TopDecode for GlobalOperationCheckpoint<BigUint> {
+impl<BigUint:BigUintApi> TopDecode for GlobalOpCheckpoint<BigUint> {
     fn top_decode<I: TopDecodeInput>(input: I) -> Result<Self, DecodeError> {
         if input.byte_len() == 0 {
             // does not exist in storage 
-            Ok(GlobalOperationCheckpoint::zero_value())
+            Ok(GlobalOpCheckpoint::zero_value())
         } else {
             top_decode_from_nested(input)
         }
@@ -173,7 +173,7 @@ impl<BigUint:BigUintApi> TopDecode for GlobalOperationCheckpoint<BigUint> {
     fn top_decode_or_exit<I: TopDecodeInput, ExitCtx: Clone>(input: I, c: ExitCtx, exit: fn(ExitCtx, DecodeError) -> !) -> Self {
         if input.byte_len() == 0 {
             // does not exist in storage 
-            GlobalOperationCheckpoint::zero_value()
+            GlobalOpCheckpoint::zero_value()
         } else {
             top_decode_from_nested_or_exit(input, c, exit)
         }
@@ -350,24 +350,24 @@ mod tests {
     use elrond_wasm::elrond_codec::test_util::*;
     use elrond_wasm_debug::*;
 
-    fn check_global_operation_checkpoint_codec(goc: GlobalOperationCheckpoint<RustBigUint>) {
+    fn check_global_operation_checkpoint_codec(goc: GlobalOpCheckpoint<RustBigUint>) {
         let top_encoded = check_top_encode(&goc);
-        let top_decoded = check_top_decode::<GlobalOperationCheckpoint::<RustBigUint>>(&top_encoded[..]);
+        let top_decoded = check_top_decode::<GlobalOpCheckpoint::<RustBigUint>>(&top_encoded[..]);
         assert_eq!(top_decoded, goc);
 
         let dep_encoded = check_dep_encode(&goc);
-        let dep_decoded = check_dep_decode::<GlobalOperationCheckpoint::<RustBigUint>>(&dep_encoded[..]);
+        let dep_decoded = check_dep_decode::<GlobalOpCheckpoint::<RustBigUint>>(&dep_encoded[..]);
         assert_eq!(dep_decoded, goc);
     }
 
     #[test]
     fn test_global_operation_checkpoint() {
         check_global_operation_checkpoint_codec(
-            GlobalOperationCheckpoint::None
+            GlobalOpCheckpoint::None
         );
 
         check_global_operation_checkpoint_codec(
-            GlobalOperationCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+            GlobalOpCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
                 new_delegation_cap: 104u32.into(),
                 remaining_swap_waiting_to_active: 105u32.into(),
                 remaining_swap_active_to_def_p: 106u32.into(),
@@ -381,7 +381,7 @@ mod tests {
         );
 
         check_global_operation_checkpoint_codec(
-            GlobalOperationCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+            GlobalOpCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
                 new_delegation_cap: 104u32.into(),
                 remaining_swap_waiting_to_active: 105u32.into(),
                 remaining_swap_active_to_def_p: 106u32.into(),
@@ -391,7 +391,7 @@ mod tests {
         );
 
         check_global_operation_checkpoint_codec(
-            GlobalOperationCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+            GlobalOpCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
                 new_delegation_cap: 104u32.into(),
                 remaining_swap_waiting_to_active: 105u32.into(),
                 remaining_swap_active_to_def_p: 106u32.into(),
@@ -401,7 +401,7 @@ mod tests {
         );
         
         check_global_operation_checkpoint_codec(
-            GlobalOperationCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
+            GlobalOpCheckpoint::ModifyTotalDelegationCap(ModifyTotalDelegationCapData{
                 new_delegation_cap: 104u32.into(),
                 remaining_swap_waiting_to_active: 105u32.into(),
                 remaining_swap_active_to_def_p: 106u32.into(),
@@ -411,7 +411,7 @@ mod tests {
         );
 
         check_global_operation_checkpoint_codec(
-            GlobalOperationCheckpoint::ChangeServiceFee{
+            GlobalOpCheckpoint::ChangeServiceFee{
                 new_service_fee: 190u32.into(),
                 compute_rewards_data: ComputeAllRewardsData{
                     last_id:              108,
