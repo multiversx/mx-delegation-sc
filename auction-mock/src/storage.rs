@@ -1,7 +1,4 @@
 #![no_std]
-#![allow(non_snake_case)]
-#![allow(unused_attributes)]
-#![allow(clippy::ptr_arg)]
 
 imports!();
 
@@ -38,12 +35,12 @@ pub trait AuctionMockStorage {
 
     #[endpoint(setBlsDeliberateError)]
     #[storage_set("bls_deliberate_error")]
-    fn set_bls_deliberate_error(&self, bls_key: &Vec<u8>, err_code: u8);
+    fn set_bls_deliberate_error(&self, bls_key: &[u8], err_code: u8);
 
     #[endpoint(getBlsDeliberateError)]
     #[storage_get("bls_deliberate_error")]
-    fn get_bls_deliberate_error(&self, bls_key: &Vec<u8>) -> u8;
+    fn get_bls_deliberate_error(&self, bls_key: &[u8]) -> u8;
 
     #[storage_set("unJailed")]
-    fn set_unjailed(&self, bls_keys: &Vec<BLSKey>);
+    fn set_unjailed(&self, bls_keys: &[BLSKey]);
 }

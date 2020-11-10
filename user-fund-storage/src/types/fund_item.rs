@@ -50,6 +50,7 @@ impl<BigUint: BigUintApi> NestedEncode for FundItem<BigUint> {
         Ok(())
     }
 
+    #[allow(clippy::redundant_clone)]
     fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(
         &self,
         dest: &mut O,
@@ -113,6 +114,7 @@ impl<BigUint: BigUintApi> NestedDecode for FundItem<BigUint> {
         })
     }
 
+    #[allow(clippy::redundant_clone)]
     fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(
         input: &mut I,
         c: ExitCtx,

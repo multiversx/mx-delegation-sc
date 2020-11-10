@@ -90,6 +90,7 @@ impl TopDecode for BLSSignature {
 }
 
 impl PartialEq for BLSSignature {
+    #[allow(clippy::op_ref)]
     fn eq(&self, other: &Self) -> bool {
         &self.0[..] == &other.0[..]
     }

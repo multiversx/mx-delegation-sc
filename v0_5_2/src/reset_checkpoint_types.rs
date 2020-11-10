@@ -87,6 +87,7 @@ impl<BigUint: BigUintApi> NestedEncode for GlobalOpCheckpoint<BigUint> {
         Ok(())
     }
 
+    #[allow(clippy::redundant_clone)]
     fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(
         &self,
         dest: &mut O,
@@ -159,6 +160,7 @@ impl<BigUint: BigUintApi> NestedDecode for GlobalOpCheckpoint<BigUint> {
         }
     }
 
+    #[allow(clippy::redundant_clone)]
     fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(
         input: &mut I,
         c: ExitCtx,
@@ -227,6 +229,7 @@ impl<BigUint: BigUintApi> NestedEncode for ModifyTotalDelegationCapData<BigUint>
         Ok(())
     }
 
+    #[allow(clippy::redundant_clone)]
     fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(
         &self,
         dest: &mut O,
@@ -256,6 +259,7 @@ impl<BigUint: BigUintApi> NestedDecode for ModifyTotalDelegationCapData<BigUint>
         })
     }
 
+    #[allow(clippy::redundant_clone)]
     fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(
         input: &mut I,
         c: ExitCtx,
@@ -300,6 +304,7 @@ impl<BigUint: BigUintApi> NestedEncode for ModifyDelegationCapStep<BigUint> {
         Ok(())
     }
 
+    #[allow(clippy::redundant_clone)]
     fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(
         &self,
         dest: &mut O,
@@ -382,6 +387,7 @@ impl<BigUint: BigUintApi> NestedEncode for ComputeAllRewardsData<BigUint> {
         Ok(())
     }
 
+    #[allow(clippy::redundant_clone)]
     fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(
         &self,
         dest: &mut O,
@@ -404,6 +410,7 @@ impl<BigUint: BigUintApi> NestedDecode for ComputeAllRewardsData<BigUint> {
         })
     }
 
+    #[allow(clippy::redundant_clone)]
     fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(
         input: &mut I,
         c: ExitCtx,

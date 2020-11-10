@@ -86,6 +86,7 @@ impl TopDecode for BLSKey {
 }
 
 impl PartialEq for BLSKey {
+    #[allow(clippy::op_ref)]
     fn eq(&self, other: &Self) -> bool {
         &self.0[..] == &other.0[..]
     }
