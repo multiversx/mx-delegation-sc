@@ -73,14 +73,14 @@ pub trait NodeModule {
     }
 
     #[view(getAllNodeStates)]
-    fn get_all_node_states(&self) -> MultiResultVec<Vec<u8>> {
+    fn get_all_node_states(&self) -> MultiResultVec<MultiResult2<BLSKey, u8>> {
         let num_nodes = self.get_num_nodes();
-        let mut result: Vec<Vec<u8>> = Vec::new();
+        let mut result = Vec::new();
         for i in 1..num_nodes + 1 {
-            let bls = self.get_node_id_to_bls(i);
-            result.push(bls.to_vec());
-            let state = self.get_node_state(i);
-            result.push([state.to_u8()].to_vec());
+            result.push(MultiResult2::from((
+                self.get_node_id_to_bls(i),
+                self.get_node_state(i).discriminant(),
+            )));
         }
         result.into()
     }
