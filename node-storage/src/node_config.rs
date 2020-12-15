@@ -1,4 +1,3 @@
-
 use crate::types::*;
 
 imports!();
@@ -12,10 +11,9 @@ imports!();
 /// - how many nodes there are,
 /// - what BLS keys they have.
 /// - what BLS signatures they have
-/// 
+///
 #[elrond_wasm_derive::module(NodeConfigModuleImpl)]
 pub trait NodeModule {
-    
     /// The number of nodes that will run with the contract stake, as configured by the owner.
     #[view(getNumNodes)]
     #[storage_get("num_nodes")]
@@ -75,14 +73,14 @@ pub trait NodeModule {
     }
 
     #[view(getAllNodeStates)]
-    fn get_all_node_states(&self) -> MultiResultVec<Vec<u8>> {
+    fn get_all_node_states(&self) -> MultiResultVec<MultiResult2<BLSKey, u8>> {
         let num_nodes = self.get_num_nodes();
-        let mut result: Vec<Vec<u8>> = Vec::new();
-        for i in 1..num_nodes+1 {
-            let bls = self.get_node_id_to_bls(i);
-            result.push(bls.to_vec());
-            let state = self.get_node_state(i);
-            result.push([state.to_u8()].to_vec());
+        let mut result = Vec::new();
+        for i in 1..num_nodes + 1 {
+            result.push(MultiResult2::from((
+                self.get_node_id_to_bls(i),
+                self.get_node_state(i).discriminant(),
+            )));
         }
         result.into()
     }
@@ -92,7 +90,7 @@ pub trait NodeModule {
         let node_id = self.get_node_id(&bls_key);
         if node_id == 0 {
             OptionalResult::None
-        } else if let NodeState::UnBondPeriod{ started } = self.get_node_state(node_id) {
+        } else if let NodeState::UnBondPeriod { started } = self.get_node_state(node_id) {
             OptionalResult::Some(started)
         } else {
             OptionalResult::None
@@ -100,10 +98,10 @@ pub trait NodeModule {
     }
 
     #[endpoint(addNodes)]
-    fn add_nodes(&self, 
-            #[var_args] bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>)
-        -> SCResult<()> {
-
+    fn add_nodes(
+        &self,
+        #[var_args] bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>,
+    ) -> SCResult<()> {
         only_owner!(self, "only owner can add nodes");
 
         let mut num_nodes = self.get_mut_num_nodes();
@@ -121,7 +119,7 @@ pub trait NodeModule {
                 self.set_node_state(node_id, NodeState::Inactive);
                 self.set_node_signature(node_id, bls_sig);
             } else {
-                return sc_error!("node already registered"); 
+                return sc_error!("node already registered");
             }
         }
         Ok(())
@@ -133,21 +131,22 @@ pub trait NodeModule {
 
         for bls_key in bls_keys.iter() {
             let node_id = self.get_node_id(bls_key);
-            require!(node_id != 0,
-                "node not registered");
-            require!(self.get_node_state(node_id) == NodeState::Inactive,
-                "only inactive nodes can be removed");
+            require!(node_id != 0, "node not registered");
+            require!(
+                self.get_node_state(node_id) == NodeState::Inactive,
+                "only inactive nodes can be removed"
+            );
             self.set_node_state(node_id, NodeState::Removed);
         }
 
         Ok(())
     }
 
-    fn split_node_ids_by_err(&self, 
-            mut node_ids: Vec<usize>, 
-            node_status_args: VarArgs<BLSStatusMultiArg>)
-        -> (Vec<usize>, Vec<usize>) {
-
+    fn split_node_ids_by_err(
+        &self,
+        mut node_ids: Vec<usize>,
+        node_status_args: VarArgs<BLSStatusMultiArg>,
+    ) -> (Vec<usize>, Vec<usize>) {
         let mut failed_node_ids: Vec<usize> = Vec::new();
         for arg in node_status_args.into_vec().into_iter() {
             let (bls_key, status) = arg.into_tuple();

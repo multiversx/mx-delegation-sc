@@ -11,8 +11,8 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.3"
-elrond-wasm = "0.7.1"
-elrond-wasm-debug = "0.7.3"
+elrond-wasm = "0.9.7"
+elrond-wasm-debug = "0.9.7"
 
 [dependencies.delegation_v0_5_2]
 path = ".."
@@ -22,7 +22,7 @@ path = ".."
 members = ["."]
 
 [[bin]]
-name = "fuzz_reset_checkpoint_types"
-path = "fuzz_targets/fuzz_reset_checkpoint_types.rs"
+name = "fuzz_goc"
+path = "fuzz_targets/fuzz_goc.rs"
 test = false
 doc = false

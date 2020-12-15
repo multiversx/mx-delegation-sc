@@ -8,9 +8,9 @@ edition = "2018"
 wasm-output-mode = ["elrond-wasm-node"]
 
 [dependencies]
-elrond-wasm = "0.7.1"
-elrond-wasm-derive = "0.7.1"
-elrond-wasm-node = { version = "0.7.1", optional = true }
+elrond-wasm = "0.9.7"
+elrond-wasm-derive = "0.9.7"
+elrond-wasm-node = { version = "0.9.7", optional = true }
 
 [dev-dependencies]
-elrond-wasm-debug = "0.7.3"
+elrond-wasm-debug = "0.9.7"

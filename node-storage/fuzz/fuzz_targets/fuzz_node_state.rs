@@ -2,13 +2,14 @@
 use libfuzzer_sys::fuzz_target;
 
 use elrond_wasm::elrond_codec::*;
+use elrond_wasm::elrond_codec::test_util::*;
 use node_storage::types::*;
 
 fuzz_target!(|data: &[u8]| {
-   if let Ok(decoded) = NodeState::top_decode(&mut &data[..]) {
-       let encoded_clean = decoded.top_encode().unwrap();
-       let decoded_again = NodeState::top_decode(&mut &encoded_clean[..]).unwrap();
-       let encoded_again = decoded_again.top_encode().unwrap();
-       assert_eq!(encoded_clean,encoded_again);
-   }
+    if let Ok(decoded) = NodeState::top_decode(data) {
+        let encoded_clean = check_top_encode(&decoded);
+        let decoded_again = check_top_decode::<NodeState>(&encoded_clean[..]);
+        let encoded_again = check_top_encode(&decoded_again);
+        assert_eq!(encoded_clean, encoded_again);
+    }
 });

@@ -1,15 +1,14 @@
-
 use super::user_fund_storage::types::fund_type::*;
 
-use super::settings::*;
-use crate::events::*;
-use crate::reset_checkpoints::*;
-use super::node_storage::node_config::*;
-use super::user_fund_storage::user_data::*;
-use super::user_fund_storage::fund_transf_module::*;
-use super::user_fund_storage::fund_view_module::*;
 use super::elrond_wasm_module_features::*;
 use super::elrond_wasm_module_pause::*;
+use super::node_storage::node_config::*;
+use super::settings::*;
+use super::user_fund_storage::fund_transf_module::*;
+use super::user_fund_storage::fund_view_module::*;
+use super::user_fund_storage::user_data::*;
+use crate::events::*;
+use crate::reset_checkpoints::*;
 use core::num::NonZeroUsize;
 
 imports!();
@@ -26,7 +25,6 @@ pub struct UserRewardData<BigUint> {
 /// Contains logic to compute and distribute individual delegator rewards.
 #[elrond_wasm_derive::module(RewardsModuleImpl)]
 pub trait RewardsModule {
-
     #[module(EventsModuleImpl)]
     fn events(&self) -> EventsModuleImpl<T, BigInt, BigUint>;
 
@@ -56,7 +54,7 @@ pub trait RewardsModule {
 
     /// Claiming rewards has 2 steps:
     /// 1. computing the delegator rewards out of the total rewards, and
-    /// 2. sending those rewards to the delegator address. 
+    /// 2. sending those rewards to the delegator address.
     /// This field keeps track of rewards that went through step 1 but not 2,
     /// i.e. were computed and deducted from the total rewards, but not yet "physically" sent to the user.
     /// The unclaimed stake still resides in the contract.
@@ -66,10 +64,10 @@ pub trait RewardsModule {
     #[storage_set("u_rew_unclmd")]
     fn set_user_rew_unclaimed(&self, user_id: NonZeroUsize, user_rew_unclaimed: &BigUint);
 
-    /// As the time passes, if the contract is active, rewards periodically arrive in the contract. 
+    /// As the time passes, if the contract is active, rewards periodically arrive in the contract.
     /// Users can claim their share of rewards anytime.
     /// This field helps keeping track of how many rewards came to the contract since the last claim.
-    /// More specifically, it indicates the cumulated sum of rewards that had arrived in the contract 
+    /// More specifically, it indicates the cumulated sum of rewards that had arrived in the contract
     /// when the user last claimed their own personal rewards.
     /// If zero, it means the user never claimed any rewards.
     /// If equal to get_total_cumulated_rewards, it means the user claimed everything there is for him/her.
@@ -99,7 +97,7 @@ pub trait RewardsModule {
 
     /// The account running the nodes is entitled to (service_fee / NODE_DENOMINATOR) * rewards.
     /// Yields the service reward and the non-service-reward.
-    /// 
+    ///
     /// The sum of the 2 outputs is <= tot_rewards (not always equal).
     /// Both results are rounded down,
     /// so te rounding error is not in the result.
@@ -133,17 +131,20 @@ pub trait RewardsModule {
 
         // the owner is entitled to: tot_new_rewards * service_fee / NODE_DENOMINATOR
         // delegators are entitled to: tot_new_rewards * (1 - service_fee / NODE_DENOMINATOR)
-        let (service_rewards, total_delegators_rewards) = self.split_service_reward(&tot_new_rewards);
-        
+        let (service_rewards, total_delegators_rewards) =
+            self.split_service_reward(&tot_new_rewards);
+
         let delegation_cap = self.settings().get_total_delegation_cap();
-        
+
         // update node rewards, if applicable
         if user_id == OWNER_USER_ID {
             // the owner gets the service fee
             user_data.unclaimed_rewards += &service_rewards;
 
             // the owner gets the rewards for the missing active (unstaked) stake
-            let tot_stake_active = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+            let tot_stake_active = self
+                .fund_view_module()
+                .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
             if tot_stake_active < delegation_cap {
                 let missing_stake = &delegation_cap - &tot_stake_active;
                 let mut owner_unstaked_rewards = total_delegators_rewards.clone();
@@ -154,7 +155,9 @@ pub trait RewardsModule {
         }
 
         // update delegator rewards based on Active stake
-        let u_stake_active = self.fund_view_module().get_user_stake_of_type(user_id.get(), FundType::Active);
+        let u_stake_active = self
+            .fund_view_module()
+            .get_user_stake_of_type(user_id.get(), FundType::Active);
         if u_stake_active > 0 {
             // delegator reward is:
             // total new rewards * (1 - service_fee / NODE_DENOMINATOR) * user stake / total delegation cap
@@ -193,7 +196,7 @@ pub trait RewardsModule {
     fn get_total_unclaimed_rewards(&self) -> BigUint {
         let num_users = self.user_data().get_num_users();
         let mut sum_unclaimed = BigUint::zero();
-        
+
         // regular rewards
         for user_id in NonZeroUsizeIterator::from_1_to_n(num_users) {
             let user_data = self.load_updated_user_rewards(user_id);
@@ -215,13 +218,16 @@ pub trait RewardsModule {
         let caller = self.get_caller();
         let user_id = non_zero_usize!(self.user_data().get_user_id(&caller), "unknown caller");
 
-        require!(!self.reset_checkpoints().is_global_op_in_progress(),
-            "claim rewards is temporarily paused as checkpoint is reset");
+        require!(
+            !self.reset_checkpoints().is_global_op_in_progress(),
+            "claim rewards is temporarily paused as checkpoint is reset"
+        );
 
         let mut user_data = self.load_updated_user_rewards(user_id);
-        
+
         if user_data.unclaimed_rewards > 0 {
-            self.events().claim_rewards_event(&caller, &user_data.unclaimed_rewards);
+            self.events()
+                .claim_rewards_event(&caller, &user_data.unclaimed_rewards);
 
             self.send_rewards(&caller, &user_data.unclaimed_rewards);
 
@@ -263,16 +269,21 @@ pub trait RewardsModule {
     fn total_unprotected(&self) -> BigUint {
         let sent_rewards = self.get_sent_rewards();
         let total_rewards = self.get_total_cumulated_rewards();
-        let total_waiting = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
-        let total_deferred = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::DeferredPayment);
-        let total_withdraw = self.fund_view_module().get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly);
+        let total_waiting = self
+            .fund_view_module()
+            .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
+        let total_deferred = self
+            .fund_view_module()
+            .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::DeferredPayment);
+        let total_withdraw = self
+            .fund_view_module()
+            .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly);
 
         let mut unprotected = self.get_sc_balance() + sent_rewards;
         unprotected -= total_rewards;
         unprotected -= total_waiting;
-        unprotected -= total_deferred; 
+        unprotected -= total_deferred;
         unprotected -= total_withdraw;
         unprotected
     }
-
 }

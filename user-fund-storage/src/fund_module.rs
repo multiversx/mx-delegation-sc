@@ -5,13 +5,12 @@ use crate::types::*;
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum SwapDirection {
     Forwards,
-    Backwards
+    Backwards,
 }
 
 /// Deals with storage data about delegators.
 #[elrond_wasm_derive::module(FundModuleImpl)]
 pub trait FundModule {
-
     #[view(fundById)]
     #[storage_get("f")]
     fn get_fund_by_id(&self, id: usize) -> FundItem<BigUint>;
@@ -32,23 +31,30 @@ pub trait FundModule {
     fn get_fund_list_by_type(&self, fund_type: FundType) -> FundsListInfo<BigUint>;
 
     #[storage_get_mut("ftype")]
-    fn get_mut_fund_list_by_type(&self, fund_type: FundType) -> mut_storage!(FundsListInfo<BigUint>);
+    fn get_mut_fund_list_by_type(
+        &self,
+        fund_type: FundType,
+    ) -> mut_storage!(FundsListInfo<BigUint>);
 
     #[storage_get("fuser")]
     fn get_fund_list_by_user(&self, user_id: usize, fund_type: FundType) -> FundsListInfo<BigUint>;
 
     #[storage_get_mut("fuser")]
-    fn get_mut_fund_list_by_user(&self, user_id: usize, fund_type: FundType) -> mut_storage!(FundsListInfo<BigUint>);
+    fn get_mut_fund_list_by_user(
+        &self,
+        user_id: usize,
+        fund_type: FundType,
+    ) -> mut_storage!(FundsListInfo<BigUint>);
 
     /// For testing; please do not use in production.
     /// Goes through all fund items, ignores indexes.
-    fn query_sum_all_funds_brute_force<F>(&self, filter: F) -> BigUint 
-    where 
+    fn query_sum_all_funds_brute_force<F>(&self, filter: F) -> BigUint
+    where
         F: Fn(usize, FundDescription) -> bool,
     {
         let mut sum = BigUint::zero();
         let max_fund_id = self.get_fund_max_id();
-        for id in 1..(max_fund_id+1) {
+        for id in 1..(max_fund_id + 1) {
             let fund_item = self.get_fund_by_id(id);
             if filter(fund_item.user_id, fund_item.fund_desc) {
                 sum += &fund_item.balance;
@@ -57,8 +63,8 @@ pub trait FundModule {
         sum
     }
 
-    fn query_sum_funds_by_type<F>(&self, fund_type: FundType, filter: F) -> BigUint 
-    where 
+    fn query_sum_funds_by_type<F>(&self, fund_type: FundType, filter: F) -> BigUint
+    where
         F: Fn(usize, FundDescription) -> bool,
     {
         let mut sum = BigUint::zero();
@@ -74,8 +80,13 @@ pub trait FundModule {
         sum
     }
 
-    fn query_sum_funds_by_user_type<F>(&self, user_id: usize, fund_type: FundType, filter: F) -> BigUint 
-    where 
+    fn query_sum_funds_by_user_type<F>(
+        &self,
+        user_id: usize,
+        fund_type: FundType,
+        filter: F,
+    ) -> BigUint
+    where
         F: Fn(FundDescription) -> bool,
     {
         let mut sum = BigUint::zero();
@@ -91,12 +102,13 @@ pub trait FundModule {
         sum
     }
 
-    fn foreach_fund_by_user_type<F>(&self,
+    fn foreach_fund_by_user_type<F>(
+        &self,
         user_id: usize,
-        fund_type: FundType, 
+        fund_type: FundType,
         direction: SwapDirection,
-        mut closure: F)
-    where 
+        mut closure: F,
+    ) where
         F: FnMut(FundItem<BigUint>),
     {
         let user_list = self.get_fund_list_by_user(user_id, fund_type);
@@ -115,11 +127,8 @@ pub trait FundModule {
         }
     }
 
-    fn foreach_fund_by_type<F>(&self,
-        fund_type: FundType, 
-        direction: SwapDirection,
-        mut closure: F)
-    where 
+    fn foreach_fund_by_type<F>(&self, fund_type: FundType, direction: SwapDirection, mut closure: F)
+    where
         F: FnMut(FundItem<BigUint>),
     {
         let type_list = self.get_fund_list_by_type(fund_type);
@@ -139,8 +148,8 @@ pub trait FundModule {
     }
 
     /// Mostly written for testing. The contract shouldn't care how many items there are in the list.
-    fn count_fund_items_by_type<F>(&self, fund_type: FundType, filter: F) -> usize 
-    where 
+    fn count_fund_items_by_type<F>(&self, fund_type: FundType, filter: F) -> usize
+    where
         F: Fn(usize, FundDescription) -> bool,
     {
         let mut count = 0usize;
@@ -157,8 +166,13 @@ pub trait FundModule {
     }
 
     /// Mostly written for testing. The contract shouldn't care how many items there are in the list.
-    fn count_fund_items_by_user_type<F>(&self, user_id: usize, fund_type: FundType, filter: F) -> usize 
-    where 
+    fn count_fund_items_by_user_type<F>(
+        &self,
+        user_id: usize,
+        fund_type: FundType,
+        filter: F,
+    ) -> usize
+    where
         F: Fn(FundDescription) -> bool,
     {
         let mut count = 0usize;
@@ -191,7 +205,8 @@ pub trait FundModule {
 
     /// Adds at the end of the fund by user+type list.
     fn add_fund_to_user_list(&self, id: usize, new_fund_item: &mut FundItem<BigUint>) {
-        let mut user_list = self.get_mut_fund_list_by_user(new_fund_item.user_id, new_fund_item.fund_desc.fund_type());
+        let mut user_list = self
+            .get_mut_fund_list_by_user(new_fund_item.user_id, new_fund_item.fund_desc.fund_type());
         if user_list.is_empty() {
             user_list.first = id;
             user_list.last = id;
@@ -214,7 +229,7 @@ pub trait FundModule {
         fund_max_id += 1;
         self.set_fund_max_id(fund_max_id);
 
-        let mut new_fund_item = FundItem{
+        let mut new_fund_item = FundItem {
             fund_desc,
             user_id,
             balance,
@@ -236,11 +251,14 @@ pub trait FundModule {
         }
 
         // attempt to coalesce into 1 fund item
-        if fund_desc.fund_type().allow_coalesce() { // not all types can be coalesced, anything involving queues cannot
+        if fund_desc.fund_type().allow_coalesce() {
+            // not all types can be coalesced, anything involving queues cannot
             let mut user_list = self.get_mut_fund_list_by_user(user_id, fund_desc.fund_type());
-            if !user_list.is_empty() { // at least 1 other item must exist for user
+            if !user_list.is_empty() {
+                // at least 1 other item must exist for user
                 let mut last_item = self.get_mut_fund_by_id(user_list.last);
-                if last_item.fund_desc == fund_desc { // specific item descriptions need to be identical
+                if last_item.fund_desc == fund_desc {
+                    // specific item descriptions need to be identical
                     // update fund item
                     last_item.balance += &amount;
 
@@ -248,7 +266,8 @@ pub trait FundModule {
                     user_list.total_balance += &amount;
 
                     // update type list
-                    let mut type_list = self.get_mut_fund_list_by_type(last_item.fund_desc.fund_type());
+                    let mut type_list =
+                        self.get_mut_fund_list_by_type(last_item.fund_desc.fund_type());
                     type_list.total_balance += &amount;
                     return;
                 }
@@ -258,17 +277,18 @@ pub trait FundModule {
         self.create_fund(user_id, fund_desc, amount);
     }
 
-    fn delete_fund_from_type_list(&self,
+    fn delete_fund_from_type_list(
+        &self,
         fund_item: &mut FundItem<BigUint>,
-        type_list: &mut FundsListInfo<BigUint>) {
-
+        type_list: &mut FundsListInfo<BigUint>,
+    ) {
         if fund_item.type_list_prev == 0 {
             type_list.first = fund_item.type_list_next;
         } else {
             let mut prev = self.get_mut_fund_by_id(fund_item.type_list_prev);
             (*prev).type_list_next = fund_item.type_list_next;
         }
-        
+
         if fund_item.type_list_next == 0 {
             type_list.last = fund_item.type_list_prev;
         } else {
@@ -277,21 +297,22 @@ pub trait FundModule {
         }
 
         // also clear own next/prev, so the item can be deleted from storage
-        fund_item.type_list_prev = 0; 
+        fund_item.type_list_prev = 0;
         fund_item.type_list_next = 0;
     }
 
-    fn delete_fund_from_user_list(&self,
+    fn delete_fund_from_user_list(
+        &self,
         fund_item: &mut FundItem<BigUint>,
-        user_list: &mut FundsListInfo<BigUint>) {
-    
+        user_list: &mut FundsListInfo<BigUint>,
+    ) {
         if fund_item.user_list_prev == 0 {
             user_list.first = fund_item.user_list_next;
         } else {
             let mut prev = self.get_mut_fund_by_id(fund_item.user_list_prev);
             (*prev).user_list_next = fund_item.user_list_next;
         }
-        
+
         if fund_item.user_list_next == 0 {
             user_list.last = fund_item.user_list_prev;
         } else {
@@ -307,7 +328,8 @@ pub trait FundModule {
     /// Returns the old balance of the deleted item.
     fn delete_fund(&self, fund_item: &mut FundItem<BigUint>) -> BigUint {
         let mut type_list = self.get_mut_fund_list_by_type(fund_item.fund_desc.fund_type());
-        let mut user_list = self.get_mut_fund_list_by_user(fund_item.user_id, fund_item.fund_desc.fund_type());
+        let mut user_list =
+            self.get_mut_fund_list_by_user(fund_item.user_id, fund_item.fund_desc.fund_type());
 
         // synchronize sums
         (*type_list).total_balance -= &fund_item.balance;
@@ -323,9 +345,14 @@ pub trait FundModule {
     }
 
     /// Decreases `amount` and returns by how much it decreased.
-    fn decrease_fund_balance(&self, amount: &mut BigUint, fund_item: &mut FundItem<BigUint>) -> BigUint {
+    fn decrease_fund_balance(
+        &self,
+        amount: &mut BigUint,
+        fund_item: &mut FundItem<BigUint>,
+    ) -> BigUint {
         let mut type_list = self.get_mut_fund_list_by_type(fund_item.fund_desc.fund_type());
-        let mut user_list = self.get_mut_fund_list_by_user(fund_item.user_id, fund_item.fund_desc.fund_type());
+        let mut user_list =
+            self.get_mut_fund_list_by_user(fund_item.user_id, fund_item.fund_desc.fund_type());
 
         if *amount >= fund_item.balance {
             *amount -= &fund_item.balance;
@@ -343,7 +370,8 @@ pub trait FundModule {
         }
     }
 
-    fn decrease_max_amount(&self,
+    fn decrease_max_amount(
+        &self,
         opt_max_amount: &mut Option<&mut BigUint>,
         fund_item: &FundItem<BigUint>,
     ) {
@@ -356,7 +384,8 @@ pub trait FundModule {
         }
     }
 
-    fn split_convert_individual_fund(&self,
+    fn split_convert_individual_fund(
+        &self,
         opt_max_amount: &mut Option<&mut BigUint>,
         transformed: FundDescription,
         fund_item: &mut FundItem<BigUint>,
@@ -368,23 +397,21 @@ pub trait FundModule {
             extracted_balance = self.delete_fund(&mut *fund_item);
         }
         // create / increase
-        self.increase_fund_balance(
-            (*fund_item).user_id,
-            transformed,
-            extracted_balance);
-        
+        self.increase_fund_balance((*fund_item).user_id, transformed, extracted_balance);
     }
 
-    fn split_convert_max_by_type<F, I>(&self,
+    fn split_convert_max_by_type<F, I>(
+        &self,
         mut opt_max_amount: Option<&mut BigUint>,
         source_type: FundType,
         direction: SwapDirection,
         mut filter_transform: F,
         interrupt: I,
-        dry_run: bool) -> Vec<usize>
-    where 
+        dry_run: bool,
+    ) -> Vec<usize>
+    where
         F: FnMut(usize, FundDescription) -> Option<FundDescription>,
-        I: Fn() -> bool
+        I: Fn() -> bool,
     {
         let type_list = self.get_fund_list_by_type(source_type);
         let mut affected_users: Vec<usize> = Vec::new();
@@ -402,7 +429,8 @@ pub trait FundModule {
 
             let mut fund_item = self.get_mut_fund_by_id(id);
             affected_users.push(fund_item.user_id);
-            let next_id = match direction { // save next id now, because fund_item can be destroyed
+            let next_id = match direction {
+                // save next id now, because fund_item can be destroyed
                 SwapDirection::Forwards => fund_item.type_list_next,
                 SwapDirection::Backwards => fund_item.type_list_prev,
             };
@@ -411,7 +439,11 @@ pub trait FundModule {
                 if dry_run {
                     self.decrease_max_amount(&mut opt_max_amount, &*fund_item);
                 } else {
-                    self.split_convert_individual_fund(&mut opt_max_amount, transformed, &mut *fund_item);
+                    self.split_convert_individual_fund(
+                        &mut opt_max_amount,
+                        transformed,
+                        &mut *fund_item,
+                    );
                 }
             }
             id = next_id;
@@ -422,13 +454,15 @@ pub trait FundModule {
         affected_users
     }
 
-    fn split_convert_max_by_user<F>(&self,
+    fn split_convert_max_by_user<F>(
+        &self,
         mut opt_max_amount: Option<&mut BigUint>,
         user_id: usize,
         source_type: FundType,
         direction: SwapDirection,
-        filter_transform: F) -> BigUint
-    where 
+        filter_transform: F,
+    ) -> BigUint
+    where
         F: Fn(FundDescription) -> Option<FundDescription>,
     {
         let user_list = self.get_fund_list_by_user(user_id, source_type);
@@ -447,7 +481,8 @@ pub trait FundModule {
             }
 
             let mut fund_item = self.get_mut_fund_by_id(id);
-            let next_id = match direction { // save next id now, because fund_item can be destroyed
+            let next_id = match direction {
+                // save next id now, because fund_item can be destroyed
                 SwapDirection::Forwards => fund_item.user_list_next,
                 SwapDirection::Backwards => fund_item.user_list_prev,
             };
@@ -464,10 +499,7 @@ pub trait FundModule {
                 // add to sum
                 total_transformed += &extracted_balance;
                 // create / increase
-                self.increase_fund_balance(
-                    (*fund_item).user_id,
-                    transformed,
-                    extracted_balance);
+                self.increase_fund_balance((*fund_item).user_id, transformed, extracted_balance);
             }
             id = next_id;
         }
@@ -475,10 +507,7 @@ pub trait FundModule {
         total_transformed
     }
 
-    fn destroy_all_for_user(&self,
-        user_id: usize,
-        source_type: FundType) -> BigUint {
-
+    fn destroy_all_for_user(&self, user_id: usize, source_type: FundType) -> BigUint {
         let user_list = self.get_fund_list_by_user(user_id, source_type);
         let mut id = user_list.first;
         let mut total_destroyed = BigUint::zero();
@@ -489,7 +518,7 @@ pub trait FundModule {
 
             // extract / decrease
             let fund_balance = self.delete_fund(&mut *fund_item);
-            
+
             // add to sum
             total_destroyed += &fund_balance;
 
