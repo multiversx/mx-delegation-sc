@@ -232,4 +232,25 @@ pub trait FundViewModule {
         );
         result.into()
     }
+
+    // FULL ACTIVE LIST
+
+    #[view(getFullActiveList)]
+    fn get_full_active_list(&self) -> MultiResultVec<MultiResult2<Address, BigUint>> {
+        let mut result = Vec::<MultiResult2<Address, BigUint>>::new();
+        let _ = self.fund_module().foreach_fund_by_type(
+            FundType::Active,
+            SwapDirection::Forwards,
+            |fund_item| {
+                if let FundDescription::Active = fund_item.fund_desc {
+                    let user_address = self.user_data().get_user_address(fund_item.user_id);
+                    result.push(MultiResult2::from((
+                        user_address,
+                        fund_item.balance,
+                    )));
+                }
+            },
+        );
+        result.into()
+    }
 }

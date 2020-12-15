@@ -40,6 +40,28 @@
             }
         },
         {
+            "step": "scCall",
+            "txId": "getFullActiveList",
+            "tx": {
+                "from": "address:someone",
+                "to": "address:delegation_contract",
+                "value": "0",
+                "function": "getFullActiveList",
+                "arguments": [],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [
+                    "address:delegator1","1,000,000,000"
+                ],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
             "step": "externalSteps",
             "path": "steps/increase_cap.steps.json"
         },
