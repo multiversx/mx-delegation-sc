@@ -43,11 +43,12 @@ pub trait ResetCheckpointsModule {
     #[storage_set("global_op_checkpoint")]
     fn set_global_op_checkpoint(&self, orc: Box<GlobalOpCheckpoint<BigUint>>);
 
+    #[storage_is_empty("global_op_checkpoint")]
+    fn is_empty_global_op_checkpoint(&self) -> bool;
+
     #[view(isGlobalOperationInProgress)]
     fn is_global_op_in_progress(&self) -> bool {
-        // TODO: make this pattern into an attribute just like storage_get/storage_set in elrond_wasm
-        // something like storage_is_empty
-        self.storage_load_len(&b"global_op_checkpoint"[..]) > 0
+        !self.is_empty_global_op_checkpoint()
     }
 
     /// Continues executing any interrupted operation.
