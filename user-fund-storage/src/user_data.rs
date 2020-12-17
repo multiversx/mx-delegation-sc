@@ -18,13 +18,8 @@ pub trait UserDataModule {
     #[storage_get("user_address")]
     fn get_user_address(&self, user_id: usize) -> Address;
 
-    fn is_empty_user_address(&self, user_id: usize) -> bool {
-        // TODO: make this pattern into an attribute just like storage_get/storage_set in elrond_wasm
-        // something like storage_is_empty
-        let mut key = b"user_address".to_vec();
-        let _ = user_id.dep_encode(&mut key);
-        self.storage_load_len(&key[..]) == 0
-    }
+    #[storage_is_empty("user_address")]
+    fn is_empty_user_address(&self, user_id: usize) -> bool;
 
     #[storage_set("user_address")]
     fn set_user_address(&self, user_id: usize, address: &Address);
