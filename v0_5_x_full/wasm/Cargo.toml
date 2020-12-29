@@ -1,0 +1,21 @@
+[package]
+name = "delegation_v0_5_x_full_wasm"
+version = "0.2.0"
+authors = ["andrei-marinica <andrei_m_marinica@yahoo.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+
+[dependencies]
+delegation_v0_5_x_full = { path = "..", features=["wasm-output-mode"], default-features = false }
+elrond-wasm-output = { version="0.9.7", features=["wasm-output-mode"] }
+
+[workspace]
