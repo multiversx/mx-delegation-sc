@@ -58,19 +58,24 @@ pub trait UserDataModule {
     }
 
     #[endpoint(updateUserAddress)]
-    fn update_user_address(&self, #[var_args] addresses: VarArgs<Address>) -> SCResult<MultiResult2<usize, usize>> {
+    fn update_user_address(&self, #[var_args] addresses: VarArgs<Address>) -> SCResult<MultiResult3<usize, usize, usize>> {
         let mut num_updated = 0;
+        let mut num_not_updated = 0;
         let mut num_not_found = 0;
         for address in addresses.into_vec() {
             let user_id = self.get_user_id(&address);
             if user_id > 0 {
-                self.set_user_address(user_id, &address);
-                num_updated += 1;
+                if self.is_empty_user_address(user_id) {
+                    self.set_user_address(user_id, &address);
+                    num_updated += 1;
+                } else {
+                    num_not_updated += 1;
+                }
             } else {
                 num_not_found += 1
             }
         }
-        Ok((num_updated, num_not_found).into())
+        Ok((num_updated, num_not_updated, num_not_found).into())
     }
 
     #[view(userIdsWithoutAddress)]
