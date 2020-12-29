@@ -60,14 +60,29 @@ pub trait Delegation {
 
     // INIT - update from genesis version
 
+    /// extremely dangerous, should only happen once during upgrade
+    fn change_user_address(&self, old_address: &Address, new_address: &Address) -> SCResult<()> {
+        let user_id = self.user_data().get_user_id(old_address);
+        require!(user_id > 0, "change_user_address old address does not exist");
+        self.user_data().set_user_id(old_address, 0);
+        self.user_data().set_user_id(new_address, user_id);
+        self.user_data().set_user_address(user_id, new_address);
+        Ok(())
+    }
+
     #[init]
-    fn init(&self) -> SCResult<()> {
+    fn init(&self, #[var_args] change_user_addresses: VarArgs<MultiArg2<Address, Address>>) -> SCResult<()> {
         // the genesis contract didn't have the concept of total delegation cap
         // so the field needs to be updated here to correspond to how much was staked
         let total_active = self
             .fund_view_module()
             .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
         self.settings().set_total_delegation_cap(total_active);
+
+        for change_user_address_arg_pair in change_user_addresses.into_vec() {
+            let (old_address, new_address) = change_user_address_arg_pair.into_tuple();
+            sc_try!(self.change_user_address(&old_address, &new_address));
+        }
 
         Ok(())
     }
