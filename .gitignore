@@ -13,3 +13,6 @@ Cargo.lock
 # Debugging
 compile.sh
 debug-tests.sh
+
+# Local testnet used for simulations
+testnet
