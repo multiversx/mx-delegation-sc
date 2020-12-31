@@ -63,7 +63,9 @@ pub trait Delegation {
     /// extremely dangerous, should only happen once during upgrade
     fn change_user_address(&self, old_address: &Address, new_address: &Address) -> SCResult<()> {
         let user_id = self.user_data().get_user_id(old_address);
-        require!(user_id > 0, "change_user_address old address does not exist");
+        require!(user_id > 1, "old address does not exist or is owner");
+        let new_address_user_id = self.user_data().get_user_id(new_address);
+        require!(new_address_user_id == 0, "new address already a delegator");
         self.user_data().set_user_id(old_address, 0);
         self.user_data().set_user_id(new_address, user_id);
         self.user_data().set_user_address(user_id, new_address);
