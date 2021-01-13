@@ -1,0 +1,27 @@
+[package]
+name = "delegation_latest_update"
+version = "0.5.1"
+authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
+edition = "2018"
+
+[features]
+wasm-output-mode = [
+    "elrond-wasm-node",
+    "delegation_latest_wasm"
+]
+
+default = [
+    "delegation_latest_default",
+]
+
+[dependencies]
+delegation_latest_wasm = { package = "delegation_latest", path = "../latest", features = ["wasm-output-mode"], default-features = false, optional = true }
+delegation_latest_default = { package = "delegation_latest", path = "../latest", optional = true }
+
+elrond-wasm = "0.9.7"
+elrond-wasm-derive = "0.9.7"
+elrond-wasm-node = { version = "0.9.7", optional = true }
+
+[dev-dependencies]
+auction-mock = { path = "../auction-mock" }
+elrond-wasm-debug = "0.9.7"
