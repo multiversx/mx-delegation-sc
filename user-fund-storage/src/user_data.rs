@@ -18,13 +18,8 @@ pub trait UserDataModule {
     #[storage_get("user_address")]
     fn get_user_address(&self, user_id: usize) -> Address;
 
-    fn is_empty_user_address(&self, user_id: usize) -> bool {
-        // TODO: make this pattern into an attribute just like storage_get/storage_set in elrond_wasm
-        // something like storage_is_empty
-        let mut key = b"user_address".to_vec();
-        let _ = user_id.dep_encode(&mut key);
-        self.storage_load_len(&key[..]) == 0
-    }
+    #[storage_is_empty("user_address")]
+    fn is_empty_user_address(&self, user_id: usize) -> bool;
 
     #[storage_set("user_address")]
     fn set_user_address(&self, user_id: usize, address: &Address);
@@ -63,12 +58,35 @@ pub trait UserDataModule {
     }
 
     #[endpoint(updateUserAddress)]
-    fn update_user_address(&self, #[var_args] addresses: VarArgs<Address>) -> SCResult<()> {
+    fn update_user_address(&self, #[var_args] addresses: VarArgs<Address>) -> SCResult<MultiResult3<usize, usize, usize>> {
+        let mut num_updated = 0;
+        let mut num_not_updated = 0;
+        let mut num_not_found = 0;
         for address in addresses.into_vec() {
             let user_id = self.get_user_id(&address);
-            require!(user_id > 0, "unknown address");
-            self.set_user_address(user_id, &address);
+            if user_id > 0 {
+                if self.is_empty_user_address(user_id) {
+                    self.set_user_address(user_id, &address);
+                    num_updated += 1;
+                } else {
+                    num_not_updated += 1;
+                }
+            } else {
+                num_not_found += 1
+            }
         }
-        Ok(())
+        Ok((num_updated, num_not_updated, num_not_found).into())
+    }
+
+    #[view(userIdsWithoutAddress)]
+    fn user_ids_without_address(&self) -> MultiResultVec<usize> {
+        let mut result = Vec::<usize>::new();
+        let num_users = self.get_num_users();
+        for user_id in 1..=num_users {
+            if self.is_empty_user_address(user_id) {
+                result.push(user_id);
+            }
+        }
+        result.into()
     }
 }
