@@ -64,10 +64,19 @@ pub trait Delegation {
     fn init(&self) -> SCResult<()> {
         // the genesis contract didn't have the concept of total delegation cap
         // so the field needs to be updated here to correspond to how much was staked
-        let total_active = self
-            .fund_view_module()
-            .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
-        self.settings().set_total_delegation_cap(total_active);
+        // the change happened in 0.5.0, but it is still here, so it is not missed in case an upgrade was skipped
+        // checking that the total delegation cap was not already set
+        if self.settings().get_total_delegation_cap() == 0 {
+            let total_active = self
+                .fund_view_module()
+                .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+            // there was no unstaked stake when the 0.5.0 upgrade happened, but the correct formula includes it
+            // in some edge cases on the testnets, unstaking and then upgrading can potentially lead to invariant violations
+            let total_unstaked = self
+                .fund_view_module()
+                .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
+            self.settings().set_total_delegation_cap(total_active + total_unstaked);
+        }
 
         Ok(())
     }
