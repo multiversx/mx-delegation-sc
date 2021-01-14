@@ -1,18 +1,18 @@
 #!/bin/sh
 
-erdpy --verbose contract build "/home/andreim/elrond/newsc/sc-delegation-rs/v0_5_2_full"
-erdpy --verbose contract build "/home/andreim/elrond/newsc/sc-delegation-rs/v0_5_2_update"
+erdpy --verbose contract build "/home/andreim/elrond/newsc/sc-delegation-rs/latest_full"
+erdpy --verbose contract build "/home/andreim/elrond/newsc/sc-delegation-rs/latest_update"
 
 
 
 ## For playing around without erdpy:
 
-# cd v0_5_2/wasm
+# cd latest/wasm
 # RUSTFLAGS='-C link-arg=-s' \
 # cargo build --target=wasm32-unknown-unknown --release
 # cd ..
 # mkdir -p output
-# cp wasm/target/wasm32-unknown-unknown/release/delegation_v0_5_2_wasm.wasm output/delegation.wasm
+# cp wasm/target/wasm32-unknown-unknown/release/delegation_latest_wasm.wasm output/delegation.wasm
 # cd ..
 
 # cd auction-mock/wasm
