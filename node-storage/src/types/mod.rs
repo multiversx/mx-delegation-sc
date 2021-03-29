@@ -6,4 +6,4 @@ pub use bls_key::BLSKey;
 pub use bls_sig::BLSSignature;
 pub use node_state::*;
 
-pub type BLSStatusMultiArg = elrond_wasm::MultiArg2<BLSKey, i32>;
+pub type BLSStatusMultiArg = elrond_wasm::types::MultiArg2<BLSKey, i32>;

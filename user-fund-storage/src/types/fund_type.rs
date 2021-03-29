@@ -1,6 +1,8 @@
 use elrond_wasm::elrond_codec::*;
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+elrond_wasm::derive_imports!();
+
+#[derive(TypeAbi, PartialEq, Clone, Copy, Debug)]
 pub enum FundDescription {
     /// Funds that can only be extracted from contract. Will never be used as stake.
     WithdrawOnly,

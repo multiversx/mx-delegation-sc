@@ -1,6 +1,6 @@
 #![no_std]
 
-imports!();
+elrond_wasm::imports!();
 
 use super::node_storage::types::bls_key::*;
 

@@ -1,7 +1,7 @@
+use elrond_wasm::api::BigUintApi;
 use elrond_wasm::elrond_codec::test_util::*;
 use elrond_wasm::elrond_codec::*;
-use elrond_wasm::BigUintApi;
-use elrond_wasm_debug::*;
+use elrond_wasm_debug::api::RustBigUint;
 use user_fund_storage::types::*;
 
 fn check<T: TopEncode + TopDecode + PartialEq + core::fmt::Debug>(t: T) {

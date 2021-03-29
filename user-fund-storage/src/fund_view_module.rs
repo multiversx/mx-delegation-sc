@@ -1,4 +1,4 @@
-imports!();
+elrond_wasm::imports!();
 
 use crate::types::fund_type::*;
 
@@ -27,7 +27,10 @@ pub trait FundViewModule {
             let type_list = self.fund_module().get_fund_list_by_type(fund_type);
             type_list.total_balance
         } else {
-            let user_list = self.fund_module().get_fund_list_by_user(user_id, fund_type);
+            let user_list = self
+                .fund_module()
+                .fund_list_by_user(user_id, fund_type)
+                .get();
             user_list.total_balance
         }
     }
@@ -244,16 +247,10 @@ pub trait FundViewModule {
             |fund_item| {
                 if let FundDescription::Active = fund_item.fund_desc {
                     if self.user_data().is_empty_user_address(fund_item.user_id) {
-                        result.push(MultiResult2::from((
-                            Address::zero(),
-                            fund_item.balance,
-                        )));
+                        result.push(MultiResult2::from((Address::zero(), fund_item.balance)));
                     } else {
                         let user_address = self.user_data().get_user_address(fund_item.user_id);
-                        result.push(MultiResult2::from((
-                            user_address,
-                            fund_item.balance,
-                        )));
+                        result.push(MultiResult2::from((user_address, fund_item.balance)));
                     }
                 }
             },

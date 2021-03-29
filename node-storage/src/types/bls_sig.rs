@@ -1,9 +1,12 @@
 use elrond_wasm::elrond_codec::*;
 use elrond_wasm::{Box, Vec};
 
+elrond_wasm::derive_imports!();
+
 /// BLS signatures have 48 bytes
 pub const BLS_SIGNATURE_BYTE_LENGTH: usize = 48;
 
+#[derive(TypeAbi)]
 pub struct BLSSignature(pub Box<[u8; BLS_SIGNATURE_BYTE_LENGTH]>);
 
 impl BLSSignature {

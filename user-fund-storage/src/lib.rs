@@ -10,8 +10,3 @@ pub mod fund_module;
 pub mod fund_transf_module;
 pub mod fund_view_module;
 pub mod user_data;
-
-#[macro_use]
-extern crate elrond_wasm;
-
-imports!();

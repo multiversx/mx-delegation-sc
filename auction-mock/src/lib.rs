@@ -10,7 +10,7 @@ pub use node_storage_default as node_storage;
 #[cfg(feature = "node-storage-wasm")]
 pub use node_storage_wasm as node_storage;
 
-imports!();
+elrond_wasm::imports!();
 
 use node_storage::types::bls_key::*;
 
@@ -22,15 +22,19 @@ pub trait AuctionMock {
     #[init]
     fn init(&self) {}
 
-    #[payable]
+    #[payable("EGLD")]
     #[endpoint]
     fn stake(
         &self,
         num_nodes: usize,
-        #[multi(2*num_nodes)] bls_keys_signatures_args: VarArgs<Vec<u8>>,
+        #[var_args] bls_keys_signatures_args: VarArgs<MultiArg2<BoxedBytes, BoxedBytes>>,
         #[payment] payment: &BigUint,
-    ) -> SCResult<MultiResultVec<Vec<u8>>> {
+    ) -> SCResult<MultiResultVec<BoxedBytes>> {
         let bls_keys_signatures = bls_keys_signatures_args.into_vec();
+        require!(
+            num_nodes == bls_keys_signatures.len(),
+            "incorrect number of arguments"
+        );
 
         require!(
             !self.storage().is_staking_failure(),
@@ -44,19 +48,19 @@ pub trait AuctionMock {
             "incorrect payment to auction mock"
         );
 
-        let mut result_err_data: Vec<Vec<u8>> = Vec::new();
-        for n in 0..num_nodes {
+        let mut result_err_data: Vec<BoxedBytes> = Vec::new();
+        for key_sig_pair in bls_keys_signatures.into_iter() {
             new_num_nodes += 1;
-            let bls_key = &bls_keys_signatures[2 * n];
-            self.storage().set_stake_bls_key(new_num_nodes, bls_key);
-            let bls_sig = &bls_keys_signatures[2 * n + 1];
+            let (bls_key, bls_sig) = key_sig_pair.into_tuple();
             self.storage()
-                .set_stake_bls_signature(new_num_nodes, bls_sig);
+                .set_stake_bls_key(new_num_nodes, bls_key.as_slice());
+            self.storage()
+                .set_stake_bls_signature(new_num_nodes, bls_sig.as_slice());
 
-            let err_code = self.storage().get_bls_deliberate_error(bls_key);
+            let err_code = self.storage().get_bls_deliberate_error(bls_key.as_slice());
             if err_code > 0 {
-                result_err_data.push(bls_key.clone());
-                result_err_data.push([err_code].to_vec());
+                result_err_data.push(bls_key);
+                result_err_data.push(BoxedBytes::from(&[err_code][..]));
             }
         }
 
@@ -111,7 +115,8 @@ pub trait AuctionMock {
         }
 
         let unbond_stake = BigUint::from(bls_keys.len()) * self.storage().get_stake_per_node();
-        self.send_tx(&self.get_caller(), &unbond_stake, "unbond stake");
+        self.send()
+            .direct_egld(&self.get_caller(), &unbond_stake, b"unbond stake");
 
         Ok(result_err_data.into())
     }
@@ -121,7 +126,7 @@ pub trait AuctionMock {
         Ok(())
     }
 
-    #[payable]
+    #[payable("EGLD")]
     #[endpoint(unJail)]
     fn unjail_endpoint(
         &self,

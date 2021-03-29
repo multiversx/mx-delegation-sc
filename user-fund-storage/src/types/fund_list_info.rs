@@ -1,7 +1,9 @@
+use elrond_wasm::api::BigUintApi;
 use elrond_wasm::elrond_codec::*;
-use elrond_wasm::BigUintApi;
 
-#[derive(PartialEq, Debug)]
+elrond_wasm::derive_imports!();
+
+#[derive(TypeAbi, PartialEq, Debug)]
 pub struct FundsListInfo<BigUint: BigUintApi> {
     pub total_balance: BigUint,
     pub first: usize,

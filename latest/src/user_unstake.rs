@@ -12,7 +12,7 @@ use crate::user_stake::*;
 use core::cmp::Ordering;
 use core::num::NonZeroUsize;
 
-imports!();
+elrond_wasm::imports!();
 
 #[elrond_wasm_derive::module(UserUnStakeModuleImpl)]
 pub trait UserUnStakeModule {
@@ -147,7 +147,8 @@ pub trait UserUnStakeModule {
 
         if amount_liquidated > 0 {
             // forward payment to seller
-            self.send_tx(&caller, &amount_liquidated, "delegation stake unbond");
+            self.send()
+                .direct_egld(&caller, &amount_liquidated, b"delegation stake unbond");
         }
 
         Ok(())

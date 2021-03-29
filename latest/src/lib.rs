@@ -1,6 +1,7 @@
 #![no_std]
 #![allow(unused_attributes)]
 #![allow(clippy::string_lit_as_bytes)]
+#![allow(non_snake_case)] // until we sort out call proxy endpoint names
 
 // auxiliaries
 pub mod auction_proxy;

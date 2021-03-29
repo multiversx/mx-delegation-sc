@@ -1,9 +1,12 @@
 use elrond_wasm::elrond_codec::*;
 use elrond_wasm::{Box, Vec};
 
+elrond_wasm::derive_imports!();
+
 // BLS keys have 96 bytes
 pub const BLS_KEY_BYTE_LENGTH: usize = 96;
 
+#[derive(TypeAbi)]
 pub struct BLSKey(pub Box<[u8; BLS_KEY_BYTE_LENGTH]>);
 
 impl BLSKey {

@@ -10,7 +10,7 @@ use crate::settings::*;
 
 use core::num::NonZeroUsize;
 
-imports!();
+elrond_wasm::imports!();
 
 /// Contains endpoints for staking/withdrawing stake.
 #[elrond_wasm_derive::module(UserStakeModuleImpl)]
@@ -151,7 +151,7 @@ pub trait UserStakeModule {
 
     /// Delegate stake to the smart contract.
     /// Stake is initially inactive, so does it not produce rewards.
-    #[payable]
+    #[payable("EGLD")]
     #[endpoint(stake)]
     fn stake_endpoint(&self, #[payment] payment: BigUint) -> SCResult<()> {
         require!(self.pause().not_paused(), "contract paused");

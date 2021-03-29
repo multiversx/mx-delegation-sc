@@ -1,11 +1,13 @@
+use elrond_wasm::api::BigUintApi;
 use elrond_wasm::elrond_codec::*;
-use elrond_wasm::BigUintApi;
 
 use super::fund_type::FundDescription;
 
+elrond_wasm::derive_imports!();
+
 /// A unit of balance, usually stake.
 /// Contains a description of the source/intent of the funds, together with a balance.
-#[derive(PartialEq, Debug)]
+#[derive(TypeAbi, PartialEq, Debug)]
 pub struct FundItem<BigUint: BigUintApi> {
     pub fund_desc: FundDescription,
     pub user_id: usize,

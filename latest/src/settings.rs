@@ -7,7 +7,7 @@ use crate::rewards::*;
 
 use core::num::NonZeroUsize;
 
-imports!();
+elrond_wasm::imports!();
 
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.

@@ -1,4 +1,4 @@
-imports!();
+elrond_wasm::imports!();
 
 use crate::types::*;
 
@@ -12,14 +12,8 @@ pub enum SwapDirection {
 #[elrond_wasm_derive::module(FundModuleImpl)]
 pub trait FundModule {
     #[view(fundById)]
-    #[storage_get("f")]
-    fn get_fund_by_id(&self, id: usize) -> FundItem<BigUint>;
-
-    #[storage_get_mut("f")]
-    fn get_mut_fund_by_id(&self, id: usize) -> mut_storage!(FundItem<BigUint>);
-
-    #[storage_set("f")]
-    fn set_fund_by_id(&self, id: usize, fund_item: &FundItem<BigUint>);
+    #[storage_mapper("f")]
+    fn fund_by_id(&self, id: usize) -> SingleValueMapper<Self::Storage, FundItem<BigUint>>;
 
     #[storage_get("f_max_id")]
     fn get_fund_max_id(&self) -> usize;
@@ -30,21 +24,18 @@ pub trait FundModule {
     #[storage_get("ftype")]
     fn get_fund_list_by_type(&self, fund_type: FundType) -> FundsListInfo<BigUint>;
 
-    #[storage_get_mut("ftype")]
-    fn get_mut_fund_list_by_type(
+    #[storage_mapper("ftype")]
+    fn fund_list_by_type(
         &self,
         fund_type: FundType,
-    ) -> mut_storage!(FundsListInfo<BigUint>);
+    ) -> SingleValueMapper<Self::Storage, FundsListInfo<BigUint>>;
 
-    #[storage_get("fuser")]
-    fn get_fund_list_by_user(&self, user_id: usize, fund_type: FundType) -> FundsListInfo<BigUint>;
-
-    #[storage_get_mut("fuser")]
-    fn get_mut_fund_list_by_user(
+    #[storage_mapper("fuser")]
+    fn fund_list_by_user(
         &self,
         user_id: usize,
         fund_type: FundType,
-    ) -> mut_storage!(FundsListInfo<BigUint>);
+    ) -> SingleValueMapper<Self::Storage, FundsListInfo<BigUint>>;
 
     /// For testing; please do not use in production.
     /// Goes through all fund items, ignores indexes.
@@ -55,7 +46,7 @@ pub trait FundModule {
         let mut sum = BigUint::zero();
         let max_fund_id = self.get_fund_max_id();
         for id in 1..(max_fund_id + 1) {
-            let fund_item = self.get_fund_by_id(id);
+            let fund_item = self.fund_by_id(id).get();
             if filter(fund_item.user_id, fund_item.fund_desc) {
                 sum += &fund_item.balance;
             }
@@ -71,7 +62,7 @@ pub trait FundModule {
         let type_list = self.get_fund_list_by_type(fund_type);
         let mut id = type_list.first;
         while id > 0 {
-            let fund_item = self.get_fund_by_id(id);
+            let fund_item = self.fund_by_id(id).get();
             if filter(fund_item.user_id, fund_item.fund_desc) {
                 sum += &fund_item.balance;
             }
@@ -90,10 +81,10 @@ pub trait FundModule {
         F: Fn(FundDescription) -> bool,
     {
         let mut sum = BigUint::zero();
-        let user_list = self.get_fund_list_by_user(user_id, fund_type);
+        let user_list = self.fund_list_by_user(user_id, fund_type).get();
         let mut id = user_list.first;
         while id > 0 {
-            let fund_item = self.get_fund_by_id(id);
+            let fund_item = self.fund_by_id(id).get();
             if filter(fund_item.fund_desc) {
                 sum += &fund_item.balance;
             }
@@ -111,13 +102,13 @@ pub trait FundModule {
     ) where
         F: FnMut(FundItem<BigUint>),
     {
-        let user_list = self.get_fund_list_by_user(user_id, fund_type);
+        let user_list = self.fund_list_by_user(user_id, fund_type).get();
         let mut id = match direction {
             SwapDirection::Forwards => user_list.first,
             SwapDirection::Backwards => user_list.last,
         };
         while id > 0 {
-            let fund_item = self.get_fund_by_id(id);
+            let fund_item = self.fund_by_id(id).get();
             let next_id = match direction {
                 SwapDirection::Forwards => fund_item.user_list_next,
                 SwapDirection::Backwards => fund_item.user_list_prev,
@@ -137,7 +128,7 @@ pub trait FundModule {
             SwapDirection::Backwards => type_list.last,
         };
         while id > 0 {
-            let fund_item = self.get_fund_by_id(id);
+            let fund_item = self.fund_by_id(id).get();
             let next_id = match direction {
                 SwapDirection::Forwards => fund_item.type_list_next,
                 SwapDirection::Backwards => fund_item.type_list_prev,
@@ -156,7 +147,7 @@ pub trait FundModule {
         let type_list = self.get_fund_list_by_type(fund_type);
         let mut id = type_list.first;
         while id > 0 {
-            let fund_item = self.get_fund_by_id(id);
+            let fund_item = self.fund_by_id(id).get();
             if filter(fund_item.user_id, fund_item.fund_desc) {
                 count += 1;
             }
@@ -176,10 +167,10 @@ pub trait FundModule {
         F: Fn(FundDescription) -> bool,
     {
         let mut count = 0usize;
-        let user_list = self.get_fund_list_by_user(user_id, fund_type);
+        let user_list = self.fund_list_by_user(user_id, fund_type).get();
         let mut id = user_list.first;
         while id > 0 {
-            let fund_item = self.get_fund_by_id(id);
+            let fund_item = self.fund_by_id(id).get();
             if filter(fund_item.fund_desc) {
                 count += 1;
             }
@@ -190,33 +181,38 @@ pub trait FundModule {
 
     /// Adds at the end of the fund by type list.
     fn add_fund_to_type_list(&self, id: usize, new_fund_item: &mut FundItem<BigUint>) {
-        let mut type_list = self.get_mut_fund_list_by_type(new_fund_item.fund_desc.fund_type());
-        if type_list.is_empty() {
-            type_list.first = id;
-            type_list.last = id;
-        } else {
-            new_fund_item.type_list_prev = type_list.last;
-            let mut prev_fund = self.get_mut_fund_by_id(type_list.last);
-            (*prev_fund).type_list_next = id;
-            type_list.last = id;
-        }
-        type_list.total_balance += &new_fund_item.balance;
+        self.fund_list_by_type(new_fund_item.fund_desc.fund_type())
+            .update(|type_list| {
+                if type_list.is_empty() {
+                    type_list.first = id;
+                    type_list.last = id;
+                } else {
+                    new_fund_item.type_list_prev = type_list.last;
+                    self.fund_by_id(type_list.last).update(|prev_fund| {
+                        prev_fund.type_list_next = id;
+                    });
+                    type_list.last = id;
+                }
+                type_list.total_balance += &new_fund_item.balance;
+            });
     }
 
     /// Adds at the end of the fund by user+type list.
     fn add_fund_to_user_list(&self, id: usize, new_fund_item: &mut FundItem<BigUint>) {
-        let mut user_list = self
-            .get_mut_fund_list_by_user(new_fund_item.user_id, new_fund_item.fund_desc.fund_type());
-        if user_list.is_empty() {
-            user_list.first = id;
-            user_list.last = id;
-        } else {
-            new_fund_item.user_list_prev = user_list.last;
-            let mut prev_fund = self.get_mut_fund_by_id(user_list.last);
-            (*prev_fund).user_list_next = id;
-            user_list.last = id;
-        }
-        user_list.total_balance += &new_fund_item.balance;
+        self.fund_list_by_user(new_fund_item.user_id, new_fund_item.fund_desc.fund_type())
+            .update(|user_list| {
+                if user_list.is_empty() {
+                    user_list.first = id;
+                    user_list.last = id;
+                } else {
+                    new_fund_item.user_list_prev = user_list.last;
+                    self.fund_by_id(user_list.last).update(|prev_fund| {
+                        prev_fund.user_list_next = id;
+                    });
+                    user_list.last = id;
+                }
+                user_list.total_balance += &new_fund_item.balance;
+            });
     }
 
     fn create_fund(&self, user_id: usize, fund_desc: FundDescription, balance: BigUint) {
@@ -242,7 +238,7 @@ pub trait FundModule {
         self.add_fund_to_type_list(fund_max_id, &mut new_fund_item);
         self.add_fund_to_user_list(fund_max_id, &mut new_fund_item);
 
-        self.set_fund_by_id(fund_max_id, &new_fund_item);
+        self.fund_by_id(fund_max_id).set(&new_fund_item);
     }
 
     fn increase_fund_balance(&self, user_id: usize, fund_desc: FundDescription, amount: BigUint) {
@@ -251,30 +247,36 @@ pub trait FundModule {
         }
 
         // attempt to coalesce into 1 fund item
+        let mut coalesced = false;
         if fund_desc.fund_type().allow_coalesce() {
             // not all types can be coalesced, anything involving queues cannot
-            let mut user_list = self.get_mut_fund_list_by_user(user_id, fund_desc.fund_type());
-            if !user_list.is_empty() {
-                // at least 1 other item must exist for user
-                let mut last_item = self.get_mut_fund_by_id(user_list.last);
-                if last_item.fund_desc == fund_desc {
-                    // specific item descriptions need to be identical
-                    // update fund item
-                    last_item.balance += &amount;
+            self.fund_list_by_user(user_id, fund_desc.fund_type())
+                .update(|user_list| {
+                    if !user_list.is_empty() {
+                        // at least 1 other item must exist for user
+                        self.fund_by_id(user_list.last).update(|last_item| {
+                            if last_item.fund_desc == fund_desc {
+                                // specific item descriptions need to be identical
+                                // update fund item
+                                last_item.balance += &amount;
 
-                    // update user list
-                    user_list.total_balance += &amount;
+                                // update user list
+                                user_list.total_balance += &amount;
 
-                    // update type list
-                    let mut type_list =
-                        self.get_mut_fund_list_by_type(last_item.fund_desc.fund_type());
-                    type_list.total_balance += &amount;
-                    return;
-                }
-            }
+                                // update type list
+                                self.fund_list_by_type(last_item.fund_desc.fund_type())
+                                    .update(|type_list| {
+                                        type_list.total_balance += &amount;
+                                    });
+                                coalesced = true;
+                            };
+                        });
+                    }
+                });
         }
-
-        self.create_fund(user_id, fund_desc, amount);
+        if !coalesced {
+            self.create_fund(user_id, fund_desc, amount);
+        }
     }
 
     fn delete_fund_from_type_list(
@@ -285,15 +287,17 @@ pub trait FundModule {
         if fund_item.type_list_prev == 0 {
             type_list.first = fund_item.type_list_next;
         } else {
-            let mut prev = self.get_mut_fund_by_id(fund_item.type_list_prev);
-            (*prev).type_list_next = fund_item.type_list_next;
+            self.fund_by_id(fund_item.type_list_prev).update(|prev| {
+                prev.type_list_next = fund_item.type_list_next;
+            });
         }
 
         if fund_item.type_list_next == 0 {
             type_list.last = fund_item.type_list_prev;
         } else {
-            let mut next = self.get_mut_fund_by_id(fund_item.type_list_next);
-            (*next).type_list_prev = fund_item.type_list_prev;
+            self.fund_by_id(fund_item.type_list_next).update(|next| {
+                next.type_list_prev = fund_item.type_list_prev;
+            });
         }
 
         // also clear own next/prev, so the item can be deleted from storage
@@ -309,15 +313,17 @@ pub trait FundModule {
         if fund_item.user_list_prev == 0 {
             user_list.first = fund_item.user_list_next;
         } else {
-            let mut prev = self.get_mut_fund_by_id(fund_item.user_list_prev);
-            (*prev).user_list_next = fund_item.user_list_next;
+            self.fund_by_id(fund_item.user_list_prev).update(|prev| {
+                prev.user_list_next = fund_item.user_list_next;
+            })
         }
 
         if fund_item.user_list_next == 0 {
             user_list.last = fund_item.user_list_prev;
         } else {
-            let mut next = self.get_mut_fund_by_id(fund_item.user_list_next);
-            (*next).user_list_prev = fund_item.user_list_prev;
+            self.fund_by_id(fund_item.user_list_next).update(|next| {
+                next.user_list_prev = fund_item.user_list_prev;
+            })
         }
 
         // also clear own next/prev, so the item can be deleted from storage
@@ -327,17 +333,17 @@ pub trait FundModule {
 
     /// Returns the old balance of the deleted item.
     fn delete_fund(&self, fund_item: &mut FundItem<BigUint>) -> BigUint {
-        let mut type_list = self.get_mut_fund_list_by_type(fund_item.fund_desc.fund_type());
-        let mut user_list =
-            self.get_mut_fund_list_by_user(fund_item.user_id, fund_item.fund_desc.fund_type());
+        self.fund_list_by_type(fund_item.fund_desc.fund_type())
+            .update(|type_list| {
+                type_list.total_balance -= &fund_item.balance; // synchronize sum
+                self.delete_fund_from_type_list(fund_item, type_list); // remove fund from the linked list
+            });
 
-        // synchronize sums
-        (*type_list).total_balance -= &fund_item.balance;
-        (*user_list).total_balance -= &fund_item.balance;
-
-        // remove fund from the linked lists
-        self.delete_fund_from_type_list(fund_item, &mut *type_list);
-        self.delete_fund_from_user_list(fund_item, &mut *user_list);
+        self.fund_list_by_user(fund_item.user_id, fund_item.fund_desc.fund_type())
+            .update(|user_list| {
+                user_list.total_balance -= &fund_item.balance; // synchronize sum
+                self.delete_fund_from_user_list(fund_item, user_list); // remove fund from the linked list
+            });
 
         // setting balance to zero causes the fund item to be removed from storage when saving
         // result = fund_item.balance; fund_item.balance = 0;
@@ -350,10 +356,6 @@ pub trait FundModule {
         amount: &mut BigUint,
         fund_item: &mut FundItem<BigUint>,
     ) -> BigUint {
-        let mut type_list = self.get_mut_fund_list_by_type(fund_item.fund_desc.fund_type());
-        let mut user_list =
-            self.get_mut_fund_list_by_user(fund_item.user_id, fund_item.fund_desc.fund_type());
-
         if *amount >= fund_item.balance {
             *amount -= &fund_item.balance;
             self.delete_fund(fund_item)
@@ -362,8 +364,14 @@ pub trait FundModule {
             fund_item.balance -= &*amount;
 
             // synchronize sums
-            (*type_list).total_balance -= &*amount;
-            (*user_list).total_balance -= &*amount;
+            self.fund_list_by_type(fund_item.fund_desc.fund_type())
+                .update(|type_list| {
+                    type_list.total_balance -= &*amount;
+                });
+            self.fund_list_by_user(fund_item.user_id, fund_item.fund_desc.fund_type())
+                .update(|user_list| {
+                    user_list.total_balance -= &*amount;
+                });
 
             // result = amount; amount = 0;
             core::mem::replace(amount, BigUint::zero())
@@ -427,26 +435,29 @@ pub trait FundModule {
                 }
             }
 
-            let mut fund_item = self.get_mut_fund_by_id(id);
-            affected_users.push(fund_item.user_id);
-            let next_id = match direction {
-                // save next id now, because fund_item can be destroyed
-                SwapDirection::Forwards => fund_item.type_list_next,
-                SwapDirection::Backwards => fund_item.type_list_prev,
-            };
+            // let mut fund_item = self.get_mut_fund_by_id(id);
+            self.fund_by_id(id).update(|fund_item| {
+                affected_users.push(fund_item.user_id);
+                let next_id = match direction {
+                    // save next id now, because fund_item can be destroyed
+                    SwapDirection::Forwards => fund_item.type_list_next,
+                    SwapDirection::Backwards => fund_item.type_list_prev,
+                };
 
-            if let Some(transformed) = filter_transform(fund_item.user_id, fund_item.fund_desc) {
-                if dry_run {
-                    self.decrease_max_amount(&mut opt_max_amount, &*fund_item);
-                } else {
-                    self.split_convert_individual_fund(
-                        &mut opt_max_amount,
-                        transformed,
-                        &mut *fund_item,
-                    );
+                if let Some(transformed) = filter_transform(fund_item.user_id, fund_item.fund_desc)
+                {
+                    if dry_run {
+                        self.decrease_max_amount(&mut opt_max_amount, &*fund_item);
+                    } else {
+                        self.split_convert_individual_fund(
+                            &mut opt_max_amount,
+                            transformed,
+                            &mut *fund_item,
+                        );
+                    }
                 }
-            }
-            id = next_id;
+                id = next_id;
+            })
         }
 
         affected_users.sort();
@@ -465,7 +476,7 @@ pub trait FundModule {
     where
         F: Fn(FundDescription) -> Option<FundDescription>,
     {
-        let user_list = self.get_fund_list_by_user(user_id, source_type);
+        let user_list = self.fund_list_by_user(user_id, source_type).get();
         let mut total_transformed = BigUint::zero();
 
         let mut id = match direction {
@@ -480,7 +491,7 @@ pub trait FundModule {
                 }
             }
 
-            let mut fund_item = self.get_mut_fund_by_id(id);
+            let mut fund_item = self.fund_by_id(id).get();
             let next_id = match direction {
                 // save next id now, because fund_item can be destroyed
                 SwapDirection::Forwards => fund_item.user_list_next,
@@ -491,16 +502,17 @@ pub trait FundModule {
                 // extract / decrease
                 let extracted_balance: BigUint;
                 if let Some(max_amount) = opt_max_amount {
-                    extracted_balance = self.decrease_fund_balance(max_amount, &mut *fund_item);
+                    extracted_balance = self.decrease_fund_balance(max_amount, &mut fund_item);
                     opt_max_amount = Some(max_amount); // move back
                 } else {
-                    extracted_balance = self.delete_fund(&mut *fund_item);
+                    extracted_balance = self.delete_fund(&mut fund_item);
                 }
                 // add to sum
                 total_transformed += &extracted_balance;
                 // create / increase
-                self.increase_fund_balance((*fund_item).user_id, transformed, extracted_balance);
+                self.increase_fund_balance(fund_item.user_id, transformed, extracted_balance);
             }
+            self.fund_by_id(id).set(&fund_item);
             id = next_id;
         }
 
@@ -508,21 +520,22 @@ pub trait FundModule {
     }
 
     fn destroy_all_for_user(&self, user_id: usize, source_type: FundType) -> BigUint {
-        let user_list = self.get_fund_list_by_user(user_id, source_type);
+        let user_list = self.fund_list_by_user(user_id, source_type).get();
         let mut id = user_list.first;
         let mut total_destroyed = BigUint::zero();
 
         while id > 0 {
-            let mut fund_item = self.get_mut_fund_by_id(id);
-            let next_id = fund_item.user_list_next; // save next id now, because fund_item can be destroyed
+            self.fund_by_id(id).update(|fund_item| {
+                let next_id = fund_item.user_list_next; // save next id now, because fund_item can be destroyed
 
-            // extract / decrease
-            let fund_balance = self.delete_fund(&mut *fund_item);
+                // extract / decrease
+                let fund_balance = self.delete_fund(&mut *fund_item);
 
-            // add to sum
-            total_destroyed += &fund_balance;
+                // add to sum
+                total_destroyed += &fund_balance;
 
-            id = next_id;
+                id = next_id;
+            });
         }
 
         total_destroyed
