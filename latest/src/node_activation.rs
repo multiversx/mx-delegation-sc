@@ -166,8 +166,32 @@ pub trait ContractStakeModule {
     /// Unstakes from the auction smart contract.
     /// The nodes will stop receiving rewards, but stake cannot be yet reclaimed.
     /// This operation is performed by the owner.
+    /// Does not unstake tokens.
     #[endpoint(unStakeNodes)]
-    fn unstake_nodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<AsyncCall<BigUint>> {
+    fn unstake_nodes_endpoint(
+        &self,
+        #[var_args] bls_keys: VarArgs<BLSKey>,
+    ) -> SCResult<AsyncCall<BigUint>> {
+        self.unstake_nodes(false, bls_keys)
+    }
+
+    /// Unstakes from the auction smart contract.
+    /// The nodes will stop receiving rewards, but stake cannot be yet reclaimed.
+    /// This operation is performed by the owner.
+    /// Also unstakes tokens.
+    #[endpoint(unStakeNodesAndTokens)]
+    fn unstake_nodes_and_tokens_endpoint(
+        &self,
+        #[var_args] bls_keys: VarArgs<BLSKey>,
+    ) -> SCResult<AsyncCall<BigUint>> {
+        self.unstake_nodes(true, bls_keys)
+    }
+
+    fn unstake_nodes(
+        &self,
+        unstake_tokens: bool,
+        bls_keys: VarArgs<BLSKey>,
+    ) -> SCResult<AsyncCall<BigUint>> {
         only_owner!(self, "only owner allowed to unstake nodes");
 
         require!(
@@ -182,11 +206,12 @@ pub trait ContractStakeModule {
             node_ids.push(node_id);
         }
 
-        self.perform_unstake_nodes(node_ids, bls_keys.into_vec())
+        self.perform_unstake_nodes(unstake_tokens, node_ids, bls_keys.into_vec())
     }
 
     fn perform_unstake_nodes(
         &self,
+        unstake_tokens: bool,
         node_ids: Vec<usize>,
         bls_keys: Vec<BLSKey>,
     ) -> SCResult<AsyncCall<BigUint>> {
@@ -203,10 +228,18 @@ pub trait ContractStakeModule {
 
         // send unstake command to Auction SC
         let auction_contract_addr = self.settings().get_auction_contract_address();
-        Ok(contract_call!(self, auction_contract_addr, AuctionProxy)
-            .unStake(&node_ids, bls_keys.into())
-            .async_call()
-            .with_callback(self.callbacks().auction_unstake_callback(node_ids)))
+        let auction_proxy = contract_call!(self, auction_contract_addr, AuctionProxy);
+        if unstake_tokens {
+            Ok(auction_proxy
+                .unStake(bls_keys.into())
+                .async_call()
+                .with_callback(self.callbacks().auction_unstake_callback(node_ids)))
+        } else {
+            Ok(auction_proxy
+                .unStake(bls_keys.into())
+                .async_call()
+                .with_callback(self.callbacks().auction_unstake_callback(node_ids)))
+        }
     }
 
     /// Only finalize deactivation if we got confirmation from the auction contract.

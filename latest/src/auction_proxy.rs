@@ -11,11 +11,9 @@ pub trait Auction {
         #[var_args] bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>,
     ) -> ContractCall<BigUint, ()>;
 
-    fn unStake(
-        &self,
-        node_ids: &[usize],
-        #[var_args] bls_keys: VarArgs<BLSKey>,
-    ) -> ContractCall<BigUint, ()>;
+    fn unStake(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> ContractCall<BigUint, ()>;
+
+    fn unStakeNodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> ContractCall<BigUint, ()>;
 
     fn unBond(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> ContractCall<BigUint, ()>;
 
