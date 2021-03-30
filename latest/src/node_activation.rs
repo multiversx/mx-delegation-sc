@@ -168,8 +168,25 @@ pub trait ContractStakeModule {
     /// Unstakes from the auction smart contract.
     /// The nodes will stop receiving rewards, but stake cannot be yet reclaimed.
     /// This operation is performed by the owner.
+    /// Does not unstake tokens.
     #[endpoint(unStakeNodes)]
-    fn unstake_nodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
+    fn unstake_nodes_endpoint(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
+        self.unstake_nodes(false, bls_keys)
+    }
+
+    /// Unstakes from the auction smart contract.
+    /// The nodes will stop receiving rewards, but stake cannot be yet reclaimed.
+    /// This operation is performed by the owner.
+    /// Also unstakes tokens.
+    #[endpoint(unStakeNodesAndTokens)]
+    fn unstake_nodes_and_tokens_endpoint(
+        &self,
+        #[var_args] bls_keys: VarArgs<BLSKey>,
+    ) -> SCResult<()> {
+        self.unstake_nodes(true, bls_keys)
+    }
+
+    fn unstake_nodes(&self, unstake_tokens: bool, bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
         only_owner!(self, "only owner allowed to unstake nodes");
 
         require!(
@@ -184,10 +201,15 @@ pub trait ContractStakeModule {
             node_ids.push(node_id);
         }
 
-        self.perform_unstake_nodes(node_ids, bls_keys.into_vec())
+        self.perform_unstake_nodes(unstake_tokens, node_ids, bls_keys.into_vec())
     }
 
-    fn perform_unstake_nodes(&self, node_ids: Vec<usize>, bls_keys: Vec<BLSKey>) -> SCResult<()> {
+    fn perform_unstake_nodes(
+        &self,
+        unstake_tokens: bool,
+        node_ids: Vec<usize>,
+        bls_keys: Vec<BLSKey>,
+    ) -> SCResult<()> {
         // convert node state to PendingDeactivation
         for &node_id in node_ids.iter() {
             require!(
@@ -202,7 +224,11 @@ pub trait ContractStakeModule {
         // send unstake command to Auction SC
         let auction_contract_addr = self.settings().get_auction_contract_address();
         let auction_contract = contract_proxy!(self, &auction_contract_addr, Auction);
-        auction_contract.unStake(node_ids, bls_keys.into());
+        if unstake_tokens {
+            auction_contract.unStake(node_ids, bls_keys.into());
+        } else {
+            auction_contract.unStakeNodes(node_ids, bls_keys.into());
+        }
 
         Ok(())
     }
