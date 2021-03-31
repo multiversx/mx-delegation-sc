@@ -1,4 +1,3 @@
-use elrond_wasm::elrond_codec::*;
 use elrond_wasm::{Box, Vec};
 
 elrond_wasm::derive_imports!();
@@ -6,7 +5,7 @@ elrond_wasm::derive_imports!();
 // BLS keys have 96 bytes
 pub const BLS_KEY_BYTE_LENGTH: usize = 96;
 
-#[derive(TypeAbi)]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, TypeAbi)]
 pub struct BLSKey(pub Box<[u8; BLS_KEY_BYTE_LENGTH]>);
 
 impl BLSKey {
@@ -16,82 +15,6 @@ impl BLSKey {
 
     pub fn from_array(arr: [u8; BLS_KEY_BYTE_LENGTH]) -> Self {
         BLSKey(Box::new(arr))
-    }
-}
-
-impl NestedEncode for BLSKey {
-    #[inline]
-    fn dep_encode<O: NestedEncodeOutput>(&self, dest: &mut O) -> Result<(), EncodeError> {
-        self.0.dep_encode(dest)
-    }
-
-    #[inline]
-    fn dep_encode_or_exit<O: NestedEncodeOutput, ExitCtx: Clone>(
-        &self,
-        dest: &mut O,
-        c: ExitCtx,
-        exit: fn(ExitCtx, EncodeError) -> !,
-    ) {
-        self.0.dep_encode_or_exit(dest, c, exit);
-    }
-}
-
-impl TopEncode for BLSKey {
-    #[inline]
-    fn top_encode<O: TopEncodeOutput>(&self, output: O) -> Result<(), EncodeError> {
-        self.0.top_encode(output)
-    }
-
-    #[inline]
-    fn top_encode_or_exit<O: TopEncodeOutput, ExitCtx: Clone>(
-        &self,
-        output: O,
-        c: ExitCtx,
-        exit: fn(ExitCtx, EncodeError) -> !,
-    ) {
-        self.0.top_encode_or_exit(output, c, exit);
-    }
-}
-
-impl NestedDecode for BLSKey {
-    #[inline]
-    fn dep_decode<I: NestedDecodeInput>(input: &mut I) -> Result<Self, DecodeError> {
-        Ok(BLSKey(Box::<[u8; BLS_KEY_BYTE_LENGTH]>::dep_decode(input)?))
-    }
-
-    fn dep_decode_or_exit<I: NestedDecodeInput, ExitCtx: Clone>(
-        input: &mut I,
-        c: ExitCtx,
-        exit: fn(ExitCtx, DecodeError) -> !,
-    ) -> Self {
-        BLSKey(Box::<[u8; BLS_KEY_BYTE_LENGTH]>::dep_decode_or_exit(
-            input, c, exit,
-        ))
-    }
-}
-
-impl TopDecode for BLSKey {
-    #[inline]
-    fn top_decode<I: TopDecodeInput>(input: I) -> Result<Self, DecodeError> {
-        Ok(BLSKey(Box::<[u8; BLS_KEY_BYTE_LENGTH]>::top_decode(input)?))
-    }
-
-    #[inline]
-    fn top_decode_or_exit<I: TopDecodeInput, ExitCtx: Clone>(
-        input: I,
-        c: ExitCtx,
-        exit: fn(ExitCtx, DecodeError) -> !,
-    ) -> Self {
-        BLSKey(Box::<[u8; BLS_KEY_BYTE_LENGTH]>::top_decode_or_exit(
-            input, c, exit,
-        ))
-    }
-}
-
-impl PartialEq for BLSKey {
-    #[allow(clippy::op_ref)]
-    fn eq(&self, other: &Self) -> bool {
-        &self.0[..] == &other.0[..]
     }
 }
 

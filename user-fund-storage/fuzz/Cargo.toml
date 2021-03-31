@@ -13,7 +13,10 @@ cargo-fuzz = true
 libfuzzer-sys = "0.3"
 elrond-wasm = "0.14.2"
 elrond-wasm-debug = "0.14.2"
+elrond-wasm-derive = "0.14.2"
 
+[dependencies.fuzz-util]
+path = "../../fuzz-util"
 
 [dependencies.user-fund-storage]
 path = ".."
@@ -21,6 +24,10 @@ path = ".."
 # Prevent this from interfering with workspaces
 [workspace]
 members = ["."]
+
+[lib]
+name = "old_serialization"
+path = "old_serialization/mod.rs"
 
 [[bin]]
 name = "fuzz_fund_item"

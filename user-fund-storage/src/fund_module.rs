@@ -1,4 +1,5 @@
 elrond_wasm::imports!();
+use elrond_wasm::elrond_codec::EncodeDefault;
 
 use crate::types::*;
 
@@ -183,7 +184,7 @@ pub trait FundModule {
     fn add_fund_to_type_list(&self, id: usize, new_fund_item: &mut FundItem<BigUint>) {
         self.fund_list_by_type(new_fund_item.fund_desc.fund_type())
             .update(|type_list| {
-                if type_list.is_empty() {
+                if type_list.is_default() {
                     type_list.first = id;
                     type_list.last = id;
                 } else {
@@ -201,7 +202,7 @@ pub trait FundModule {
     fn add_fund_to_user_list(&self, id: usize, new_fund_item: &mut FundItem<BigUint>) {
         self.fund_list_by_user(new_fund_item.user_id, new_fund_item.fund_desc.fund_type())
             .update(|user_list| {
-                if user_list.is_empty() {
+                if user_list.is_default() {
                     user_list.first = id;
                     user_list.last = id;
                 } else {
@@ -252,7 +253,7 @@ pub trait FundModule {
             // not all types can be coalesced, anything involving queues cannot
             self.fund_list_by_user(user_id, fund_desc.fund_type())
                 .update(|user_list| {
-                    if !user_list.is_empty() {
+                    if !user_list.is_default() {
                         // at least 1 other item must exist for user
                         self.fund_by_id(user_list.last).update(|last_item| {
                             if last_item.fund_desc == fund_desc {

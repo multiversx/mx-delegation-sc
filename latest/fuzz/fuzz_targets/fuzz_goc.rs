@@ -1,10 +1,10 @@
 #![no_main]
 use libfuzzer_sys::fuzz_target;
 
-use elrond_wasm::elrond_codec::*;
-use elrond_wasm::elrond_codec::test_util::*;
 use delegation_latest::reset_checkpoint_types::*;
-use elrond_wasm_debug::RustBigUint;
+use elrond_wasm::elrond_codec::test_util::*;
+use elrond_wasm::elrond_codec::*;
+use elrond_wasm_debug::api::RustBigUint;
 
 fuzz_target!(|data: &[u8]| {
     if let Ok(decoded) = GlobalOpCheckpoint::<RustBigUint>::top_decode(data) {
