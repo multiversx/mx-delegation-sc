@@ -1,7 +1,8 @@
 #!/bin/sh
 
-erdpy --verbose contract build "/home/andreim/elrond/newsc/sc-delegation-rs/latest_full"
-erdpy --verbose contract build "/home/andreim/elrond/newsc/sc-delegation-rs/latest_update"
+DELEGATION_DIR=$(dirname "$0")
+erdpy --verbose contract build "$DELEGATION_DIR/latest_full"
+erdpy --verbose contract build "$DELEGATION_DIR/latest_update"
 
 
 
