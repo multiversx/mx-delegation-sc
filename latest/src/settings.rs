@@ -145,6 +145,12 @@ pub trait SettingsModule {
         Ok(())
     }
 
+    /// Backwards compatibility only.
+    #[endpoint(setNumBlocksBeforeUnbond)]
+    fn set_n_blocks_before_unbond_endpoint_backwards_compatibility(&self, n_blocks_before_unbond: u64) -> SCResult<()> {
+        self.set_n_blocks_before_unbond_endpoint(n_blocks_before_unbond)
+    }
+
     /// Delegators are not allowed make transactions with less then this amount of stake (of any type).
     /// Zero means disabled.
     #[view(getMinimumStake)]

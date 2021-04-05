@@ -3,7 +3,8 @@
 erdpy --verbose contract build "/home/andreim/elrond/newsc/sc-delegation-rs/latest_full"
 erdpy --verbose contract build "/home/andreim/elrond/newsc/sc-delegation-rs/latest_update"
 
-
+cp latest_full/output/delegation_latest_full.wasm v0_5_4_full/output/delegation_v0_5_4_full.wasm
+cp latest_update/output/delegation_latest_update.wasm v0_5_4_update/output/delegation_v0_5_4_update.wasm
 
 ## For playing around without erdpy:
 
