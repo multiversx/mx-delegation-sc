@@ -4,6 +4,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [0.5.4]
 - Ability to unstake nodes without unstaking the tokens
+- setNumBlocksBeforeUnBond renamed (capital "B") for consistency
 
 ## [0.5.3]
 - getFullActiveList fix

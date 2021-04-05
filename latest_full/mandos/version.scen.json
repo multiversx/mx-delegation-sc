@@ -1,0 +1,32 @@
+{
+    "name": "check version",
+    "steps": [
+        {
+            "step": "setState",
+            "accounts": {
+                "address:delegation_contract": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "storage": {},
+                    "code": "file:../output/delegation_latest_full.wasm"
+                }
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "version",
+            "tx": {
+                "from": "address:delegation_contract",
+                "to": "address:delegation_contract",
+                "value": "0",
+                "function": "version",
+                "arguments": [],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [ "str:0.5.4" ]
+            }
+        }
+    ]
+}
