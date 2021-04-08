@@ -14,7 +14,7 @@ use core::num::NonZeroUsize;
 
 imports!();
 
-pub const UNBOND_GASLIMIT: u64 = 100_000_000;
+pub const UNBOND_GASLIMIT: u64 = 50_000_000;
 
 #[elrond_wasm_derive::module(UserUnStakeModuleImpl)]
 pub trait UserUnStakeModule {

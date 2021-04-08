@@ -1,5 +1,6 @@
 {
     "name": "withdraw inactive",
+    "gasSchedule": "v2",
     "steps": [
         {
             "step": "externalSteps",
@@ -77,7 +78,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "out": [],
+                "out": [ "1,000,000,000" ],
                 "status": "",
                 "logs": [],
                 "gas": "*",

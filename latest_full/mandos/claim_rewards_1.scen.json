@@ -1,5 +1,6 @@
 {
     "name": "claim rewards scenario",
+    "gasSchedule": "v2",
     "steps": [
         {
             "step": "externalSteps",
@@ -32,28 +33,6 @@
             "expect": {
                 "out": [
                     "address:delegator1","100,000,000,000,000","0","address:delegator2","200,000,000,000,000","0"
-                ],
-                "status": "",
-                "logs": [],
-                "gas": "*",
-                "refund": "*"
-            }
-        },
-        {
-            "step": "scCall",
-            "txId": "getFullActiveList",
-            "tx": {
-                "from": "address:someone",
-                "to": "address:delegation_contract",
-                "value": "0",
-                "function": "getFullActiveList",
-                "arguments": [],
-                "gasLimit": "100,000,000",
-                "gasPrice": "0"
-            },
-            "expect": {
-                "out": [
-                    "address:delegator1","1,000,000,000"
                 ],
                 "status": "",
                 "logs": [],

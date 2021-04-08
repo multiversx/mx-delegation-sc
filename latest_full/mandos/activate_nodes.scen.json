@@ -1,5 +1,6 @@
 {
     "name": "activate nodes scenario",
+    "gasSchedule": "v2",
     "steps": [
         {
             "step": "externalSteps",
@@ -94,14 +95,7 @@
             "expect": {
                 "out": [],
                 "status": "",
-                "logs": [
-                    {
-                        "address": "address:delegation_contract",
-                        "identifier": "0x0000000000000000000000000000000000000000000000000000000000000005",
-                        "topics": [],
-                        "data": ""
-                    }
-                ],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
