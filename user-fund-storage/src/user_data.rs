@@ -58,7 +58,10 @@ pub trait UserDataModule {
     }
 
     #[endpoint(updateUserAddress)]
-    fn update_user_address(&self, #[var_args] addresses: VarArgs<Address>) -> SCResult<MultiResult3<usize, usize, usize>> {
+    fn update_user_address(
+        &self,
+        #[var_args] addresses: VarArgs<Address>,
+    ) -> SCResult<MultiResult3<usize, usize, usize>> {
         let mut num_updated = 0;
         let mut num_not_updated = 0;
         let mut num_not_found = 0;

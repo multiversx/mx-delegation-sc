@@ -14,6 +14,8 @@ use core::num::NonZeroUsize;
 
 imports!();
 
+pub const UNBOND_GASLIMIT: u64 = 100_000_000;
+
 #[elrond_wasm_derive::module(UserUnStakeModuleImpl)]
 pub trait UserUnStakeModule {
     #[module(EventsModuleImpl)]
@@ -129,7 +131,7 @@ pub trait UserUnStakeModule {
     }
 
     #[endpoint(unBond)]
-    fn unbond_user(&self) -> SCResult<()> {
+    fn unbond_user(&self) -> SCResult<BigUint> {
         require!(self.pause().not_paused(), "contract paused");
 
         let caller = self.get_caller();
@@ -139,18 +141,20 @@ pub trait UserUnStakeModule {
         let n_blocks_before_unbond = self.settings().get_n_blocks_before_unbond();
         let _ = self
             .fund_transf_module()
-            .swap_eligible_deferred_to_withdraw(caller_id, n_blocks_before_unbond);
+            .swap_eligible_deferred_to_withdraw(caller_id, n_blocks_before_unbond, || {
+                self.get_gas_left() < UNBOND_GASLIMIT
+            });
 
         let amount_liquidated = self
             .fund_transf_module()
-            .liquidate_all_withdraw_only(caller_id);
+            .liquidate_all_withdraw_only(caller_id, || self.get_gas_left() < UNBOND_GASLIMIT);
 
         if amount_liquidated > 0 {
             // forward payment to seller
             self.send_tx(&caller, &amount_liquidated, "delegation stake unbond");
         }
 
-        Ok(())
+        Ok(amount_liquidated)
     }
 
     #[view(getUnBondable)]

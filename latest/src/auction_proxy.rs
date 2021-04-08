@@ -18,7 +18,11 @@ pub trait Auction {
     fn unStake(&self, #[callback_arg] node_ids: Vec<usize>, #[var_args] bls_keys: VarArgs<BLSKey>);
 
     #[callback(auction_unstake_callback)]
-    fn unStakeNodes(&self, #[callback_arg] node_ids: Vec<usize>, #[var_args] bls_keys: VarArgs<BLSKey>);
+    fn unStakeNodes(
+        &self,
+        #[callback_arg] node_ids: Vec<usize>,
+        #[var_args] bls_keys: VarArgs<BLSKey>,
+    );
 
     #[callback(auction_unbond_callback)]
     fn unBond(

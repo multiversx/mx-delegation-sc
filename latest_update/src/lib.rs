@@ -74,7 +74,8 @@ pub trait Delegation {
             let total_unstaked = self
                 .fund_view_module()
                 .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
-            self.settings().set_total_delegation_cap(total_active + total_unstaked);
+            self.settings()
+                .set_total_delegation_cap(total_active + total_unstaked);
         }
     }
 
