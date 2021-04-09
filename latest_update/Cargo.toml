@@ -1,6 +1,6 @@
 [package]
 name = "delegation_latest_update"
-version = "0.5.4"
+version = "0.5.5"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
