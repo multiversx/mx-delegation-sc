@@ -138,7 +138,7 @@ pub trait SettingsModule {
     #[storage_set("n_blocks_before_unbond")]
     fn set_n_blocks_before_unbond(&self, n_blocks_before_unbond: u64);
 
-    #[endpoint(setNumBlocksBeforeUnbond)]
+    #[endpoint(setNumBlocksBeforeUnBond)]
     fn set_n_blocks_before_unbond_endpoint(&self, n_blocks_before_unbond: u64) -> SCResult<()> {
         only_owner!(self, "only owner can set num blocks before unbond");
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);

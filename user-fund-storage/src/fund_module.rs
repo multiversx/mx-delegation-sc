@@ -466,16 +466,18 @@ pub trait FundModule {
         affected_users
     }
 
-    fn split_convert_max_by_user<F>(
+    fn split_convert_max_by_user<F, I>(
         &self,
         mut opt_max_amount: Option<&mut BigUint>,
         user_id: usize,
         source_type: FundType,
         direction: SwapDirection,
         filter_transform: F,
+        interrupt: I,
     ) -> BigUint
     where
         F: Fn(FundDescription) -> Option<FundDescription>,
+        I: Fn() -> bool,
     {
         let user_list = self.fund_list_by_user(user_id, source_type).get();
         let mut total_transformed = BigUint::zero();
@@ -485,7 +487,7 @@ pub trait FundModule {
             SwapDirection::Backwards => user_list.last,
         };
 
-        while id > 0 {
+        while id > 0 && !interrupt() {
             if let Some(max_amount) = &opt_max_amount {
                 if **max_amount == 0 {
                     break; // do not process anything after the max_amount is completely drained
@@ -520,12 +522,20 @@ pub trait FundModule {
         total_transformed
     }
 
-    fn destroy_all_for_user(&self, user_id: usize, source_type: FundType) -> BigUint {
+    fn destroy_all_for_user<I>(
+        &self,
+        user_id: usize,
+        source_type: FundType,
+        interrupt: I,
+    ) -> BigUint
+    where
+        I: Fn() -> bool,
+    {
         let user_list = self.fund_list_by_user(user_id, source_type).get();
         let mut id = user_list.first;
         let mut total_destroyed = BigUint::zero();
 
-        while id > 0 {
+        while id > 0 && !interrupt() {
             self.fund_by_id(id).update(|fund_item| {
                 let next_id = fund_item.user_list_next; // save next id now, because fund_item can be destroyed
 

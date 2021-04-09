@@ -20,9 +20,13 @@ pub trait FundTransformationsModule {
         );
     }
 
-    fn liquidate_all_withdraw_only(&self, user_id: usize) -> BigUint {
+    fn liquidate_all_withdraw_only<I: Fn() -> bool>(
+        &self,
+        user_id: usize,
+        interrupt: I,
+    ) -> BigUint {
         self.fund_module()
-            .destroy_all_for_user(user_id, FundType::WithdrawOnly)
+            .destroy_all_for_user(user_id, FundType::WithdrawOnly, interrupt)
     }
 
     fn swap_user_active_to_unstaked(&self, unstake_user_id: usize, amount: &mut BigUint) {
@@ -37,6 +41,7 @@ pub trait FundTransformationsModule {
                     created: current_bl_nonce,
                 })
             },
+            || false,
         );
     }
 
@@ -62,6 +67,7 @@ pub trait FundTransformationsModule {
             FundType::Waiting,
             SwapDirection::Backwards,
             |_| Some(FundDescription::WithdrawOnly),
+            || false,
         );
     }
 
@@ -123,10 +129,11 @@ pub trait FundTransformationsModule {
         );
     }
 
-    fn swap_eligible_deferred_to_withdraw(
+    fn swap_eligible_deferred_to_withdraw<I: Fn() -> bool>(
         &self,
         user_id: usize,
         n_blocks_before_claim: u64,
+        interrupt: I,
     ) -> BigUint {
         let current_bl_nonce = self.get_block_nonce();
         self.fund_module().split_convert_max_by_user(
@@ -142,6 +149,7 @@ pub trait FundTransformationsModule {
                 }
                 None
             },
+            interrupt,
         )
     }
 }

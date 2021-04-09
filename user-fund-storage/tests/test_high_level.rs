@@ -40,7 +40,7 @@ fn test_create_destroy() {
     transf_module.swap_user_waiting_to_withdraw_only(user_id, &mut amount);
     assert_eq!(amount, RustBigUint::zero());
 
-    let liquidated = transf_module.liquidate_all_withdraw_only(user_id);
+    let liquidated = transf_module.liquidate_all_withdraw_only(user_id, || false);
     assert_eq!(liquidated, RustBigUint::from(5000u32));
 
     fund_module_check::check_consistency(&fund_module, 3);
@@ -180,7 +180,7 @@ fn test_full_cycle_1() {
     );
 
     // DeferredPayment -> WithdrawOnly
-    let claimed_amount = transf_module.swap_eligible_deferred_to_withdraw(user_id, 0);
+    let claimed_amount = transf_module.swap_eligible_deferred_to_withdraw(user_id, 0, || false);
     assert_eq!(claimed_amount, RustBigUint::from(5000u32));
 
     fund_module_check::check_consistency(&fund_module, 3);
@@ -202,7 +202,7 @@ fn test_full_cycle_1() {
     );
 
     // WithdrawOnly -> liquidate
-    let liquidated = transf_module.liquidate_all_withdraw_only(user_id);
+    let liquidated = transf_module.liquidate_all_withdraw_only(user_id, || false);
     assert_eq!(liquidated, RustBigUint::from(5000u32));
 
     fund_module_check::check_consistency(&fund_module, 3);

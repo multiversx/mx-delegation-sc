@@ -1,97 +1,20 @@
 {
-    "name": "staking scenario",
-    "gasSchedule": "v2",
-    "steps": [
-        {
-            "step": "externalSteps",
-            "path": "steps/init_accounts.steps.json"
-        },
-        {
-            "step": "externalSteps",
-            "path": "steps/deploy.steps.json"
-        },
+    "name": "unstake-2",
+    "steps":[
         {
             "step": "scCall",
-            "txId": "check auction addr",
+            "txId": "user-unstake",
             "tx": {
-                "from": "address:node_address",
+                "from": "address:delegator1",
                 "to": "address:delegation_contract",
                 "value": "0",
-                "function": "getAuctionContractAddress",
-                "arguments": [],
+                "function": "unStake",
+                "arguments": ["50,001,000,000,000"],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"
             },
             "expect": {
-                "out": [ "address:auction_contract" ],
-                "status": "",
-                "logs": [],
-                "gas": "*",
-                "refund": "*"
-            }
-        },
-        {
-            "step": "scCall",
-            "txId": "getNumBlocksBeforeUnBond",
-            "tx": {
-                "from": "address:node_address",
-                "to": "address:delegation_contract",
-                "value": "0",
-                "function": "getNumBlocksBeforeUnBond",
-                "arguments": [],
-                "gasLimit": "100,000,000",
-                "gasPrice": "0"
-            },
-            "expect": {
-                "out": [ "60" ],
-                "status": "",
-                "logs": [],
-                "gas": "*",
-                "refund": "*"
-            }
-        },
-        {
-            "step": "scCall",
-            "txId": "check-fee",
-            "tx": {
-                "from": "address:node_address",
-                "to": "address:delegation_contract",
-                "value": "0",
-                "function": "getServiceFee",
-                "arguments": [],
-                "gasLimit": "100,000,000",
-                "gasPrice": "0"
-            },
-            "expect": {
-                "out": [ "5000" ],
-                "status": "",
-                "logs": [],
-                "gas": "*",
-                "refund": "*"
-            }
-        },            
-        {
-            "step": "externalSteps",
-            "path": "steps/add_nodes.steps.json"
-        }, 
-        {
-            "step": "externalSteps",
-            "path": "steps/stake_1.steps.json"
-        },
-        {
-            "step": "scCall",
-            "txId": "check-total_stake",
-            "tx": {
-                "from": "address:someone",
-                "to": "address:delegation_contract",
-                "value": "0",
-                "function": "totalStake",
-                "arguments": [],
-                "gasLimit": "100,000,000",
-                "gasPrice": "0"
-            },
-            "expect": {
-                "out": [ "300,001,000,000,000" ],
+                "out": [],
                 "status": "",
                 "logs": [],
                 "gas": "*",
@@ -114,7 +37,31 @@
             },
             "expect": {
                 "out": [
-                    "0", "100,000,000,000,000", "1,000,000,000","0","0"
+                    "0", "0", "50,000,000,000,000", "50,000,000,000,000", "1,000,000,000"
+                ],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "check-defereed-payment-list",
+            "tx": {
+                "from": "address:someone",
+                "to": "address:delegation_contract",
+                "value": "0",
+                "function": "getUserDeferredPaymentList",
+                "arguments": [
+                    "address:delegator1"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [
+                    "1,000,000,000","0"
                 ],
                 "status": "",
                 "logs": [],
@@ -138,7 +85,7 @@
             },
             "expect": {
                 "out": [
-                    "0", "200,000,000,000,000", "0","0","0"
+                    "0", "0","200,000,000,000,000", "0","0"
                 ],
                 "status": "",
                 "logs": [],
@@ -160,7 +107,7 @@
             },
             "expect": {
                 "out": [
-                   "0",  "300,000,000,000,000", "1,000,000,000", "0", "0"
+                   "0", "0", "250,000,000,000,000",  "50,000,000,000,000", "1,000,000,000"
                 ],
                 "status": "",
                 "logs": [],
