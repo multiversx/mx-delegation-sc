@@ -244,16 +244,10 @@ pub trait FundViewModule {
             |fund_item| {
                 if let FundDescription::Active = fund_item.fund_desc {
                     if self.user_data().is_empty_user_address(fund_item.user_id) {
-                        result.push(MultiResult2::from((
-                            Address::zero(),
-                            fund_item.balance,
-                        )));
+                        result.push(MultiResult2::from((Address::zero(), fund_item.balance)));
                     } else {
                         let user_address = self.user_data().get_user_address(fund_item.user_id);
-                        result.push(MultiResult2::from((
-                            user_address,
-                            fund_item.balance,
-                        )));
+                        result.push(MultiResult2::from((user_address, fund_item.balance)));
                     }
                 }
             },

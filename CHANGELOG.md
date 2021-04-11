@@ -2,6 +2,9 @@
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.5.5]
+- unbond doesn't run out of gas, it simply interrupts its execution
+
 ## [0.5.4]
 - Ability to unstake nodes without unstaking the tokens
 - setNumBlocksBeforeUnBond renamed (capital "B") for consistency

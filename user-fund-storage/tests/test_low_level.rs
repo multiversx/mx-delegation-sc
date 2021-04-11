@@ -39,7 +39,7 @@ fn test_fund_inc_dec_1() {
         fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true)
     );
 
-    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting);
+    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting, || false);
     assert_eq!(destroyed, RustBigUint::from(1234u32));
 
     fund_module_check::check_consistency(&fund_module, 3);
@@ -99,7 +99,7 @@ fn test_fund_inc_dec_2() {
         fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true)
     );
 
-    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting);
+    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting, || false);
     assert_eq!(destroyed, RustBigUint::from(1234u32));
 
     fund_module_check::check_consistency(&fund_module, 3);
@@ -120,7 +120,7 @@ fn test_fund_inc_dec_2() {
         fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true)
     );
 
-    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting);
+    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting, || false);
     assert_eq!(destroyed, RustBigUint::from(0u32));
 
     fund_module_check::check_consistency(&fund_module, 3);
@@ -181,7 +181,7 @@ fn test_fund_inc_dec_3() {
         fund_module.count_fund_items_by_user_type(user_id, FundType::Waiting, |_| true)
     );
 
-    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting);
+    let destroyed = fund_module.destroy_all_for_user(user_id, FundType::Waiting, || false);
     assert_eq!(destroyed, RustBigUint::from(1234u32));
 
     fund_module_check::check_consistency(&fund_module, 3);
@@ -556,6 +556,7 @@ fn test_user_swap(direction: SwapDirection) {
         FundType::Waiting,
         direction,
         |_| Some(FundDescription::WithdrawOnly),
+        || false,
     );
     assert_eq!(amount, RustBigUint::from(0u32));
     assert_eq!(swapped, RustBigUint::from(1250u32));
