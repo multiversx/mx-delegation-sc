@@ -3,43 +3,6 @@ use elrond_wasm::elrond_codec::*;
 
 elrond_wasm::derive_imports!();
 
-/// Functions return this as status, if operation was completed or not.
-#[derive(TypeAbi, PartialEq, Debug)]
-pub enum GlobalOpStatus {
-    Done,
-    StoppedBeforeOutOfGas,
-}
-
-impl GlobalOpStatus {
-    fn to_u64(&self) -> u64 {
-        match self {
-            GlobalOpStatus::Done => 0,
-            GlobalOpStatus::StoppedBeforeOutOfGas => 1,
-        }
-    }
-
-    pub fn is_done(&self) -> bool {
-        *self == GlobalOpStatus::Done
-    }
-}
-
-impl TopEncode for GlobalOpStatus {
-    #[inline]
-    fn top_encode<O: TopEncodeOutput>(&self, output: O) -> Result<(), EncodeError> {
-        self.to_u64().top_encode(output)
-    }
-
-    #[inline]
-    fn top_encode_or_exit<O: TopEncodeOutput, ExitCtx: Clone>(
-        &self,
-        output: O,
-        c: ExitCtx,
-        exit: fn(ExitCtx, EncodeError) -> !,
-    ) {
-        self.to_u64().top_encode_or_exit(output, c, exit);
-    }
-}
-
 /// Models any computation that can pause itself when it runs out of gas and continue in another block.
 #[derive(TypeAbi, PartialEq, Debug)]
 pub enum GlobalOpCheckpoint<BigUint: BigUintApi> {

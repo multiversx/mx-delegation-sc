@@ -50,7 +50,7 @@ pub trait ResetCheckpointsModule {
     /// Continues executing any interrupted operation.
     /// Returns true if still out of gas, false if computation completed.
     #[endpoint(continueGlobalOperation)]
-    fn continue_global_operation_endpoint(&self) -> SCResult<GlobalOpStatus> {
+    fn continue_global_operation_endpoint(&self) -> SCResult<OperationCompletionStatus> {
         feature_guard!(self.features_module(), b"continueGlobalOperation", true);
 
         let orc = self.global_op_checkpoint().get();
@@ -60,9 +60,9 @@ pub trait ResetCheckpointsModule {
     fn continue_global_operation(
         &self,
         mut orc: Box<GlobalOpCheckpoint<BigUint>>,
-    ) -> SCResult<GlobalOpStatus> {
-        let mut status = GlobalOpStatus::Done;
-        while status.is_done() && !orc.is_none() {
+    ) -> SCResult<OperationCompletionStatus> {
+        let mut status = OperationCompletionStatus::Completed;
+        while matches!(status, OperationCompletionStatus::Completed) && !orc.is_none() {
             let (new_status, new_orc) = self.continue_global_operation_step(orc);
             status = new_status;
             orc = new_orc;
@@ -75,9 +75,9 @@ pub trait ResetCheckpointsModule {
     fn continue_global_operation_step(
         &self,
         orc: Box<GlobalOpCheckpoint<BigUint>>,
-    ) -> (GlobalOpStatus, Box<GlobalOpCheckpoint<BigUint>>) {
+    ) -> (OperationCompletionStatus, Box<GlobalOpCheckpoint<BigUint>>) {
         match *orc {
-            GlobalOpCheckpoint::None => (GlobalOpStatus::Done, orc),
+            GlobalOpCheckpoint::None => (OperationCompletionStatus::Completed, orc),
             GlobalOpCheckpoint::ModifyTotalDelegationCap(mdcap_data) => {
                 self.continue_modify_total_delegation_cap_step(mdcap_data)
             }
@@ -87,7 +87,7 @@ pub trait ResetCheckpointsModule {
             } => {
                 if let Some(more_computation) = self.compute_all_rewards(compute_rewards_data) {
                     (
-                        GlobalOpStatus::StoppedBeforeOutOfGas,
+                        OperationCompletionStatus::InterruptedBeforeOutOfGas,
                         Box::new(GlobalOpCheckpoint::ChangeServiceFee {
                             new_service_fee,
                             compute_rewards_data: more_computation,
@@ -96,7 +96,10 @@ pub trait ResetCheckpointsModule {
                 } else {
                     // finish
                     self.settings().set_service_fee(new_service_fee);
-                    (GlobalOpStatus::Done, Box::new(GlobalOpCheckpoint::None))
+                    (
+                        OperationCompletionStatus::Completed,
+                        Box::new(GlobalOpCheckpoint::None),
+                    )
                 }
             }
         }
@@ -105,19 +108,19 @@ pub trait ResetCheckpointsModule {
     fn continue_modify_total_delegation_cap_step(
         &self,
         mut mdcap_data: ModifyTotalDelegationCapData<BigUint>,
-    ) -> (GlobalOpStatus, Box<GlobalOpCheckpoint<BigUint>>) {
+    ) -> (OperationCompletionStatus, Box<GlobalOpCheckpoint<BigUint>>) {
         match mdcap_data.step {
             ModifyDelegationCapStep::ComputeAllRewards(car_data) => {
                 if let Some(more_computation) = self.compute_all_rewards(car_data) {
                     mdcap_data.step = ModifyDelegationCapStep::ComputeAllRewards(more_computation);
                     (
-                        GlobalOpStatus::StoppedBeforeOutOfGas,
+                        OperationCompletionStatus::InterruptedBeforeOutOfGas,
                         Box::new(GlobalOpCheckpoint::ModifyTotalDelegationCap(mdcap_data)),
                     )
                 } else {
                     mdcap_data.step = ModifyDelegationCapStep::SwapWaitingToActive;
                     (
-                        GlobalOpStatus::Done,
+                        OperationCompletionStatus::Completed,
                         Box::new(GlobalOpCheckpoint::ModifyTotalDelegationCap(mdcap_data)),
                     )
                 }
@@ -129,13 +132,13 @@ pub trait ResetCheckpointsModule {
                 );
                 if mdcap_data.remaining_swap_waiting_to_active > 0 {
                     (
-                        GlobalOpStatus::StoppedBeforeOutOfGas,
+                        OperationCompletionStatus::InterruptedBeforeOutOfGas,
                         Box::new(GlobalOpCheckpoint::ModifyTotalDelegationCap(mdcap_data)),
                     )
                 } else {
                     mdcap_data.step = ModifyDelegationCapStep::SwapUnstakedToDeferredPayment;
                     (
-                        GlobalOpStatus::Done,
+                        OperationCompletionStatus::Completed,
                         Box::new(GlobalOpCheckpoint::ModifyTotalDelegationCap(mdcap_data)),
                     )
                 }
@@ -147,13 +150,13 @@ pub trait ResetCheckpointsModule {
                 );
                 if mdcap_data.remaining_swap_unstaked_to_def_p > 0 {
                     (
-                        GlobalOpStatus::StoppedBeforeOutOfGas,
+                        OperationCompletionStatus::InterruptedBeforeOutOfGas,
                         Box::new(GlobalOpCheckpoint::ModifyTotalDelegationCap(mdcap_data)),
                     )
                 } else {
                     mdcap_data.step = ModifyDelegationCapStep::SwapActiveToDeferredPayment;
                     (
-                        GlobalOpStatus::Done,
+                        OperationCompletionStatus::Completed,
                         Box::new(GlobalOpCheckpoint::ModifyTotalDelegationCap(mdcap_data)),
                     )
                 }
@@ -165,14 +168,17 @@ pub trait ResetCheckpointsModule {
                 );
                 if mdcap_data.remaining_swap_active_to_def_p > 0 {
                     (
-                        GlobalOpStatus::StoppedBeforeOutOfGas,
+                        OperationCompletionStatus::InterruptedBeforeOutOfGas,
                         Box::new(GlobalOpCheckpoint::ModifyTotalDelegationCap(mdcap_data)),
                     )
                 } else {
                     // finish
                     self.settings()
                         .set_total_delegation_cap(mdcap_data.new_delegation_cap);
-                    (GlobalOpStatus::Done, Box::new(GlobalOpCheckpoint::None))
+                    (
+                        OperationCompletionStatus::Completed,
+                        Box::new(GlobalOpCheckpoint::None),
+                    )
                 }
             }
         }
@@ -231,7 +237,10 @@ pub trait ResetCheckpointsModule {
     /// Total delegation cap can be modified by owner only.
     /// It will recalculate and set the checkpoint for all the delegators
     #[endpoint(modifyTotalDelegationCap)]
-    fn modify_total_delegation_cap(&self, new_total_cap: BigUint) -> SCResult<GlobalOpStatus> {
+    fn modify_total_delegation_cap(
+        &self,
+        new_total_cap: BigUint,
+    ) -> SCResult<OperationCompletionStatus> {
         only_owner!(self, "only owner allowed to modify delegation cap");
 
         require!(
@@ -258,7 +267,7 @@ pub trait ResetCheckpointsModule {
                 // compute all rewards not necessary - no rewards yet
                 // swap not necessary - there cannot be any waiting or unstaked funds
                 self.settings().set_total_delegation_cap(new_total_cap);
-                return Ok(GlobalOpStatus::Done);
+                return Ok(OperationCompletionStatus::Completed);
             } else {
                 // bootstrap mode is over
                 // no rewards to compute, but
@@ -285,7 +294,7 @@ pub trait ResetCheckpointsModule {
         let orc = match new_total_cap.cmp(&previous_total_cap) {
             Ordering::Equal => {
                 // nothing changes
-                return Ok(GlobalOpStatus::Done);
+                return Ok(OperationCompletionStatus::Completed);
             }
             Ordering::Greater => {
                 // cap increases
