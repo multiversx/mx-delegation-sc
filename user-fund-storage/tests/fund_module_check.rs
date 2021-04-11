@@ -1,10 +1,10 @@
 use user_fund_storage::fund_module::*;
 use user_fund_storage::types::*;
 
-use elrond_wasm::*;
+use elrond_wasm_debug::api::{RustBigInt, RustBigUint};
 use elrond_wasm_debug::*;
 
-imports!();
+elrond_wasm::imports!();
 
 pub fn check_consistency_for_type(
     module: &FundModuleImpl<TxContext, RustBigInt, RustBigUint>,
@@ -15,7 +15,7 @@ pub fn check_consistency_for_type(
     let mut id = type_list.first;
     let mut prev_id = 0;
     while id > 0 {
-        let fund_item = module.get_fund_by_id(id);
+        let fund_item = module.fund_by_id(id).get();
 
         // check next/prev
         assert_eq!(
@@ -44,11 +44,11 @@ pub fn check_consistency_for_user_type(
     fund_type: FundType,
 ) {
     let mut sum = RustBigUint::zero();
-    let user_type_list = module.get_fund_list_by_user(user_id, fund_type);
+    let user_type_list = module.fund_list_by_user(user_id, fund_type).get();
     let mut id = user_type_list.first;
     let mut prev_id = 0;
     while id > 0 {
-        let fund_item = module.get_fund_by_id(id);
+        let fund_item = module.fund_by_id(id).get();
 
         assert_eq!(
             fund_item.user_id, user_id,

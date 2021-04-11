@@ -9,7 +9,7 @@ use crate::rewards::*;
 use crate::settings::*;
 use core::cmp::Ordering;
 
-imports!();
+elrond_wasm::imports!();
 
 pub const STOP_AT_GASLIMIT: u64 = 100_000_000;
 
@@ -37,17 +37,14 @@ pub trait ResetCheckpointsModule {
     fn features_module(&self) -> FeaturesModuleImpl<T, BigInt, BigUint>;
 
     #[view(getGlobalOperationCheckpoint)]
-    #[storage_get("global_op_checkpoint")]
-    fn get_global_op_checkpoint(&self) -> Box<GlobalOpCheckpoint<BigUint>>;
-
-    #[storage_set("global_op_checkpoint")]
-    fn set_global_op_checkpoint(&self, orc: Box<GlobalOpCheckpoint<BigUint>>);
+    #[storage_mapper("global_op_checkpoint")]
+    fn global_op_checkpoint(
+        &self,
+    ) -> SingleValueMapper<Self::Storage, Box<GlobalOpCheckpoint<BigUint>>>;
 
     #[view(isGlobalOperationInProgress)]
     fn is_global_op_in_progress(&self) -> bool {
-        // TODO: make this pattern into an attribute just like storage_get/storage_set in elrond_wasm
-        // something like storage_is_empty
-        self.storage_load_len(&b"global_op_checkpoint"[..]) > 0
+        !self.global_op_checkpoint().is_empty()
     }
 
     /// Continues executing any interrupted operation.
@@ -56,7 +53,7 @@ pub trait ResetCheckpointsModule {
     fn continue_global_operation_endpoint(&self) -> SCResult<GlobalOpStatus> {
         feature_guard!(self.features_module(), b"continueGlobalOperation", true);
 
-        let orc = self.get_global_op_checkpoint();
+        let orc = self.global_op_checkpoint().get();
         self.continue_global_operation(orc)
     }
 
@@ -71,7 +68,7 @@ pub trait ResetCheckpointsModule {
             orc = new_orc;
         }
 
-        self.set_global_op_checkpoint(orc);
+        self.global_op_checkpoint().set(&orc);
         Ok(status)
     }
 

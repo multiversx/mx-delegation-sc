@@ -9,7 +9,7 @@ pub use delegation_latest_wasm as delegation_latest;
 
 use delegation_latest::*;
 
-imports!();
+elrond_wasm::imports!();
 
 #[elrond_wasm_derive::contract(DelegationImpl)]
 pub trait Delegation {
@@ -90,8 +90,8 @@ pub trait Delegation {
     #[callback]
     fn auction_stake_callback(
         &self,
-        #[callback_arg] node_ids: Vec<usize>,
-        call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+        node_ids: Vec<usize>,
+        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) {
         self.node_activation()
             .auction_stake_callback(node_ids, call_result)
@@ -102,8 +102,8 @@ pub trait Delegation {
     #[callback]
     fn auction_unstake_callback(
         &self,
-        #[callback_arg] node_ids: Vec<usize>,
-        call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+        node_ids: Vec<usize>,
+        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) {
         self.node_activation()
             .auction_unstake_callback(node_ids, call_result)
@@ -114,8 +114,8 @@ pub trait Delegation {
     #[callback]
     fn auction_unbond_callback(
         &self,
-        #[callback_arg] node_ids: Vec<usize>,
-        call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+        node_ids: Vec<usize>,
+        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) {
         self.node_activation()
             .auction_unbond_callback(node_ids, call_result)

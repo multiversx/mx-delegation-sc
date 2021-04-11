@@ -1,6 +1,6 @@
 use crate::types::*;
 
-imports!();
+elrond_wasm::imports!();
 
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
@@ -16,11 +16,8 @@ imports!();
 pub trait NodeModule {
     /// The number of nodes that will run with the contract stake, as configured by the owner.
     #[view(getNumNodes)]
-    #[storage_get("num_nodes")]
-    fn get_num_nodes(&self) -> usize;
-
-    #[storage_get_mut("num_nodes")]
-    fn get_mut_num_nodes(&self) -> mut_storage!(usize);
+    #[storage_mapper("num_nodes")]
+    fn num_nodes(&self) -> SingleValueMapper<Self::Storage, usize>;
 
     /// Each node gets a node id. This is in order to be able to iterate over their data.
     /// This is a mapping from node BLS key to node id.
@@ -74,7 +71,7 @@ pub trait NodeModule {
 
     #[view(getAllNodeStates)]
     fn get_all_node_states(&self) -> MultiResultVec<MultiResult2<BLSKey, u8>> {
-        let num_nodes = self.get_num_nodes();
+        let num_nodes = self.num_nodes().get();
         let mut result = Vec::new();
         for i in 1..num_nodes + 1 {
             result.push(MultiResult2::from((
@@ -104,13 +101,13 @@ pub trait NodeModule {
     ) -> SCResult<()> {
         only_owner!(self, "only owner can add nodes");
 
-        let mut num_nodes = self.get_mut_num_nodes();
+        let mut num_nodes = self.num_nodes().get();
         for bls_sig_pair_arg in bls_keys_signatures.into_vec().into_iter() {
             let (bls_key, bls_sig) = bls_sig_pair_arg.into_tuple();
             let mut node_id = self.get_node_id(&bls_key);
             if node_id == 0 {
-                *num_nodes += 1;
-                node_id = *num_nodes;
+                num_nodes += 1;
+                node_id = num_nodes;
                 self.set_node_bls_to_id(&bls_key, node_id);
                 self.set_node_id_to_bls(node_id, &bls_key);
                 self.set_node_state(node_id, NodeState::Inactive);
@@ -122,6 +119,7 @@ pub trait NodeModule {
                 return sc_error!("node already registered");
             }
         }
+        self.num_nodes().set(&num_nodes);
         Ok(())
     }
 

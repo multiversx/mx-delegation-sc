@@ -1,4 +1,4 @@
-imports!();
+elrond_wasm::imports!();
 
 /// Deals with storage of data about delegators.
 #[elrond_wasm_derive::module(UserDataModuleImpl)]

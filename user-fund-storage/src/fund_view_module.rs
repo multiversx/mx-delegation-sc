@@ -1,4 +1,4 @@
-imports!();
+elrond_wasm::imports!();
 
 use crate::types::fund_type::*;
 
@@ -27,7 +27,10 @@ pub trait FundViewModule {
             let type_list = self.fund_module().get_fund_list_by_type(fund_type);
             type_list.total_balance
         } else {
-            let user_list = self.fund_module().get_fund_list_by_user(user_id, fund_type);
+            let user_list = self
+                .fund_module()
+                .fund_list_by_user(user_id, fund_type)
+                .get();
             user_list.total_balance
         }
     }

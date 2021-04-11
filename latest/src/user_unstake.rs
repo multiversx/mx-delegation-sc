@@ -12,7 +12,7 @@ use crate::user_stake::*;
 use core::cmp::Ordering;
 use core::num::NonZeroUsize;
 
-imports!();
+elrond_wasm::imports!();
 
 pub const UNBOND_GASLIMIT: u64 = 50_000_000;
 
@@ -151,7 +151,8 @@ pub trait UserUnStakeModule {
 
         if amount_liquidated > 0 {
             // forward payment to seller
-            self.send_tx(&caller, &amount_liquidated, "delegation stake unbond");
+            self.send()
+                .direct_egld(&caller, &amount_liquidated, b"delegation stake unbond");
         }
 
         Ok(amount_liquidated)

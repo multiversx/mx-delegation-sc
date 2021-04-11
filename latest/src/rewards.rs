@@ -11,7 +11,7 @@ use crate::events::*;
 use crate::reset_checkpoints::*;
 use core::num::NonZeroUsize;
 
-imports!();
+elrond_wasm::imports!();
 
 // Groups together data per delegator from the storage.
 pub struct UserRewardData<BigUint> {
@@ -241,7 +241,8 @@ pub trait RewardsModule {
 
     fn send_rewards(&self, to: &Address, amount: &BigUint) {
         // send funds
-        self.send_tx(to, amount, "delegation rewards claim");
+        self.send()
+            .direct_egld(to, amount, b"delegation rewards claim");
 
         // increment globally sent funds
         let mut sent_rewards = self.get_sent_rewards();

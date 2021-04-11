@@ -1,8 +1,10 @@
+use elrond_wasm::api::BigUintApi;
 use elrond_wasm::elrond_codec::*;
-use elrond_wasm::BigUintApi;
+
+elrond_wasm::derive_imports!();
 
 /// Functions return this as status, if operation was completed or not.
-#[derive(PartialEq, Debug)]
+#[derive(TypeAbi, PartialEq, Debug)]
 pub enum GlobalOpStatus {
     Done,
     StoppedBeforeOutOfGas,
@@ -39,7 +41,7 @@ impl TopEncode for GlobalOpStatus {
 }
 
 /// Models any computation that can pause itself when it runs out of gas and continue in another block.
-#[derive(PartialEq, Debug)]
+#[derive(TypeAbi, PartialEq, Debug)]
 pub enum GlobalOpCheckpoint<BigUint: BigUintApi> {
     None,
     ModifyTotalDelegationCap(ModifyTotalDelegationCapData<BigUint>),
@@ -210,7 +212,7 @@ impl<BigUint: BigUintApi> TopDecode for GlobalOpCheckpoint<BigUint> {
 }
 
 /// Contains data needed to be persisted while performing a change in the total delegation cap.
-#[derive(PartialEq, Debug)]
+#[derive(TypeAbi, PartialEq, Debug)]
 pub struct ModifyTotalDelegationCapData<BigUint: BigUintApi> {
     pub new_delegation_cap: BigUint,
     pub remaining_swap_waiting_to_active: BigUint,
@@ -276,7 +278,7 @@ impl<BigUint: BigUintApi> NestedDecode for ModifyTotalDelegationCapData<BigUint>
 }
 
 /// Models the steps that need to be executed when modifying the total delegation cap.
-#[derive(PartialEq, Debug)]
+#[derive(TypeAbi, PartialEq, Debug)]
 pub enum ModifyDelegationCapStep<BigUint: BigUintApi> {
     ComputeAllRewards(ComputeAllRewardsData<BigUint>),
     SwapWaitingToActive,
@@ -362,7 +364,7 @@ impl<BigUint: BigUintApi> NestedDecode for ModifyDelegationCapStep<BigUint> {
 }
 
 /// Models the interrupted state of compute_all_rewards.
-#[derive(PartialEq, Debug)]
+#[derive(TypeAbi, PartialEq, Debug)]
 pub struct ComputeAllRewardsData<BigUint: BigUintApi> {
     pub last_id: usize,
     pub sum_unclaimed: BigUint,
@@ -428,7 +430,7 @@ impl<BigUint: BigUintApi> NestedDecode for ComputeAllRewardsData<BigUint> {
 mod tests {
     use super::*;
     use elrond_wasm::elrond_codec::test_util::*;
-    use elrond_wasm_debug::*;
+    use elrond_wasm_debug::api::RustBigUint;
 
     fn check_global_operation_checkpoint_codec(goc: GlobalOpCheckpoint<RustBigUint>) {
         let top_encoded = check_top_encode(&goc);

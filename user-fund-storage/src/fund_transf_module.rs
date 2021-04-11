@@ -1,4 +1,4 @@
-imports!();
+elrond_wasm::imports!();
 
 use crate::fund_module::*;
 use crate::types::fund_type::*;

@@ -11,4 +11,4 @@ pub mod node_config;
 #[macro_use]
 extern crate elrond_wasm;
 
-imports!();
+elrond_wasm::imports!();

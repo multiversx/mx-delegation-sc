@@ -1,38 +1,24 @@
-imports!();
+elrond_wasm::imports!();
 
 use super::node_storage::types::*;
 
 #[elrond_wasm_derive::callable(AuctionProxy)]
 pub trait Auction {
-    #[payable]
-    #[callback(auction_stake_callback)]
+    #[payable("EGLD")]
     fn stake(
         &self,
-        #[callback_arg] node_ids: Vec<usize>,
         num_nodes: usize,
-        #[multi(2*num_nodes)] bls_keys_signatures: VarArgs<Vec<u8>>,
-        #[payment] payment: &BigUint,
-    );
+        #[var_args] bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>,
+    ) -> ContractCall<BigUint, ()>;
 
-    #[callback(auction_unstake_callback)]
-    fn unStake(&self, #[callback_arg] node_ids: Vec<usize>, #[var_args] bls_keys: VarArgs<BLSKey>);
+    fn unStake(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> ContractCall<BigUint, ()>;
 
-    #[callback(auction_unstake_callback)]
-    fn unStakeNodes(
-        &self,
-        #[callback_arg] node_ids: Vec<usize>,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
-    );
+    fn unStakeNodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> ContractCall<BigUint, ()>;
 
-    #[callback(auction_unbond_callback)]
-    fn unBond(
-        &self,
-        #[callback_arg] node_ids: Vec<usize>,
-        #[var_args] bls_keys_signatures: VarArgs<BLSKey>,
-    );
+    fn unBond(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> ContractCall<BigUint, ()>;
 
-    fn claim(&self);
+    fn claim(&self) -> ContractCall<BigUint, ()>;
 
-    #[payable]
-    fn unJail(&self, #[var_args] bls_keys: VarArgs<BLSKey>, #[payment] fine_payment: &BigUint);
+    #[payable("EGLD")]
+    fn unJail(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> ContractCall<BigUint, ()>;
 }

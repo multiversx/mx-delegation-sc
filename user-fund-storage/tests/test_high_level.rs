@@ -2,8 +2,9 @@ use user_fund_storage::fund_module::*;
 use user_fund_storage::fund_transf_module::*;
 use user_fund_storage::types::*;
 
-use elrond_wasm::*;
-use elrond_wasm_debug::*;
+use elrond_wasm::api::BigUintApi;
+use elrond_wasm_debug::api::RustBigUint;
+use elrond_wasm_debug::TxContext;
 
 mod fund_module_check;
 
