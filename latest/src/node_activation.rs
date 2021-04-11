@@ -236,7 +236,7 @@ pub trait ContractStakeModule {
                 .with_callback(self.callbacks().auction_unstake_callback(node_ids)))
         } else {
             Ok(auction_proxy
-                .unStake(bls_keys.into())
+                .unStakeNodes(bls_keys.into())
                 .async_call()
                 .with_callback(self.callbacks().auction_unstake_callback(node_ids)))
         }
