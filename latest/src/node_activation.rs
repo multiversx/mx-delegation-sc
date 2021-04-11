@@ -106,7 +106,7 @@ pub trait ContractStakeModule {
     fn auction_stake_callback(
         &self,
         node_ids: Vec<usize>, // #[callback_arg]
-        #[call_result] call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) -> SCResult<()> {
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
@@ -248,7 +248,7 @@ pub trait ContractStakeModule {
     fn auction_unstake_callback(
         &self,
         node_ids: Vec<usize>, // #[callback_arg]
-        #[call_result] call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) -> SCResult<()> {
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
@@ -395,7 +395,7 @@ pub trait ContractStakeModule {
     fn auction_unbond_callback(
         &self,
         node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) -> SCResult<()> {
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
