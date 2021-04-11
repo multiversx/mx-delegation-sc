@@ -91,7 +91,7 @@ pub trait Delegation {
     fn auction_stake_callback(
         &self,
         node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) {
         self.node_activation()
             .auction_stake_callback(node_ids, call_result)
@@ -103,7 +103,7 @@ pub trait Delegation {
     fn auction_unstake_callback(
         &self,
         node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) {
         self.node_activation()
             .auction_unstake_callback(node_ids, call_result)
@@ -115,7 +115,7 @@ pub trait Delegation {
     fn auction_unbond_callback(
         &self,
         node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<VarArgs<BLSStatusMultiArg>>,
+        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) {
         self.node_activation()
             .auction_unbond_callback(node_ids, call_result)
