@@ -9,7 +9,7 @@
                     "nonce": "0",
                     "balance": "0",
                     "storage": {},
-                    "code": "file:../output/delegation_latest_update.wasm"
+                    "code": "file:../output/delegation_v0_5_5_update.wasm"
                 }
             }
         },
@@ -21,7 +21,7 @@
                 "function": "version"
             },
             "expect": {
-                "out": [ "str:0.5.4" ]
+                "out": [ "str:0.5.5" ]
             }
         }
     ]

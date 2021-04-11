@@ -66,7 +66,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "out": ["1"],
+                "out": ["str:interrupted"],
                 "status": "",
                 "logs": [],
                 "gas": "*",
@@ -107,7 +107,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "out": ["0"],
+                "out": ["str:completed"],
                 "status": "",
                 "logs": [],
                 "gas": "*",
@@ -285,7 +285,7 @@
                     "nonce": "*",
                     "balance": "300,001,000,000,001",
                     "storage": "*",
-                    "code": "file:../output/delegation_latest_full.wasm"
+                    "code": "file:../output/delegation_v0_5_5_full.wasm"
                 },
                 "address:delegator1": {
                     "nonce": "*",
