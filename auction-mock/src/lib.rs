@@ -129,6 +129,14 @@ pub trait AuctionMock {
         Ok(result_err_data.into())
     }
 
+    #[endpoint(unBondNodes)]
+    fn unbond_nodes_endpoint(
+        &self,
+        #[var_args] bls_keys: VarArgs<Vec<u8>>,
+    ) -> SCResult<MultiResultVec<Vec<u8>>> {
+        self.unbond_endpoint(bls_keys)
+    }
+
     #[endpoint]
     fn claim(&self) -> SCResult<()> {
         Ok(())
