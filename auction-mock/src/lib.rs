@@ -72,21 +72,21 @@ pub trait AuctionMock {
     #[endpoint(unStake)]
     fn unstake_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<Vec<u8>>,
-    ) -> SCResult<MultiResultVec<Vec<u8>>> {
+        #[var_args] bls_keys: VarArgs<BoxedBytes>,
+    ) -> SCResult<MultiResultVec<BoxedBytes>> {
         require!(
             !self.storage().is_staking_failure(),
             "auction smart contract deliberate error"
         );
 
-        let mut result_err_data: Vec<Vec<u8>> = Vec::new();
+        let mut result_err_data: Vec<BoxedBytes> = Vec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
-            self.storage().set_unStake_bls_key(n, bls_key);
+            self.storage().set_unStake_bls_key(n, bls_key.as_slice());
 
-            let err_code = self.storage().get_bls_deliberate_error(bls_key);
+            let err_code = self.storage().get_bls_deliberate_error(bls_key.as_slice());
             if err_code > 0 {
                 result_err_data.push(bls_key.clone());
-                result_err_data.push([err_code].to_vec());
+                result_err_data.push(BoxedBytes::from(&[err_code][..]));
             }
         }
 
@@ -96,29 +96,29 @@ pub trait AuctionMock {
     #[endpoint(unStakeNodes)]
     fn unstake_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<Vec<u8>>,
-    ) -> SCResult<MultiResultVec<Vec<u8>>> {
+        #[var_args] bls_keys: VarArgs<BoxedBytes>,
+    ) -> SCResult<MultiResultVec<BoxedBytes>> {
         self.unstake_endpoint(bls_keys)
     }
 
     #[endpoint(unBond)]
     fn unbond_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<Vec<u8>>,
-    ) -> SCResult<MultiResultVec<Vec<u8>>> {
+        #[var_args] bls_keys: VarArgs<BoxedBytes>,
+    ) -> SCResult<MultiResultVec<BoxedBytes>> {
         require!(
             !self.storage().is_staking_failure(),
             "auction smart contract deliberate error"
         );
 
-        let mut result_err_data: Vec<Vec<u8>> = Vec::new();
+        let mut result_err_data: Vec<BoxedBytes> = Vec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
-            self.storage().set_unBond_bls_key(n, bls_key);
+            self.storage().set_unBond_bls_key(n, bls_key.as_slice());
 
-            let err_code = self.storage().get_bls_deliberate_error(bls_key);
+            let err_code = self.storage().get_bls_deliberate_error(bls_key.as_slice());
             if err_code > 0 {
                 result_err_data.push(bls_key.clone());
-                result_err_data.push([err_code].to_vec());
+                result_err_data.push(BoxedBytes::from(&[err_code][..]));
             }
         }
 
@@ -132,8 +132,8 @@ pub trait AuctionMock {
     #[endpoint(unBondNodes)]
     fn unbond_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<Vec<u8>>,
-    ) -> SCResult<MultiResultVec<Vec<u8>>> {
+        #[var_args] bls_keys: VarArgs<BoxedBytes>,
+    ) -> SCResult<MultiResultVec<BoxedBytes>> {
         self.unbond_endpoint(bls_keys)
     }
 
