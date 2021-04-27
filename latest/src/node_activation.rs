@@ -306,26 +306,16 @@ pub trait ContractStakeModule {
 
     // UNBOND
     /// Calls unbond for all provided nodes. Will fail if node cannot be unbonded.
-    #[endpoint(unBondNodesAndTokens)]
-    fn unbond_specific_nodes_and_tokens_endpoint(
-        &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
-    ) -> SCResult<AsyncCall<BigUint>> {
-        self.unbond_specific_nodes(true, bls_keys)
-    }
-
-    /// Calls unbond for all provided nodes. Will fail if node cannot be unbonded.
     #[endpoint(unBondNodes)]
     fn unbond_specific_nodes_endpoint(
         &self,
         #[var_args] bls_keys: VarArgs<BLSKey>,
     ) -> SCResult<AsyncCall<BigUint>> {
-        self.unbond_specific_nodes(false, bls_keys)
+        self.unbond_specific_nodes(bls_keys)
     }
 
     fn unbond_specific_nodes(
         &self,
-        unbond_tokens: bool,
         bls_keys: VarArgs<BLSKey>,
     ) -> SCResult<AsyncCall<BigUint>> {
         only_owner!(self, "only owner allowed to unbond nodes");
@@ -348,7 +338,7 @@ pub trait ContractStakeModule {
             node_ids.push(node_id);
         }
 
-        Ok(self.perform_unbond(unbond_tokens, node_ids, bls_keys.into_vec()))
+        Ok(self.perform_unbond(node_ids, bls_keys.into_vec()))
     }
 
     /// Calls unbond for all nodes that are in the unbond period and are due.
@@ -379,7 +369,7 @@ pub trait ContractStakeModule {
         }
 
         Ok(OptionalResult::Some(
-            self.perform_unbond(true, node_ids, bls_keys),
+            self.perform_unbond(node_ids, bls_keys),
         ))
     }
 
@@ -399,23 +389,16 @@ pub trait ContractStakeModule {
 
     fn perform_unbond(
         &self,
-        unbond_tokens: bool,
         node_ids: Vec<usize>,
         bls_keys: Vec<BLSKey>,
     ) -> AsyncCall<BigUint> {
         // send unbond command to Auction SC
         let auction_contract_addr = self.settings().get_auction_contract_address();
-        if unbond_tokens {
-            contract_call!(self, auction_contract_addr, AuctionProxy)
-                .unBond(bls_keys.into())
-                .async_call()
-                .with_callback(self.callbacks().auction_unbond_callback(node_ids))
-        } else {
-            contract_call!(self, auction_contract_addr, AuctionProxy)
-                .unBondNodes(bls_keys.into())
-                .async_call()
-                .with_callback(self.callbacks().auction_unbond_callback(node_ids))
-        }
+        contract_call!(self, auction_contract_addr, AuctionProxy)
+            .unBondNodes(bls_keys.into())
+            .async_call()
+            .with_callback(self.callbacks().auction_unbond_callback(node_ids))
+        
     }
 
     /// Only finalize deactivation if we got confirmation from the auction contract.
