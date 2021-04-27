@@ -17,6 +17,8 @@ pub trait Auction {
 
     fn unBond(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> ContractCall<BigUint, ()>;
 
+    fn unBondNodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> ContractCall<BigUint, ()>;
+
     fn claim(&self) -> ContractCall<BigUint, ()>;
 
     #[payable("EGLD")]

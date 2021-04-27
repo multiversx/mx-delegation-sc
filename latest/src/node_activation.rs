@@ -307,7 +307,7 @@ pub trait ContractStakeModule {
     // UNBOND
     /// Calls unbond for all provided nodes. Will fail if node cannot be unbonded.
     #[endpoint(unBondNodes)]
-    fn unbond_specific_nodes(
+    fn unbond_specific_nodes_endpoint(
         &self,
         #[var_args] bls_keys: VarArgs<BLSKey>,
     ) -> SCResult<AsyncCall<BigUint>> {
@@ -380,13 +380,18 @@ pub trait ContractStakeModule {
         false
     }
 
-    fn perform_unbond(&self, node_ids: Vec<usize>, bls_keys: Vec<BLSKey>) -> AsyncCall<BigUint> {
+    fn perform_unbond(
+        &self,
+        node_ids: Vec<usize>,
+        bls_keys: Vec<BLSKey>,
+    ) -> AsyncCall<BigUint> {
         // send unbond command to Auction SC
         let auction_contract_addr = self.settings().get_auction_contract_address();
         contract_call!(self, auction_contract_addr, AuctionProxy)
-            .unBond(bls_keys.into())
+            .unBondNodes(bls_keys.into())
             .async_call()
             .with_callback(self.callbacks().auction_unbond_callback(node_ids))
+        
     }
 
     /// Only finalize deactivation if we got confirmation from the auction contract.
