@@ -311,13 +311,6 @@ pub trait ContractStakeModule {
         &self,
         #[var_args] bls_keys: VarArgs<BLSKey>,
     ) -> SCResult<AsyncCall<BigUint>> {
-        self.unbond_specific_nodes(bls_keys)
-    }
-
-    fn unbond_specific_nodes(
-        &self,
-        bls_keys: VarArgs<BLSKey>,
-    ) -> SCResult<AsyncCall<BigUint>> {
         only_owner!(self, "only owner allowed to unbond nodes");
 
         require!(
