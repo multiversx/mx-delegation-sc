@@ -2,7 +2,7 @@
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [unreleased]
+## [0.5.6]
 - call unBondNodes in the protocol, which unbonds the nodes without the tokens
 
 ## [0.5.5]

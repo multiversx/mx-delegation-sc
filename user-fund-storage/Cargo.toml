@@ -1,6 +1,6 @@
 [package]
 name = "user-fund-storage"
-version = "0.5.5"
+version = "0.5.6"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
