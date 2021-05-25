@@ -12,7 +12,7 @@ elrond_wasm::imports!();
 /// - what BLS keys they have.
 /// - what BLS signatures they have
 ///
-#[elrond_wasm_derive::module(NodeConfigModuleImpl)]
+#[elrond_wasm_derive::module]
 pub trait NodeModule {
     /// The number of nodes that will run with the contract stake, as configured by the owner.
     #[view(getNumNodes)]

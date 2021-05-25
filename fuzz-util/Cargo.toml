@@ -6,6 +6,6 @@ publish = false
 edition = "2018"
 
 [dependencies]
-elrond-wasm = "0.14.2"
+elrond-wasm = "0.16.2"
 
 [lib]

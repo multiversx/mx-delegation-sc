@@ -11,7 +11,7 @@ const WAITING_CREATED: u64 = 1234;
 
 #[test]
 fn test_fund_inc_dec_1() {
-    let fund_module = FundModuleImpl::new(TxContext::dummy());
+    let fund_module = user_fund_storage::fund_module::contract_obj(TxContext::dummy());
     let user_id = 2;
 
     fund_module.increase_fund_balance(
@@ -64,7 +64,7 @@ fn test_fund_inc_dec_1() {
 
 #[test]
 fn test_fund_inc_dec_2() {
-    let fund_module = FundModuleImpl::new(TxContext::dummy());
+    let fund_module = user_fund_storage::fund_module::contract_obj(TxContext::dummy());
     let user_id = 1;
 
     fund_module.increase_fund_balance(
@@ -146,7 +146,7 @@ fn test_fund_inc_dec_2() {
 
 #[test]
 fn test_fund_inc_dec_3() {
-    let fund_module = FundModuleImpl::new(TxContext::dummy());
+    let fund_module = user_fund_storage::fund_module::contract_obj(TxContext::dummy());
     let user_id = 3;
 
     fund_module.increase_fund_balance(
@@ -206,7 +206,7 @@ fn test_fund_inc_dec_3() {
 
 #[test]
 fn test_transfer_funds_1() {
-    let fund_module = FundModuleImpl::new(TxContext::dummy());
+    let fund_module = user_fund_storage::fund_module::contract_obj(TxContext::dummy());
     let user_1 = 2;
     let user_2 = 3;
 
@@ -280,7 +280,7 @@ fn test_transfer_funds_1() {
 
 #[test]
 fn test_transfer_funds_2() {
-    let fund_module = FundModuleImpl::new(TxContext::dummy());
+    let fund_module = user_fund_storage::fund_module::contract_obj(TxContext::dummy());
     let user_1 = 2;
     let user_2 = 3;
     let user_3 = 5;
@@ -338,7 +338,7 @@ fn test_transfer_funds_2() {
 // Going backwards
 #[test]
 fn test_transfer_funds_3_backwards() {
-    let fund_module = FundModuleImpl::new(TxContext::dummy());
+    let fund_module = user_fund_storage::fund_module::contract_obj(TxContext::dummy());
     let user_1 = 2;
     let user_2 = 3;
     let user_3 = 5;
@@ -402,7 +402,7 @@ fn test_transfer_funds_3_backwards() {
 // Dry run.
 #[test]
 fn test_transfer_funds_4_dry_run() {
-    let fund_module = FundModuleImpl::new(TxContext::dummy());
+    let fund_module = user_fund_storage::fund_module::contract_obj(TxContext::dummy());
     let user_1 = 5;
     let user_2 = 7;
     let user_3 = 9;
@@ -464,7 +464,7 @@ fn test_transfer_funds_4_dry_run() {
 
 #[test]
 fn test_transfer_funds_5_coalesce() {
-    let fund_module = FundModuleImpl::new(TxContext::dummy());
+    let fund_module = user_fund_storage::fund_module::contract_obj(TxContext::dummy());
     let user_1 = 2;
 
     fund_module.increase_fund_balance(
@@ -522,7 +522,7 @@ fn test_user_swap_backwards() {
 }
 
 fn test_user_swap(direction: SwapDirection) {
-    let fund_module = FundModuleImpl::new(TxContext::dummy());
+    let fund_module = user_fund_storage::fund_module::contract_obj(TxContext::dummy());
     let user_id_1 = 1;
     let user_id_2 = 2;
 

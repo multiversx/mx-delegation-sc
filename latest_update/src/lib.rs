@@ -7,12 +7,31 @@ pub use delegation_latest_default as delegation_latest;
 #[cfg(feature = "delegation_latest_wasm")]
 pub use delegation_latest_wasm as delegation_latest;
 
-use delegation_latest::*;
+use delegation_latest::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
+use delegation_latest::BLSStatusMultiArg;
+use delegation_latest::FundType;
 
 elrond_wasm::imports!();
 
-#[elrond_wasm_derive::contract(DelegationImpl)]
-pub trait Delegation {
+#[elrond_wasm_derive::contract]
+pub trait DelegationUpdate:
+    delegation_latest::node_storage::node_config::NodeModule
+    + delegation_latest::user_fund_storage::user_data::UserDataModule
+    + delegation_latest::user_fund_storage::fund_module::FundModule
+    + delegation_latest::user_fund_storage::fund_view_module::FundViewModule
+    + delegation_latest::user_fund_storage::fund_transf_module::FundTransformationsModule
+    + delegation_latest::node_activation::NodeActivationModule
+    + delegation_latest::settings::SettingsModule
+    + delegation_latest::reset_checkpoint_state::ResetCheckpointStateModule
+    + delegation_latest::rewards_state::RewardStateModule
+    + delegation_latest::user_stake_state::UserStakeStateModule
+    + delegation_latest::events::EventsModule
+    + delegation_latest::elrond_wasm_module_features::FeaturesModule
+    + delegation_latest::elrond_wasm_module_pause::PauseModule
+    + delegation_latest::reset_checkpoint_endpoints::ResetCheckpointsModule
+    + delegation_latest::rewards_endpoints::ClaimRewardsModule
+    + delegation_latest::user_stake_endpoints::UserStakeEndpointsModule
+{
     // METADATA
 
     #[endpoint]
@@ -22,41 +41,41 @@ pub trait Delegation {
 
     // MODULES
 
-    #[module(EventsModuleImpl)]
-    fn events(&self) -> EventsModuleImpl<T, BigInt, BigUint>;
+    // #[module(EventsModuleImpl)]
+    // fn events(&self) -> EventsModuleImpl<T, BigInt, Self::BigUint>;
 
-    #[module(NodeConfigModuleImpl)]
-    fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, BigUint>;
+    // #[module(NodeConfigModuleImpl)]
+    // fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, Self::BigUint>;
 
-    #[module(RewardsModuleImpl)]
-    fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
+    // #[module(RewardsModuleImpl)]
+    // fn rewards(&self) -> RewardsModuleImpl<T, BigInt, Self::BigUint>;
 
-    #[module(ResetCheckpointsModuleImpl)]
-    fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, BigUint>;
+    // #[module(ResetCheckpointsModuleImpl)]
+    // fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, Self::BigUint>;
 
-    #[module(SettingsModuleImpl)]
-    fn settings(&self) -> SettingsModuleImpl<T, BigInt, BigUint>;
+    // #[module(SettingsModuleImpl)]
+    // fn settings(&self) -> SettingsModuleImpl<T, BigInt, Self::BigUint>;
 
-    #[module(PauseModuleImpl)]
-    fn pause(&self) -> PauseModuleImpl<T, BigInt, BigUint>;
+    // #[module(PauseModuleImpl)]
+    // fn pause(&self) -> PauseModuleImpl<T, BigInt, Self::BigUint>;
 
-    #[module(UserStakeModuleImpl)]
-    fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, BigUint>;
+    // #[module(UserStakeModuleImpl)]
+    // fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, Self::BigUint>;
 
-    #[module(NodeActivationModuleImpl)]
-    fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, BigUint>;
+    // #[module(NodeActivationModuleImpl)]
+    // fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, Self::BigUint>;
 
-    #[module(UserUnStakeModuleImpl)]
-    fn user_unstake(&self) -> UserUnStakeModuleImpl<T, BigInt, BigUint>;
+    // #[module(UserUnStakeModuleImpl)]
+    // fn user_unstake(&self) -> UserUnStakeModuleImpl<T, BigInt, Self::BigUint>;
 
-    #[module(UserDataModuleImpl)]
-    fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
+    // #[module(UserDataModuleImpl)]
+    // fn user_data(&self) -> UserDataModuleImpl<T, BigInt, Self::BigUint>;
 
-    #[module(FundTransformationsModuleImpl)]
-    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
+    // #[module(FundTransformationsModuleImpl)]
+    // fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, Self::BigUint>;
 
-    #[module(FundViewModuleImpl)]
-    fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, BigUint>;
+    // #[module(FundViewModuleImpl)]
+    // fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, Self::BigUint>;
 
     // INIT - update from genesis version
 
@@ -65,17 +84,13 @@ pub trait Delegation {
     /// the change happened in 0.5.0, but it is still here, so it is not missed in case an upgrade was skipped
     /// checking that the total delegation cap was not already set
     fn update_total_delegation_cap_if_necessary(&self) {
-        if self.settings().get_total_delegation_cap() == 0 {
-            let total_active = self
-                .fund_view_module()
-                .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
+        if self.get_total_delegation_cap() == 0 {
+            let total_active = self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
             // there was no unstaked stake when the 0.5.0 upgrade happened, but the correct formula includes it
             // in some edge cases on the testnets, unstaking and then upgrading can potentially lead to invariant violations
-            let total_unstaked = self
-                .fund_view_module()
-                .get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
-            self.settings()
-                .set_total_delegation_cap(total_active + total_unstaked);
+            let total_unstaked =
+                self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
+            self.set_total_delegation_cap(total_active + total_unstaked);
         }
     }
 
@@ -87,39 +102,30 @@ pub trait Delegation {
 
     // Callbacks can only be declared here for the moment.
 
-    #[callback]
-    fn auction_stake_callback(
+    #[callback(auction_stake_callback)]
+    fn auction_stake_callback_root(
         &self,
         node_ids: Vec<usize>,
         #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
-    ) {
-        self.node_activation()
-            .auction_stake_callback(node_ids, call_result)
-            .unwrap();
-        // TODO: replace unwrap with typical Result handling
+    ) -> SCResult<()> {
+        self.auction_stake_callback(node_ids, call_result)
     }
 
-    #[callback]
-    fn auction_unstake_callback(
+    #[callback(auction_unstake_callback)]
+    fn auction_unstake_callback_root(
         &self,
         node_ids: Vec<usize>,
         #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
-    ) {
-        self.node_activation()
-            .auction_unstake_callback(node_ids, call_result)
-            .unwrap();
-        // TODO: replace unwrap with typical Result handling
+    ) -> SCResult<()> {
+        self.auction_unstake_callback(node_ids, call_result)
     }
 
-    #[callback]
-    fn auction_unbond_callback(
+    #[callback(auction_unbond_callback)]
+    fn auction_unbond_callback_root(
         &self,
         node_ids: Vec<usize>,
         #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
-    ) {
-        self.node_activation()
-            .auction_unbond_callback(node_ids, call_result)
-            .unwrap();
-        // TODO: replace unwrap with typical Result handling
+    ) -> SCResult<()> {
+        self.auction_unbond_callback(node_ids, call_result)
     }
 }

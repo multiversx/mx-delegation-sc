@@ -1,7 +1,7 @@
 elrond_wasm::imports!();
 
 /// Deals with storage of data about delegators.
-#[elrond_wasm_derive::module(UserDataModuleImpl)]
+#[elrond_wasm_derive::module]
 pub trait UserDataModule {
     /// Each delegator gets a user id. This is in order to be able to iterate over their data.
     /// This is a mapping from delegator address to delegator id.

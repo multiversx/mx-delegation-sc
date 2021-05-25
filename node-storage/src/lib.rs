@@ -8,7 +8,4 @@ pub mod types;
 // modules
 pub mod node_config;
 
-#[macro_use]
-extern crate elrond_wasm;
-
 elrond_wasm::imports!();

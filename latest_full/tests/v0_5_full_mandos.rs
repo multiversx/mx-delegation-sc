@@ -1,6 +1,3 @@
-use auction_mock::*;
-extern crate delegation_latest_full;
-use delegation_latest_full::*;
 use elrond_wasm::*;
 use elrond_wasm_debug::*;
 
@@ -8,16 +5,16 @@ fn contract_map() -> ContractMap<TxContext> {
     let mut contract_map = ContractMap::new();
     contract_map.register_contract(
         "file:../../../auction-mock/output/auction-mock.wasm",
-        Box::new(|context| Box::new(AuctionMockImpl::new(context))),
+        Box::new(|context| Box::new(auction_mock::contract_obj(context))),
     );
 
     contract_map.register_contract(
         "file:../../output/delegation_latest_full.wasm",
-        Box::new(|context| Box::new(DelegationImpl::new(context))),
+        Box::new(|context| Box::new(delegation_latest_full::contract_obj(context))),
     );
     contract_map.register_contract(
         "file:../output/delegation_latest_full.wasm",
-        Box::new(|context| Box::new(DelegationImpl::new(context))),
+        Box::new(|context| Box::new(delegation_latest_full::contract_obj(context))),
     );
     contract_map
 }
