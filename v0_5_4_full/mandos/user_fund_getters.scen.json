@@ -30,7 +30,7 @@
             "txId": "get-user-stake",
             "tx": {
                 "from": "address:delegator2",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "getUserStake",
                 "arguments": ["address:delegator2"],
@@ -50,7 +50,7 @@
             "txId": "get-user-withdraw-only",
             "tx": {
                 "from": "address:delegator2",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "getUserWithdrawOnlyStake",
                 "arguments": ["address:delegator2"],
@@ -70,7 +70,7 @@
             "txId": "get-user-waiting-stake",
             "tx": {
                 "from": "address:delegator2",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "getUserWaitingStake",
                 "arguments": ["address:delegator2"],
@@ -90,7 +90,7 @@
             "txId": "get-user-active-stake",
             "tx": {
                 "from": "address:delegator2",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "getUserActiveStake",
                 "arguments": ["address:delegator2"],
@@ -110,7 +110,7 @@
             "txId": "get-user-unstaked-stake",
             "tx": {
                 "from": "address:delegator2",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "getUserUnstakedStake",
                 "arguments": ["address:delegator2"],
@@ -130,7 +130,7 @@
             "txId": "get-user-deferred-stake",
             "tx": {
                 "from": "address:delegator2",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "getUserDeferredPaymentStake",
                 "arguments": ["address:delegator2"],

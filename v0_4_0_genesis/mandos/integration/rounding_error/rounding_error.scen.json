@@ -22,7 +22,7 @@
             "txId": "only delegator only stake",
             "tx": {
                 "from": "address:delegator1",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "stakeGenesis",
                 "arguments": [
@@ -47,7 +47,7 @@
             "step": "validatorReward",
             "txId": "validatorReward-1",
             "tx": {
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "1"
             }
         },
@@ -56,7 +56,7 @@
             "txId": "delegator 1 claim 1",
             "tx": {
                 "from": "address:delegator1",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "claimRewards",
                 "arguments": [],
@@ -73,7 +73,7 @@
             "step": "validatorReward",
             "txId": "validatorReward-2",
             "tx": {
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "1"
             }
         },
@@ -82,7 +82,7 @@
             "txId": "delegator 1 claim 2",
             "tx": {
                 "from": "address:delegator1",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "claimRewards",
                 "arguments": [],
@@ -100,7 +100,7 @@
             "txId": "owner gets fee",
             "tx": {
                 "from": "address:node_address",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "claimRewards",
                 "arguments": [],
@@ -112,7 +112,7 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "address:delegation_contract",
+                        "address": "sc:delegation",
                         "identifier": "0x000000000000000000000000000000000000000000000000000000000000000a",
                         "topics": [
                             "address:node_address"
@@ -126,7 +126,7 @@
             "step": "checkState",
             "comment": "delegator 1 gets another 1",
             "accounts": {
-                "address:delegation_contract": {
+                "sc:delegation": {
                     "balance": "1"
                 },
                 "address:node_address": {

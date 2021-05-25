@@ -14,7 +14,7 @@
             "txId": "claim ok",
             "tx": {
                 "from": "address:node_address",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "claimRewards",
                 "arguments": [],
@@ -32,7 +32,7 @@
             "txId": "disable claim",
             "tx": {
                 "from": "address:node_address",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "setFeatureFlag",
                 "arguments": [ "''claimRewards", "false" ],
@@ -50,7 +50,7 @@
             "txId": "claim impossible",
             "tx": {
                 "from": "address:node_address",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "claimRewards",
                 "arguments": [],
@@ -69,7 +69,7 @@
             "txId": "re-enable claim",
             "tx": {
                 "from": "address:node_address",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "setFeatureFlag",
                 "arguments": [ "''claimRewards", "true" ],
@@ -87,7 +87,7 @@
             "txId": "claim ok again",
             "tx": {
                 "from": "address:node_address",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "claimRewards",
                 "arguments": [],
