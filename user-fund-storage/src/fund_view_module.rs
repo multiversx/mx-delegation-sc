@@ -13,6 +13,9 @@ use crate::user_data;
 /// no operation may break this invariant!
 pub const USER_STAKE_TOTALS_ID: usize = 0;
 
+/// Result type containing 5 numeric values, one for each stake type.
+pub type StakeByTypeResult<BigUint> = MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint>;
+
 #[elrond_wasm_derive::module]
 pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     // UTILS
@@ -124,11 +127,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
 
     // BREAKDOWN BY TYPE
 
-    fn get_user_stake_by_type(
-        &self,
-        user_id: usize,
-    ) -> MultiResult5<Self::BigUint, Self::BigUint, Self::BigUint, Self::BigUint, Self::BigUint>
-    {
+    fn get_user_stake_by_type(&self, user_id: usize) -> StakeByTypeResult<Self::BigUint> {
         (
             self.get_user_stake_of_type(user_id, FundType::WithdrawOnly),
             self.get_user_stake_of_type(user_id, FundType::Waiting),
@@ -143,8 +142,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     fn get_user_stake_by_type_endpoint(
         &self,
         user_address: &Address,
-    ) -> MultiResult5<Self::BigUint, Self::BigUint, Self::BigUint, Self::BigUint, Self::BigUint>
-    {
+    ) -> StakeByTypeResult<Self::BigUint> {
         let user_id = self.get_user_id(&user_address);
         if user_id == 0 {
             (
@@ -161,10 +159,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     }
 
     #[view(getTotalStakeByType)]
-    fn get_total_stake_by_type_endpoint(
-        &self,
-    ) -> MultiResult5<Self::BigUint, Self::BigUint, Self::BigUint, Self::BigUint, Self::BigUint>
-    {
+    fn get_total_stake_by_type_endpoint(&self) -> StakeByTypeResult<Self::BigUint> {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 

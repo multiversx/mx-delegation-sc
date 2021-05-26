@@ -67,24 +67,21 @@ impl FundType {
     ];
 
     pub fn allow_coalesce(&self) -> bool {
-        match self {
-            FundType::WithdrawOnly | FundType::DeferredPayment => true,
-            _ => false,
-        }
+        matches!(self, FundType::WithdrawOnly | FundType::DeferredPayment)
     }
 
     pub fn is_stake(&self) -> bool {
-        match self {
-            FundType::Waiting | FundType::Active | FundType::UnStaked => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            FundType::Waiting | FundType::Active | FundType::UnStaked
+        )
     }
 
     pub fn funds_in_contract(&self) -> bool {
-        match self {
-            FundType::WithdrawOnly | FundType::Waiting | FundType::DeferredPayment => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            FundType::WithdrawOnly | FundType::Waiting | FundType::DeferredPayment
+        )
     }
 }
 

@@ -186,14 +186,13 @@ pub trait FundModule {
             .update(|type_list| {
                 if type_list.is_default() {
                     type_list.first = id;
-                    type_list.last = id;
                 } else {
                     new_fund_item.type_list_prev = type_list.last;
                     self.fund_by_id(type_list.last).update(|prev_fund| {
                         prev_fund.type_list_next = id;
                     });
-                    type_list.last = id;
                 }
+                type_list.last = id;
                 type_list.total_balance += &new_fund_item.balance;
             });
     }
@@ -204,14 +203,13 @@ pub trait FundModule {
             .update(|user_list| {
                 if user_list.is_default() {
                     user_list.first = id;
-                    user_list.last = id;
                 } else {
                     new_fund_item.user_list_prev = user_list.last;
                     self.fund_by_id(user_list.last).update(|prev_fund| {
                         prev_fund.user_list_next = id;
                     });
-                    user_list.last = id;
                 }
+                user_list.last = id;
                 user_list.total_balance += &new_fund_item.balance;
             });
     }
@@ -466,7 +464,7 @@ pub trait FundModule {
             })
         }
 
-        affected_users.sort();
+        affected_users.sort_unstable();
         affected_users.dedup();
         affected_users
     }
