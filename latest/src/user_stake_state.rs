@@ -1,15 +1,10 @@
-use super::elrond_wasm_module_pause::*;
-use super::user_fund_storage::fund_transf_module::*;
-use super::user_fund_storage::fund_view_module::*;
-use super::user_fund_storage::types::*;
-use super::user_fund_storage::user_data::*;
-use crate::events::*;
-use crate::reset_checkpoint_endpoints::*;
-use crate::rewards_state::*;
-use crate::settings::*;
-
 use core::cmp::Ordering;
 use core::num::NonZeroUsize;
+
+use crate::settings::OWNER_USER_ID;
+use crate::settings::PERCENTAGE_DENOMINATOR;
+use crate::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
+use crate::user_fund_storage::types::FundType;
 
 elrond_wasm::imports!();
 
@@ -24,30 +19,6 @@ pub trait UserStakeStateModule:
     + crate::rewards_state::RewardStateModule
     + crate::events::EventsModule
 {
-    // #[module(UserDataModuleImpl)]
-    // fn user_data(&self) -> UserDataModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FundTransformationsModuleImpl)]
-    // fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FundViewModuleImpl)]
-    // fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(PauseModuleImpl)]
-    // fn pause(&self) -> PauseModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(RewardsModuleImpl)]
-    // fn rewards(&self) -> RewardsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(ResetCheckpointsModuleImpl)]
-    // fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(SettingsModuleImpl)]
-    // fn settings(&self) -> SettingsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(EventsModuleImpl)]
-    // fn events(&self) -> EventsModuleImpl<T, BigInt, Self::BigUint>;
-
     fn process_stake(&self, payment: Self::BigUint) -> SCResult<()> {
         // get user id or create user
         // we use user id as an intermediate identifier between user address and data,

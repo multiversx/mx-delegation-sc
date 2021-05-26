@@ -2,7 +2,7 @@ use elrond_wasm::api::BigUintApi;
 use elrond_wasm::elrond_codec::test_util::*;
 use elrond_wasm::elrond_codec::*;
 use elrond_wasm_debug::api::RustBigUint;
-use user_fund_storage::types::*;
+use user_fund_storage::types::{FundDescription, FundItem, FundType};
 
 fn check<T: TopEncode + TopDecode + PartialEq + core::fmt::Debug>(t: T) {
     let serialized_bytes = check_top_encode(&t);

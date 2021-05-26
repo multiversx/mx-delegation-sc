@@ -1,4 +1,4 @@
-use user_fund_storage::types::*;
+use user_fund_storage::types::FundType;
 
 elrond_wasm::imports!();
 

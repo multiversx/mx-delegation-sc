@@ -1,7 +1,7 @@
 elrond_wasm::imports!();
 use elrond_wasm::elrond_codec::EncodeDefault;
 
-use crate::types::*;
+use crate::types::{FundDescription, FundItem, FundType, FundsListInfo};
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum SwapDirection {

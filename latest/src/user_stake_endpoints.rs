@@ -1,15 +1,5 @@
-use super::elrond_wasm_module_pause::*;
-use super::user_fund_storage::fund_transf_module::*;
-use super::user_fund_storage::fund_view_module::*;
-use super::user_fund_storage::types::*;
-use super::user_fund_storage::user_data::*;
-use crate::events::*;
-use crate::reset_checkpoint_endpoints::*;
-use crate::rewards_state::*;
-use crate::settings::*;
-use crate::user_stake_state::*;
-
-use core::cmp::Ordering;
+use crate::settings::OWNER_USER_ID;
+use crate::user_fund_storage::types::FundType;
 use core::num::NonZeroUsize;
 
 elrond_wasm::imports!();
@@ -30,33 +20,6 @@ pub trait UserStakeEndpointsModule:
     + crate::elrond_wasm_module_features::FeaturesModule
     + crate::elrond_wasm_module_pause::PauseModule
 {
-    // #[module(EventsModuleImpl)]
-    // fn events(&self) -> EventsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(UserDataModuleImpl)]
-    // fn user_data(&self) -> UserDataModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FundTransformationsModuleImpl)]
-    // fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FundViewModuleImpl)]
-    // fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(UserStakeModuleImpl)]
-    // fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(PauseModuleImpl)]
-    // fn pause(&self) -> PauseModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(RewardsModuleImpl)]
-    // fn rewards(&self) -> RewardsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(ResetCheckpointsModuleImpl)]
-    // fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(SettingsModuleImpl)]
-    // fn settings(&self) -> SettingsModuleImpl<T, BigInt, Self::BigUint>;
-
     /// Delegate stake to the smart contract.
     /// Stake is initially inactive, so does it not produce rewards.
     #[payable("EGLD")]

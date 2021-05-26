@@ -1,5 +1,4 @@
 #![no_std]
-#![allow(unused_attributes)]
 #![allow(clippy::string_lit_as_bytes)]
 
 #[cfg(feature = "delegation_latest_default")]
@@ -7,15 +6,14 @@ pub use delegation_latest_default as delegation_latest;
 #[cfg(feature = "delegation_latest_wasm")]
 pub use delegation_latest_wasm as delegation_latest;
 
-// use delegation_latest::*;
+use delegation_latest::node_storage::types::BLSStatusMultiArg;
 use delegation_latest::settings::{OWNER_USER_ID, PERCENTAGE_DENOMINATOR};
-use delegation_latest::BLSStatusMultiArg;
 
 elrond_wasm::imports!();
 
 #[elrond_wasm_derive::contract]
 pub trait DelegationFull:
-    delegation_latest::node_storage::node_config::NodeModule
+    delegation_latest::node_storage::node_config::NodeConfigModule
     + delegation_latest::user_fund_storage::user_data::UserDataModule
     + delegation_latest::user_fund_storage::fund_module::FundModule
     + delegation_latest::user_fund_storage::fund_view_module::FundViewModule
@@ -29,7 +27,7 @@ pub trait DelegationFull:
     + delegation_latest::elrond_wasm_module_features::FeaturesModule
     + delegation_latest::elrond_wasm_module_pause::PauseModule
     + delegation_latest::reset_checkpoint_endpoints::ResetCheckpointsModule
-    + delegation_latest::rewards_endpoints::ClaimRewardsModule
+    + delegation_latest::rewards_endpoints::RewardEndpointsModule
     + delegation_latest::user_stake_endpoints::UserStakeEndpointsModule
 {
     // METADATA
@@ -38,44 +36,6 @@ pub trait DelegationFull:
     fn version(&self) -> &'static str {
         env!("CARGO_PKG_VERSION")
     }
-
-    // MODULES
-
-    // #[module(EventsModuleImpl)]
-    // fn events(&self) -> EventsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(NodeConfigModuleImpl)]
-    // fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(RewardsModuleImpl)]
-    // fn rewards(&self) -> RewardsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(ResetCheckpointsModuleImpl)]
-    // fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(SettingsModuleImpl)]
-    // fn settings(&self) -> SettingsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(PauseModuleImpl)]
-    // fn pause(&self) -> PauseModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(UserStakeModuleImpl)]
-    // fn user_stake(&self) -> UserStakeModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(NodeActivationModuleImpl)]
-    // fn node_activation(&self) -> NodeActivationModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(UserUnStakeModuleImpl)]
-    // fn user_unstake(&self) -> UserUnStakeModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(UserDataModuleImpl)]
-    // fn user_data(&self) -> UserDataModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FundTransformationsModuleImpl)]
-    // fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FundViewModuleImpl)]
-    // fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, Self::BigUint>;
 
     // INIT
 

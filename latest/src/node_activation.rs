@@ -1,11 +1,11 @@
-use super::node_storage::types::*;
+use super::node_storage::types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState};
 use crate::auction_proxy;
 
 elrond_wasm::imports!();
 
 #[elrond_wasm_derive::module]
 pub trait NodeActivationModule:
-    crate::node_storage::node_config::NodeModule
+    crate::node_storage::node_config::NodeConfigModule
     + crate::user_fund_storage::user_data::UserDataModule
     + crate::user_fund_storage::fund_module::FundModule
     + crate::user_fund_storage::fund_view_module::FundViewModule

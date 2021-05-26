@@ -2,7 +2,7 @@ elrond_wasm::imports!();
 
 use crate::fund_module;
 use crate::fund_module::SwapDirection;
-use crate::types::fund_type::*;
+use crate::types::{FundDescription, FundType};
 
 /// Deals with storage data about delegators.
 #[elrond_wasm_derive::module]

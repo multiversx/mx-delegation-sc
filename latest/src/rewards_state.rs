@@ -1,20 +1,8 @@
-use super::elrond_wasm_module_features;
-use super::elrond_wasm_module_pause;
-use super::node_storage::node_config;
-use super::settings;
-use super::user_fund_storage::fund_transf_module;
-use super::user_fund_storage::fund_view_module;
-use super::user_fund_storage::types::fund_type::*;
-use super::user_fund_storage::user_data;
-use crate::reset_checkpoint_endpoints;
-use crate::{
-    events,
-    settings::{OWNER_USER_ID, PERCENTAGE_DENOMINATOR},
-};
+use crate::settings::{OWNER_USER_ID, PERCENTAGE_DENOMINATOR};
 
+use super::user_fund_storage::types::FundType;
 use crate::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
 use core::num::NonZeroUsize;
-use elrond_wasm_module_features::feature_guard;
 
 elrond_wasm::imports!();
 
@@ -35,33 +23,6 @@ pub trait RewardStateModule:
     + super::user_fund_storage::fund_module::FundModule
     + super::user_fund_storage::fund_view_module::FundViewModule
 {
-    // #[module(EventsModuleImpl)]
-    // fn events(&self) -> EventsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(NodeConfigModuleImpl)]
-    // fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(SettingsModuleImpl)]
-    // fn settings(&self) -> SettingsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(UserDataModuleImpl)]
-    // fn user_data(&self) -> UserDataModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(ResetCheckpointsModuleImpl)]
-    // fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FundTransformationsModuleImpl)]
-    // fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FundViewModuleImpl)]
-    // fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FeaturesModuleImpl)]
-    // fn features_module(&self) -> FeaturesModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(PauseModuleImpl)]
-    // fn pause(&self) -> PauseModuleImpl<T, BigInt, Self::BigUint>;
-
     /// Claiming rewards has 2 steps:
     /// 1. computing the delegator rewards out of the total rewards, and
     /// 2. sending those rewards to the delegator address.

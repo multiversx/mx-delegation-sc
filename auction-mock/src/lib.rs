@@ -1,6 +1,4 @@
 #![no_std]
-#![allow(non_snake_case)]
-#![allow(unused_attributes)]
 
 mod storage;
 
@@ -9,9 +7,9 @@ pub use node_storage_default as node_storage;
 #[cfg(feature = "node-storage-wasm")]
 pub use node_storage_wasm as node_storage;
 
-elrond_wasm::imports!();
+use node_storage::types::bls_key::BLSKey;
 
-use node_storage::types::bls_key::*;
+elrond_wasm::imports!();
 
 #[elrond_wasm_derive::contract]
 pub trait AuctionMock: storage::AuctionMockStorage {
@@ -75,7 +73,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
 
         let mut result_err_data: Vec<BoxedBytes> = Vec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
-            self.set_unStake_bls_key(n, bls_key.as_slice());
+            self.set_unstake_bls_key(n, bls_key.as_slice());
 
             let err_code = self.get_bls_deliberate_error(bls_key.as_slice());
             if err_code > 0 {
@@ -107,7 +105,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
 
         let mut result_err_data: Vec<BoxedBytes> = Vec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
-            self.set_unBond_bls_key(n, bls_key.as_slice());
+            self.set_unbond_bls_key(n, bls_key.as_slice());
 
             let err_code = self.get_bls_deliberate_error(bls_key.as_slice());
             if err_code > 0 {

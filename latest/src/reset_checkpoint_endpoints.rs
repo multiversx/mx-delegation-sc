@@ -1,12 +1,14 @@
-use super::user_fund_storage::types::*;
-use crate::reset_checkpoint_types::*;
-use crate::rewards_state::*;
-use crate::settings::*;
+use crate::elrond_wasm_module_features::feature_guard;
+use crate::reset_checkpoint_types::{
+    ComputeAllRewardsData, GlobalOpCheckpoint, ModifyDelegationCapStep,
+    ModifyTotalDelegationCapData,
+};
+use crate::settings::{OWNER_USER_ID, PERCENTAGE_DENOMINATOR};
+use crate::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
+use crate::user_fund_storage::types::FundType;
 use core::cmp::Ordering;
 
 elrond_wasm::imports!();
-use super::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
-use crate::elrond_wasm_module_features::feature_guard;
 
 pub const STOP_AT_GASLIMIT: u64 = 100_000_000;
 
@@ -21,27 +23,6 @@ pub trait ResetCheckpointsModule:
     + crate::user_fund_storage::fund_transf_module::FundTransformationsModule
     + crate::settings::SettingsModule
 {
-    // #[module(UserDataModuleImpl)]
-    // fn user_data(&self) -> UserDataModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FundTransformationsModuleImpl)]
-    // fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FundViewModuleImpl)]
-    // fn fund_view_module(&self) -> FundViewModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(RewardsModuleImpl)]
-    // fn rewards(&self) -> RewardsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(SettingsModuleImpl)]
-    // fn settings(&self) -> SettingsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(PauseModuleImpl)]
-    // fn pause(&self) -> PauseModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FeaturesModuleImpl)]
-    // fn features_module(&self) -> FeaturesModuleImpl<T, BigInt, Self::BigUint>;
-
     /// Continues executing any interrupted operation.
     /// Returns true if still out of gas, false if computation completed.
     #[endpoint(continueGlobalOperation)]

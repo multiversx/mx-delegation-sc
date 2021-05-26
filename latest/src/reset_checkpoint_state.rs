@@ -1,4 +1,4 @@
-use crate::reset_checkpoint_types::*;
+use crate::reset_checkpoint_types::GlobalOpCheckpoint;
 
 elrond_wasm::imports!();
 

@@ -1,10 +1,3 @@
-use super::node_storage::node_config;
-use super::user_fund_storage::fund_transf_module;
-use super::user_fund_storage::user_data;
-use crate::reset_checkpoint_endpoints;
-use crate::rewards_state;
-use crate::{reset_checkpoint_state, reset_checkpoint_types::*};
-
 use core::num::NonZeroUsize;
 
 elrond_wasm::imports!();
@@ -21,26 +14,7 @@ pub static OWNER_USER_ID: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1)
 /// The module deals with initializaton and the global contract settings.
 ///
 #[elrond_wasm_derive::module]
-pub trait SettingsModule
-// + fund_transf_module::FundTransformationsModule
-// + node_config::NodeModule
-// + rewards::RewardStateModule
-{
-    // #[module(UserDataModuleImpl)]
-    // fn user_data(&self) -> UserDataModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(FundTransformationsModuleImpl)]
-    // fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(NodeConfigModuleImpl)]
-    // fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(RewardsModuleImpl)]
-    // fn rewards(&self) -> RewardsModuleImpl<T, BigInt, Self::BigUint>;
-
-    // #[module(ResetCheckpointsModuleImpl)]
-    // fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, Self::BigUint>;
-
+pub trait SettingsModule {
     /// Yields the address of the contract with which staking will be performed.
     /// This address is standard in the protocol, but it is saved in storage to avoid hardcoding it.
     #[view(getAuctionContractAddress)]

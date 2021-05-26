@@ -1,8 +1,5 @@
 #![no_std]
-#![allow(unused_attributes)]
-#![allow(unused_imports)] // TODO: for now
 #![allow(clippy::string_lit_as_bytes)]
-#![allow(non_snake_case)] // until we sort out call proxy endpoint names
 
 // auxiliaries
 pub mod auction_proxy;
@@ -38,11 +35,3 @@ pub use elrond_wasm_module_features_wasm as elrond_wasm_module_features;
 pub use elrond_wasm_module_pause_default as elrond_wasm_module_pause;
 #[cfg(feature = "elrond-wasm-module-pause-wasm")]
 pub use elrond_wasm_module_pause_wasm as elrond_wasm_module_pause;
-
-pub use elrond_wasm_module_pause::*;
-pub use node_storage::node_config::*;
-pub use node_storage::types::*;
-pub use user_fund_storage::fund_transf_module::*;
-pub use user_fund_storage::fund_view_module::*;
-pub use user_fund_storage::types::*;
-pub use user_fund_storage::user_data::*;

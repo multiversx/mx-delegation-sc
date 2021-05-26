@@ -1,25 +1,11 @@
-use super::elrond_wasm_module_features;
-use super::elrond_wasm_module_pause;
-use super::node_storage::node_config;
-use super::settings;
-use super::user_fund_storage::fund_transf_module;
-use super::user_fund_storage::fund_view_module;
-use super::user_fund_storage::types::fund_type::*;
-use super::user_fund_storage::user_data;
-use crate::reset_checkpoint_endpoints;
-use crate::{
-    events,
-    settings::{OWNER_USER_ID, PERCENTAGE_DENOMINATOR},
-};
+use crate::elrond_wasm_module_features::feature_guard;
 
-use crate::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
 use core::num::NonZeroUsize;
-use elrond_wasm_module_features::feature_guard;
 
 elrond_wasm::imports!();
 
 #[elrond_wasm_derive::module]
-pub trait ClaimRewardsModule:
+pub trait RewardEndpointsModule:
     crate::settings::SettingsModule
     + crate::rewards_state::RewardStateModule
     + crate::reset_checkpoint_state::ResetCheckpointStateModule

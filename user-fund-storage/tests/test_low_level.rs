@@ -1,5 +1,5 @@
 use user_fund_storage::fund_module::*;
-use user_fund_storage::types::*;
+use user_fund_storage::types::{FundDescription, FundType};
 
 use elrond_wasm::api::BigUintApi;
 use elrond_wasm_debug::api::RustBigUint;
