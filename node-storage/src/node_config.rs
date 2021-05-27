@@ -1,4 +1,4 @@
-use crate::types::*;
+use crate::types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState};
 
 elrond_wasm::imports!();
 
@@ -12,8 +12,8 @@ elrond_wasm::imports!();
 /// - what BLS keys they have.
 /// - what BLS signatures they have
 ///
-#[elrond_wasm_derive::module(NodeConfigModuleImpl)]
-pub trait NodeModule {
+#[elrond_wasm_derive::module]
+pub trait NodeConfigModule {
     /// The number of nodes that will run with the contract stake, as configured by the owner.
     #[view(getNumNodes)]
     #[storage_mapper("num_nodes")]

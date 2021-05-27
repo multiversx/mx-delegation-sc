@@ -7,7 +7,7 @@
                 {
                     "creatorAddress": "address:node_address",
                     "creatorNonce": "0",
-                    "newAddress": "address:delegation_contract"
+                    "newAddress": "sc:delegation"
                 }
             ]
         },
@@ -19,7 +19,7 @@
                 "value": "0",
                 "contractCode": "file:../../../output/delegation_v0_4_genesis.wasm",
                 "arguments": [
-                    "address:auction_contract",
+                    "sc:auction",
                     "1",
                     "0",
                     "50",
@@ -41,7 +41,7 @@
             "txId": "set-stake-per-node",
             "tx": {
                 "from": "address:node_address",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "setStakePerNode",
                 "arguments": [
@@ -63,7 +63,7 @@
             "txId": "set-fee",
             "tx": {
                 "from": "address:node_address",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "setServiceFee",
                 "arguments": [

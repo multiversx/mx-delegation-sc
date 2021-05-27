@@ -6,7 +6,7 @@
             "txId": "delegator 1 stake 1",
             "tx": {
                 "from": "address:delegator1",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "stakeGenesis",
                 "arguments": [
@@ -20,7 +20,7 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "address:delegation_contract",
+                        "address": "sc:delegation",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
                         "topics": [
                             "address:delegator1"
@@ -37,7 +37,7 @@
             "txId": "delegator 2 stake 1",
             "tx": {
                 "from": "address:delegator2",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "stakeGenesis",
                 "arguments": [
@@ -51,7 +51,7 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "address:delegation_contract",
+                        "address": "sc:delegation",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
                         "topics": [
                             "address:delegator2"
@@ -68,7 +68,7 @@
             "txId": "delegator 3 stake 1",
             "tx": {
                 "from": "address:delegator3",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "stakeGenesis",
                 "arguments": [
@@ -82,7 +82,7 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "address:delegation_contract",
+                        "address": "sc:delegation",
                         "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
                         "topics": [
                             "address:delegator3"

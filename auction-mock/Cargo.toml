@@ -18,9 +18,9 @@ default = [
 node-storage-wasm = { package = "node-storage", path = "../node-storage", features = ["wasm-output-mode"], optional = true }
 node-storage-default = { package = "node-storage", path = "../node-storage", optional = true }
 
-elrond-wasm = "0.14.2"
-elrond-wasm-derive = "0.14.2"
-elrond-wasm-node = { version = "0.14.2", optional = true }
+elrond-wasm = "0.16.2"
+elrond-wasm-derive = "0.16.2"
+elrond-wasm-node = { version = "0.16.2", optional = true }
 
 [dev-dependencies]
-elrond-wasm-debug = "0.14.2"
+elrond-wasm-debug = "0.16.2"

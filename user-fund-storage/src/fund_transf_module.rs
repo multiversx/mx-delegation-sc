@@ -1,17 +1,15 @@
 elrond_wasm::imports!();
 
-use crate::fund_module::*;
-use crate::types::fund_type::*;
+use crate::fund_module;
+use crate::fund_module::SwapDirection;
+use crate::types::{FundDescription, FundType};
 
 /// Deals with storage data about delegators.
-#[elrond_wasm_derive::module(FundTransformationsModuleImpl)]
-pub trait FundTransformationsModule {
-    #[module(FundModuleImpl)]
-    fn fund_module(&self) -> FundModuleImpl<T, BigInt, BigUint>;
-
-    fn create_waiting(&self, user_id: usize, balance: BigUint) {
-        let current_bl_nonce = self.get_block_nonce();
-        self.fund_module().increase_fund_balance(
+#[elrond_wasm_derive::module]
+pub trait FundTransformationsModule: fund_module::FundModule {
+    fn create_waiting(&self, user_id: usize, balance: Self::BigUint) {
+        let current_bl_nonce = self.blockchain().get_block_nonce();
+        self.increase_fund_balance(
             user_id,
             FundDescription::Waiting {
                 created: current_bl_nonce,
@@ -24,14 +22,13 @@ pub trait FundTransformationsModule {
         &self,
         user_id: usize,
         interrupt: I,
-    ) -> BigUint {
-        self.fund_module()
-            .destroy_all_for_user(user_id, FundType::WithdrawOnly, interrupt)
+    ) -> Self::BigUint {
+        self.destroy_all_for_user(user_id, FundType::WithdrawOnly, interrupt)
     }
 
-    fn swap_user_active_to_unstaked(&self, unstake_user_id: usize, amount: &mut BigUint) {
-        let current_bl_nonce = self.get_block_nonce();
-        let _ = self.fund_module().split_convert_max_by_user(
+    fn swap_user_active_to_unstaked(&self, unstake_user_id: usize, amount: &mut Self::BigUint) {
+        let current_bl_nonce = self.blockchain().get_block_nonce();
+        let _ = self.split_convert_max_by_user(
             Some(amount),
             unstake_user_id,
             FundType::Active,
@@ -47,10 +44,10 @@ pub trait FundTransformationsModule {
 
     fn swap_waiting_to_active<I: Fn() -> bool>(
         &self,
-        remaining: &mut BigUint,
+        remaining: &mut Self::BigUint,
         interrupt: I,
     ) -> Vec<usize> {
-        self.fund_module().split_convert_max_by_type(
+        self.split_convert_max_by_type(
             Some(remaining),
             FundType::Waiting,
             SwapDirection::Forwards,
@@ -60,8 +57,8 @@ pub trait FundTransformationsModule {
         )
     }
 
-    fn swap_user_waiting_to_withdraw_only(&self, user_id: usize, remaining: &mut BigUint) {
-        let _ = self.fund_module().split_convert_max_by_user(
+    fn swap_user_waiting_to_withdraw_only(&self, user_id: usize, remaining: &mut Self::BigUint) {
+        let _ = self.split_convert_max_by_user(
             Some(remaining),
             user_id,
             FundType::Waiting,
@@ -73,11 +70,11 @@ pub trait FundTransformationsModule {
 
     fn get_affected_users_of_swap_waiting_to_active<I: Fn() -> bool>(
         &self,
-        amount: &BigUint,
+        amount: &Self::BigUint,
         interrupt: I,
-    ) -> (Vec<usize>, BigUint) {
+    ) -> (Vec<usize>, Self::BigUint) {
         let mut stake_to_activate = amount.clone();
-        let affected_users = self.fund_module().split_convert_max_by_type(
+        let affected_users = self.split_convert_max_by_type(
             Some(&mut stake_to_activate),
             FundType::Waiting,
             SwapDirection::Forwards,
@@ -91,10 +88,10 @@ pub trait FundTransformationsModule {
 
     fn swap_unstaked_to_deferred_payment<I: Fn() -> bool>(
         &self,
-        remaining: &mut BigUint,
+        remaining: &mut Self::BigUint,
         interrupt: I,
     ) {
-        let _ = self.fund_module().split_convert_max_by_type(
+        let _ = self.split_convert_max_by_type(
             Some(remaining),
             FundType::UnStaked,
             SwapDirection::Forwards,
@@ -111,11 +108,11 @@ pub trait FundTransformationsModule {
 
     fn swap_active_to_deferred_payment<I: Fn() -> bool>(
         &self,
-        remaining: &mut BigUint,
+        remaining: &mut Self::BigUint,
         interrupt: I,
     ) {
-        let current_bl_nonce = self.get_block_nonce();
-        let _ = self.fund_module().split_convert_max_by_type(
+        let current_bl_nonce = self.blockchain().get_block_nonce();
+        let _ = self.split_convert_max_by_type(
             Some(remaining),
             FundType::Active,
             SwapDirection::Backwards,
@@ -134,9 +131,9 @@ pub trait FundTransformationsModule {
         user_id: usize,
         n_blocks_before_claim: u64,
         interrupt: I,
-    ) -> BigUint {
-        let current_bl_nonce = self.get_block_nonce();
-        self.fund_module().split_convert_max_by_user(
+    ) -> Self::BigUint {
+        let current_bl_nonce = self.blockchain().get_block_nonce();
+        self.split_convert_max_by_user(
             None,
             user_id,
             FundType::DeferredPayment,

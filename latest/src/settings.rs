@@ -1,10 +1,3 @@
-use super::node_storage::node_config::*;
-use super::user_fund_storage::fund_transf_module::*;
-use super::user_fund_storage::user_data::*;
-use crate::reset_checkpoint_types::*;
-use crate::reset_checkpoints::*;
-use crate::rewards::*;
-
 use core::num::NonZeroUsize;
 
 elrond_wasm::imports!();
@@ -20,23 +13,8 @@ pub static OWNER_USER_ID: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1)
 
 /// The module deals with initializaton and the global contract settings.
 ///
-#[elrond_wasm_derive::module(SettingsModuleImpl)]
+#[elrond_wasm_derive::module]
 pub trait SettingsModule {
-    #[module(UserDataModuleImpl)]
-    fn user_data(&self) -> UserDataModuleImpl<T, BigInt, BigUint>;
-
-    #[module(FundTransformationsModuleImpl)]
-    fn fund_transf_module(&self) -> FundTransformationsModuleImpl<T, BigInt, BigUint>;
-
-    #[module(NodeConfigModuleImpl)]
-    fn node_config(&self) -> NodeConfigModuleImpl<T, BigInt, BigUint>;
-
-    #[module(RewardsModuleImpl)]
-    fn rewards(&self) -> RewardsModuleImpl<T, BigInt, BigUint>;
-
-    #[module(ResetCheckpointsModuleImpl)]
-    fn reset_checkpoints(&self) -> ResetCheckpointsModuleImpl<T, BigInt, BigUint>;
-
     /// Yields the address of the contract with which staking will be performed.
     /// This address is standard in the protocol, but it is saved in storage to avoid hardcoding it.
     #[view(getAuctionContractAddress)]
@@ -50,59 +28,17 @@ pub trait SettingsModule {
     /// 10000 = 100%.
     #[view(getServiceFee)]
     #[storage_get("service_fee")]
-    fn get_service_fee(&self) -> BigUint;
+    fn get_service_fee(&self) -> Self::BigUint;
 
     #[storage_set("service_fee")]
-    fn set_service_fee(&self, service_fee: BigUint);
-
-    /// The stake per node can be changed by the owner.
-    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
-    #[endpoint(setServiceFee)]
-    fn set_service_fee_endpoint(
-        &self,
-        service_fee_per_10000: usize,
-    ) -> SCResult<OperationCompletionStatus> {
-        only_owner!(self, "only owner can change service fee");
-
-        require!(
-            service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
-            "service fee out of range"
-        );
-
-        require!(
-            !self.reset_checkpoints().is_global_op_in_progress(),
-            "global checkpoint is in progress"
-        );
-
-        let new_service_fee = BigUint::from(service_fee_per_10000);
-        if self.get_service_fee() == new_service_fee {
-            return Ok(OperationCompletionStatus::Completed);
-        }
-
-        if self.is_bootstrap_mode() {
-            // no rewards to compute
-            // change service fee directly
-            self.set_service_fee(new_service_fee);
-            Ok(OperationCompletionStatus::Completed)
-        } else {
-            // start compute all rewards
-            self.reset_checkpoints().continue_global_operation(Box::new(
-                GlobalOpCheckpoint::ChangeServiceFee {
-                    new_service_fee,
-                    compute_rewards_data: ComputeAllRewardsData::new(
-                        self.rewards().get_total_cumulated_rewards(),
-                    ),
-                },
-            ))
-        }
-    }
+    fn set_service_fee(&self, service_fee: Self::BigUint);
 
     #[view(getTotalDelegationCap)]
     #[storage_get("total_delegation_cap")]
-    fn get_total_delegation_cap(&self) -> BigUint;
+    fn get_total_delegation_cap(&self) -> Self::BigUint;
 
     #[storage_set("total_delegation_cap")]
-    fn set_total_delegation_cap(&self, amount: BigUint);
+    fn set_total_delegation_cap(&self, amount: Self::BigUint);
 
     #[view(isBootstrapMode)]
     #[storage_get("bootstrap_mode")]
@@ -115,7 +51,7 @@ pub trait SettingsModule {
     /// 10000 = 100%.
     #[view(getOwnerMinStakeShare)]
     #[storage_get("owner_min_stake_share")]
-    fn get_owner_min_stake_share(&self) -> BigUint;
+    fn get_owner_min_stake_share(&self) -> Self::BigUint;
 
     #[storage_set("owner_min_stake_share")]
     fn set_owner_min_stake_share(&self, owner_min_stake_share: usize);
@@ -152,13 +88,13 @@ pub trait SettingsModule {
     /// Zero means disabled.
     #[view(getMinimumStake)]
     #[storage_get("min_stake")]
-    fn get_minimum_stake(&self) -> BigUint;
+    fn get_minimum_stake(&self) -> Self::BigUint;
 
     #[storage_set("min_stake")]
-    fn set_minimum_stake(&self, minimum_stake: &BigUint);
+    fn set_minimum_stake(&self, minimum_stake: &Self::BigUint);
 
     #[endpoint(setMinimumStake)]
-    fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> SCResult<()> {
+    fn set_minimum_stake_endpoint(&self, minimum_stake: Self::BigUint) -> SCResult<()> {
         only_owner!(self, "only owner can set minimum stake");
         self.set_minimum_stake(&minimum_stake);
         Ok(())

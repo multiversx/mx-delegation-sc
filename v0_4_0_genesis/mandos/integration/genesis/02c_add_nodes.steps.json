@@ -6,7 +6,7 @@
             "txId": "03c-node-states",
             "tx": {
                 "from": "address:someone",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "getAllNodeStates",
                 "arguments": [],
@@ -34,7 +34,7 @@
             "txId": "check signature",
             "tx": {
                 "from": "address:someone",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "getNodeSignature",
                 "arguments": [
@@ -56,7 +56,7 @@
             "txId": "check signature for node that doesn't exist",
             "tx": {
                 "from": "address:someone",
-                "to": "address:delegation_contract",
+                "to": "sc:delegation",
                 "value": "0",
                 "function": "getNodeSignature",
                 "arguments": [

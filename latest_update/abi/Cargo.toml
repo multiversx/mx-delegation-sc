@@ -1,0 +1,15 @@
+[package]
+name = "delegation-latest-update-abi"
+version = "0.0.0"
+authors = ["Andrei Marinica <andrei.marinica@elrond.com>"]
+edition = "2018"
+publish = false
+
+[dependencies.delegation_latest_update]
+path = ".."
+
+[dependencies.elrond-wasm]
+version = "0.16.2"
+
+[dependencies.elrond-wasm-debug]
+version = "0.16.2"

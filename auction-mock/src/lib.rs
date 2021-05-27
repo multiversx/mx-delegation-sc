@@ -1,24 +1,18 @@
 #![no_std]
-#![allow(non_snake_case)]
-#![allow(unused_attributes)]
 
 mod storage;
-use storage::*;
 
 #[cfg(feature = "node-storage-default")]
 pub use node_storage_default as node_storage;
 #[cfg(feature = "node-storage-wasm")]
 pub use node_storage_wasm as node_storage;
 
+use node_storage::types::bls_key::BLSKey;
+
 elrond_wasm::imports!();
 
-use node_storage::types::bls_key::*;
-
-#[elrond_wasm_derive::contract(AuctionMockImpl)]
-pub trait AuctionMock {
-    #[module(AuctionMockStorageImpl)]
-    fn storage(&self) -> AuctionMockStorageImpl<T, BigInt, BigUint>;
-
+#[elrond_wasm_derive::contract]
+pub trait AuctionMock: storage::AuctionMockStorage {
     #[init]
     fn init(&self) {}
 
@@ -28,7 +22,7 @@ pub trait AuctionMock {
         &self,
         num_nodes: usize,
         #[var_args] bls_keys_signatures_args: VarArgs<MultiArg2<BoxedBytes, BoxedBytes>>,
-        #[payment] payment: &BigUint,
+        #[payment] payment: Self::BigUint,
     ) -> SCResult<MultiResultVec<BoxedBytes>> {
         let bls_keys_signatures = bls_keys_signatures_args.into_vec();
         require!(
@@ -37,14 +31,14 @@ pub trait AuctionMock {
         );
 
         require!(
-            !self.storage().is_staking_failure(),
+            !self.is_staking_failure(),
             "auction smart contract deliberate error"
         );
 
-        let mut new_num_nodes = self.storage().get_num_nodes();
-        let expected_payment = BigUint::from(num_nodes) * self.storage().get_stake_per_node();
+        let mut new_num_nodes = self.get_num_nodes();
+        let expected_payment = Self::BigUint::from(num_nodes) * self.get_stake_per_node();
         require!(
-            payment == &expected_payment,
+            payment == expected_payment,
             "incorrect payment to auction mock"
         );
 
@@ -52,19 +46,17 @@ pub trait AuctionMock {
         for key_sig_pair in bls_keys_signatures.into_iter() {
             new_num_nodes += 1;
             let (bls_key, bls_sig) = key_sig_pair.into_tuple();
-            self.storage()
-                .set_stake_bls_key(new_num_nodes, bls_key.as_slice());
-            self.storage()
-                .set_stake_bls_signature(new_num_nodes, bls_sig.as_slice());
+            self.set_stake_bls_key(new_num_nodes, bls_key.as_slice());
+            self.set_stake_bls_signature(new_num_nodes, bls_sig.as_slice());
 
-            let err_code = self.storage().get_bls_deliberate_error(bls_key.as_slice());
+            let err_code = self.get_bls_deliberate_error(bls_key.as_slice());
             if err_code > 0 {
                 result_err_data.push(bls_key);
                 result_err_data.push(BoxedBytes::from(&[err_code][..]));
             }
         }
 
-        self.storage().set_num_nodes(new_num_nodes);
+        self.set_num_nodes(new_num_nodes);
 
         Ok(result_err_data.into())
     }
@@ -75,15 +67,15 @@ pub trait AuctionMock {
         #[var_args] bls_keys: VarArgs<BoxedBytes>,
     ) -> SCResult<MultiResultVec<BoxedBytes>> {
         require!(
-            !self.storage().is_staking_failure(),
+            !self.is_staking_failure(),
             "auction smart contract deliberate error"
         );
 
         let mut result_err_data: Vec<BoxedBytes> = Vec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
-            self.storage().set_unStake_bls_key(n, bls_key.as_slice());
+            self.set_unstake_bls_key(n, bls_key.as_slice());
 
-            let err_code = self.storage().get_bls_deliberate_error(bls_key.as_slice());
+            let err_code = self.get_bls_deliberate_error(bls_key.as_slice());
             if err_code > 0 {
                 result_err_data.push(bls_key.clone());
                 result_err_data.push(BoxedBytes::from(&[err_code][..]));
@@ -107,24 +99,27 @@ pub trait AuctionMock {
         #[var_args] bls_keys: VarArgs<BoxedBytes>,
     ) -> SCResult<MultiResultVec<BoxedBytes>> {
         require!(
-            !self.storage().is_staking_failure(),
+            !self.is_staking_failure(),
             "auction smart contract deliberate error"
         );
 
         let mut result_err_data: Vec<BoxedBytes> = Vec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
-            self.storage().set_unBond_bls_key(n, bls_key.as_slice());
+            self.set_unbond_bls_key(n, bls_key.as_slice());
 
-            let err_code = self.storage().get_bls_deliberate_error(bls_key.as_slice());
+            let err_code = self.get_bls_deliberate_error(bls_key.as_slice());
             if err_code > 0 {
                 result_err_data.push(bls_key.clone());
                 result_err_data.push(BoxedBytes::from(&[err_code][..]));
             }
         }
 
-        let unbond_stake = BigUint::from(bls_keys.len()) * self.storage().get_stake_per_node();
-        self.send()
-            .direct_egld(&self.get_caller(), &unbond_stake, b"unbond stake");
+        let unbond_stake = Self::BigUint::from(bls_keys.len()) * self.get_stake_per_node();
+        self.send().direct_egld(
+            &self.blockchain().get_caller(),
+            &unbond_stake,
+            b"unbond stake",
+        );
 
         Ok(result_err_data.into())
     }
@@ -147,9 +142,9 @@ pub trait AuctionMock {
     fn unjail_endpoint(
         &self,
         #[var_args] bls_keys: VarArgs<BLSKey>,
-        #[payment] _fine_payment: BigUint,
+        #[payment] _fine_payment: Self::BigUint,
     ) -> SCResult<()> {
-        self.storage().set_unjailed(&bls_keys.into_vec());
+        self.set_unjailed(&bls_keys.into_vec());
         Ok(())
     }
 }
