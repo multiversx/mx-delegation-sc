@@ -7,21 +7,24 @@ edition = "2018"
 [features]
 wasm-output-mode = [
     "elrond-wasm-node",
-    "delegation_latest_wasm"
+    "delegation_latest/wasm-output-mode"
 ]
 
-default = [
-    "delegation_latest_default",
-]
+[dependencies.delegation_latest]
+path = "../latest"
 
-[dependencies]
-delegation_latest_wasm = { package = "delegation_latest", path = "../latest", features = ["wasm-output-mode"], default-features = false, optional = true }
-delegation_latest_default = { package = "delegation_latest", path = "../latest", optional = true }
+[dependencies.elrond-wasm]
+version = "0.17.2"
 
-elrond-wasm = "0.17.2"
-elrond-wasm-derive = "0.17.2"
-elrond-wasm-node = { version = "0.17.2", optional = true }
+[dependencies.elrond-wasm-derive]
+version = "0.17.2"
 
-[dev-dependencies]
-auction-mock = { path = "../auction-mock" }
-elrond-wasm-debug = "0.17.2"
+[dependencies.elrond-wasm-node]
+version = "0.17.2"
+optional = true
+
+[dev-dependencies.elrond-wasm-debug]
+version = "0.17.2"
+
+[dev-dependencies.auction-mock]
+path = "../auction-mock"

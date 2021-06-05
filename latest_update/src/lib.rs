@@ -1,11 +1,6 @@
 #![no_std]
 #![allow(clippy::string_lit_as_bytes)]
 
-#[cfg(feature = "delegation_latest_default")]
-pub use delegation_latest_default as delegation_latest;
-#[cfg(feature = "delegation_latest_wasm")]
-pub use delegation_latest_wasm as delegation_latest;
-
 use delegation_latest::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
 use delegation_latest::user_fund_storage::types::FundType;
 

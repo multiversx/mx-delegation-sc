@@ -3,8 +3,8 @@ use core::num::NonZeroUsize;
 
 use crate::settings::OWNER_USER_ID;
 use crate::settings::PERCENTAGE_DENOMINATOR;
-use crate::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
-use crate::user_fund_storage::types::FundType;
+use user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
+use user_fund_storage::types::FundType;
 
 elrond_wasm::imports!();
 
@@ -12,10 +12,10 @@ elrond_wasm::imports!();
 #[elrond_wasm_derive::module]
 pub trait UserStakeStateModule:
     crate::settings::SettingsModule
-    + crate::user_fund_storage::user_data::UserDataModule
-    + crate::user_fund_storage::fund_module::FundModule
-    + crate::user_fund_storage::fund_view_module::FundViewModule
-    + crate::user_fund_storage::fund_transf_module::FundTransformationsModule
+    + user_fund_storage::user_data::UserDataModule
+    + user_fund_storage::fund_module::FundModule
+    + user_fund_storage::fund_view_module::FundViewModule
+    + user_fund_storage::fund_transf_module::FundTransformationsModule
     + crate::rewards_state::RewardStateModule
     + crate::events::EventsModule
 {

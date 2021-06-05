@@ -1,11 +1,6 @@
 #![no_std]
 #![allow(clippy::string_lit_as_bytes)]
 
-#[cfg(feature = "delegation_latest_default")]
-pub use delegation_latest_default as delegation_latest;
-#[cfg(feature = "delegation_latest_wasm")]
-pub use delegation_latest_wasm as delegation_latest;
-
 use delegation_latest::settings::{OWNER_USER_ID, PERCENTAGE_DENOMINATOR};
 
 elrond_wasm::imports!();

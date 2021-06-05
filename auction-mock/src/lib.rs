@@ -2,11 +2,6 @@
 
 mod storage;
 
-#[cfg(feature = "node-storage-default")]
-pub use node_storage_default as node_storage;
-#[cfg(feature = "node-storage-wasm")]
-pub use node_storage_wasm as node_storage;
-
 use node_storage::types::bls_key::BLSKey;
 
 elrond_wasm::imports!();

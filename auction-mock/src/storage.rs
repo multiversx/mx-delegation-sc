@@ -1,4 +1,4 @@
-use super::node_storage::types::bls_key::BLSKey;
+use node_storage::types::bls_key::BLSKey;
 
 elrond_wasm::imports!();
 

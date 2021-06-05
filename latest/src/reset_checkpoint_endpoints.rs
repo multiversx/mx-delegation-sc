@@ -1,12 +1,12 @@
-use crate::elrond_wasm_module_features::feature_guard;
 use crate::reset_checkpoint_types::{
     ComputeAllRewardsData, GlobalOpCheckpoint, ModifyDelegationCapStep,
     ModifyTotalDelegationCapData,
 };
 use crate::settings::{OWNER_USER_ID, PERCENTAGE_DENOMINATOR};
-use crate::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
-use crate::user_fund_storage::types::FundType;
 use core::cmp::Ordering;
+use elrond_wasm_module_features::feature_guard;
+use user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
+use user_fund_storage::types::FundType;
 
 elrond_wasm::imports!();
 
@@ -16,11 +16,11 @@ pub const STOP_AT_GASLIMIT: u64 = 100_000_000;
 pub trait ResetCheckpointsModule:
     crate::rewards_state::RewardStateModule
     + crate::reset_checkpoint_state::ResetCheckpointStateModule
-    + crate::elrond_wasm_module_features::FeaturesModule
-    + crate::user_fund_storage::user_data::UserDataModule
-    + crate::user_fund_storage::fund_module::FundModule
-    + crate::user_fund_storage::fund_view_module::FundViewModule
-    + crate::user_fund_storage::fund_transf_module::FundTransformationsModule
+    + elrond_wasm_module_features::FeaturesModule
+    + user_fund_storage::user_data::UserDataModule
+    + user_fund_storage::fund_module::FundModule
+    + user_fund_storage::fund_view_module::FundViewModule
+    + user_fund_storage::fund_transf_module::FundTransformationsModule
     + crate::settings::SettingsModule
 {
     /// Continues executing any interrupted operation.

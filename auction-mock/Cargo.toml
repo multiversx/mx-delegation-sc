@@ -7,20 +7,20 @@ edition = "2018"
 [features]
 wasm-output-mode = [
     "elrond-wasm-node",
-    "node-storage-wasm",
 ]
 
-default = [
-    "node-storage-default",
-]
+[dependencies.node-storage]
+path = "../node-storage"
 
-[dependencies]
-node-storage-wasm = { package = "node-storage", path = "../node-storage", features = ["wasm-output-mode"], optional = true }
-node-storage-default = { package = "node-storage", path = "../node-storage", optional = true }
+[dependencies.elrond-wasm]
+version = "0.17.2"
 
-elrond-wasm = "0.17.2"
-elrond-wasm-derive = "0.17.2"
-elrond-wasm-node = { version = "0.17.2", optional = true }
+[dependencies.elrond-wasm-derive]
+version = "0.17.2"
 
-[dev-dependencies]
-elrond-wasm-debug = "0.17.2"
+[dependencies.elrond-wasm-node]
+version = "0.17.2"
+optional = true
+
+[dev-dependencies.elrond-wasm-debug]
+version = "0.17.2"
