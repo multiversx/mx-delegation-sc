@@ -182,7 +182,7 @@ pub trait NodeActivationModule:
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(&bls_key);
+            let node_id = self.get_node_id(bls_key);
             require!(node_id != 0, "unknown node provided");
             node_ids.push(node_id);
         }
@@ -299,7 +299,7 @@ pub trait NodeActivationModule:
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(&bls_key);
+            let node_id = self.get_node_id(bls_key);
             require!(node_id != 0, "unknown node provided");
             require!(
                 self.prepare_node_for_unbond_if_possible(node_id),
@@ -466,7 +466,7 @@ pub trait NodeActivationModule:
 
         // validation only
         for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(&bls_key);
+            let node_id = self.get_node_id(bls_key);
             require!(node_id != 0, "unknown node provided");
             require!(
                 self.get_node_state(node_id) == NodeState::Active,

@@ -54,7 +54,7 @@ pub trait DelegationFull:
         self.set_user_address(OWNER_USER_ID.get(), &owner);
         self.set_num_users(1);
 
-        self.set_auction_addr(&auction_contract_addr);
+        self.set_auction_addr(auction_contract_addr);
 
         require!(
             service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,

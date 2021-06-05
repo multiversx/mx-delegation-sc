@@ -7,4 +7,3 @@ fn genesis_addr_fix_go() {
 fn version_go() {
     elrond_wasm_debug::mandos_go("mandos/version.scen.json");
 }
-

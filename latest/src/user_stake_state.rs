@@ -90,7 +90,7 @@ pub trait UserStakeStateModule:
             );
 
             // swap waiting -> active (also compute rewards)
-            self.swap_waiting_to_active_compute_rewards(&swappable)
+            self.swap_waiting_to_active_compute_rewards(swappable)
         }
     }
 

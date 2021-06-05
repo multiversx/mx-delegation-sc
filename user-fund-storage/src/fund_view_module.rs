@@ -143,7 +143,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         &self,
         user_address: &Address,
     ) -> StakeByTypeResult<Self::BigUint> {
-        let user_id = self.get_user_id(&user_address);
+        let user_id = self.get_user_id(user_address);
         if user_id == 0 {
             (
                 Self::BigUint::zero(),
@@ -171,7 +171,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         user_address: &Address,
     ) -> MultiResultVec<MultiResult2<Self::BigUint, u64>> {
         let mut result = Vec::<MultiResult2<Self::BigUint, u64>>::new();
-        let user_id = self.get_user_id(&user_address);
+        let user_id = self.get_user_id(user_address);
         if user_id > 0 {
             let _ = self.foreach_fund_by_user_type(
                 user_id,

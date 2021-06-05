@@ -122,4 +122,3 @@ fn user_fund_getters_go() {
 fn version_go() {
     elrond_wasm_debug::mandos_go("mandos/version.scen.json");
 }
-
