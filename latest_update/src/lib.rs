@@ -6,7 +6,6 @@ pub use delegation_latest_default as delegation_latest;
 #[cfg(feature = "delegation_latest_wasm")]
 pub use delegation_latest_wasm as delegation_latest;
 
-use delegation_latest::node_storage::types::BLSStatusMultiArg;
 use delegation_latest::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
 use delegation_latest::user_fund_storage::types::FundType;
 
@@ -59,34 +58,5 @@ pub trait DelegationUpdate:
     fn init(&self) -> SCResult<()> {
         self.update_total_delegation_cap_if_necessary();
         Ok(())
-    }
-
-    // Callbacks can only be declared here for the moment.
-
-    #[callback(auction_stake_callback)]
-    fn auction_stake_callback_root(
-        &self,
-        node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
-    ) -> SCResult<()> {
-        self.auction_stake_callback(node_ids, call_result)
-    }
-
-    #[callback(auction_unstake_callback)]
-    fn auction_unstake_callback_root(
-        &self,
-        node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
-    ) -> SCResult<()> {
-        self.auction_unstake_callback(node_ids, call_result)
-    }
-
-    #[callback(auction_unbond_callback)]
-    fn auction_unbond_callback_root(
-        &self,
-        node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
-    ) -> SCResult<()> {
-        self.auction_unbond_callback(node_ids, call_result)
     }
 }

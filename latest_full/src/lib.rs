@@ -6,7 +6,6 @@ pub use delegation_latest_default as delegation_latest;
 #[cfg(feature = "delegation_latest_wasm")]
 pub use delegation_latest_wasm as delegation_latest;
 
-use delegation_latest::node_storage::types::BLSStatusMultiArg;
 use delegation_latest::settings::{OWNER_USER_ID, PERCENTAGE_DENOMINATOR};
 
 elrond_wasm::imports!();
@@ -74,34 +73,5 @@ pub trait DelegationFull:
         self.set_bootstrap_mode(true);
 
         Ok(())
-    }
-
-    // Callbacks can only be declared here for the moment.
-
-    #[callback(auction_stake_callback)]
-    fn auction_stake_callback_root(
-        &self,
-        node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
-    ) -> SCResult<()> {
-        self.auction_stake_callback(node_ids, call_result)
-    }
-
-    #[callback(auction_unstake_callback)]
-    fn auction_unstake_callback_root(
-        &self,
-        node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
-    ) -> SCResult<()> {
-        self.auction_unstake_callback(node_ids, call_result)
-    }
-
-    #[callback(auction_unbond_callback)]
-    fn auction_unbond_callback_root(
-        &self,
-        node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
-    ) -> SCResult<()> {
-        self.auction_unbond_callback(node_ids, call_result)
     }
 }
