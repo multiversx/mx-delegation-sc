@@ -18,11 +18,11 @@ default = [
 delegation_latest_wasm = { package = "delegation_latest", path = "../latest", features = ["wasm-output-mode"], default-features = false, optional = true }
 delegation_latest_default = { package = "delegation_latest", path = "../latest", optional = true }
 
-elrond-wasm = "0.16.2"
-elrond-wasm-derive = "0.16.2"
-elrond-wasm-node = { version = "0.16.2", optional = true }
+elrond-wasm = "0.17.2"
+elrond-wasm-derive = "0.17.2"
+elrond-wasm-node = { version = "0.17.2", optional = true }
 
 [dev-dependencies]
 auction-mock = { path = "../auction-mock" }
-elrond-wasm-debug = "0.16.2"
+elrond-wasm-debug = "0.17.2"
 
