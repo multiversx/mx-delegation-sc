@@ -18,32 +18,23 @@ fn contract_map() -> ContractMap<TxContext> {
     );
     contract_map
 }
-
 #[test]
-fn set_num_blocks_before_unbond() {
-    elrond_wasm_debug::mandos_rs(
-        "mandos/set_num_blocks_before_unbond.scen.json",
-        &contract_map(),
-    );
-}
-
-#[test]
-fn activate_nodes() {
+fn activate_nodes_rs() {
     elrond_wasm_debug::mandos_rs("mandos/activate_nodes.scen.json", &contract_map());
 }
 
 #[test]
-fn change_service_fee() {
+fn change_service_fee_rs() {
     elrond_wasm_debug::mandos_rs("mandos/change_service_fee.scen.json", &contract_map());
 }
 
 #[test]
-fn claim_rewards_1() {
+fn claim_rewards_1_rs() {
     elrond_wasm_debug::mandos_rs("mandos/claim_rewards_1.scen.json", &contract_map());
 }
 
 #[test]
-fn claim_rewards_owner_with_stake() {
+fn claim_rewards_owner_with_stake_rs() {
     elrond_wasm_debug::mandos_rs(
         "mandos/claim_rewards_owner_with_stake.scen.json",
         &contract_map(),
@@ -51,7 +42,7 @@ fn claim_rewards_owner_with_stake() {
 }
 
 #[test]
-fn claim_rewards_with_changed_service_fee() {
+fn claim_rewards_with_changed_service_fee_rs() {
     elrond_wasm_debug::mandos_rs(
         "mandos/claim_rewards_with_changed_service_fee.scen.json",
         &contract_map(),
@@ -59,7 +50,7 @@ fn claim_rewards_with_changed_service_fee() {
 }
 
 #[test]
-fn claim_rewards_with_modify_delegation_cap() {
+fn claim_rewards_with_modify_delegation_cap_rs() {
     elrond_wasm_debug::mandos_rs(
         "mandos/claim_rewards_with_modify_delegation_cap.scen.json",
         &contract_map(),
@@ -67,7 +58,7 @@ fn claim_rewards_with_modify_delegation_cap() {
 }
 
 #[test]
-fn claim_rewards_with_stake_modifications() {
+fn claim_rewards_with_stake_modifications_rs() {
     elrond_wasm_debug::mandos_rs(
         "mandos/claim_rewards_with_stake_modifications.scen.json",
         &contract_map(),
@@ -75,7 +66,7 @@ fn claim_rewards_with_stake_modifications() {
 }
 
 #[test]
-fn continue_global_operations() {
+fn continue_global_operations_rs() {
     elrond_wasm_debug::mandos_rs(
         "mandos/continue_global_operations.scen.json",
         &contract_map(),
@@ -83,7 +74,7 @@ fn continue_global_operations() {
 }
 
 #[test]
-fn decrease_cap_in_bootstrap_mode() {
+fn decrease_cap_in_bootstrap_mode_rs() {
     elrond_wasm_debug::mandos_rs(
         "mandos/decrease_cap_in_bootstrap_mode.scen.json",
         &contract_map(),
@@ -91,12 +82,12 @@ fn decrease_cap_in_bootstrap_mode() {
 }
 
 #[test]
-fn increase_delegation_cap() {
+fn increase_delegation_cap_rs() {
     elrond_wasm_debug::mandos_rs("mandos/increase_delegation_cap.scen.json", &contract_map());
 }
 
 #[test]
-fn rewards_for_unstaked_go_to_the_owner() {
+fn rewards_for_unstaked_go_to_the_owner_rs() {
     elrond_wasm_debug::mandos_rs(
         "mandos/rewards_for_unStaked_go_to_the_owner.scen.json",
         &contract_map(),
@@ -104,62 +95,74 @@ fn rewards_for_unstaked_go_to_the_owner() {
 }
 
 #[test]
-fn staking_1() {
+fn set_num_blocks_before_unbond_rs() {
+    elrond_wasm_debug::mandos_rs(
+        "mandos/set_num_blocks_before_unbond.scen.json",
+        &contract_map(),
+    );
+}
+
+#[test]
+fn staking_1_rs() {
     elrond_wasm_debug::mandos_rs("mandos/staking_1.scen.json", &contract_map());
 }
 
 #[test]
-fn staking_2() {
+fn staking_2_rs() {
     elrond_wasm_debug::mandos_rs("mandos/staking_2.scen.json", &contract_map());
 }
 
 #[test]
-fn total_funds_getters() {
+fn total_funds_getters_rs() {
     elrond_wasm_debug::mandos_rs("mandos/total_funds_getters.scen.json", &contract_map());
 }
 
 #[test]
-fn unbond_from_waiting() {
-    elrond_wasm_debug::mandos_rs("mandos/unbond_from_waiting.scen.json", &contract_map());
-}
-
-#[test]
-fn unbond() {
+fn unbond_rs() {
     elrond_wasm_debug::mandos_rs("mandos/unbond.scen.json", &contract_map());
 }
 
 #[test]
-fn unjail() {
+fn unbond_from_waiting_rs() {
+    elrond_wasm_debug::mandos_rs("mandos/unbond_from_waiting.scen.json", &contract_map());
+}
+
+#[test]
+fn unjail_rs() {
     elrond_wasm_debug::mandos_rs("mandos/unjail.scen.json", &contract_map());
 }
 
 #[test]
-fn unstake_1() {
+fn unstake_1_rs() {
     elrond_wasm_debug::mandos_rs("mandos/unstake_1.scen.json", &contract_map());
 }
 
 #[test]
-fn unstake_2() {
+fn unstake_2_rs() {
     elrond_wasm_debug::mandos_rs("mandos/unstake_2.scen.json", &contract_map());
 }
 
 #[test]
-fn unstake_3() {
+fn unstake_3_rs() {
     elrond_wasm_debug::mandos_rs("mandos/unstake_3.scen.json", &contract_map());
 }
 
-// TODO: uncomment after upgrading to 0.14. scQuery still missing here
 // #[test]
-// fn unstake_4() {
+// fn unstake_4_rs() {
 //     elrond_wasm_debug::mandos_rs("mandos/unstake_4.scen.json", &contract_map());
 // }
 
 #[test]
-fn unstake_5_backwards() {
+fn unstake_5_backwards_rs() {
     elrond_wasm_debug::mandos_rs("mandos/unstake_5_backwards.scen.json", &contract_map());
 }
 
 #[test]
-fn user_fund_getters() {
+fn user_fund_getters_rs() {
     elrond_wasm_debug::mandos_rs("mandos/user_fund_getters.scen.json", &contract_map());
+}
+
+#[test]
+fn version_rs() {
+    elrond_wasm_debug::mandos_rs("mandos/version.scen.json", &contract_map());
 }
