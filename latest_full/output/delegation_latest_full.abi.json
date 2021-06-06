@@ -761,39 +761,6 @@
             "outputs": []
         },
         {
-            "name": "setFeatureFlag",
-            "inputs": [
-                {
-                    "name": "feature_name",
-                    "type": "bytes"
-                },
-                {
-                    "name": "value",
-                    "type": "bool"
-                }
-            ],
-            "outputs": []
-        },
-        {
-            "name": "isPaused",
-            "inputs": [],
-            "outputs": [
-                {
-                    "type": "bool"
-                }
-            ]
-        },
-        {
-            "name": "pause",
-            "inputs": [],
-            "outputs": []
-        },
-        {
-            "name": "unpause",
-            "inputs": [],
-            "outputs": []
-        },
-        {
             "docs": [
                 "Continues executing any interrupted operation.",
                 "Returns true if still out of gas, false if computation completed."
@@ -915,6 +882,56 @@
                     "type": "BigUint"
                 }
             ]
+        },
+        {
+            "name": "dnsRegister",
+            "payableInTokens": [
+                "EGLD"
+            ],
+            "inputs": [
+                {
+                    "name": "dns_address",
+                    "type": "Address"
+                },
+                {
+                    "name": "name",
+                    "type": "bytes"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "setFeatureFlag",
+            "inputs": [
+                {
+                    "name": "feature_name",
+                    "type": "bytes"
+                },
+                {
+                    "name": "value",
+                    "type": "bool"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "isPaused",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "pause",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "unpause",
+            "inputs": [],
+            "outputs": []
         }
     ],
     "types": {

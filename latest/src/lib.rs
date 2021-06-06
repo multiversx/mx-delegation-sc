@@ -16,6 +16,7 @@ pub mod settings;
 pub mod user_stake_endpoints;
 pub mod user_stake_state;
 
+pub use elrond_wasm_module_dns;
 pub use elrond_wasm_module_features;
 pub use elrond_wasm_module_pause;
 pub use node_storage;

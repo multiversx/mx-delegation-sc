@@ -9,6 +9,7 @@ wasm-output-mode = [
     "elrond-wasm-node",
     "node-storage/wasm-output-mode",
     "user-fund-storage/wasm-output-mode",
+    "elrond-wasm-module-dns/wasm-output-mode",
     "elrond-wasm-module-features/wasm-output-mode",
     "elrond-wasm-module-pause/wasm-output-mode",
 ]
@@ -18,6 +19,9 @@ path = "../node-storage"
 
 [dependencies.user-fund-storage]
 path = "../user-fund-storage"
+
+[dependencies.elrond-wasm-module-dns]
+version = "0.17.2"
 
 [dependencies.elrond-wasm-module-features]
 version = "0.17.2"
