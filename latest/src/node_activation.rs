@@ -89,7 +89,7 @@ pub trait NodeActivationModule:
     #[callback]
     fn auction_stake_callback(
         &self,
-        node_ids: Vec<usize>, // #[callback_arg]
+        node_ids: Vec<usize>,
         #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) -> SCResult<()> {
         match call_result {
@@ -227,7 +227,7 @@ pub trait NodeActivationModule:
     #[callback]
     fn auction_unstake_callback(
         &self,
-        node_ids: Vec<usize>, // #[callback_arg]
+        node_ids: Vec<usize>,
         #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) -> SCResult<()> {
         match call_result {
@@ -261,6 +261,19 @@ pub trait NodeActivationModule:
         // log event (no data)
         // TODO: log BLS keys of nodes in data
         self.unstake_node_ok_event(());
+
+        Ok(())
+    }
+
+    /// Owner can retry a callback in case of callback failure.
+    /// Warning: misuse can lead to state inconsistency.
+    #[endpoint(forceUnStakeNodesCallback)]
+    fn force_unstake_nodes_callback(&self, #[var_args] node_ids: VarArgs<usize>) -> SCResult<()> {
+        only_owner!(self, "only owner can force unstake nodes callback");
+
+        for &node_id in node_ids.iter() {
+            self.set_node_state(node_id, NodeState::UnBondPeriod { started: 0 });
+        }
 
         Ok(())
     }
