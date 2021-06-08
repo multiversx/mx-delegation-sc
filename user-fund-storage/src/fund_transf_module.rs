@@ -51,7 +51,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
             Some(remaining),
             FundType::Waiting,
             SwapDirection::Forwards,
-            |_, _| Some(FundDescription::Active),
+            |_| Some(FundDescription::Active),
             interrupt,
             false,
         )
@@ -68,6 +68,30 @@ pub trait FundTransformationsModule: fund_module::FundModule {
         );
     }
 
+    fn swap_dust_to_withdraw_only<I>(
+        &self,
+        current_id: &mut usize,
+        source_type: FundType,
+        dust_limit: &Self::BigUint,
+        interrupt: I,
+    ) where
+        I: Fn() -> bool,
+    {
+        self.split_convert_max_by_type_with_checkpoint(
+            current_id,
+            source_type,
+            SwapDirection::Backwards,
+            |fund_item| {
+                if &fund_item.balance < dust_limit {
+                    Some(FundDescription::WithdrawOnly)
+                } else {
+                    None
+                }
+            },
+            interrupt,
+        );
+    }
+
     fn get_affected_users_of_swap_waiting_to_active<I: Fn() -> bool>(
         &self,
         amount: &Self::BigUint,
@@ -78,7 +102,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
             Some(&mut stake_to_activate),
             FundType::Waiting,
             SwapDirection::Forwards,
-            |_, _| Some(FundDescription::Active),
+            |_| Some(FundDescription::Active),
             interrupt,
             true,
         );
@@ -95,7 +119,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
             Some(remaining),
             FundType::UnStaked,
             SwapDirection::Forwards,
-            |_, fund_info| match fund_info {
+            |fund_info| match fund_info.fund_desc {
                 FundDescription::UnStaked { created } => {
                     Some(FundDescription::DeferredPayment { created })
                 }
@@ -116,7 +140,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
             Some(remaining),
             FundType::Active,
             SwapDirection::Backwards,
-            |_, _| {
+            |_| {
                 Some(FundDescription::DeferredPayment {
                     created: current_bl_nonce,
                 })

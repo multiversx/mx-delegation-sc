@@ -29,7 +29,7 @@ fn test_fund_inc_dec_1() {
     );
     assert_eq!(
         1,
-        fund_module.count_fund_items_by_type(FundType::Waiting, |_, _| true)
+        fund_module.count_fund_items_by_type(FundType::Waiting, |_| true)
     );
     assert_eq!(
         RustBigUint::from(1234u32),
@@ -50,7 +50,7 @@ fn test_fund_inc_dec_1() {
     );
     assert_eq!(
         0,
-        fund_module.count_fund_items_by_type(FundType::Waiting, |_, _| true)
+        fund_module.count_fund_items_by_type(FundType::Waiting, |_| true)
     );
     assert_eq!(
         RustBigUint::zero(),
@@ -89,7 +89,7 @@ fn test_fund_inc_dec_2() {
     );
     assert_eq!(
         2,
-        fund_module.count_fund_items_by_type(FundType::Waiting, |_, _| true)
+        fund_module.count_fund_items_by_type(FundType::Waiting, |_| true)
     );
     assert_eq!(
         RustBigUint::from(1234u32),
@@ -110,7 +110,7 @@ fn test_fund_inc_dec_2() {
     );
     assert_eq!(
         0,
-        fund_module.count_fund_items_by_type(FundType::Waiting, |_, _| true)
+        fund_module.count_fund_items_by_type(FundType::Waiting, |_| true)
     );
     assert_eq!(
         RustBigUint::from(0u32),
@@ -132,7 +132,7 @@ fn test_fund_inc_dec_2() {
     );
     assert_eq!(
         0,
-        fund_module.count_fund_items_by_type(FundType::Waiting, |_, _| true)
+        fund_module.count_fund_items_by_type(FundType::Waiting, |_| true)
     );
     assert_eq!(
         RustBigUint::zero(),
@@ -171,7 +171,7 @@ fn test_fund_inc_dec_3() {
     );
     assert_eq!(
         2,
-        fund_module.count_fund_items_by_type(FundType::Waiting, |_, _| true)
+        fund_module.count_fund_items_by_type(FundType::Waiting, |_| true)
     );
     assert_eq!(
         RustBigUint::from(1234u32),
@@ -192,7 +192,7 @@ fn test_fund_inc_dec_3() {
     );
     assert_eq!(
         0,
-        fund_module.count_fund_items_by_type(FundType::Waiting, |_, _| true)
+        fund_module.count_fund_items_by_type(FundType::Waiting, |_| true)
     );
     assert_eq!(
         RustBigUint::from(0u32),
@@ -238,7 +238,7 @@ fn test_transfer_funds_1() {
         None,
         FundType::Waiting,
         SwapDirection::Forwards,
-        |_, _| Some(FundDescription::Active),
+        |_| Some(FundDescription::Active),
         || false,
         false,
     );
@@ -256,7 +256,7 @@ fn test_transfer_funds_1() {
     );
     assert_eq!(
         2,
-        fund_module.count_fund_items_by_type(FundType::Active, |_, _| true)
+        fund_module.count_fund_items_by_type(FundType::Active, |_| true)
     );
 
     assert_eq!(
@@ -312,7 +312,7 @@ fn test_transfer_funds_2() {
         Some(&mut amount),
         FundType::Waiting,
         SwapDirection::Forwards,
-        |_, _| Some(FundDescription::Active),
+        |_| Some(FundDescription::Active),
         || false,
         false,
     );
@@ -371,8 +371,8 @@ fn test_transfer_funds_3_backwards() {
         Some(&mut amount),
         FundType::Waiting,
         SwapDirection::Backwards,
-        |user_id, _| {
-            affected_users.push(user_id);
+        |fund_item| {
+            affected_users.push(fund_item.user_id);
             Some(FundDescription::Active)
         },
         || false,
@@ -435,8 +435,8 @@ fn test_transfer_funds_4_dry_run() {
         Some(&mut amount),
         FundType::Waiting,
         SwapDirection::Backwards,
-        |user_id, _| {
-            affected_users.push(user_id);
+        |fund_item| {
+            affected_users.push(fund_item.user_id);
             Some(FundDescription::Active)
         },
         || false,
@@ -487,7 +487,7 @@ fn test_transfer_funds_5_coalesce() {
         Some(&mut amount),
         FundType::Waiting,
         SwapDirection::Forwards,
-        |_, _| Some(FundDescription::WithdrawOnly),
+        |_| Some(FundDescription::WithdrawOnly),
         || false,
         false,
     );

@@ -46,7 +46,7 @@ pub trait FundModule {
     {
         let mut sum = Self::BigUint::zero();
         let max_fund_id = self.get_fund_max_id();
-        for id in 1..(max_fund_id + 1) {
+        for id in 1..=max_fund_id {
             let fund_item = self.fund_by_id(id).get();
             if filter(fund_item.user_id, fund_item.fund_desc) {
                 sum += &fund_item.balance;
@@ -139,17 +139,16 @@ pub trait FundModule {
         }
     }
 
-    /// Mostly written for testing. The contract shouldn't care how many items there are in the list.
     fn count_fund_items_by_type<F>(&self, fund_type: FundType, filter: F) -> usize
     where
-        F: Fn(usize, FundDescription) -> bool,
+        F: Fn(&FundItem<Self::BigUint>) -> bool,
     {
         let mut count = 0usize;
         let type_list = self.get_fund_list_by_type(fund_type);
         let mut id = type_list.first;
         while id > 0 {
             let fund_item = self.fund_by_id(id).get();
-            if filter(fund_item.user_id, fund_item.fund_desc) {
+            if filter(&fund_item) {
                 count += 1;
             }
             id = fund_item.type_list_next;
@@ -412,6 +411,14 @@ pub trait FundModule {
         self.increase_fund_balance((*fund_item).user_id, transformed, extracted_balance);
     }
 
+    fn first_id_of_type(&self, source_type: FundType, direction: SwapDirection) -> usize {
+        let type_list = self.get_fund_list_by_type(source_type);
+        match direction {
+            SwapDirection::Forwards => type_list.first,
+            SwapDirection::Backwards => type_list.last,
+        }
+    }
+
     fn split_convert_max_by_type<F, I>(
         &self,
         mut opt_max_amount: Option<&mut Self::BigUint>,
@@ -422,15 +429,11 @@ pub trait FundModule {
         dry_run: bool,
     ) -> Vec<usize>
     where
-        F: FnMut(usize, FundDescription) -> Option<FundDescription>,
+        F: FnMut(&FundItem<Self::BigUint>) -> Option<FundDescription>,
         I: Fn() -> bool,
     {
-        let type_list = self.get_fund_list_by_type(source_type);
         let mut affected_users: Vec<usize> = Vec::new();
-        let mut id = match direction {
-            SwapDirection::Forwards => type_list.first,
-            SwapDirection::Backwards => type_list.last,
-        };
+        let mut id = self.first_id_of_type(source_type, direction);
 
         while id > 0 && !interrupt() {
             if let Some(max_amount) = &opt_max_amount {
@@ -439,7 +442,6 @@ pub trait FundModule {
                 }
             }
 
-            // let mut fund_item = self.get_mut_fund_by_id(id);
             self.fund_by_id(id).update(|fund_item| {
                 affected_users.push(fund_item.user_id);
                 let next_id = match direction {
@@ -448,8 +450,7 @@ pub trait FundModule {
                     SwapDirection::Backwards => fund_item.type_list_prev,
                 };
 
-                if let Some(transformed) = filter_transform(fund_item.user_id, fund_item.fund_desc)
-                {
+                if let Some(transformed) = filter_transform(&*fund_item) {
                     if dry_run {
                         self.decrease_max_amount(&mut opt_max_amount, &*fund_item);
                     } else {
@@ -469,6 +470,53 @@ pub trait FundModule {
         affected_users
     }
 
+    /// Traverses the type list and applies filter-transformation on each element, until interrupted or the list ends.
+    /// Passing `current_id` = 0 starts traversing the list afresh.
+    /// It gets updated, so that the operation can be continued from where it left off.
+    fn split_convert_max_by_type_with_checkpoint<F, I>(
+        &self,
+        current_id: &mut usize,
+        source_type: FundType,
+        direction: SwapDirection,
+        mut filter_transform: F,
+        interrupt: I,
+    ) where
+        F: FnMut(&FundItem<Self::BigUint>) -> Option<FundDescription>,
+        I: Fn() -> bool,
+    {
+        if *current_id == 0 {
+            *current_id = self.first_id_of_type(source_type, direction)
+        }
+
+        while *current_id > 0 && !interrupt() {
+            self.fund_by_id(*current_id).update(|fund_item| {
+                let next_id = match direction {
+                    // save next id now, because fund_item will be destroyed
+                    SwapDirection::Forwards => fund_item.type_list_next,
+                    SwapDirection::Backwards => fund_item.type_list_prev,
+                };
+
+                if let Some(transformed) = filter_transform(&*fund_item) {
+                    self.split_convert_individual_fund(&mut None, transformed, &mut *fund_item);
+                }
+                *current_id = next_id;
+            })
+        }
+    }
+
+    fn first_id_of_user_type(
+        &self,
+        user_id: usize,
+        source_type: FundType,
+        direction: SwapDirection,
+    ) -> usize {
+        let user_list = self.fund_list_by_user(user_id, source_type).get();
+        match direction {
+            SwapDirection::Forwards => user_list.first,
+            SwapDirection::Backwards => user_list.last,
+        }
+    }
+
     fn split_convert_max_by_user<F, I>(
         &self,
         mut opt_max_amount: Option<&mut Self::BigUint>,
@@ -482,13 +530,8 @@ pub trait FundModule {
         F: Fn(FundDescription) -> Option<FundDescription>,
         I: Fn() -> bool,
     {
-        let user_list = self.fund_list_by_user(user_id, source_type).get();
         let mut total_transformed = Self::BigUint::zero();
-
-        let mut id = match direction {
-            SwapDirection::Forwards => user_list.first,
-            SwapDirection::Backwards => user_list.last,
-        };
+        let mut id = self.first_id_of_user_type(user_id, source_type, direction);
 
         while id > 0 && !interrupt() {
             if let Some(max_amount) = &opt_max_amount {
