@@ -21,6 +21,7 @@ pub trait DelegationFull:
     + delegation_latest::reset_checkpoint_endpoints::ResetCheckpointsModule
     + delegation_latest::rewards_endpoints::RewardEndpointsModule
     + delegation_latest::user_stake_endpoints::UserStakeEndpointsModule
+    + delegation_latest::user_stake_dust_cleanup::UserStakeDustCleanupModule
     + delegation_latest::elrond_wasm_module_dns::DnsModule
     + delegation_latest::elrond_wasm_module_features::FeaturesModule
     + delegation_latest::elrond_wasm_module_pause::PauseModule

@@ -2,7 +2,7 @@ elrond_wasm::imports!();
 
 use crate::fund_module;
 use crate::fund_module::SwapDirection;
-use crate::types::{FundDescription, FundType};
+use crate::types::{FundDescription, FundItem, FundType};
 
 /// Deals with storage data about delegators.
 #[elrond_wasm_derive::module]
@@ -51,7 +51,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
             Some(remaining),
             FundType::Waiting,
             SwapDirection::Forwards,
-            |_, _| Some(FundDescription::Active),
+            |_| Some(FundDescription::Active),
             interrupt,
             false,
         )
@@ -68,6 +68,33 @@ pub trait FundTransformationsModule: fund_module::FundModule {
         );
     }
 
+    /// Applies transformation to all funds below given threshold.
+    fn swap_dust<F, I>(
+        &self,
+        current_id: &mut usize,
+        dust_limit: &Self::BigUint,
+        source_type: FundType,
+        mut filter_transform: F,
+        interrupt: I,
+    ) where
+        F: FnMut(&FundItem<Self::BigUint>) -> Option<FundDescription>,
+        I: Fn() -> bool,
+    {
+        self.split_convert_max_by_type_with_checkpoint(
+            current_id,
+            source_type,
+            SwapDirection::Backwards,
+            |fund_item| {
+                if &fund_item.balance < dust_limit {
+                    filter_transform(fund_item)
+                } else {
+                    None
+                }
+            },
+            interrupt,
+        );
+    }
+
     fn get_affected_users_of_swap_waiting_to_active<I: Fn() -> bool>(
         &self,
         amount: &Self::BigUint,
@@ -78,7 +105,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
             Some(&mut stake_to_activate),
             FundType::Waiting,
             SwapDirection::Forwards,
-            |_, _| Some(FundDescription::Active),
+            |_| Some(FundDescription::Active),
             interrupt,
             true,
         );
@@ -95,7 +122,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
             Some(remaining),
             FundType::UnStaked,
             SwapDirection::Forwards,
-            |_, fund_info| match fund_info {
+            |fund_info| match fund_info.fund_desc {
                 FundDescription::UnStaked { created } => {
                     Some(FundDescription::DeferredPayment { created })
                 }
@@ -116,7 +143,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
             Some(remaining),
             FundType::Active,
             SwapDirection::Backwards,
-            |_, _| {
+            |_| {
                 Some(FundDescription::DeferredPayment {
                     created: current_bl_nonce,
                 })

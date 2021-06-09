@@ -13,6 +13,7 @@ pub mod reset_checkpoint_types;
 pub mod rewards_endpoints;
 pub mod rewards_state;
 pub mod settings;
+pub mod user_stake_dust_cleanup;
 pub mod user_stake_endpoints;
 pub mod user_stake_state;
 
