@@ -163,6 +163,27 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 
+    // ALL USERS, ALL STAKE
+
+    #[view(getAllUserStakeByType)]
+    fn get_all_user_stake_by_type(
+        &self,
+    ) -> MultiResultVec<MultiResult2<Address, StakeByTypeResult<Self::BigUint>>> {
+        let mut result: Vec<MultiResult2<Address, StakeByTypeResult<Self::BigUint>>> = Vec::new();
+        let num_users = self.get_num_users();
+        for user_id in 1..=num_users {
+            result.push(
+                (
+                    self.get_user_address(user_id),
+                    self.get_user_stake_by_type(user_id),
+                )
+                    .into(),
+            );
+        }
+
+        result.into()
+    }
+
     // DEFERRED PAYMENT BREAKDOWN
 
     #[view(getUserDeferredPaymentList)]
