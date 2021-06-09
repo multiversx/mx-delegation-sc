@@ -2,7 +2,7 @@ elrond_wasm::imports!();
 
 use crate::fund_module;
 use crate::fund_module::SwapDirection;
-use crate::types::{FundDescription, FundType};
+use crate::types::{FundDescription, FundItem, FundType};
 
 /// Deals with storage data about delegators.
 #[elrond_wasm_derive::module]
@@ -68,13 +68,16 @@ pub trait FundTransformationsModule: fund_module::FundModule {
         );
     }
 
-    fn swap_dust_to_withdraw_only<I>(
+    /// Applies transformation to all funds below given threshold.
+    fn swap_dust<F, I>(
         &self,
         current_id: &mut usize,
-        source_type: FundType,
         dust_limit: &Self::BigUint,
+        source_type: FundType,
+        mut filter_transform: F,
         interrupt: I,
     ) where
+        F: FnMut(&FundItem<Self::BigUint>) -> Option<FundDescription>,
         I: Fn() -> bool,
     {
         self.split_convert_max_by_type_with_checkpoint(
@@ -83,7 +86,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
             SwapDirection::Backwards,
             |fund_item| {
                 if &fund_item.balance < dust_limit {
-                    Some(FundDescription::WithdrawOnly)
+                    filter_transform(fund_item)
                 } else {
                     None
                 }

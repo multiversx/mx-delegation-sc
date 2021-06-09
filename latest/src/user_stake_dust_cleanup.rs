@@ -1,4 +1,6 @@
-use user_fund_storage::types::FundType;
+use crate::settings::OWNER_USER_ID;
+use core::num::NonZeroUsize;
+use user_fund_storage::types::{FundDescription, FundType};
 
 elrond_wasm::imports!();
 
@@ -51,13 +53,17 @@ pub trait UserStakeDustCleanupModule:
 
         require!(
             !self.is_global_op_in_progress(),
-            "unstaking is temporarily paused as checkpoint is reset"
+            "contract is temporarily paused as checkpoint is reset"
         );
 
         self.dust_cleanup_checkpoint().update(|checkpoint| {
-            self.swap_dust_to_withdraw_only(checkpoint, FundType::Waiting, dust_limit, || {
-                self.blockchain().get_gas_left() < DUST_GASLIMIT
-            });
+            self.swap_dust(
+                checkpoint,
+                dust_limit,
+                FundType::Waiting,
+                |_| Some(FundDescription::WithdrawOnly),
+                || self.blockchain().get_gas_left() < DUST_GASLIMIT,
+            );
         });
 
         Ok(())
@@ -75,16 +81,30 @@ pub trait UserStakeDustCleanupModule:
 
         require!(
             !self.is_global_op_in_progress(),
-            "unstaking is temporarily paused as checkpoint is reset"
+            "contract is temporarily paused as checkpoint is reset"
         );
 
         // reserve half of the gas for the subsequent swap Waiting -> Active
         let reserved_gas = self.blockchain().get_gas_left() / 2 + DUST_GASLIMIT;
 
+        // rewards need to be computed for
+        self.compute_one_user_reward(OWNER_USER_ID);
+
         self.dust_cleanup_checkpoint().update(|checkpoint| {
-            self.swap_dust_to_withdraw_only(checkpoint, FundType::Active, dust_limit, || {
-                self.blockchain().get_gas_left() < reserved_gas
-            });
+            self.swap_dust(
+                checkpoint,
+                dust_limit,
+                FundType::Active,
+                |fund_item| {
+                    if let Some(user_id_nz) = NonZeroUsize::new(fund_item.user_id) {
+                        self.compute_one_user_reward(user_id_nz);
+                        Some(FundDescription::UnStaked { created: 0 })
+                    } else {
+                        None
+                    }
+                },
+                || self.blockchain().get_gas_left() < reserved_gas,
+            );
         });
 
         // move funds around
