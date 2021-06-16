@@ -2,6 +2,11 @@
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.5.7]
+- `dnsRegister` via the DNS module
+- `forceUnStakeNodesCallback` - which corrects a callback that ran out of gas on the mainnet
+- Dust cleanup functionality, to get rid of small stakes.
+
 ## [0.5.6]
 - call unBondNodes in the protocol, which unbonds the nodes without the tokens
 
