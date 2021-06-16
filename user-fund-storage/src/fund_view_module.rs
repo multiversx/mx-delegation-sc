@@ -143,7 +143,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         &self,
         user_address: &Address,
     ) -> StakeByTypeResult<Self::BigUint> {
-        let user_id = self.get_user_id(&user_address);
+        let user_id = self.get_user_id(user_address);
         if user_id == 0 {
             (
                 Self::BigUint::zero(),
@@ -163,6 +163,27 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 
+    // ALL USERS, ALL STAKE
+
+    #[view(getAllUserStakeByType)]
+    fn get_all_user_stake_by_type(
+        &self,
+    ) -> MultiResultVec<MultiResult2<Address, StakeByTypeResult<Self::BigUint>>> {
+        let mut result: Vec<MultiResult2<Address, StakeByTypeResult<Self::BigUint>>> = Vec::new();
+        let num_users = self.get_num_users();
+        for user_id in 1..=num_users {
+            result.push(
+                (
+                    self.get_user_address(user_id),
+                    self.get_user_stake_by_type(user_id),
+                )
+                    .into(),
+            );
+        }
+
+        result.into()
+    }
+
     // DEFERRED PAYMENT BREAKDOWN
 
     #[view(getUserDeferredPaymentList)]
@@ -171,7 +192,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         user_address: &Address,
     ) -> MultiResultVec<MultiResult2<Self::BigUint, u64>> {
         let mut result = Vec::<MultiResult2<Self::BigUint, u64>>::new();
-        let user_id = self.get_user_id(&user_address);
+        let user_id = self.get_user_id(user_address);
         if user_id > 0 {
             let _ = self.foreach_fund_by_user_type(
                 user_id,

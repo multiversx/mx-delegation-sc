@@ -1,15 +1,15 @@
-use super::node_storage::types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState};
 use crate::auction_proxy;
+use node_storage::types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState};
 
 elrond_wasm::imports!();
 
 #[elrond_wasm_derive::module]
 pub trait NodeActivationModule:
-    crate::node_storage::node_config::NodeConfigModule
-    + crate::user_fund_storage::user_data::UserDataModule
-    + crate::user_fund_storage::fund_module::FundModule
-    + crate::user_fund_storage::fund_view_module::FundViewModule
-    + crate::user_fund_storage::fund_transf_module::FundTransformationsModule
+    node_storage::node_config::NodeConfigModule
+    + user_fund_storage::user_data::UserDataModule
+    + user_fund_storage::fund_module::FundModule
+    + user_fund_storage::fund_view_module::FundViewModule
+    + user_fund_storage::fund_transf_module::FundTransformationsModule
     + crate::settings::SettingsModule
     + crate::reset_checkpoint_state::ResetCheckpointStateModule
     + crate::rewards_state::RewardStateModule
@@ -89,7 +89,7 @@ pub trait NodeActivationModule:
     #[callback]
     fn auction_stake_callback(
         &self,
-        node_ids: Vec<usize>, // #[callback_arg]
+        node_ids: Vec<usize>,
         #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) -> SCResult<()> {
         match call_result {
@@ -182,7 +182,7 @@ pub trait NodeActivationModule:
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(&bls_key);
+            let node_id = self.get_node_id(bls_key);
             require!(node_id != 0, "unknown node provided");
             node_ids.push(node_id);
         }
@@ -227,7 +227,7 @@ pub trait NodeActivationModule:
     #[callback]
     fn auction_unstake_callback(
         &self,
-        node_ids: Vec<usize>, // #[callback_arg]
+        node_ids: Vec<usize>,
         #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) -> SCResult<()> {
         match call_result {
@@ -261,6 +261,19 @@ pub trait NodeActivationModule:
         // log event (no data)
         // TODO: log BLS keys of nodes in data
         self.unstake_node_ok_event(());
+
+        Ok(())
+    }
+
+    /// Owner can retry a callback in case of callback failure.
+    /// Warning: misuse can lead to state inconsistency.
+    #[endpoint(forceUnStakeNodesCallback)]
+    fn force_unstake_nodes_callback(&self, #[var_args] node_ids: VarArgs<usize>) -> SCResult<()> {
+        only_owner!(self, "only owner can force unstake nodes callback");
+
+        for &node_id in node_ids.iter() {
+            self.set_node_state(node_id, NodeState::UnBondPeriod { started: 0 });
+        }
 
         Ok(())
     }
@@ -299,7 +312,7 @@ pub trait NodeActivationModule:
 
         let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
         for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(&bls_key);
+            let node_id = self.get_node_id(bls_key);
             require!(node_id != 0, "unknown node provided");
             require!(
                 self.prepare_node_for_unbond_if_possible(node_id),
@@ -466,7 +479,7 @@ pub trait NodeActivationModule:
 
         // validation only
         for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(&bls_key);
+            let node_id = self.get_node_id(bls_key);
             require!(node_id != 0, "unknown node provided");
             require!(
                 self.get_node_state(node_id) == NodeState::Active,

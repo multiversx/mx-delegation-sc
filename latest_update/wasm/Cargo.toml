@@ -16,6 +16,6 @@ panic = "abort"
 
 [dependencies]
 delegation_latest_update = { path = "..", features=["wasm-output-mode"], default-features = false }
-elrond-wasm-output = { version="0.16.2", features=["wasm-output-mode"] }
+elrond-wasm-output = { version="0.17.2", features=["wasm-output-mode"] }
 
 [workspace]

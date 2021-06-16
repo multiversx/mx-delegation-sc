@@ -1,6 +1,6 @@
 elrond_wasm::imports!();
 
-use super::node_storage::types::{BLSKey, BLSSignature};
+use node_storage::types::{BLSKey, BLSSignature};
 
 #[elrond_wasm_derive::proxy]
 pub trait Auction {

@@ -403,6 +403,16 @@
             ]
         },
         {
+            "name": "getAllUserStakeByType",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "variadic<multi<Address,multi<BigUint,BigUint,BigUint,BigUint,BigUint>>>",
+                    "multi_result": true
+                }
+            ]
+        },
+        {
             "name": "getUserDeferredPaymentList",
             "inputs": [
                 {
@@ -484,6 +494,21 @@
                 {
                     "name": "bls_keys",
                     "type": "variadic<BLSKey>",
+                    "multi_arg": true
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "docs": [
+                "Owner can retry a callback in case of callback failure.",
+                "Warning: misuse can lead to state inconsistency."
+            ],
+            "name": "forceUnStakeNodesCallback",
+            "inputs": [
+                {
+                    "name": "node_ids",
+                    "type": "variadic<u32>",
                     "multi_arg": true
                 }
             ],
@@ -733,39 +758,6 @@
             "outputs": []
         },
         {
-            "name": "setFeatureFlag",
-            "inputs": [
-                {
-                    "name": "feature_name",
-                    "type": "bytes"
-                },
-                {
-                    "name": "value",
-                    "type": "bool"
-                }
-            ],
-            "outputs": []
-        },
-        {
-            "name": "isPaused",
-            "inputs": [],
-            "outputs": [
-                {
-                    "type": "bool"
-                }
-            ]
-        },
-        {
-            "name": "pause",
-            "inputs": [],
-            "outputs": []
-        },
-        {
-            "name": "unpause",
-            "inputs": [],
-            "outputs": []
-        },
-        {
             "docs": [
                 "Continues executing any interrupted operation.",
                 "Returns true if still out of gas, false if computation completed."
@@ -887,6 +879,139 @@
                     "type": "BigUint"
                 }
             ]
+        },
+        {
+            "docs": [
+                "Raw id of the last checkpoint reached by any of the dust cleanup endpoints."
+            ],
+            "name": "dustCleanupCheckpoint",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "u32"
+                }
+            ]
+        },
+        {
+            "docs": [
+                "Counts fund buckets in the waiting list that are below a certain threshold.",
+                "Unlike most views, yields the number of entries, rather than the sum of EGLD."
+            ],
+            "name": "countDustItemsWaitingList",
+            "inputs": [
+                {
+                    "name": "dust_limit",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "u32"
+                }
+            ]
+        },
+        {
+            "docs": [
+                "Counts fund buckets in the active staking list that are below a certain threshold.",
+                "Unlike most views, yields the number of entries, rather than the sum of EGLD."
+            ],
+            "name": "countDustItemsActive",
+            "inputs": [
+                {
+                    "name": "dust_limit",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "u32"
+                }
+            ]
+        },
+        {
+            "docs": [
+                "Unstakes all fund buckets in the waiting list that are below a certin threshold.",
+                "Will stop if running low on gas.",
+                "Does not block the rest of the contract. If any operation interferes with an interrupted",
+                "dust cleanup, the operation can be begun again.",
+                "It will auto-reset if the list ends or the current item is no longer valid."
+            ],
+            "name": "dustCleanupWaitingList",
+            "inputs": [
+                {
+                    "name": "dust_limit",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "docs": [
+                "Unstakes and unbonds all active fund buckets that are below a certin threshold.",
+                "Unlike the regular unstake/unbond process, it will send the funds directly in `WithdrawOnly` state.",
+                "Will stop if running low on gas.",
+                "Does not block the rest of the contract. If any operation interferes with an interrupted",
+                "dust cleanup, the operation can be begun again.",
+                "It will auto-reset if the list ends or the current item is no longer valid."
+            ],
+            "name": "dustCleanupActive",
+            "inputs": [
+                {
+                    "name": "dust_limit",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "dnsRegister",
+            "payableInTokens": [
+                "EGLD"
+            ],
+            "inputs": [
+                {
+                    "name": "dns_address",
+                    "type": "Address"
+                },
+                {
+                    "name": "name",
+                    "type": "bytes"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "setFeatureFlag",
+            "inputs": [
+                {
+                    "name": "feature_name",
+                    "type": "bytes"
+                },
+                {
+                    "name": "value",
+                    "type": "bool"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "isPaused",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "pause",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "unpause",
+            "inputs": [],
+            "outputs": []
         }
     ],
     "types": {

@@ -1,6 +1,6 @@
 use crate::settings::OWNER_USER_ID;
-use crate::user_fund_storage::types::FundType;
 use core::num::NonZeroUsize;
+use user_fund_storage::types::FundType;
 
 elrond_wasm::imports!();
 
@@ -13,12 +13,12 @@ pub trait UserStakeEndpointsModule:
     + crate::rewards_state::RewardStateModule
     + crate::settings::SettingsModule
     + crate::events::EventsModule
-    + crate::user_fund_storage::user_data::UserDataModule
-    + crate::user_fund_storage::fund_module::FundModule
-    + crate::user_fund_storage::fund_view_module::FundViewModule
-    + crate::user_fund_storage::fund_transf_module::FundTransformationsModule
-    + crate::elrond_wasm_module_features::FeaturesModule
-    + crate::elrond_wasm_module_pause::PauseModule
+    + user_fund_storage::user_data::UserDataModule
+    + user_fund_storage::fund_module::FundModule
+    + user_fund_storage::fund_view_module::FundViewModule
+    + user_fund_storage::fund_transf_module::FundTransformationsModule
+    + elrond_wasm_module_features::FeaturesModule
+    + elrond_wasm_module_pause::PauseModule
 {
     /// Delegate stake to the smart contract.
     /// Stake is initially inactive, so does it not produce rewards.

@@ -7,33 +7,37 @@ edition = "2018"
 [features]
 wasm-output-mode = [
     "elrond-wasm-node",
-    "node-storage-wasm",
-    "user-fund-storage-wasm",
-    "elrond-wasm-module-features-wasm",
-    "elrond-wasm-module-pause-wasm"
+    "node-storage/wasm-output-mode",
+    "user-fund-storage/wasm-output-mode",
+    "elrond-wasm-module-dns/wasm-output-mode",
+    "elrond-wasm-module-features/wasm-output-mode",
+    "elrond-wasm-module-pause/wasm-output-mode",
 ]
 
-default = [
-    "node-storage-default",
-    "user-fund-storage-default",
-    "elrond-wasm-module-features-default",
-    "elrond-wasm-module-pause-default"
-]
+[dependencies.node-storage]
+path = "../node-storage"
 
-[dependencies]
-node-storage-wasm = { package = "node-storage", path = "../node-storage", features = ["wasm-output-mode"], optional = true }
-node-storage-default = { package = "node-storage", path = "../node-storage", optional = true }
-user-fund-storage-wasm = { package = "user-fund-storage", path = "../user-fund-storage", features = ["wasm-output-mode"], optional = true }
-user-fund-storage-default = { package = "user-fund-storage", path = "../user-fund-storage", optional = true }
+[dependencies.user-fund-storage]
+path = "../user-fund-storage"
 
-elrond-wasm-module-features-wasm = { package = "elrond-wasm-module-features", version = "0.16.2", features = ["wasm-output-mode"], optional = true }
-elrond-wasm-module-features-default = { package = "elrond-wasm-module-features", version = "0.16.2", optional = true }
-elrond-wasm-module-pause-wasm = { package = "elrond-wasm-module-pause", version = "0.16.2", features = ["wasm-output-mode"], optional = true }
-elrond-wasm-module-pause-default = { package = "elrond-wasm-module-pause", version = "0.16.2", optional = true }
+[dependencies.elrond-wasm-module-dns]
+version = "0.17.2"
 
-elrond-wasm = "0.16.2"
-elrond-wasm-derive = "0.16.2"
-elrond-wasm-node = { version = "0.16.2", optional = true }
+[dependencies.elrond-wasm-module-features]
+version = "0.17.2"
 
-[dev-dependencies]
-elrond-wasm-debug = "0.16.2"
+[dependencies.elrond-wasm-module-pause]
+version = "0.17.2"
+
+[dependencies.elrond-wasm]
+version = "0.17.2"
+
+[dependencies.elrond-wasm-derive]
+version = "0.17.2"
+
+[dependencies.elrond-wasm-node]
+version = "0.17.2"
+optional = true
+
+[dev-dependencies.elrond-wasm-debug]
+version = "0.17.2"

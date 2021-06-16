@@ -1,4 +1,4 @@
-use crate::elrond_wasm_module_features::feature_guard;
+use elrond_wasm_module_features::feature_guard;
 
 use core::num::NonZeroUsize;
 
@@ -10,11 +10,11 @@ pub trait RewardEndpointsModule:
     + crate::rewards_state::RewardStateModule
     + crate::reset_checkpoint_state::ResetCheckpointStateModule
     + crate::events::EventsModule
-    + crate::user_fund_storage::user_data::UserDataModule
-    + crate::user_fund_storage::fund_module::FundModule
-    + crate::user_fund_storage::fund_view_module::FundViewModule
-    + crate::elrond_wasm_module_features::FeaturesModule
-    + crate::elrond_wasm_module_pause::PauseModule
+    + user_fund_storage::user_data::UserDataModule
+    + user_fund_storage::fund_module::FundModule
+    + user_fund_storage::fund_view_module::FundViewModule
+    + elrond_wasm_module_features::FeaturesModule
+    + elrond_wasm_module_pause::PauseModule
 {
     /// Retrieve those rewards to which the caller is entitled.
     /// Will send:

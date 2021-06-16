@@ -23,7 +23,7 @@ fn test_create_destroy() {
     );
     assert_eq!(
         1,
-        module.count_fund_items_by_type(FundType::Waiting, |_, _| true)
+        module.count_fund_items_by_type(FundType::Waiting, |_| true)
     );
     assert_eq!(
         RustBigUint::from(5000u32),
@@ -49,7 +49,7 @@ fn test_create_destroy() {
     );
     assert_eq!(
         0,
-        module.count_fund_items_by_type(FundType::Waiting, |_, _| true)
+        module.count_fund_items_by_type(FundType::Waiting, |_| true)
     );
     assert_eq!(
         RustBigUint::from(0u32),
@@ -77,7 +77,7 @@ fn test_full_cycle_1() {
     );
     assert_eq!(
         1,
-        module.count_fund_items_by_type(FundType::Waiting, |_, _| true)
+        module.count_fund_items_by_type(FundType::Waiting, |_| true)
     );
     assert_eq!(
         RustBigUint::from(5000u32),
@@ -101,7 +101,7 @@ fn test_full_cycle_1() {
     );
     assert_eq!(
         0,
-        module.count_fund_items_by_type(FundType::Waiting, |_, _| true)
+        module.count_fund_items_by_type(FundType::Waiting, |_| true)
     );
     assert_eq!(
         RustBigUint::from(0u32),
@@ -118,7 +118,7 @@ fn test_full_cycle_1() {
     );
     assert_eq!(
         1,
-        module.count_fund_items_by_type(FundType::Active, |_, _| true)
+        module.count_fund_items_by_type(FundType::Active, |_| true)
     );
     assert_eq!(
         RustBigUint::from(5000u32),
@@ -141,7 +141,7 @@ fn test_full_cycle_1() {
     );
     assert_eq!(
         1,
-        module.count_fund_items_by_type(FundType::UnStaked, |_, _| true)
+        module.count_fund_items_by_type(FundType::UnStaked, |_| true)
     );
     assert_eq!(
         RustBigUint::from(5000u32),
@@ -164,7 +164,7 @@ fn test_full_cycle_1() {
     );
     assert_eq!(
         1,
-        module.count_fund_items_by_type(FundType::DeferredPayment, |_, _| true)
+        module.count_fund_items_by_type(FundType::DeferredPayment, |_| true)
     );
     assert_eq!(
         RustBigUint::from(5000u32),
@@ -186,7 +186,7 @@ fn test_full_cycle_1() {
     );
     assert_eq!(
         1,
-        module.count_fund_items_by_type(FundType::WithdrawOnly, |_, _| true)
+        module.count_fund_items_by_type(FundType::WithdrawOnly, |_| true)
     );
     assert_eq!(
         RustBigUint::from(5000u32),
@@ -209,7 +209,7 @@ fn test_full_cycle_1() {
     );
     assert_eq!(
         0,
-        module.count_fund_items_by_type(FundType::WithdrawOnly, |_, _| true)
+        module.count_fund_items_by_type(FundType::WithdrawOnly, |_| true)
     );
     assert_eq!(
         RustBigUint::from(0u32),

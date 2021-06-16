@@ -44,15 +44,15 @@ pub trait UserDataModule {
     }
 
     fn get_or_create_user(&self, address: &Address) -> usize {
-        let mut user_id = self.get_user_id(&address);
+        let mut user_id = self.get_user_id(address);
         if user_id == 0 {
             user_id = self.new_user();
-            self.set_user_id(&address, user_id);
-            self.set_user_address(user_id, &address);
+            self.set_user_id(address, user_id);
+            self.set_user_address(user_id, address);
         } else if self.is_empty_user_address(user_id) {
             // update address if missing,
             // because there are some users without address entries left over from genesis
-            self.set_user_address(user_id, &address);
+            self.set_user_address(user_id, address);
         }
         user_id
     }

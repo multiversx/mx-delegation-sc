@@ -1,8 +1,8 @@
 use crate::settings::{OWNER_USER_ID, PERCENTAGE_DENOMINATOR};
 
-use super::user_fund_storage::types::FundType;
-use crate::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
 use core::num::NonZeroUsize;
+use user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
+use user_fund_storage::types::FundType;
 
 elrond_wasm::imports!();
 
@@ -19,9 +19,9 @@ pub struct UserRewardData<BigUint> {
 #[elrond_wasm_derive::module]
 pub trait RewardStateModule:
     crate::settings::SettingsModule
-    + super::user_fund_storage::user_data::UserDataModule
-    + super::user_fund_storage::fund_module::FundModule
-    + super::user_fund_storage::fund_view_module::FundViewModule
+    + user_fund_storage::user_data::UserDataModule
+    + user_fund_storage::fund_module::FundModule
+    + user_fund_storage::fund_view_module::FundViewModule
 {
     /// Claiming rewards has 2 steps:
     /// 1. computing the delegator rewards out of the total rewards, and

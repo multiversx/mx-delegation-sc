@@ -17,5 +17,10 @@ fn contract_map() -> ContractMap<TxContext> {
 
 #[test]
 fn genesis_addr_fix() {
-    parse_execute_mandos("mandos/genesis_addr_fix.scen.json", &contract_map());
+    elrond_wasm_debug::mandos_rs("mandos/genesis_addr_fix.scen.json", &contract_map());
+}
+
+#[test]
+fn version_rs() {
+    elrond_wasm_debug::mandos_rs("mandos/version.scen.json", &contract_map());
 }
