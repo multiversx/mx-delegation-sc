@@ -504,11 +504,11 @@
                 "Owner can retry a callback in case of callback failure.",
                 "Warning: misuse can lead to state inconsistency."
             ],
-            "name": "forceUnStakeNodesCallback",
+            "name": "forceNodeUnBondPeriod",
             "inputs": [
                 {
-                    "name": "node_ids",
-                    "type": "variadic<u32>",
+                    "name": "bls_keys",
+                    "type": "variadic<BLSKey>",
                     "multi_arg": true
                 }
             ],

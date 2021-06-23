@@ -267,11 +267,13 @@ pub trait NodeActivationModule:
 
     /// Owner can retry a callback in case of callback failure.
     /// Warning: misuse can lead to state inconsistency.
-    #[endpoint(forceUnStakeNodesCallback)]
-    fn force_unstake_nodes_callback(&self, #[var_args] node_ids: VarArgs<usize>) -> SCResult<()> {
-        only_owner!(self, "only owner can force unstake nodes callback");
+    #[endpoint(forceNodeUnBondPeriod)]
+    fn force_node_unbond_period(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
+        only_owner!(self, "only owner can force nodes to unbond period");
 
-        for &node_id in node_ids.iter() {
+        for bls_key in bls_keys.iter() {
+            let node_id = self.get_node_id(bls_key);
+            require!(node_id != 0, "unknown node provided");
             self.set_node_state(node_id, NodeState::UnBondPeriod { started: 0 });
         }
 
