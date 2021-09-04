@@ -8,7 +8,7 @@ Run
 ```
 ./compile-wasm.sh 
 ```
-in root, it will produce delegation.wasm and auction-mock.wasm (a dummy used in tests instead of a auction contract).
+in root, it will produce delegation.wasm and auction-mock.wasm (a dummy used in tests instead of an auction contract).
 
 # Rust configuration
 
