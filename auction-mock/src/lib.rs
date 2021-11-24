@@ -110,11 +110,8 @@ pub trait AuctionMock: storage::AuctionMockStorage {
         }
 
         let unbond_stake = self.get_stake_per_node() * BigUint::from(bls_keys.len());
-        self.send().direct_egld(
-            &self.blockchain().get_caller(),
-            &unbond_stake,
-            &[],
-        );
+        self.send()
+            .direct_egld(&self.blockchain().get_caller(), &unbond_stake, &[]);
 
         Ok(result_err_data.into())
     }

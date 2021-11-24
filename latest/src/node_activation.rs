@@ -149,10 +149,7 @@ pub trait NodeActivationModule:
     /// This operation is performed by the owner.
     /// Does not unstake tokens.
     #[endpoint(unStakeNodes)]
-    fn unstake_nodes_endpoint(
-        &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
-    ) -> SCResult<AsyncCall> {
+    fn unstake_nodes_endpoint(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<AsyncCall> {
         self.unstake_nodes(false, bls_keys)
     }
 
@@ -372,11 +369,7 @@ pub trait NodeActivationModule:
         false
     }
 
-    fn perform_unbond(
-        &self,
-        node_ids: Vec<usize>,
-        bls_keys: Vec<BLSKey>,
-    ) -> AsyncCall {
+    fn perform_unbond(&self, node_ids: Vec<usize>, bls_keys: Vec<BLSKey>) -> AsyncCall {
         // send unbond command to Auction SC
         let auction_contract_addr = self.get_auction_contract_address();
         self.auction_proxy(auction_contract_addr)

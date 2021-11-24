@@ -26,10 +26,8 @@ pub trait FundModule {
     fn get_fund_list_by_type(&self, fund_type: FundType) -> FundsListInfo<Self::Api>;
 
     #[storage_mapper("ftype")]
-    fn fund_list_by_type(
-        &self,
-        fund_type: FundType,
-    ) -> SingleValueMapper<FundsListInfo<Self::Api>>;
+    fn fund_list_by_type(&self, fund_type: FundType)
+        -> SingleValueMapper<FundsListInfo<Self::Api>>;
 
     #[storage_mapper("fuser")]
     fn fund_list_by_user(
@@ -239,12 +237,7 @@ pub trait FundModule {
         self.fund_by_id(fund_max_id).set(&new_fund_item);
     }
 
-    fn increase_fund_balance(
-        &self,
-        user_id: usize,
-        fund_desc: FundDescription,
-        amount: BigUint,
-    ) {
+    fn increase_fund_balance(&self, user_id: usize, fund_desc: FundDescription, amount: BigUint) {
         if amount == 0u32 {
             return;
         }

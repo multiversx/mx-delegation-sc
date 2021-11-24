@@ -210,11 +210,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
 
     // DEFERRED PAYMENT UTIL
 
-    fn eligible_deferred_payment(
-        &self,
-        user_id: usize,
-        n_blocks_before_claim: u64,
-    ) -> BigUint {
+    fn eligible_deferred_payment(&self, user_id: usize, n_blocks_before_claim: u64) -> BigUint {
         let current_bl_nonce = self.blockchain().get_block_nonce();
         self.query_sum_funds_by_user_type(user_id, FundType::DeferredPayment, |fund_desc| {
             if let FundDescription::DeferredPayment { created } = fund_desc {
@@ -252,7 +248,10 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         let _ = self.foreach_fund_by_type(FundType::Active, SwapDirection::Forwards, |fund_item| {
             if let FundDescription::Active = fund_item.fund_desc {
                 if self.is_empty_user_address(fund_item.user_id) {
-                    result.push(MultiResult2::from((ManagedAddress::zero(), fund_item.balance)));
+                    result.push(MultiResult2::from((
+                        ManagedAddress::zero(),
+                        fund_item.balance,
+                    )));
                 } else {
                     let user_address = self.get_user_address(fund_item.user_id);
                     result.push(MultiResult2::from((user_address, fund_item.balance)));
