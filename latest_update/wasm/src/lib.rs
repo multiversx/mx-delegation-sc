@@ -1,5 +1,90 @@
+////////////////////////////////////////////////////
+////////////////// AUTO-GENERATED //////////////////
+////////////////////////////////////////////////////
 
 #![no_std]
 
-pub use delegation_latest_update::*;
-pub use elrond_wasm_output::*;
+elrond_wasm_node::wasm_endpoints! {
+    delegation_latest_update
+    (
+        init
+        callBack
+        addNodes
+        claimRewards
+        claimUnusedFunds
+        continueGlobalOperation
+        countDustItemsActive
+        countDustItemsWaitingList
+        dnsRegister
+        dustCleanupActive
+        dustCleanupCheckpoint
+        dustCleanupWaitingList
+        forceNodeUnBondPeriod
+        fundById
+        getAllNodeStates
+        getAllUserStakeByType
+        getAuctionContractAddress
+        getClaimableRewards
+        getFullActiveList
+        getFullWaitingList
+        getGlobalOperationCheckpoint
+        getMinimumStake
+        getNodeBlockNonceOfUnstake
+        getNodeId
+        getNodeSignature
+        getNodeState
+        getNumBlocksBeforeUnBond
+        getNumNodes
+        getNumUsers
+        getOwnerMinStakeShare
+        getServiceFee
+        getTotalActiveStake
+        getTotalCumulatedRewards
+        getTotalDeferredPaymentStake
+        getTotalDelegationCap
+        getTotalStakeByType
+        getTotalUnProtected
+        getTotalUnclaimedRewards
+        getTotalUnstakedStake
+        getTotalWaitingStake
+        getTotalWithdrawOnlyStake
+        getUnBondable
+        getUnStakeable
+        getUserActiveStake
+        getUserAddress
+        getUserDeferredPaymentList
+        getUserDeferredPaymentStake
+        getUserId
+        getUserStake
+        getUserStakeByType
+        getUserUnstakedStake
+        getUserWaitingStake
+        getUserWithdrawOnlyStake
+        isBootstrapMode
+        isGlobalOperationInProgress
+        isPaused
+        modifyTotalDelegationCap
+        pause
+        removeNodes
+        setFeatureFlag
+        setMinimumStake
+        setNumBlocksBeforeUnBond
+        setServiceFee
+        stake
+        stakeNodes
+        totalStake
+        unBond
+        unBondAllPossibleNodes
+        unBondNodes
+        unJailNodes
+        unStake
+        unStakeNodes
+        unStakeNodesAndTokens
+        unpause
+        updateUserAddress
+        userIdsWithoutAddress
+        validateDelegationCapInvariant
+        validateOwnerStakeShare
+        version
+    )
+}

@@ -13,32 +13,32 @@ pub static OWNER_USER_ID: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1)
 
 /// The module deals with initializaton and the global contract settings.
 ///
-#[elrond_wasm_derive::module]
+#[elrond_wasm::derive::module]
 pub trait SettingsModule {
     /// Yields the address of the contract with which staking will be performed.
     /// This address is standard in the protocol, but it is saved in storage to avoid hardcoding it.
     #[view(getAuctionContractAddress)]
     #[storage_get("auction_addr")]
-    fn get_auction_contract_address(&self) -> Address;
+    fn get_auction_contract_address(&self) -> ManagedAddress;
 
     #[storage_set("auction_addr")]
-    fn set_auction_addr(&self, auction_addr: &Address);
+    fn set_auction_addr(&self, auction_addr: &ManagedAddress);
 
     /// The proportion of rewards that goes to the owner as compensation for running the nodes.
     /// 10000 = 100%.
     #[view(getServiceFee)]
     #[storage_get("service_fee")]
-    fn get_service_fee(&self) -> Self::BigUint;
+    fn get_service_fee(&self) -> BigUint;
 
     #[storage_set("service_fee")]
-    fn set_service_fee(&self, service_fee: Self::BigUint);
+    fn set_service_fee(&self, service_fee: BigUint);
 
     #[view(getTotalDelegationCap)]
     #[storage_get("total_delegation_cap")]
-    fn get_total_delegation_cap(&self) -> Self::BigUint;
+    fn get_total_delegation_cap(&self) -> BigUint;
 
     #[storage_set("total_delegation_cap")]
-    fn set_total_delegation_cap(&self, amount: Self::BigUint);
+    fn set_total_delegation_cap(&self, amount: BigUint);
 
     #[view(isBootstrapMode)]
     #[storage_get("bootstrap_mode")]
@@ -51,7 +51,7 @@ pub trait SettingsModule {
     /// 10000 = 100%.
     #[view(getOwnerMinStakeShare)]
     #[storage_get("owner_min_stake_share")]
-    fn get_owner_min_stake_share(&self) -> Self::BigUint;
+    fn get_owner_min_stake_share(&self) -> BigUint;
 
     #[storage_set("owner_min_stake_share")]
     fn set_owner_min_stake_share(&self, owner_min_stake_share: usize);
@@ -88,13 +88,13 @@ pub trait SettingsModule {
     /// Zero means disabled.
     #[view(getMinimumStake)]
     #[storage_get("min_stake")]
-    fn get_minimum_stake(&self) -> Self::BigUint;
+    fn get_minimum_stake(&self) -> BigUint;
 
     #[storage_set("min_stake")]
-    fn set_minimum_stake(&self, minimum_stake: &Self::BigUint);
+    fn set_minimum_stake(&self, minimum_stake: &BigUint);
 
     #[endpoint(setMinimumStake)]
-    fn set_minimum_stake_endpoint(&self, minimum_stake: Self::BigUint) -> SCResult<()> {
+    fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> SCResult<()> {
         only_owner!(self, "only owner can set minimum stake");
         self.set_minimum_stake(&minimum_stake);
         Ok(())

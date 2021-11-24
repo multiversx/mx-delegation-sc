@@ -6,7 +6,7 @@ elrond_wasm::imports!();
 
 pub const UNBOND_GASLIMIT: u64 = 50_000_000;
 
-#[elrond_wasm_derive::module]
+#[elrond_wasm::derive::module]
 pub trait UserStakeEndpointsModule:
     crate::user_stake_state::UserStakeStateModule
     + crate::reset_checkpoint_state::ResetCheckpointStateModule
@@ -24,7 +24,7 @@ pub trait UserStakeEndpointsModule:
     /// Stake is initially inactive, so does it not produce rewards.
     #[payable("EGLD")]
     #[endpoint(stake)]
-    fn stake_endpoint(&self, #[payment] payment: Self::BigUint) -> SCResult<()> {
+    fn stake_endpoint(&self, #[payment] payment: BigUint) -> SCResult<()> {
         require!(self.not_paused(), "contract paused");
 
         require!(
@@ -43,7 +43,7 @@ pub trait UserStakeEndpointsModule:
     /// unStake - the user will announce that he wants to get out of the contract
     /// selected funds will change from active to inactive, but claimable only after unBond period ends
     #[endpoint(unStake)]
-    fn unstake_endpoint(&self, amount: Self::BigUint) -> SCResult<()> {
+    fn unstake_endpoint(&self, amount: BigUint) -> SCResult<()> {
         require!(self.not_paused(), "contract paused");
 
         require!(
@@ -84,10 +84,10 @@ pub trait UserStakeEndpointsModule:
     }
 
     #[view(getUnStakeable)]
-    fn get_unstakeable(&self, user_address: Address) -> Self::BigUint {
+    fn get_unstakeable(&self, user_address: ManagedAddress) -> BigUint {
         let user_id = self.get_user_id(&user_address);
         if user_id == 0 {
-            Self::BigUint::zero()
+            BigUint::zero()
         } else {
             self.get_user_stake_of_type(user_id, FundType::Waiting)
                 + self.get_user_stake_of_type(user_id, FundType::Active)
@@ -95,7 +95,7 @@ pub trait UserStakeEndpointsModule:
     }
 
     #[endpoint(unBond)]
-    fn unbond_user(&self) -> SCResult<Self::BigUint> {
+    fn unbond_user(&self) -> SCResult<BigUint> {
         require!(self.not_paused(), "contract paused");
 
         let caller = self.blockchain().get_caller();
@@ -121,10 +121,10 @@ pub trait UserStakeEndpointsModule:
     }
 
     #[view(getUnBondable)]
-    fn get_unbondable(&self, user_address: Address) -> Self::BigUint {
+    fn get_unbondable(&self, user_address: ManagedAddress) -> BigUint {
         let user_id = self.get_user_id(&user_address);
         if user_id == 0 {
-            Self::BigUint::zero()
+            BigUint::zero()
         } else {
             let n_blocks_before_unbond = self.get_n_blocks_before_unbond();
             self.eligible_deferred_payment(user_id, n_blocks_before_unbond)

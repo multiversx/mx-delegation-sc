@@ -12,12 +12,12 @@ elrond_wasm::imports!();
 /// - what BLS keys they have.
 /// - what BLS signatures they have
 ///
-#[elrond_wasm_derive::module]
+#[elrond_wasm::derive::module]
 pub trait NodeConfigModule {
     /// The number of nodes that will run with the contract stake, as configured by the owner.
     #[view(getNumNodes)]
     #[storage_mapper("num_nodes")]
-    fn num_nodes(&self) -> SingleValueMapper<Self::Storage, usize>;
+    fn num_nodes(&self) -> SingleValueMapper<usize>;
 
     /// Each node gets a node id. This is in order to be able to iterate over their data.
     /// This is a mapping from node BLS key to node id.

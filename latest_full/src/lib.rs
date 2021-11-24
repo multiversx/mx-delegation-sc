@@ -5,7 +5,7 @@ use delegation_latest::settings::{OWNER_USER_ID, PERCENTAGE_DENOMINATOR};
 
 elrond_wasm::imports!();
 
-#[elrond_wasm_derive::contract]
+#[elrond_wasm::derive::contract]
 pub trait DelegationFull:
     delegation_latest::node_storage::node_config::NodeConfigModule
     + delegation_latest::user_fund_storage::user_data::UserDataModule
@@ -39,12 +39,12 @@ pub trait DelegationFull:
     #[init]
     fn init(
         &self,
-        auction_contract_addr: &Address,
+        auction_contract_addr: &ManagedAddress,
         service_fee_per_10000: usize,
         owner_min_stake_share_per_10000: usize,
         n_blocks_before_unbond: u64,
-        minimum_stake: Self::BigUint,
-        total_delegation_cap: Self::BigUint,
+        minimum_stake: BigUint,
+        total_delegation_cap: BigUint,
     ) -> SCResult<()> {
         let owner = self.blockchain().get_caller();
         self.set_user_id(&owner, OWNER_USER_ID.get()); // node reward destination will be user #1
@@ -58,7 +58,7 @@ pub trait DelegationFull:
             "service fee out of range"
         );
 
-        let next_service_fee = Self::BigUint::from(service_fee_per_10000);
+        let next_service_fee = BigUint::from(service_fee_per_10000);
         self.set_service_fee(next_service_fee);
 
         self.set_owner_min_stake_share_validated(owner_min_stake_share_per_10000)?;

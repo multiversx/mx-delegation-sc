@@ -7,7 +7,7 @@ elrond_wasm::imports!();
 pub const DUST_GASLIMIT: u64 = 20_000_000;
 
 /// Functionality for cleaning up very small amounts left in the waiting list.
-#[elrond_wasm_derive::module]
+#[elrond_wasm::derive::module]
 pub trait UserStakeDustCleanupModule:
     crate::user_stake_state::UserStakeStateModule
     + crate::reset_checkpoint_state::ResetCheckpointStateModule
@@ -22,12 +22,12 @@ pub trait UserStakeDustCleanupModule:
     /// Raw id of the last checkpoint reached by any of the dust cleanup endpoints.
     #[view(dustCleanupCheckpoint)]
     #[storage_mapper("dust_cleanup_checkpoint")]
-    fn dust_cleanup_checkpoint(&self) -> SingleValueMapper<Self::Storage, usize>;
+    fn dust_cleanup_checkpoint(&self) -> SingleValueMapper<usize>;
 
     /// Counts fund buckets in the waiting list that are below a certain threshold.
     /// Unlike most views, yields the number of entries, rather than the sum of EGLD.
     #[view(countDustItemsWaitingList)]
-    fn count_dust_items_waiting_list(&self, dust_limit: &Self::BigUint) -> usize {
+    fn count_dust_items_waiting_list(&self, dust_limit: &BigUint) -> usize {
         self.count_fund_items_by_type(FundType::Waiting, |fund_item| {
             &fund_item.balance < dust_limit
         })
@@ -36,7 +36,7 @@ pub trait UserStakeDustCleanupModule:
     /// Counts fund buckets in the active staking list that are below a certain threshold.
     /// Unlike most views, yields the number of entries, rather than the sum of EGLD.
     #[view(countDustItemsActive)]
-    fn count_dust_items_active(&self, dust_limit: &Self::BigUint) -> usize {
+    fn count_dust_items_active(&self, dust_limit: &BigUint) -> usize {
         self.count_fund_items_by_type(FundType::Active, |fund_item| {
             &fund_item.balance < dust_limit
         })
@@ -48,7 +48,7 @@ pub trait UserStakeDustCleanupModule:
     /// dust cleanup, the operation can be begun again.
     /// It will auto-reset if the list ends or the current item is no longer valid.
     #[endpoint(dustCleanupWaitingList)]
-    fn dust_cleanup_waiting_list(&self, dust_limit: &Self::BigUint) -> SCResult<()> {
+    fn dust_cleanup_waiting_list(&self, dust_limit: &BigUint) -> SCResult<()> {
         only_owner!(self, "only owner allowed to clean up dust");
 
         require!(
@@ -76,7 +76,7 @@ pub trait UserStakeDustCleanupModule:
     /// dust cleanup, the operation can be begun again.
     /// It will auto-reset if the list ends or the current item is no longer valid.
     #[endpoint(dustCleanupActive)]
-    fn dust_cleanup_active(&self, dust_limit: &Self::BigUint) -> SCResult<()> {
+    fn dust_cleanup_active(&self, dust_limit: &BigUint) -> SCResult<()> {
         only_owner!(self, "only owner allowed to clean up dust");
 
         require!(

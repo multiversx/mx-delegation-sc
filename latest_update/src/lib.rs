@@ -6,7 +6,7 @@ use delegation_latest::user_fund_storage::types::FundType;
 
 elrond_wasm::imports!();
 
-#[elrond_wasm_derive::contract]
+#[elrond_wasm::derive::contract]
 pub trait DelegationUpdate:
     delegation_latest::node_storage::node_config::NodeConfigModule
     + delegation_latest::user_fund_storage::user_data::UserDataModule

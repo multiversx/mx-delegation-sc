@@ -1,0 +1,181 @@
+{
+    "buildInfo": {
+        "rustc": {
+            "version": "1.58.0-nightly",
+            "commitHash": "46b8e7488eae116722196e8390c1bd2ea2e396cf",
+            "commitDate": "2021-11-07",
+            "channel": "Nightly",
+            "short": "rustc 1.58.0-nightly (46b8e7488 2021-11-07)"
+        },
+        "contractCrate": {
+            "name": "auction-mock",
+            "version": "0.3.4"
+        },
+        "framework": {
+            "name": "elrond-wasm",
+            "version": "0.23.0"
+        }
+    },
+    "name": "AuctionMock",
+    "constructor": {
+        "inputs": [],
+        "outputs": []
+    },
+    "endpoints": [
+        {
+            "name": "stake",
+            "mutability": "mutable",
+            "payableInTokens": [
+                "EGLD"
+            ],
+            "inputs": [
+                {
+                    "name": "num_nodes",
+                    "type": "u32"
+                },
+                {
+                    "name": "bls_keys_signatures_args",
+                    "type": "variadic<multi<bytes,bytes>>",
+                    "multi_arg": true
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "variadic<bytes>",
+                    "multi_result": true
+                }
+            ]
+        },
+        {
+            "name": "unStake",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "bls_keys",
+                    "type": "variadic<bytes>",
+                    "multi_arg": true
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "variadic<bytes>",
+                    "multi_result": true
+                }
+            ]
+        },
+        {
+            "name": "unStakeNodes",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "bls_keys",
+                    "type": "variadic<bytes>",
+                    "multi_arg": true
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "variadic<bytes>",
+                    "multi_result": true
+                }
+            ]
+        },
+        {
+            "name": "unBond",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "bls_keys",
+                    "type": "variadic<bytes>",
+                    "multi_arg": true
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "variadic<bytes>",
+                    "multi_result": true
+                }
+            ]
+        },
+        {
+            "name": "unBondNodes",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "bls_keys",
+                    "type": "variadic<bytes>",
+                    "multi_arg": true
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "variadic<bytes>",
+                    "multi_result": true
+                }
+            ]
+        },
+        {
+            "name": "claim",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "unJail",
+            "mutability": "mutable",
+            "payableInTokens": [
+                "EGLD"
+            ],
+            "inputs": [
+                {
+                    "name": "bls_keys",
+                    "type": "variadic<BLSKey>",
+                    "multi_arg": true
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "setBlsDeliberateError",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "bls_key",
+                    "type": "bytes"
+                },
+                {
+                    "name": "err_code",
+                    "type": "u8"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "getBlsDeliberateError",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "bls_key",
+                    "type": "bytes"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "u8"
+                }
+            ]
+        }
+    ],
+    "hasCallback": false,
+    "types": {
+        "BLSKey": {
+            "type": "struct",
+            "fields": [
+                {
+                    "name": "0",
+                    "type": "array96<u8>"
+                }
+            ]
+        }
+    }
+}

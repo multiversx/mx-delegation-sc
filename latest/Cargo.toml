@@ -4,16 +4,6 @@ version = "0.5.7"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
-[features]
-wasm-output-mode = [
-    "elrond-wasm-node",
-    "node-storage/wasm-output-mode",
-    "user-fund-storage/wasm-output-mode",
-    "elrond-wasm-module-dns/wasm-output-mode",
-    "elrond-wasm-module-features/wasm-output-mode",
-    "elrond-wasm-module-pause/wasm-output-mode",
-]
-
 [dependencies.node-storage]
 path = "../node-storage"
 
@@ -21,23 +11,16 @@ path = "../node-storage"
 path = "../user-fund-storage"
 
 [dependencies.elrond-wasm-module-dns]
-version = "0.17.2"
+version = "0.23.0"
 
 [dependencies.elrond-wasm-module-features]
-version = "0.17.2"
+version = "0.23.0"
 
 [dependencies.elrond-wasm-module-pause]
-version = "0.17.2"
+version = "0.23.0"
 
 [dependencies.elrond-wasm]
-version = "0.17.2"
-
-[dependencies.elrond-wasm-derive]
-version = "0.17.2"
-
-[dependencies.elrond-wasm-node]
-version = "0.17.2"
-optional = true
+version = "0.23.0"
 
 [dev-dependencies.elrond-wasm-debug]
-version = "0.17.2"
+version = "0.23.0"

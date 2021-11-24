@@ -4,9 +4,10 @@ members = [
   "user-fund-storage",
   
   "auction-mock",
+  "auction-mock/meta",
   "latest",
   "latest_full",
-  "latest_full/abi",
+  "latest_full/meta",
   "latest_update",
-  "latest_update/abi",
+  "latest_update/meta",
 ]

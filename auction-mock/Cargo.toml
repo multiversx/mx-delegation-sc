@@ -4,23 +4,11 @@ version = "0.3.4"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
-[features]
-wasm-output-mode = [
-    "elrond-wasm-node",
-]
-
 [dependencies.node-storage]
 path = "../node-storage"
 
 [dependencies.elrond-wasm]
-version = "0.17.2"
-
-[dependencies.elrond-wasm-derive]
-version = "0.17.2"
-
-[dependencies.elrond-wasm-node]
-version = "0.17.2"
-optional = true
+version = "0.23.0"
 
 [dev-dependencies.elrond-wasm-debug]
-version = "0.17.2"
+version = "0.23.0"
