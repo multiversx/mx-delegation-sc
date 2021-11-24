@@ -651,6 +651,28 @@
             "outputs": []
         },
         {
+            "name": "unStakeTokens",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "amount",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "unBondTokens",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "amount",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": []
+        },
+        {
             "docs": [
                 "Yields the address of the contract with which staking will be performed.",
                 "This address is standard in the protocol, but it is saved in storage to avoid hardcoding it."

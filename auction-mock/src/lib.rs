@@ -124,6 +124,15 @@ pub trait AuctionMock: storage::AuctionMockStorage {
         self.unbond_endpoint(bls_keys)
     }
 
+    #[endpoint(unStakeTokens)]
+    fn unstake_tokens(&self, _amount: BigUint) {}
+
+    #[endpoint(unBondTokens)]
+    fn unbond_tokens(&self, amount: BigUint) {
+        self.send()
+            .direct_egld(&self.blockchain().get_caller(), &amount, &[]);
+    }
+
     #[endpoint]
     fn claim(&self) -> SCResult<()> {
         Ok(())
