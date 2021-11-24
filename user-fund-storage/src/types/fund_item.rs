@@ -1,4 +1,3 @@
-
 use elrond_wasm::{api::ManagedTypeApi, types::BigUint};
 
 use super::fund_type::FundDescription;

@@ -2,6 +2,10 @@
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.5.8]
+- upgraded to elrond-wasm 0.23.0
+- `unStakeTokens`/`unBondTokens` endpoints
+
 ## [0.5.7]
 - `dnsRegister` via the DNS module
 - `forceUnStakeNodesCallback` - which corrects a callback that ran out of gas on the mainnet

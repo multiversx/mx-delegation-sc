@@ -115,6 +115,28 @@
             ]
         },
         {
+            "name": "unStakeTokens",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "_amount",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "unBondTokens",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "amount",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": []
+        },
+        {
             "name": "claim",
             "mutability": "mutable",
             "inputs": [],

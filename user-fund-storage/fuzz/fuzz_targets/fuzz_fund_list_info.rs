@@ -3,12 +3,12 @@ use libfuzzer_sys::fuzz_target;
 
 use fuzz_util::check_encodings;
 extern crate old_serialization;
-use elrond_wasm_debug::api::RustBigUint;
+use elrond_wasm_debug::api::BigUint;
 use user_fund_storage::types as new_serialization;
 
 fuzz_target!(|data: &[u8]| {
     check_encodings::<
-        old_serialization::FundsListInfo<RustBigUint>,
-        new_serialization::FundsListInfo<RustBigUint>,
+        old_serialization::FundsListInfo<BigUint>,
+        new_serialization::FundsListInfo<BigUint>,
     >(data);
 });

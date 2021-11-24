@@ -26,7 +26,7 @@ pub trait ResetCheckpointsModule:
     /// Returns true if still out of gas, false if computation completed.
     #[endpoint(continueGlobalOperation)]
     fn continue_global_operation_endpoint(&self) -> SCResult<OperationCompletionStatus> {
-        self.check_feature_on( b"continueGlobalOperation", true);
+        self.check_feature_on(b"continueGlobalOperation", true);
 
         let orc = self.global_op_checkpoint().get();
         self.continue_global_operation(orc)

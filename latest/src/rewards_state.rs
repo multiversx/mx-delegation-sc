@@ -200,7 +200,10 @@ pub trait RewardStateModule:
         let total_withdraw =
             self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly);
 
-        let mut unprotected = self.blockchain().get_sc_balance(&TokenIdentifier::egld(), 0) + sent_rewards;
+        let mut unprotected = self
+            .blockchain()
+            .get_sc_balance(&TokenIdentifier::egld(), 0)
+            + sent_rewards;
         unprotected -= total_rewards;
         unprotected -= total_waiting;
         unprotected -= total_deferred;

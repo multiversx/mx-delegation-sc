@@ -31,6 +31,12 @@ pub trait Auction {
     #[endpoint(unBondNodes)]
     fn unbond_nodes(&self, #[var_args] bls_keys: ManagedVarArgs<BLSKey>);
 
+    #[endpoint(unStakeTokens)]
+    fn unstake_tokens(&self, amount: &BigUint);
+
+    #[endpoint(unBondTokens)]
+    fn unbond_tokens(&self, amount: &BigUint);
+
     #[endpoint]
     fn claim(&self);
 
