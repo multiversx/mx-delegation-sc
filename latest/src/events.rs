@@ -27,6 +27,12 @@ pub trait EventsModule {
     #[event("nodeUnbondFail")]
     fn unbond_node_fail_event(&self, reason: &[u8]);
 
+    #[event("tokensUnstake")]
+    fn unstake_tokens_event(&self, amount: &BigUint);
+
+    #[event("tokensUnbond")]
+    fn unbond_tokens_event(&self, amount: &BigUint);
+
     #[event("userClaimRewards")]
     fn claim_rewards_event(&self, #[indexed] user: &ManagedAddress, amount: &BigUint);
 }

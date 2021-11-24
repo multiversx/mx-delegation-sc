@@ -490,4 +490,22 @@ pub trait NodeActivationModule:
             .with_egld_transfer(fine_payment)
             .async_call())
     }
+
+    #[endpoint(unStakeTokens)]
+    fn unstake_tokens(&self, amount: BigUint) -> AsyncCall {
+        self.unstake_tokens_event(&amount);
+        let auction_contract_addr = self.get_auction_contract_address();
+        self.auction_proxy(auction_contract_addr)
+            .unstake_tokens(&amount)
+            .async_call()
+    }
+
+    #[endpoint(unBondTokens)]
+    fn unbond_tokens(&self, amount: BigUint) -> AsyncCall {
+        self.unbond_tokens_event(&amount);
+        let auction_contract_addr = self.get_auction_contract_address();
+        self.auction_proxy(auction_contract_addr)
+            .unbond_tokens(&amount)
+            .async_call()
+    }
 }

@@ -76,10 +76,12 @@ elrond_wasm_node::wasm_endpoints! {
         unBond
         unBondAllPossibleNodes
         unBondNodes
+        unBondTokens
         unJailNodes
         unStake
         unStakeNodes
         unStakeNodesAndTokens
+        unStakeTokens
         unpause
         updateUserAddress
         userIdsWithoutAddress

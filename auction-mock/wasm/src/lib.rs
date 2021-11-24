@@ -14,9 +14,11 @@ elrond_wasm_node::wasm_endpoints! {
         stake
         unBond
         unBondNodes
+        unBondTokens
         unJail
         unStake
         unStakeNodes
+        unStakeTokens
     )
 }
 
