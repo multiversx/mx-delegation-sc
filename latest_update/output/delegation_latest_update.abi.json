@@ -1,4 +1,21 @@
 {
+    "buildInfo": {
+        "rustc": {
+            "version": "1.58.0-nightly",
+            "commitHash": "46b8e7488eae116722196e8390c1bd2ea2e396cf",
+            "commitDate": "2021-11-07",
+            "channel": "Nightly",
+            "short": "rustc 1.58.0-nightly (46b8e7488 2021-11-07)"
+        },
+        "contractCrate": {
+            "name": "delegation_latest_update",
+            "version": "0.5.7"
+        },
+        "framework": {
+            "name": "elrond-wasm",
+            "version": "0.23.0"
+        }
+    },
     "name": "DelegationUpdate",
     "constructor": {
         "inputs": [],
@@ -7,6 +24,7 @@
     "endpoints": [
         {
             "name": "version",
+            "mutability": "mutable",
             "inputs": [],
             "outputs": [
                 {
@@ -19,6 +37,7 @@
                 "The number of nodes that will run with the contract stake, as configured by the owner."
             ],
             "name": "getNumNodes",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -34,6 +53,7 @@
                 "Ids start from 1 because 0 means unset of None."
             ],
             "name": "getNodeId",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "bls_key",
@@ -48,6 +68,7 @@
         },
         {
             "name": "getNodeSignature",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "bls_key",
@@ -63,6 +84,7 @@
         },
         {
             "name": "getNodeState",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "bls_key",
@@ -77,6 +99,7 @@
         },
         {
             "name": "getAllNodeStates",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -87,6 +110,7 @@
         },
         {
             "name": "getNodeBlockNonceOfUnstake",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "bls_key",
@@ -102,6 +126,7 @@
         },
         {
             "name": "addNodes",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "bls_keys_signatures",
@@ -113,6 +138,7 @@
         },
         {
             "name": "removeNodes",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "bls_keys",
@@ -130,6 +156,7 @@
                 "The value is the user id."
             ],
             "name": "getUserId",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "address",
@@ -144,6 +171,7 @@
         },
         {
             "name": "getUserAddress",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user_id",
@@ -162,6 +190,7 @@
                 "even if they no longer have anything in the contract."
             ],
             "name": "getNumUsers",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -171,6 +200,7 @@
         },
         {
             "name": "updateUserAddress",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "addresses",
@@ -192,6 +222,7 @@
         },
         {
             "name": "userIdsWithoutAddress",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -202,6 +233,7 @@
         },
         {
             "name": "fundById",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "id",
@@ -216,6 +248,7 @@
         },
         {
             "name": "totalStake",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -228,6 +261,7 @@
                 "Yields how much a user has staked in the contract."
             ],
             "name": "getUserStake",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user_address",
@@ -242,6 +276,7 @@
         },
         {
             "name": "getUserWithdrawOnlyStake",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user_address",
@@ -256,6 +291,7 @@
         },
         {
             "name": "getUserWaitingStake",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user_address",
@@ -270,6 +306,7 @@
         },
         {
             "name": "getUserActiveStake",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user_address",
@@ -284,6 +321,7 @@
         },
         {
             "name": "getUserUnstakedStake",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user_address",
@@ -298,6 +336,7 @@
         },
         {
             "name": "getUserDeferredPaymentStake",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user_address",
@@ -312,6 +351,7 @@
         },
         {
             "name": "getTotalWithdrawOnlyStake",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -321,6 +361,7 @@
         },
         {
             "name": "getTotalWaitingStake",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -330,6 +371,7 @@
         },
         {
             "name": "getTotalActiveStake",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -339,6 +381,7 @@
         },
         {
             "name": "getTotalUnstakedStake",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -348,6 +391,7 @@
         },
         {
             "name": "getTotalDeferredPaymentStake",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -357,6 +401,7 @@
         },
         {
             "name": "getUserStakeByType",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user_address",
@@ -383,6 +428,7 @@
         },
         {
             "name": "getTotalStakeByType",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -404,6 +450,7 @@
         },
         {
             "name": "getAllUserStakeByType",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -414,6 +461,7 @@
         },
         {
             "name": "getUserDeferredPaymentList",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user_address",
@@ -429,6 +477,7 @@
         },
         {
             "name": "getFullWaitingList",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -439,6 +488,7 @@
         },
         {
             "name": "getFullActiveList",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -452,6 +502,7 @@
                 "Owner activates specific nodes."
             ],
             "name": "stakeNodes",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "amount_to_stake",
@@ -473,6 +524,7 @@
                 "Does not unstake tokens."
             ],
             "name": "unStakeNodes",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "bls_keys",
@@ -490,6 +542,7 @@
                 "Also unstakes tokens."
             ],
             "name": "unStakeNodesAndTokens",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "bls_keys",
@@ -505,6 +558,7 @@
                 "Warning: misuse can lead to state inconsistency."
             ],
             "name": "forceNodeUnBondPeriod",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "bls_keys",
@@ -519,6 +573,7 @@
                 "Calls unbond for all provided nodes. Will fail if node cannot be unbonded."
             ],
             "name": "unBondNodes",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "bls_keys",
@@ -534,6 +589,7 @@
                 "Nothing happens if no nodes can be unbonded."
             ],
             "name": "unBondAllPossibleNodes",
+            "mutability": "mutable",
             "inputs": [],
             "outputs": [
                 {
@@ -547,11 +603,13 @@
                 "Claims from auction SC funds that were sent but are not required to run the nodes."
             ],
             "name": "claimUnusedFunds",
+            "mutability": "mutable",
             "inputs": [],
             "outputs": []
         },
         {
             "name": "unJailNodes",
+            "mutability": "mutable",
             "payableInTokens": [
                 "EGLD"
             ],
@@ -570,6 +628,7 @@
                 "This address is standard in the protocol, but it is saved in storage to avoid hardcoding it."
             ],
             "name": "getAuctionContractAddress",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -583,6 +642,7 @@
                 "10000 = 100%."
             ],
             "name": "getServiceFee",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -592,6 +652,7 @@
         },
         {
             "name": "getTotalDelegationCap",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -601,6 +662,7 @@
         },
         {
             "name": "isBootstrapMode",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -614,6 +676,7 @@
                 "10000 = 100%."
             ],
             "name": "getOwnerMinStakeShare",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -626,6 +689,7 @@
                 "Minimum number of n_blocks between unstake and fund getting into inactive state."
             ],
             "name": "getNumBlocksBeforeUnBond",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -635,6 +699,7 @@
         },
         {
             "name": "setNumBlocksBeforeUnBond",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "n_blocks_before_unbond",
@@ -649,6 +714,7 @@
                 "Zero means disabled."
             ],
             "name": "getMinimumStake",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -658,6 +724,7 @@
         },
         {
             "name": "setMinimumStake",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "minimum_stake",
@@ -668,6 +735,7 @@
         },
         {
             "name": "getGlobalOperationCheckpoint",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -677,6 +745,7 @@
         },
         {
             "name": "isGlobalOperationInProgress",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -695,6 +764,7 @@
                 "Subtracting that from the current historical rewards yields how much accumulated in the contract since they last claimed."
             ],
             "name": "getTotalCumulatedRewards",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -708,6 +778,7 @@
                 "Does not update storage."
             ],
             "name": "getClaimableRewards",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user",
@@ -725,6 +796,7 @@
                 "Utility readonly function to check how many unclaimed rewards currently reside in the contract."
             ],
             "name": "getTotalUnclaimedRewards",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -734,6 +806,7 @@
         },
         {
             "name": "getTotalUnProtected",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -746,6 +819,7 @@
                 "Invariant: should never return error."
             ],
             "name": "validateOwnerStakeShare",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": []
         },
@@ -754,6 +828,7 @@
                 "Invariant: should never return error."
             ],
             "name": "validateDelegationCapInvariant",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": []
         },
@@ -763,6 +838,7 @@
                 "Returns true if still out of gas, false if computation completed."
             ],
             "name": "continueGlobalOperation",
+            "mutability": "mutable",
             "inputs": [],
             "outputs": [
                 {
@@ -776,6 +852,7 @@
                 "It will recalculate and set the checkpoint for all the delegators"
             ],
             "name": "modifyTotalDelegationCap",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "new_total_cap",
@@ -794,6 +871,7 @@
                 "It does not get set in the contructor, so the owner has to manually set it after the contract is deployed."
             ],
             "name": "setServiceFee",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "service_fee_per_10000",
@@ -814,6 +892,7 @@
                 "- rewards that were previously computed but not sent"
             ],
             "name": "claimRewards",
+            "mutability": "mutable",
             "inputs": [],
             "outputs": []
         },
@@ -823,6 +902,7 @@
                 "Stake is initially inactive, so does it not produce rewards."
             ],
             "name": "stake",
+            "mutability": "mutable",
             "payableInTokens": [
                 "EGLD"
             ],
@@ -835,6 +915,7 @@
                 "selected funds will change from active to inactive, but claimable only after unBond period ends"
             ],
             "name": "unStake",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "amount",
@@ -845,6 +926,7 @@
         },
         {
             "name": "getUnStakeable",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user_address",
@@ -859,6 +941,7 @@
         },
         {
             "name": "unBond",
+            "mutability": "mutable",
             "inputs": [],
             "outputs": [
                 {
@@ -868,6 +951,7 @@
         },
         {
             "name": "getUnBondable",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "user_address",
@@ -885,6 +969,7 @@
                 "Raw id of the last checkpoint reached by any of the dust cleanup endpoints."
             ],
             "name": "dustCleanupCheckpoint",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -898,6 +983,7 @@
                 "Unlike most views, yields the number of entries, rather than the sum of EGLD."
             ],
             "name": "countDustItemsWaitingList",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "dust_limit",
@@ -916,6 +1002,7 @@
                 "Unlike most views, yields the number of entries, rather than the sum of EGLD."
             ],
             "name": "countDustItemsActive",
+            "mutability": "readonly",
             "inputs": [
                 {
                     "name": "dust_limit",
@@ -937,6 +1024,7 @@
                 "It will auto-reset if the list ends or the current item is no longer valid."
             ],
             "name": "dustCleanupWaitingList",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "dust_limit",
@@ -955,6 +1043,7 @@
                 "It will auto-reset if the list ends or the current item is no longer valid."
             ],
             "name": "dustCleanupActive",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "dust_limit",
@@ -965,6 +1054,7 @@
         },
         {
             "name": "dnsRegister",
+            "mutability": "mutable",
             "payableInTokens": [
                 "EGLD"
             ],
@@ -982,6 +1072,7 @@
         },
         {
             "name": "setFeatureFlag",
+            "mutability": "mutable",
             "inputs": [
                 {
                     "name": "feature_name",
@@ -996,6 +1087,7 @@
         },
         {
             "name": "isPaused",
+            "mutability": "readonly",
             "inputs": [],
             "outputs": [
                 {
@@ -1005,15 +1097,18 @@
         },
         {
             "name": "pause",
+            "mutability": "mutable",
             "inputs": [],
             "outputs": []
         },
         {
             "name": "unpause",
+            "mutability": "mutable",
             "inputs": [],
             "outputs": []
         }
     ],
+    "hasCallback": true,
     "types": {
         "BLSKey": {
             "type": "struct",

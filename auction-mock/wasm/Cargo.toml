@@ -14,8 +14,15 @@ lto = true
 debug = false
 panic = "abort"
 
-[dependencies]
-auction-mock = { path = "..", features=["wasm-output-mode"], default-features = false }
-elrond-wasm-output = { version="0.17.2", features=["wasm-output-mode"] }
+[dependencies.auction-mock]
+path = ".."
+
+[dependencies.elrond-wasm-node]
+version = "0.23.0"
+
+[dependencies.elrond-wasm-output]
+version = "0.23.0"
+features = ["wasm-output-mode"]
 
 [workspace]
+members = ["."]

@@ -1,23 +1,23 @@
-use elrond_wasm::api::BigUintApi;
+use elrond_wasm::{api::ManagedTypeApi, types::BigUint};
 
 elrond_wasm::derive_imports!();
 
 #[derive(
     TopEncodeOrDefault, TopDecodeOrDefault, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug,
 )]
-pub struct FundsListInfo<BigUint: BigUintApi> {
-    pub total_balance: BigUint,
+pub struct FundsListInfo<M: ManagedTypeApi> {
+    pub total_balance: BigUint<M>,
     pub first: usize,
     pub last: usize,
 }
 
-impl<BigUint: BigUintApi> elrond_codec::EncodeDefault for FundsListInfo<BigUint> {
+impl<M: ManagedTypeApi> elrond_codec::EncodeDefault for FundsListInfo<M> {
     fn is_default(&self) -> bool {
         self.total_balance == 0 && self.first == 0 && self.last == 0
     }
 }
 
-impl<BigUint: BigUintApi> elrond_codec::DecodeDefault for FundsListInfo<BigUint> {
+impl<M: ManagedTypeApi> elrond_codec::DecodeDefault for FundsListInfo<M> {
     fn default() -> Self {
         FundsListInfo {
             total_balance: BigUint::zero(),

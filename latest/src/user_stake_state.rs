@@ -9,7 +9,7 @@ use user_fund_storage::types::FundType;
 elrond_wasm::imports!();
 
 /// Contains endpoints for staking/withdrawing stake.
-#[elrond_wasm_derive::module]
+#[elrond_wasm::derive::module]
 pub trait UserStakeStateModule:
     crate::settings::SettingsModule
     + user_fund_storage::user_data::UserDataModule
@@ -19,7 +19,7 @@ pub trait UserStakeStateModule:
     + crate::rewards_state::RewardStateModule
     + crate::events::EventsModule
 {
-    fn process_stake(&self, payment: Self::BigUint) -> SCResult<()> {
+    fn process_stake(&self, payment: BigUint) -> SCResult<()> {
         // get user id or create user
         // we use user id as an intermediate identifier between user address and data,
         // because we might at some point need to iterate over all user data
@@ -96,7 +96,7 @@ pub trait UserStakeStateModule:
 
     /// Swaps waiting stake to active within given limits,
     /// and also computes rewards for all affected users before performing the swap itself.
-    fn swap_waiting_to_active_compute_rewards(&self, swappable: &Self::BigUint) -> SCResult<()> {
+    fn swap_waiting_to_active_compute_rewards(&self, swappable: &BigUint) -> SCResult<()> {
         // dry run of swap, to get the affected users
         let (affected_users, remaining) =
             self.get_affected_users_of_swap_waiting_to_active(swappable, || false);
@@ -137,7 +137,7 @@ pub trait UserStakeStateModule:
         // reordered to avoid divisions
         require!(
             self.get_user_stake_of_type(OWNER_USER_ID.get(), FundType::Active)
-                * Self::BigUint::from(PERCENTAGE_DENOMINATOR)
+                * BigUint::from(PERCENTAGE_DENOMINATOR)
                 >= self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active)
                     * self.get_owner_min_stake_share(),
             "owner doesn't have enough stake in the contract"
@@ -145,7 +145,7 @@ pub trait UserStakeStateModule:
         Ok(())
     }
 
-    fn validate_unstake_amount(&self, user_id: usize, amount: &Self::BigUint) -> SCResult<()> {
+    fn validate_unstake_amount(&self, user_id: usize, amount: &BigUint) -> SCResult<()> {
         let max_unstake = self.get_user_stake_of_type(user_id, FundType::Waiting)
             + self.get_user_stake_of_type(user_id, FundType::Active);
         match amount.cmp(&max_unstake) {

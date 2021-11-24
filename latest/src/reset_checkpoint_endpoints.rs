@@ -4,7 +4,6 @@ use crate::reset_checkpoint_types::{
 };
 use crate::settings::{OWNER_USER_ID, PERCENTAGE_DENOMINATOR};
 use core::cmp::Ordering;
-use elrond_wasm_module_features::feature_guard;
 use user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
 use user_fund_storage::types::FundType;
 
@@ -12,7 +11,7 @@ elrond_wasm::imports!();
 
 pub const STOP_AT_GASLIMIT: u64 = 100_000_000;
 
-#[elrond_wasm_derive::module]
+#[elrond_wasm::derive::module]
 pub trait ResetCheckpointsModule:
     crate::rewards_state::RewardStateModule
     + crate::reset_checkpoint_state::ResetCheckpointStateModule
@@ -27,7 +26,7 @@ pub trait ResetCheckpointsModule:
     /// Returns true if still out of gas, false if computation completed.
     #[endpoint(continueGlobalOperation)]
     fn continue_global_operation_endpoint(&self) -> SCResult<OperationCompletionStatus> {
-        feature_guard!(self, b"continueGlobalOperation", true);
+        self.check_feature_on( b"continueGlobalOperation", true);
 
         let orc = self.global_op_checkpoint().get();
         self.continue_global_operation(orc)
@@ -35,7 +34,7 @@ pub trait ResetCheckpointsModule:
 
     fn continue_global_operation(
         &self,
-        mut orc: Box<GlobalOpCheckpoint<Self::BigUint>>,
+        mut orc: Box<GlobalOpCheckpoint<Self::Api>>,
     ) -> SCResult<OperationCompletionStatus> {
         let mut status = OperationCompletionStatus::Completed;
         while matches!(status, OperationCompletionStatus::Completed) && !orc.is_none() {
@@ -50,10 +49,10 @@ pub trait ResetCheckpointsModule:
 
     fn continue_global_operation_step(
         &self,
-        orc: Box<GlobalOpCheckpoint<Self::BigUint>>,
+        orc: Box<GlobalOpCheckpoint<Self::Api>>,
     ) -> (
         OperationCompletionStatus,
-        Box<GlobalOpCheckpoint<Self::BigUint>>,
+        Box<GlobalOpCheckpoint<Self::Api>>,
     ) {
         match *orc {
             GlobalOpCheckpoint::None => (OperationCompletionStatus::Completed, orc),
@@ -86,10 +85,10 @@ pub trait ResetCheckpointsModule:
 
     fn continue_modify_total_delegation_cap_step(
         &self,
-        mut mdcap_data: ModifyTotalDelegationCapData<Self::BigUint>,
+        mut mdcap_data: ModifyTotalDelegationCapData<Self::Api>,
     ) -> (
         OperationCompletionStatus,
-        Box<GlobalOpCheckpoint<Self::BigUint>>,
+        Box<GlobalOpCheckpoint<Self::Api>>,
     ) {
         match mdcap_data.step {
             ModifyDelegationCapStep::ComputeAllRewards(car_data) => {
@@ -174,14 +173,14 @@ pub trait ResetCheckpointsModule:
     /// Returns something if there is more computing to be done.
     fn compute_all_rewards(
         &self,
-        mut data: ComputeAllRewardsData<Self::BigUint>,
-    ) -> Option<ComputeAllRewardsData<Self::BigUint>> {
+        mut data: ComputeAllRewardsData<Self::Api>,
+    ) -> Option<ComputeAllRewardsData<Self::Api>> {
         // if more rewards arrived since computation started,
         // it must be restarted from scratch
         let curr_rewards_checkpoint = self.get_total_cumulated_rewards();
         if data.rewards_checkpoint != curr_rewards_checkpoint {
             data.last_id = 0;
-            data.sum_unclaimed = Self::BigUint::zero();
+            data.sum_unclaimed = BigUint::zero();
             data.rewards_checkpoint = curr_rewards_checkpoint;
         }
 
@@ -217,7 +216,7 @@ pub trait ResetCheckpointsModule:
     #[endpoint(modifyTotalDelegationCap)]
     fn modify_total_delegation_cap(
         &self,
-        new_total_cap: Self::BigUint,
+        new_total_cap: BigUint,
     ) -> SCResult<OperationCompletionStatus> {
         only_owner!(self, "only owner allowed to modify delegation cap");
 
@@ -230,7 +229,7 @@ pub trait ResetCheckpointsModule:
         let total_active = self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
         let total_unstaked = self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
 
-        let previous_total_cap: Self::BigUint;
+        let previous_total_cap: BigUint;
         let max_available = &(&total_active + &total_waiting) + &total_unstaked;
         if self.is_bootstrap_mode() {
             if new_total_cap > max_available {
@@ -280,8 +279,8 @@ pub trait ResetCheckpointsModule:
                     ModifyTotalDelegationCapData {
                         new_delegation_cap: new_total_cap,
                         remaining_swap_waiting_to_active: swap_amount,
-                        remaining_swap_active_to_def_p: Self::BigUint::zero(),
-                        remaining_swap_unstaked_to_def_p: Self::BigUint::zero(),
+                        remaining_swap_active_to_def_p: BigUint::zero(),
+                        remaining_swap_unstaked_to_def_p: BigUint::zero(),
                         step: ModifyDelegationCapStep::ComputeAllRewards(
                             ComputeAllRewardsData::new(self.get_total_cumulated_rewards()),
                         ),
@@ -296,11 +295,11 @@ pub trait ResetCheckpointsModule:
                     "not enough funds in contract to pay those who are forced unstaked"
                 );
 
-                let swap_unstaked_to_def_p: Self::BigUint;
-                let swap_active_to_def_p: Self::BigUint;
+                let swap_unstaked_to_def_p: BigUint;
+                let swap_active_to_def_p: BigUint;
                 if total_unstaked >= swap_amount {
                     // only unstaked -> deferred payment will happen
-                    swap_active_to_def_p = Self::BigUint::zero();
+                    swap_active_to_def_p = BigUint::zero();
                     swap_unstaked_to_def_p = swap_amount;
                 } else {
                     // first unstaked -> deferred payment happens, then active -> deferred payment
@@ -311,7 +310,7 @@ pub trait ResetCheckpointsModule:
                 Box::new(GlobalOpCheckpoint::ModifyTotalDelegationCap(
                     ModifyTotalDelegationCapData {
                         new_delegation_cap: new_total_cap,
-                        remaining_swap_waiting_to_active: Self::BigUint::zero(),
+                        remaining_swap_waiting_to_active: BigUint::zero(),
                         remaining_swap_active_to_def_p: swap_active_to_def_p,
                         remaining_swap_unstaked_to_def_p: swap_unstaked_to_def_p,
                         step: ModifyDelegationCapStep::ComputeAllRewards(
@@ -344,7 +343,7 @@ pub trait ResetCheckpointsModule:
             "global checkpoint is in progress"
         );
 
-        let new_service_fee = Self::BigUint::from(service_fee_per_10000);
+        let new_service_fee = BigUint::from(service_fee_per_10000);
         if self.get_service_fee() == new_service_fee {
             return Ok(OperationCompletionStatus::Completed);
         }

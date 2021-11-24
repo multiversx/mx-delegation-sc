@@ -96,8 +96,9 @@
                 "logs": [
                     {
                         "address": "sc:delegation",
-                        "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
+                        "endpoint": "str:stake",
                         "topics": [
+                            "str:userStake",
                             "address:delegator_1"
                         ],
                         "data": "7,777,000,000"

@@ -10,7 +10,7 @@ pub struct FundsListInfo<BigUint: BigUintApi> {
     pub last: usize,
 }
 
-impl<BigUint: BigUintApi> FundsListInfo<BigUint> {
+impl<M: ManagedTypeApi> FundsListInfo<Self::Api> {
     pub fn is_empty(&self) -> bool {
         self.total_balance == 0 && self.first == 0 && self.last == 0
     }
@@ -24,7 +24,7 @@ impl<BigUint: BigUintApi> FundsListInfo<BigUint> {
     }
 }
 
-impl<BigUint: BigUintApi> NestedEncode for FundsListInfo<BigUint> {
+impl<M: ManagedTypeApi> NestedEncode for FundsListInfo<Self::Api> {
     fn dep_encode<O: NestedEncodeOutput>(&self, dest: &mut O) -> Result<(), EncodeError> {
         self.total_balance.dep_encode(dest)?;
         self.first.dep_encode(dest)?;
@@ -45,7 +45,7 @@ impl<BigUint: BigUintApi> NestedEncode for FundsListInfo<BigUint> {
     }
 }
 
-impl<BigUint: BigUintApi> TopEncode for FundsListInfo<BigUint> {
+impl<M: ManagedTypeApi> TopEncode for FundsListInfo<Self::Api> {
     #[inline]
     fn top_encode<O: TopEncodeOutput>(&self, output: O) -> Result<(), EncodeError> {
         // delete storage when the balance reaches 0
@@ -75,7 +75,7 @@ impl<BigUint: BigUintApi> TopEncode for FundsListInfo<BigUint> {
     }
 }
 
-impl<BigUint: BigUintApi> NestedDecode for FundsListInfo<BigUint> {
+impl<M: ManagedTypeApi> NestedDecode for FundsListInfo<Self::Api> {
     fn dep_decode<I: NestedDecodeInput>(input: &mut I) -> Result<Self, DecodeError> {
         Ok(FundsListInfo {
             total_balance: BigUint::dep_decode(input)?,
@@ -98,7 +98,7 @@ impl<BigUint: BigUintApi> NestedDecode for FundsListInfo<BigUint> {
     }
 }
 
-impl<BigUint: BigUintApi> TopDecode for FundsListInfo<BigUint> {
+impl<M: ManagedTypeApi> TopDecode for FundsListInfo<Self::Api> {
     fn top_decode<I: TopDecodeInput>(input: I) -> Result<Self, DecodeError> {
         if input.byte_len() == 0 {
             // does not exist in storage

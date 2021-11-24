@@ -1,22 +1,23 @@
-use elrond_wasm::api::BigUintApi;
+use elrond_wasm::{api::ManagedTypeApi, types::BigUint};
+
 
 elrond_wasm::derive_imports!();
 
 /// Models any computation that can pause itself when it runs out of gas and continue in another block.
 #[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug)]
-pub enum GlobalOpCheckpoint<BigUint: BigUintApi> {
+pub enum GlobalOpCheckpoint<M: ManagedTypeApi> {
     None,
-    ModifyTotalDelegationCap(ModifyTotalDelegationCapData<BigUint>),
+    ModifyTotalDelegationCap(ModifyTotalDelegationCapData<M>),
     ChangeServiceFee {
-        new_service_fee: BigUint,
-        compute_rewards_data: ComputeAllRewardsData<BigUint>,
+        new_service_fee: BigUint<M>,
+        compute_rewards_data: ComputeAllRewardsData<M>,
     },
 }
 
-impl<BigUint: BigUintApi> GlobalOpCheckpoint<BigUint> {
+impl<M: ManagedTypeApi> GlobalOpCheckpoint<M> {
     #[inline]
     pub fn is_none(&self) -> bool {
-        *self == GlobalOpCheckpoint::<BigUint>::None
+        matches!(self, GlobalOpCheckpoint::None)
     }
 
     #[inline]
@@ -31,18 +32,18 @@ impl<BigUint: BigUintApi> GlobalOpCheckpoint<BigUint> {
 
 /// Contains data needed to be persisted while performing a change in the total delegation cap.
 #[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug)]
-pub struct ModifyTotalDelegationCapData<BigUint: BigUintApi> {
-    pub new_delegation_cap: BigUint,
-    pub remaining_swap_waiting_to_active: BigUint,
-    pub remaining_swap_active_to_def_p: BigUint,
-    pub remaining_swap_unstaked_to_def_p: BigUint,
-    pub step: ModifyDelegationCapStep<BigUint>,
+pub struct ModifyTotalDelegationCapData<M: ManagedTypeApi> {
+    pub new_delegation_cap: BigUint<M>,
+    pub remaining_swap_waiting_to_active: BigUint<M>,
+    pub remaining_swap_active_to_def_p: BigUint<M>,
+    pub remaining_swap_unstaked_to_def_p: BigUint<M>,
+    pub step: ModifyDelegationCapStep<M>,
 }
 
 /// Models the steps that need to be executed when modifying the total delegation cap.
 #[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug)]
-pub enum ModifyDelegationCapStep<BigUint: BigUintApi> {
-    ComputeAllRewards(ComputeAllRewardsData<BigUint>),
+pub enum ModifyDelegationCapStep<M: ManagedTypeApi> {
+    ComputeAllRewards(ComputeAllRewardsData<M>),
     SwapWaitingToActive,
     SwapUnstakedToDeferredPayment,
     SwapActiveToDeferredPayment,
@@ -50,14 +51,14 @@ pub enum ModifyDelegationCapStep<BigUint: BigUintApi> {
 
 /// Models the interrupted state of compute_all_rewards.
 #[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug)]
-pub struct ComputeAllRewardsData<BigUint: BigUintApi> {
+pub struct ComputeAllRewardsData<M: ManagedTypeApi> {
     pub last_id: usize,
-    pub sum_unclaimed: BigUint,
-    pub rewards_checkpoint: BigUint,
+    pub sum_unclaimed: BigUint<M>,
+    pub rewards_checkpoint: BigUint<M>,
 }
 
-impl<BigUint: BigUintApi> ComputeAllRewardsData<BigUint> {
-    pub fn new(rewards_checkpoint: BigUint) -> ComputeAllRewardsData<BigUint> {
+impl<M: ManagedTypeApi> ComputeAllRewardsData<M> {
+    pub fn new(rewards_checkpoint: BigUint<M>) -> ComputeAllRewardsData<M> {
         ComputeAllRewardsData {
             last_id: 0,
             sum_unclaimed: BigUint::zero(),
@@ -70,7 +71,6 @@ impl<BigUint: BigUintApi> ComputeAllRewardsData<BigUint> {
 mod tests {
     use super::*;
     use elrond_wasm::elrond_codec::test_util::*;
-    use elrond_wasm_debug::api::RustBigUint;
 
     fn check_global_operation_checkpoint_codec(goc: GlobalOpCheckpoint<RustBigUint>) {
         let top_encoded = check_top_encode(&goc);

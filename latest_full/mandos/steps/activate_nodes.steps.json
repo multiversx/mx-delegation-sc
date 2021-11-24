@@ -24,8 +24,10 @@
                 "logs": [
                     {
                         "address": "sc:delegation",
-                        "identifier": "0x0000000000000000000000000000000000000000000000000000000000000003",
-                        "topics": [],
+                        "endpoint": "str:callBack",
+                        "topics": [
+                            "str:nodeStakeOk"
+                        ],
                         "data": "0x"
                     }
                 ],

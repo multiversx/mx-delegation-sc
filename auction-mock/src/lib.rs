@@ -6,7 +6,7 @@ use node_storage::types::bls_key::BLSKey;
 
 elrond_wasm::imports!();
 
-#[elrond_wasm_derive::contract]
+#[elrond_wasm::derive::contract]
 pub trait AuctionMock: storage::AuctionMockStorage {
     #[init]
     fn init(&self) {}
@@ -17,7 +17,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
         &self,
         num_nodes: usize,
         #[var_args] bls_keys_signatures_args: VarArgs<MultiArg2<BoxedBytes, BoxedBytes>>,
-        #[payment] payment: Self::BigUint,
+        #[payment] payment: BigUint,
     ) -> SCResult<MultiResultVec<BoxedBytes>> {
         let bls_keys_signatures = bls_keys_signatures_args.into_vec();
         require!(
@@ -31,7 +31,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
         );
 
         let mut new_num_nodes = self.get_num_nodes();
-        let expected_payment = Self::BigUint::from(num_nodes) * self.get_stake_per_node();
+        let expected_payment = BigUint::from(num_nodes as u64) * self.get_stake_per_node();
         require!(
             payment == expected_payment,
             "incorrect payment to auction mock"
@@ -109,11 +109,11 @@ pub trait AuctionMock: storage::AuctionMockStorage {
             }
         }
 
-        let unbond_stake = Self::BigUint::from(bls_keys.len()) * self.get_stake_per_node();
+        let unbond_stake = self.get_stake_per_node() * BigUint::from(bls_keys.len());
         self.send().direct_egld(
             &self.blockchain().get_caller(),
             &unbond_stake,
-            b"unbond stake",
+            &[],
         );
 
         Ok(result_err_data.into())
@@ -137,7 +137,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     fn unjail_endpoint(
         &self,
         #[var_args] bls_keys: VarArgs<BLSKey>,
-        #[payment] _fine_payment: Self::BigUint,
+        #[payment] _fine_payment: BigUint,
     ) -> SCResult<()> {
         self.set_unjailed(&bls_keys.into_vec());
         Ok(())

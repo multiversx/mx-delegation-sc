@@ -4,13 +4,8 @@ version = "0.4.0"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
-[features]
-wasm-output-mode = ["elrond-wasm-node"]
+[dependencies.elrond-wasm]
+version = "0.23.0"
 
-[dependencies]
-elrond-wasm = "0.17.2"
-elrond-wasm-derive = "0.17.2"
-elrond-wasm-node = { version = "0.17.2", optional = true }
-
-[dev-dependencies]
-elrond-wasm-debug = "0.17.2"
+[dev-dependencies.elrond-wasm-debug]
+version = "0.23.0"

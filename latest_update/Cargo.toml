@@ -4,27 +4,14 @@ version = "0.5.7"
 authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
-[features]
-wasm-output-mode = [
-    "elrond-wasm-node",
-    "delegation_latest/wasm-output-mode"
-]
-
 [dependencies.delegation_latest]
 path = "../latest"
 
 [dependencies.elrond-wasm]
-version = "0.17.2"
-
-[dependencies.elrond-wasm-derive]
-version = "0.17.2"
-
-[dependencies.elrond-wasm-node]
-version = "0.17.2"
-optional = true
+version = "0.23.0"
 
 [dev-dependencies.elrond-wasm-debug]
-version = "0.17.2"
+version = "0.23.0"
 
 [dev-dependencies.auction-mock]
 path = "../auction-mock"

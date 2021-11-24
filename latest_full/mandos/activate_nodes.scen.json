@@ -13,7 +13,7 @@
         {
             "step": "externalSteps",
             "path": "steps/add_nodes.steps.json"
-        }, 
+        },
         {
             "step": "externalSteps",
             "path": "steps/stake_1.steps.json"
@@ -231,7 +231,16 @@
             "expect": {
                 "out": [],
                 "status": "",
-                "logs": "*",
+                "logs": [
+                    {
+                        "address": "sc:delegation",
+                        "endpoint": "str:callBack",
+                        "topics": [
+                            "str:nodeUnbondOk"
+                        ],
+                        "data": ""
+                    }
+                ],
                 "gas": "*",
                 "refund": "*"
             }

@@ -1,4 +1,5 @@
-use elrond_wasm::api::BigUintApi;
+
+use elrond_wasm::{api::ManagedTypeApi, types::BigUint};
 
 use super::fund_type::FundDescription;
 
@@ -9,17 +10,17 @@ elrond_wasm::derive_imports!();
 #[derive(
     TopEncodeOrDefault, TopDecodeOrDefault, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug,
 )]
-pub struct FundItem<BigUint: BigUintApi> {
+pub struct FundItem<M: ManagedTypeApi> {
     pub fund_desc: FundDescription,
     pub user_id: usize,
-    pub balance: BigUint,
+    pub balance: BigUint<M>,
     pub type_list_next: usize,
     pub type_list_prev: usize,
     pub user_list_next: usize,
     pub user_list_prev: usize,
 }
 
-impl<BigUint: BigUintApi> elrond_codec::EncodeDefault for FundItem<BigUint> {
+impl<M: ManagedTypeApi> elrond_codec::EncodeDefault for FundItem<M> {
     fn is_default(&self) -> bool {
         self.balance == 0
             && self.type_list_next == 0
@@ -29,7 +30,7 @@ impl<BigUint: BigUintApi> elrond_codec::EncodeDefault for FundItem<BigUint> {
     }
 }
 
-impl<BigUint: BigUintApi> elrond_codec::DecodeDefault for FundItem<BigUint> {
+impl<M: ManagedTypeApi> elrond_codec::DecodeDefault for FundItem<M> {
     fn default() -> Self {
         FundItem {
             fund_desc: FundDescription::WithdrawOnly,

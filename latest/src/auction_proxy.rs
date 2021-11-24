@@ -2,7 +2,7 @@ elrond_wasm::imports!();
 
 use node_storage::types::{BLSKey, BLSSignature};
 
-#[elrond_wasm_derive::proxy]
+#[elrond_wasm::derive::proxy]
 pub trait Auction {
     #[payable("EGLD")]
     #[endpoint]

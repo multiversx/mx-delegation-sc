@@ -37,8 +37,9 @@
                 "logs": [
                     {
                         "address": "sc:delegation",
-                        "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
+                        "endpoint": "str:stake",
                         "topics": [
+                            "str:userStake",
                             "address:delegator1"
                         ],
                         "data": "100,001,000,000,000"
@@ -66,8 +67,9 @@
                 "logs": [
                     {
                         "address": "sc:delegation",
-                        "identifier": "0x0000000000000000000000000000000000000000000000000000000000000001",
+                        "endpoint": "str:stake",
                         "topics": [
+                            "str:userStake",
                             "address:delegator2"
                         ],
                         "data": "200,000,000,000,000"

@@ -1,7 +1,7 @@
 elrond_wasm::imports!();
 
 /// Deals with storage of data about delegators.
-#[elrond_wasm_derive::module]
+#[elrond_wasm::derive::module]
 pub trait UserDataModule {
     /// Each delegator gets a user id. This is in order to be able to iterate over their data.
     /// This is a mapping from delegator address to delegator id.
@@ -9,20 +9,20 @@ pub trait UserDataModule {
     /// The value is the user id.
     #[view(getUserId)]
     #[storage_get("user_id")]
-    fn get_user_id(&self, address: &Address) -> usize;
+    fn get_user_id(&self, address: &ManagedAddress) -> usize;
 
     #[storage_set("user_id")]
-    fn set_user_id(&self, address: &Address, user_id: usize);
+    fn set_user_id(&self, address: &ManagedAddress, user_id: usize);
 
     #[view(getUserAddress)]
     #[storage_get("user_address")]
-    fn get_user_address(&self, user_id: usize) -> Address;
+    fn get_user_address(&self, user_id: usize) -> ManagedAddress;
 
     #[storage_is_empty("user_address")]
     fn is_empty_user_address(&self, user_id: usize) -> bool;
 
     #[storage_set("user_address")]
-    fn set_user_address(&self, user_id: usize, address: &Address);
+    fn set_user_address(&self, user_id: usize, address: &ManagedAddress);
 
     /// Retrieves the number of delegtors, including the owner,
     /// even if they no longer have anything in the contract.
@@ -43,7 +43,7 @@ pub trait UserDataModule {
         num_users
     }
 
-    fn get_or_create_user(&self, address: &Address) -> usize {
+    fn get_or_create_user(&self, address: &ManagedAddress) -> usize {
         let mut user_id = self.get_user_id(address);
         if user_id == 0 {
             user_id = self.new_user();
@@ -60,7 +60,7 @@ pub trait UserDataModule {
     #[endpoint(updateUserAddress)]
     fn update_user_address(
         &self,
-        #[var_args] addresses: VarArgs<Address>,
+        #[var_args] addresses: VarArgs<ManagedAddress>,
     ) -> SCResult<MultiResult3<usize, usize, usize>> {
         let mut num_updated = 0;
         let mut num_not_updated = 0;

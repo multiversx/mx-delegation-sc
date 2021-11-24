@@ -1,10 +1,8 @@
-use elrond_wasm_module_features::feature_guard;
-
 use core::num::NonZeroUsize;
 
 elrond_wasm::imports!();
 
-#[elrond_wasm_derive::module]
+#[elrond_wasm::derive::module]
 pub trait RewardEndpointsModule:
     crate::settings::SettingsModule
     + crate::rewards_state::RewardStateModule
@@ -23,7 +21,7 @@ pub trait RewardEndpointsModule:
     #[endpoint(claimRewards)]
     fn claim_rewards(&self) -> SCResult<()> {
         require!(self.not_paused(), "contract paused");
-        feature_guard!(self, b"claimRewards", true);
+        self.check_feature_on(b"claimRewards", true);
 
         let caller = self.blockchain().get_caller();
         let user_id = non_zero_usize!(self.get_user_id(&caller), "unknown caller");
@@ -40,7 +38,7 @@ pub trait RewardEndpointsModule:
 
             self.send_rewards(&caller, &user_data.unclaimed_rewards);
 
-            user_data.unclaimed_rewards = Self::BigUint::zero();
+            user_data.unclaimed_rewards = BigUint::zero();
         }
 
         self.store_user_reward_data(user_id, &user_data);
@@ -48,7 +46,7 @@ pub trait RewardEndpointsModule:
         Ok(())
     }
 
-    fn send_rewards(&self, to: &Address, amount: &Self::BigUint) {
+    fn send_rewards(&self, to: &ManagedAddress, amount: &BigUint) {
         // send funds
         self.send()
             .direct_egld(to, amount, b"delegation rewards claim");

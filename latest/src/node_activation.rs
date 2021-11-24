@@ -3,7 +3,7 @@ use node_storage::types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState};
 
 elrond_wasm::imports!();
 
-#[elrond_wasm_derive::module]
+#[elrond_wasm::derive::module]
 pub trait NodeActivationModule:
     node_storage::node_config::NodeConfigModule
     + user_fund_storage::user_data::UserDataModule
@@ -17,15 +17,15 @@ pub trait NodeActivationModule:
     + crate::events::EventsModule
 {
     #[proxy]
-    fn auction_proxy(&self, to: Address) -> auction_proxy::Proxy<Self::SendApi>;
+    fn auction_proxy(&self, to: ManagedAddress) -> auction_proxy::Proxy<Self::Api>;
 
     /// Owner activates specific nodes.
     #[endpoint(stakeNodes)]
     fn stake_nodes(
         &self,
-        amount_to_stake: Self::BigUint,
+        amount_to_stake: BigUint,
         #[var_args] bls_keys: VarArgs<BLSKey>,
-    ) -> SCResult<AsyncCall<Self::SendApi>> {
+    ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to stake nodes");
 
         require!(
@@ -71,15 +71,15 @@ pub trait NodeActivationModule:
         &self,
         node_ids: Vec<usize>,
         bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>,
-        amount_to_stake: Self::BigUint,
-    ) -> AsyncCall<Self::SendApi> {
+        amount_to_stake: BigUint,
+    ) -> AsyncCall {
         let num_nodes = node_ids.len();
         // send all stake to auction contract
         let auction_contract_addr = self.get_auction_contract_address();
 
         self.auction_proxy(auction_contract_addr)
-            .with_token_transfer(TokenIdentifier::egld(), amount_to_stake)
             .stake(num_nodes, bls_keys_signatures)
+            .with_egld_transfer(amount_to_stake)
             .async_call()
             .with_callback(self.callbacks().auction_stake_callback(node_ids))
     }
@@ -121,7 +121,7 @@ pub trait NodeActivationModule:
 
         // log event (no data)
         // TODO: log BLS keys of nodes in data
-        self.stake_node_ok_event(());
+        self.stake_node_ok_event();
 
         Ok(())
     }
@@ -152,7 +152,7 @@ pub trait NodeActivationModule:
     fn unstake_nodes_endpoint(
         &self,
         #[var_args] bls_keys: VarArgs<BLSKey>,
-    ) -> SCResult<AsyncCall<Self::SendApi>> {
+    ) -> SCResult<AsyncCall> {
         self.unstake_nodes(false, bls_keys)
     }
 
@@ -164,7 +164,7 @@ pub trait NodeActivationModule:
     fn unstake_nodes_and_tokens_endpoint(
         &self,
         #[var_args] bls_keys: VarArgs<BLSKey>,
-    ) -> SCResult<AsyncCall<Self::SendApi>> {
+    ) -> SCResult<AsyncCall> {
         self.unstake_nodes(true, bls_keys)
     }
 
@@ -172,7 +172,7 @@ pub trait NodeActivationModule:
         &self,
         unstake_tokens: bool,
         bls_keys: VarArgs<BLSKey>,
-    ) -> SCResult<AsyncCall<Self::SendApi>> {
+    ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to unstake nodes");
 
         require!(
@@ -195,7 +195,7 @@ pub trait NodeActivationModule:
         unstake_tokens: bool,
         node_ids: Vec<usize>,
         bls_keys: Vec<BLSKey>,
-    ) -> SCResult<AsyncCall<Self::SendApi>> {
+    ) -> SCResult<AsyncCall> {
         // convert node state to PendingDeactivation
         for &node_id in node_ids.iter() {
             require!(
@@ -260,7 +260,7 @@ pub trait NodeActivationModule:
 
         // log event (no data)
         // TODO: log BLS keys of nodes in data
-        self.unstake_node_ok_event(());
+        self.unstake_node_ok_event();
 
         Ok(())
     }
@@ -302,7 +302,7 @@ pub trait NodeActivationModule:
     fn unbond_specific_nodes_endpoint(
         &self,
         #[var_args] bls_keys: VarArgs<BLSKey>,
-    ) -> SCResult<AsyncCall<Self::SendApi>> {
+    ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to unbond nodes");
 
         require!(
@@ -329,7 +329,7 @@ pub trait NodeActivationModule:
     /// Calls unbond for all nodes that are in the unbond period and are due.
     /// Nothing happens if no nodes can be unbonded.
     #[endpoint(unBondAllPossibleNodes)]
-    fn unbond_all_possible_nodes(&self) -> SCResult<OptionalResult<AsyncCall<Self::SendApi>>> {
+    fn unbond_all_possible_nodes(&self) -> SCResult<OptionalResult<AsyncCall>> {
         only_owner!(self, "only owner allowed to unbond nodes");
 
         require!(
@@ -376,7 +376,7 @@ pub trait NodeActivationModule:
         &self,
         node_ids: Vec<usize>,
         bls_keys: Vec<BLSKey>,
-    ) -> AsyncCall<Self::SendApi> {
+    ) -> AsyncCall {
         // send unbond command to Auction SC
         let auction_contract_addr = self.get_auction_contract_address();
         self.auction_proxy(auction_contract_addr)
@@ -422,7 +422,7 @@ pub trait NodeActivationModule:
 
         // log event (no data)
         // TODO: log BLS keys of nodes in data
-        self.unbond_node_ok_event(());
+        self.unbond_node_ok_event();
 
         Ok(())
     }
@@ -454,7 +454,7 @@ pub trait NodeActivationModule:
 
     /// Claims from auction SC funds that were sent but are not required to run the nodes.
     #[endpoint(claimUnusedFunds)]
-    fn claim_unused_funds(&self) -> SCResult<AsyncCall<Self::SendApi>> {
+    fn claim_unused_funds(&self) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner can claim inactive stake from auction");
 
         require!(
@@ -475,8 +475,8 @@ pub trait NodeActivationModule:
     fn unjail_nodes(
         &self,
         #[var_args] bls_keys: VarArgs<BLSKey>,
-        #[payment] fine_payment: Self::BigUint,
-    ) -> SCResult<AsyncCall<Self::SendApi>> {
+        #[payment] fine_payment: BigUint,
+    ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to unjail nodes");
 
         // validation only
@@ -493,8 +493,8 @@ pub trait NodeActivationModule:
         let auction_contract_addr = self.get_auction_contract_address();
         Ok(self
             .auction_proxy(auction_contract_addr)
-            .with_token_transfer(TokenIdentifier::egld(), fine_payment)
             .unjail(bls_keys)
+            .with_egld_transfer(fine_payment)
             .async_call())
     }
 }

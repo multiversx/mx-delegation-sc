@@ -16,11 +16,11 @@ pub const USER_STAKE_TOTALS_ID: usize = 0;
 /// Result type containing 5 numeric values, one for each stake type.
 pub type StakeByTypeResult<BigUint> = MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint>;
 
-#[elrond_wasm_derive::module]
+#[elrond_wasm::derive::module]
 pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     // UTILS
 
-    fn get_user_stake_of_type(&self, user_id: usize, fund_type: FundType) -> Self::BigUint {
+    fn get_user_stake_of_type(&self, user_id: usize, fund_type: FundType) -> BigUint {
         if user_id == USER_STAKE_TOTALS_ID {
             let type_list = self.get_fund_list_by_type(fund_type);
             type_list.total_balance
@@ -30,8 +30,8 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         }
     }
 
-    fn get_user_total_stake(&self, user_id: usize) -> Self::BigUint {
-        let mut sum = Self::BigUint::zero();
+    fn get_user_total_stake(&self, user_id: usize) -> BigUint {
+        let mut sum = BigUint::zero();
         sum += self.get_user_stake_of_type(user_id, FundType::WithdrawOnly);
         sum += self.get_user_stake_of_type(user_id, FundType::Waiting);
         sum += self.get_user_stake_of_type(user_id, FundType::Active);
@@ -43,16 +43,16 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     // GRAND TOTAL
 
     #[view(totalStake)]
-    fn get_total_stake(&self) -> Self::BigUint {
+    fn get_total_stake(&self) -> BigUint {
         self.get_user_total_stake(USER_STAKE_TOTALS_ID)
     }
 
     /// Yields how much a user has staked in the contract.
     #[view(getUserStake)]
-    fn get_user_total_stake_endpoint(&self, user_address: Address) -> Self::BigUint {
+    fn get_user_total_stake_endpoint(&self, user_address: ManagedAddress) -> BigUint {
         let user_id = self.get_user_id(&user_address);
         if user_id == 0 {
-            Self::BigUint::zero()
+            BigUint::zero()
         } else {
             self.get_user_total_stake(user_id)
         }
@@ -62,72 +62,72 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
 
     fn get_user_stake_of_type_by_address(
         &self,
-        user_address: Address,
+        user_address: ManagedAddress,
         fund_type: FundType,
-    ) -> Self::BigUint {
+    ) -> BigUint {
         let user_id = self.get_user_id(&user_address);
         if user_id == 0 {
-            Self::BigUint::zero()
+            BigUint::zero()
         } else {
             self.get_user_stake_of_type(user_id, fund_type)
         }
     }
 
     #[view(getUserWithdrawOnlyStake)]
-    fn get_user_withdraw_only_stake(&self, user_address: Address) -> Self::BigUint {
+    fn get_user_withdraw_only_stake(&self, user_address: ManagedAddress) -> BigUint {
         self.get_user_stake_of_type_by_address(user_address, FundType::WithdrawOnly)
     }
 
     #[view(getUserWaitingStake)]
-    fn get_user_waiting_stake(&self, user_address: Address) -> Self::BigUint {
+    fn get_user_waiting_stake(&self, user_address: ManagedAddress) -> BigUint {
         self.get_user_stake_of_type_by_address(user_address, FundType::Waiting)
     }
 
     #[view(getUserActiveStake)]
-    fn get_user_active_stake(&self, user_address: Address) -> Self::BigUint {
+    fn get_user_active_stake(&self, user_address: ManagedAddress) -> BigUint {
         self.get_user_stake_of_type_by_address(user_address, FundType::Active)
     }
 
     #[view(getUserUnstakedStake)]
-    fn get_user_unstaked_stake(&self, user_address: Address) -> Self::BigUint {
+    fn get_user_unstaked_stake(&self, user_address: ManagedAddress) -> BigUint {
         self.get_user_stake_of_type_by_address(user_address, FundType::UnStaked)
     }
 
     #[view(getUserDeferredPaymentStake)]
-    fn get_user_deferred_payment_stake(&self, user_address: Address) -> Self::BigUint {
+    fn get_user_deferred_payment_stake(&self, user_address: ManagedAddress) -> BigUint {
         self.get_user_stake_of_type_by_address(user_address, FundType::DeferredPayment)
     }
 
     // TOTAL PER TYPE
 
     #[view(getTotalWithdrawOnlyStake)]
-    fn get_total_withdraw_only_stake(&self) -> Self::BigUint {
+    fn get_total_withdraw_only_stake(&self) -> BigUint {
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::WithdrawOnly)
     }
 
     #[view(getTotalWaitingStake)]
-    fn get_total_waiting_stake(&self) -> Self::BigUint {
+    fn get_total_waiting_stake(&self) -> BigUint {
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting)
     }
 
     #[view(getTotalActiveStake)]
-    fn get_total_active_stake(&self) -> Self::BigUint {
+    fn get_total_active_stake(&self) -> BigUint {
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active)
     }
 
     #[view(getTotalUnstakedStake)]
-    fn get_total_unstaked_stake(&self) -> Self::BigUint {
+    fn get_total_unstaked_stake(&self) -> BigUint {
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked)
     }
 
     #[view(getTotalDeferredPaymentStake)]
-    fn get_total_deferred_payment_stake(&self) -> Self::BigUint {
+    fn get_total_deferred_payment_stake(&self) -> BigUint {
         self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::DeferredPayment)
     }
 
     // BREAKDOWN BY TYPE
 
-    fn get_user_stake_by_type(&self, user_id: usize) -> StakeByTypeResult<Self::BigUint> {
+    fn get_user_stake_by_type(&self, user_id: usize) -> StakeByTypeResult<BigUint> {
         (
             self.get_user_stake_of_type(user_id, FundType::WithdrawOnly),
             self.get_user_stake_of_type(user_id, FundType::Waiting),
@@ -141,16 +141,16 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     #[view(getUserStakeByType)]
     fn get_user_stake_by_type_endpoint(
         &self,
-        user_address: &Address,
-    ) -> StakeByTypeResult<Self::BigUint> {
+        user_address: &ManagedAddress,
+    ) -> StakeByTypeResult<BigUint> {
         let user_id = self.get_user_id(user_address);
         if user_id == 0 {
             (
-                Self::BigUint::zero(),
-                Self::BigUint::zero(),
-                Self::BigUint::zero(),
-                Self::BigUint::zero(),
-                Self::BigUint::zero(),
+                BigUint::zero(),
+                BigUint::zero(),
+                BigUint::zero(),
+                BigUint::zero(),
+                BigUint::zero(),
             )
                 .into()
         } else {
@@ -159,7 +159,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     }
 
     #[view(getTotalStakeByType)]
-    fn get_total_stake_by_type_endpoint(&self) -> StakeByTypeResult<Self::BigUint> {
+    fn get_total_stake_by_type_endpoint(&self) -> StakeByTypeResult<BigUint> {
         self.get_user_stake_by_type(USER_STAKE_TOTALS_ID)
     }
 
@@ -168,8 +168,8 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     #[view(getAllUserStakeByType)]
     fn get_all_user_stake_by_type(
         &self,
-    ) -> MultiResultVec<MultiResult2<Address, StakeByTypeResult<Self::BigUint>>> {
-        let mut result: Vec<MultiResult2<Address, StakeByTypeResult<Self::BigUint>>> = Vec::new();
+    ) -> MultiResultVec<MultiResult2<ManagedAddress, StakeByTypeResult<BigUint>>> {
+        let mut result: Vec<MultiResult2<ManagedAddress, StakeByTypeResult<BigUint>>> = Vec::new();
         let num_users = self.get_num_users();
         for user_id in 1..=num_users {
             result.push(
@@ -189,9 +189,9 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     #[view(getUserDeferredPaymentList)]
     fn get_user_deferred_payment_list(
         &self,
-        user_address: &Address,
-    ) -> MultiResultVec<MultiResult2<Self::BigUint, u64>> {
-        let mut result = Vec::<MultiResult2<Self::BigUint, u64>>::new();
+        user_address: &ManagedAddress,
+    ) -> MultiResultVec<MultiResult2<BigUint, u64>> {
+        let mut result = Vec::<MultiResult2<BigUint, u64>>::new();
         let user_id = self.get_user_id(user_address);
         if user_id > 0 {
             let _ = self.foreach_fund_by_user_type(
@@ -214,7 +214,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         &self,
         user_id: usize,
         n_blocks_before_claim: u64,
-    ) -> Self::BigUint {
+    ) -> BigUint {
         let current_bl_nonce = self.blockchain().get_block_nonce();
         self.query_sum_funds_by_user_type(user_id, FundType::DeferredPayment, |fund_desc| {
             if let FundDescription::DeferredPayment { created } = fund_desc {
@@ -228,8 +228,8 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     // FULL WAITING LIST
 
     #[view(getFullWaitingList)]
-    fn get_full_waiting_list(&self) -> MultiResultVec<MultiResult3<Address, Self::BigUint, u64>> {
-        let mut result = Vec::<MultiResult3<Address, Self::BigUint, u64>>::new();
+    fn get_full_waiting_list(&self) -> MultiResultVec<MultiResult3<ManagedAddress, BigUint, u64>> {
+        let mut result = Vec::<MultiResult3<ManagedAddress, BigUint, u64>>::new();
         let _ =
             self.foreach_fund_by_type(FundType::Waiting, SwapDirection::Forwards, |fund_item| {
                 if let FundDescription::Waiting { created } = fund_item.fund_desc {
@@ -247,12 +247,12 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     // FULL ACTIVE LIST
 
     #[view(getFullActiveList)]
-    fn get_full_active_list(&self) -> MultiResultVec<MultiResult2<Address, Self::BigUint>> {
-        let mut result = Vec::<MultiResult2<Address, Self::BigUint>>::new();
+    fn get_full_active_list(&self) -> MultiResultVec<MultiResult2<ManagedAddress, BigUint>> {
+        let mut result = Vec::<MultiResult2<ManagedAddress, BigUint>>::new();
         let _ = self.foreach_fund_by_type(FundType::Active, SwapDirection::Forwards, |fund_item| {
             if let FundDescription::Active = fund_item.fund_desc {
                 if self.is_empty_user_address(fund_item.user_id) {
-                    result.push(MultiResult2::from((Address::zero(), fund_item.balance)));
+                    result.push(MultiResult2::from((ManagedAddress::zero(), fund_item.balance)));
                 } else {
                     let user_address = self.get_user_address(fund_item.user_id);
                     result.push(MultiResult2::from((user_address, fund_item.balance)));
