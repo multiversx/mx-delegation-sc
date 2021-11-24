@@ -24,7 +24,7 @@ pub trait NodeActivationModule:
     fn stake_nodes(
         &self,
         amount_to_stake: BigUint,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey>,
     ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to stake nodes");
 
@@ -45,10 +45,11 @@ pub trait NodeActivationModule:
 
         self.validate_owner_stake_share()?;
 
-        let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
-        let mut bls_keys_signatures: Vec<MultiArg2<BLSKey, BLSSignature>> = Vec::new();
+        let mut node_ids: ManagedVec<Self::Api, usize> = ManagedVec::new();
+        let mut bls_keys_signatures: ManagedVarArgs<Self::Api, MultiArg2<BLSKey, BLSSignature>> =
+            ManagedVarArgs::new();
 
-        for bls_key in bls_keys.into_vec().into_iter() {
+        for bls_key in bls_keys.into_iter() {
             let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "unknown node provided");
 
@@ -64,13 +65,13 @@ pub trait NodeActivationModule:
             self.set_node_state(node_id, NodeState::PendingActivation);
         }
 
-        Ok(self.perform_stake_nodes(node_ids, bls_keys_signatures.into(), amount_to_stake))
+        Ok(self.perform_stake_nodes(node_ids, bls_keys_signatures, amount_to_stake))
     }
 
     fn perform_stake_nodes(
         &self,
-        node_ids: Vec<usize>,
-        bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>,
+        node_ids: ManagedVec<usize>,
+        bls_keys_signatures: ManagedVarArgs<MultiArg2<BLSKey, BLSSignature>>,
         amount_to_stake: BigUint,
     ) -> AsyncCall {
         let num_nodes = node_ids.len();
@@ -89,7 +90,7 @@ pub trait NodeActivationModule:
     #[callback]
     fn auction_stake_callback(
         &self,
-        node_ids: Vec<usize>,
+        node_ids: ManagedVec<usize>,
         #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
     ) -> SCResult<()> {
         match call_result {
@@ -151,7 +152,7 @@ pub trait NodeActivationModule:
     #[endpoint(unStakeNodes)]
     fn unstake_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey>,
     ) -> SCResult<AsyncCall> {
         self.unstake_nodes(false, bls_keys)
     }
@@ -163,7 +164,7 @@ pub trait NodeActivationModule:
     #[endpoint(unStakeNodesAndTokens)]
     fn unstake_nodes_and_tokens_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey>,
     ) -> SCResult<AsyncCall> {
         self.unstake_nodes(true, bls_keys)
     }
@@ -171,7 +172,7 @@ pub trait NodeActivationModule:
     fn unstake_nodes(
         &self,
         unstake_tokens: bool,
-        bls_keys: VarArgs<BLSKey>,
+        bls_keys: ManagedVarArgs<BLSKey>,
     ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to unstake nodes");
 
@@ -268,7 +269,10 @@ pub trait NodeActivationModule:
     /// Owner can retry a callback in case of callback failure.
     /// Warning: misuse can lead to state inconsistency.
     #[endpoint(forceNodeUnBondPeriod)]
-    fn force_node_unbond_period(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
+    fn force_node_unbond_period(
+        &self,
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey>,
+    ) -> SCResult<()> {
         only_owner!(self, "only owner can force nodes to unbond period");
 
         for bls_key in bls_keys.iter() {
@@ -301,7 +305,7 @@ pub trait NodeActivationModule:
     #[endpoint(unBondNodes)]
     fn unbond_specific_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey>,
     ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to unbond nodes");
 
@@ -372,11 +376,7 @@ pub trait NodeActivationModule:
         false
     }
 
-    fn perform_unbond(
-        &self,
-        node_ids: Vec<usize>,
-        bls_keys: Vec<BLSKey>,
-    ) -> AsyncCall {
+    fn perform_unbond(&self, node_ids: Vec<usize>, bls_keys: Vec<BLSKey>) -> AsyncCall {
         // send unbond command to Auction SC
         let auction_contract_addr = self.get_auction_contract_address();
         self.auction_proxy(auction_contract_addr)
@@ -474,7 +474,7 @@ pub trait NodeActivationModule:
     #[endpoint(unJailNodes)]
     fn unjail_nodes(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey>,
         #[payment] fine_payment: BigUint,
     ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to unjail nodes");

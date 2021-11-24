@@ -97,12 +97,12 @@ pub trait NodeConfigModule {
     #[endpoint(addNodes)]
     fn add_nodes(
         &self,
-        #[var_args] bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>,
+        #[var_args] bls_keys_signatures: ManagedVarArgs<MultiArg2<BLSKey, BLSSignature>>,
     ) -> SCResult<()> {
         only_owner!(self, "only owner can add nodes");
 
         let mut num_nodes = self.num_nodes().get();
-        for bls_sig_pair_arg in bls_keys_signatures.into_vec().into_iter() {
+        for bls_sig_pair_arg in bls_keys_signatures.into_iter() {
             let (bls_key, bls_sig) = bls_sig_pair_arg.into_tuple();
             let mut node_id = self.get_node_id(&bls_key);
             if node_id == 0 {
@@ -124,11 +124,11 @@ pub trait NodeConfigModule {
     }
 
     #[endpoint(removeNodes)]
-    fn remove_nodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
+    fn remove_nodes(&self, #[var_args] bls_keys: ManagedVarArgs<BLSKey>) -> SCResult<()> {
         only_owner!(self, "only owner can remove nodes");
 
-        for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(bls_key);
+        for bls_key in bls_keys.into_iter() {
+            let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "node not registered");
             require!(
                 self.get_node_state(node_id) == NodeState::Inactive,
@@ -142,11 +142,11 @@ pub trait NodeConfigModule {
 
     fn split_node_ids_by_err(
         &self,
-        mut node_ids: Vec<usize>,
-        node_status_args: VarArgs<BLSStatusMultiArg>,
+        mut node_ids: ManagedVec<usize>,
+        node_status_args: ManagedVarArgs<BLSStatusMultiArg>,
     ) -> (Vec<usize>, Vec<usize>) {
         let mut failed_node_ids: Vec<usize> = Vec::new();
-        for arg in node_status_args.into_vec().into_iter() {
+        for arg in node_status_args.into_iter() {
             let (bls_key, status) = arg.into_tuple();
             if status != 0 {
                 let node_id = self.get_node_id(&bls_key);

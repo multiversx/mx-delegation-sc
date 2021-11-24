@@ -9,32 +9,32 @@ pub trait Auction {
     fn stake(
         &self,
         num_nodes: usize,
-        #[var_args] bls_keys_signatures_args: VarArgs<MultiArg2<BLSKey, BLSSignature>>,
+        #[var_args] bls_keys_signatures_args: ManagedVarArgs<MultiArg2<BLSKey, BLSSignature>>,
     ) -> SCResult<MultiResultVec<BoxedBytes>>;
 
     #[endpoint(unStake)]
     fn unstake(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey>,
     ) -> SCResult<MultiResultVec<BoxedBytes>>;
 
     #[endpoint(unStakeNodes)]
     fn unstake_nodes(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey>,
     ) -> SCResult<MultiResultVec<BoxedBytes>>;
 
     #[endpoint(unBond)]
-    fn unbond(&self, #[var_args] bls_keys: VarArgs<BLSKey>)
+    fn unbond(&self, #[var_args] bls_keys: ManagedVarArgs<BLSKey>)
         -> SCResult<MultiResultVec<BoxedBytes>>;
 
     #[endpoint(unBondNodes)]
-    fn unbond_nodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>);
+    fn unbond_nodes(&self, #[var_args] bls_keys: ManagedVarArgs<BLSKey>);
 
     #[endpoint]
     fn claim(&self);
 
     #[payable("EGLD")]
     #[endpoint(unJail)]
-    fn unjail(&self, #[var_args] bls_keys: VarArgs<BLSKey>);
+    fn unjail(&self, #[var_args] bls_keys: ManagedVarArgs<BLSKey>);
 }
