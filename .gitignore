@@ -15,6 +15,7 @@ Cargo.lock
 **/*.h
 **/*.wat
 **/*.txt
+**/*-dbg.wasm
 
 # Debugging
 compile.sh
