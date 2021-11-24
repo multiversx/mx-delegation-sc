@@ -9,7 +9,7 @@
         },
         "contractCrate": {
             "name": "delegation_latest_full",
-            "version": "0.5.7"
+            "version": "0.5.8"
         },
         "framework": {
             "name": "elrond-wasm",
