@@ -13,7 +13,7 @@
         },
         "framework": {
             "name": "elrond-wasm",
-            "version": "0.23.0"
+            "version": "0.23.1"
         }
     },
     "name": "DelegationUpdate",
@@ -1136,7 +1136,7 @@
             "type": "struct",
             "fields": [
                 {
-                    "name": "0",
+                    "name": "bytes",
                     "type": "array96<u8>"
                 }
             ]
@@ -1145,7 +1145,7 @@
             "type": "struct",
             "fields": [
                 {
-                    "name": "0",
+                    "name": "bytes",
                     "type": "array48<u8>"
                 }
             ]

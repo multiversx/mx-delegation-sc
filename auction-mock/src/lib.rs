@@ -142,7 +142,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unJail)]
     fn unjail_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: VarArgs<BLSKey<Self::Api>>,
         #[payment] _fine_payment: BigUint,
     ) -> SCResult<()> {
         self.set_unjailed(&bls_keys.into_vec());

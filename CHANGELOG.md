@@ -3,7 +3,7 @@
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [0.5.8]
-- upgraded to elrond-wasm 0.23.0
+- upgraded to elrond-wasm 0.23.1
 - `unStakeTokens`/`unBondTokens` endpoints
 
 ## [0.5.7]
