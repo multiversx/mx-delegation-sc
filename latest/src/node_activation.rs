@@ -107,12 +107,12 @@ pub trait NodeActivationModule:
                 self.auction_stake_callback_ok(&node_ids_ok)?;
                 self.auction_stake_callback_fail(
                     &node_ids_fail,
-                    &b"staking failed for some nodes"[..],
+                    &ManagedBuffer::from(b"staking failed for some nodes"),
                 )?;
                 Ok(())
             }
             AsyncCallResult::Err(error) => {
-                self.auction_stake_callback_fail(&node_ids, error.err_msg.as_slice())
+                self.auction_stake_callback_fail(&node_ids, &ManagedBuffer::from(error.err_msg))
             }
         }
     }
@@ -137,7 +137,7 @@ pub trait NodeActivationModule:
     fn auction_stake_callback_fail(
         &self,
         node_ids: &NodeIndexArrayVec,
-        err_msg: &[u8],
+        err_msg: &ManagedBuffer,
     ) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());
@@ -251,12 +251,12 @@ pub trait NodeActivationModule:
                 self.auction_unstake_callback_ok(&node_ids_ok)?;
                 self.auction_unstake_callback_fail(
                     &node_ids_fail,
-                    &b"unstaking failed for some nodes"[..],
+                    &ManagedBuffer::from(b"unstaking failed for some nodes"),
                 )?;
                 Ok(())
             }
             AsyncCallResult::Err(error) => {
-                self.auction_unstake_callback_fail(&node_ids, error.err_msg.as_slice())
+                self.auction_unstake_callback_fail(&node_ids, &ManagedBuffer::from(error.err_msg))
             }
         }
     }
@@ -300,7 +300,7 @@ pub trait NodeActivationModule:
     fn auction_unstake_callback_fail(
         &self,
         node_ids: &NodeIndexArrayVec,
-        err_msg: &[u8],
+        err_msg: &ManagedBuffer,
     ) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());
@@ -423,12 +423,12 @@ pub trait NodeActivationModule:
                 self.auction_unbond_callback_ok(&node_ids_ok)?;
                 self.auction_unbond_callback_fail(
                     &node_ids_fail,
-                    &b"unbonding failed for some nodes"[..],
+                    &ManagedBuffer::from(b"unbonding failed for some nodes"),
                 )?;
                 Ok(())
             }
             AsyncCallResult::Err(error) => {
-                self.auction_unbond_callback_fail(&node_ids, error.err_msg.as_slice())
+                self.auction_unbond_callback_fail(&node_ids, &ManagedBuffer::from(error.err_msg))
             }
         }
     }
@@ -453,7 +453,7 @@ pub trait NodeActivationModule:
     fn auction_unbond_callback_fail(
         &self,
         node_ids: &NodeIndexArrayVec,
-        err_msg: &[u8],
+        err_msg: &ManagedBuffer,
     ) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());

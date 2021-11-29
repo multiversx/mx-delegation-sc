@@ -13,19 +13,19 @@ pub trait EventsModule {
     fn stake_node_ok_event(&self);
 
     #[event("nodeStakeFail")]
-    fn stake_node_fail_event(&self, reason: &[u8]);
+    fn stake_node_fail_event(&self, reason: &ManagedBuffer);
 
     #[event("nodeUnstakeOk")]
     fn unstake_node_ok_event(&self);
 
     #[event("nodeUnstakeFail")]
-    fn unstake_node_fail_event(&self, reason: &[u8]);
+    fn unstake_node_fail_event(&self, reason: &ManagedBuffer);
 
     #[event("nodeUnbondOk")]
     fn unbond_node_ok_event(&self);
 
     #[event("nodeUnbondFail")]
-    fn unbond_node_fail_event(&self, reason: &[u8]);
+    fn unbond_node_fail_event(&self, reason: &ManagedBuffer);
 
     #[event("tokensUnstake")]
     fn unstake_tokens_event(&self, amount: &BigUint);
