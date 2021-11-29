@@ -83,13 +83,13 @@ pub trait UserDataModule {
 
     #[view(userIdsWithoutAddress)]
     fn user_ids_without_address(&self) -> MultiResultVec<usize> {
-        let mut result = Vec::<usize>::new();
+        let mut result = MultiResultVec::<usize>::new();
         let num_users = self.get_num_users();
         for user_id in 1..=num_users {
             if self.is_empty_user_address(user_id) {
                 result.push(user_id);
             }
         }
-        result.into()
+        result
     }
 }

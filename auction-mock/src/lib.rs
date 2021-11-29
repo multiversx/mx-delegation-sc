@@ -37,7 +37,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
             "incorrect payment to auction mock"
         );
 
-        let mut result_err_data: Vec<ManagedBuffer> = Vec::new();
+        let mut result_err_data: MultiResultVec<ManagedBuffer> = MultiResultVec::new();
         for key_sig_pair in bls_keys_signatures.into_iter() {
             new_num_nodes += 1;
             let (bls_key, bls_sig) = key_sig_pair.into_tuple();
@@ -53,7 +53,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
 
         self.set_num_nodes(new_num_nodes);
 
-        Ok(result_err_data.into())
+        Ok(result_err_data)
     }
 
     #[endpoint(unStake)]
@@ -66,7 +66,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
             "auction smart contract deliberate error"
         );
 
-        let mut result_err_data: Vec<ManagedBuffer> = Vec::new();
+        let mut result_err_data: MultiResultVec<ManagedBuffer> = MultiResultVec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
             self.set_unstake_bls_key(n, bls_key.to_boxed_bytes().as_slice());
 
@@ -77,7 +77,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
             }
         }
 
-        Ok(result_err_data.into())
+        Ok(result_err_data)
     }
 
     #[endpoint(unStakeNodes)]
@@ -98,7 +98,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
             "auction smart contract deliberate error"
         );
 
-        let mut result_err_data: Vec<ManagedBuffer> = Vec::new();
+        let mut result_err_data: MultiResultVec<ManagedBuffer> = MultiResultVec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
             self.set_unbond_bls_key(n, bls_key.to_boxed_bytes().as_slice());
 
@@ -113,7 +113,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
         self.send()
             .direct_egld(&self.blockchain().get_caller(), &unbond_stake, &[]);
 
-        Ok(result_err_data.into())
+        Ok(result_err_data)
     }
 
     #[endpoint(unBondNodes)]

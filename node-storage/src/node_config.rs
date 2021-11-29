@@ -79,14 +79,14 @@ pub trait NodeConfigModule {
     #[view(getAllNodeStates)]
     fn get_all_node_states(&self) -> MultiResultVec<MultiResult2<BLSKey<Self::Api>, u8>> {
         let num_nodes = self.num_nodes().get();
-        let mut result = Vec::new();
+        let mut result = MultiResultVec::new();
         for i in 1..num_nodes + 1 {
             result.push(MultiResult2::from((
                 self.get_node_id_to_bls(i),
                 self.get_node_state(i).discriminant(),
             )));
         }
-        result.into()
+        result
     }
 
     #[view(getNodeBlockNonceOfUnstake)]

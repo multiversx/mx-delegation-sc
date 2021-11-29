@@ -169,7 +169,8 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     fn get_all_user_stake_by_type(
         &self,
     ) -> MultiResultVec<MultiResult2<ManagedAddress, StakeByTypeResult<BigUint>>> {
-        let mut result: Vec<MultiResult2<ManagedAddress, StakeByTypeResult<BigUint>>> = Vec::new();
+        let mut result: MultiResultVec<MultiResult2<ManagedAddress, StakeByTypeResult<BigUint>>> =
+            MultiResultVec::new();
         let num_users = self.get_num_users();
         for user_id in 1..=num_users {
             result.push(
@@ -181,7 +182,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
             );
         }
 
-        result.into()
+        result
     }
 
     // DEFERRED PAYMENT BREAKDOWN
@@ -191,7 +192,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         &self,
         user_address: &ManagedAddress,
     ) -> MultiResultVec<MultiResult2<BigUint, u64>> {
-        let mut result = Vec::<MultiResult2<BigUint, u64>>::new();
+        let mut result = MultiResultVec::<MultiResult2<BigUint, u64>>::new();
         let user_id = self.get_user_id(user_address);
         if user_id > 0 {
             let _ = self.foreach_fund_by_user_type(
@@ -205,7 +206,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
                 },
             );
         }
-        result.into()
+        result
     }
 
     // DEFERRED PAYMENT UTIL
@@ -225,7 +226,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
 
     #[view(getFullWaitingList)]
     fn get_full_waiting_list(&self) -> MultiResultVec<MultiResult3<ManagedAddress, BigUint, u64>> {
-        let mut result = Vec::<MultiResult3<ManagedAddress, BigUint, u64>>::new();
+        let mut result = MultiResultVec::<MultiResult3<ManagedAddress, BigUint, u64>>::new();
         let _ =
             self.foreach_fund_by_type(FundType::Waiting, SwapDirection::Forwards, |fund_item| {
                 if let FundDescription::Waiting { created } = fund_item.fund_desc {
@@ -237,14 +238,14 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
                     )));
                 }
             });
-        result.into()
+        result
     }
 
     // FULL ACTIVE LIST
 
     #[view(getFullActiveList)]
     fn get_full_active_list(&self) -> MultiResultVec<MultiResult2<ManagedAddress, BigUint>> {
-        let mut result = Vec::<MultiResult2<ManagedAddress, BigUint>>::new();
+        let mut result = MultiResultVec::<MultiResult2<ManagedAddress, BigUint>>::new();
         let _ = self.foreach_fund_by_type(FundType::Active, SwapDirection::Forwards, |fund_item| {
             if let FundDescription::Active = fund_item.fund_desc {
                 if self.is_empty_user_address(fund_item.user_id) {
@@ -258,6 +259,6 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
                 }
             }
         });
-        result.into()
+        result
     }
 }
