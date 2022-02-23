@@ -188,7 +188,7 @@
                 "out": [],
                 "status": "4",
                 "message": "''node not registered",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
@@ -210,7 +210,7 @@
                 "out": [],
                 "status": "4",
                 "message": "''only inactive nodes can be removed",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }

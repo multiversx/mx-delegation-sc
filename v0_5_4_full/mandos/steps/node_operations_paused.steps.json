@@ -22,7 +22,7 @@
                 "out": [],
                 "status": "4",
                 "message": "str:node operations are temporarily paused as checkpoint is reset",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
@@ -45,7 +45,7 @@
                 "out": [],
                 "status": "4",
                 "message": "str:node operations are temporarily paused as checkpoint is reset",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
@@ -68,7 +68,7 @@
                 "out": [],
                 "status": "4",
                 "message": "str:node operations are temporarily paused as checkpoint is reset",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
@@ -89,7 +89,7 @@
                 "out": [],
                 "status": "4",
                 "message": "str:node operations are temporarily paused as checkpoint is reset",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
