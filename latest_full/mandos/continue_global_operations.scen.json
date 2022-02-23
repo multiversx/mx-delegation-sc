@@ -146,7 +146,7 @@
                 "out": [],
                 "status": "4",
                 "message": "''cannot modify total delegation cap when last is in progress",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
@@ -168,7 +168,7 @@
                 "out": [],
                 "status": "4",
                 "message": "''global checkpoint is in progress",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }

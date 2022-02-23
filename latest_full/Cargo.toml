@@ -8,10 +8,10 @@ edition = "2018"
 path = "../latest"
 
 [dependencies.elrond-wasm]
-version = "0.23.1"
+version = "0.28.0"
 
 [dev-dependencies.elrond-wasm-debug]
-version = "0.23.1"
+version = "0.28.0"
 
 [dev-dependencies.auction-mock]
 path = "../auction-mock"

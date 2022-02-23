@@ -10,27 +10,27 @@ pub trait Auction {
         &self,
         num_nodes: usize,
         #[var_args] bls_keys_signatures_args: ManagedVarArgs<
-            MultiArg2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
+            MultiValue2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
         >,
-    ) -> SCResult<MultiResultVec<ManagedBuffer>>;
+    ) -> MultiValueVec<ManagedBuffer>;
 
     #[endpoint(unStake)]
     fn unstake(
         &self,
         #[var_args] bls_keys: ManagedVarArgs<BLSKey<Self::Api>>,
-    ) -> SCResult<MultiResultVec<ManagedBuffer>>;
+    ) -> MultiValueVec<ManagedBuffer>;
 
     #[endpoint(unStakeNodes)]
     fn unstake_nodes(
         &self,
         #[var_args] bls_keys: ManagedVarArgs<BLSKey<Self::Api>>,
-    ) -> SCResult<MultiResultVec<ManagedBuffer>>;
+    ) -> MultiValueVec<ManagedBuffer>;
 
     #[endpoint(unBond)]
     fn unbond(
         &self,
         #[var_args] bls_keys: ManagedVarArgs<BLSKey<Self::Api>>,
-    ) -> SCResult<MultiResultVec<ManagedBuffer>>;
+    ) -> MultiValueVec<ManagedBuffer>;
 
     #[endpoint(unBondNodes)]
     fn unbond_nodes(&self, #[var_args] bls_keys: ManagedVarArgs<BLSKey<Self::Api>>);

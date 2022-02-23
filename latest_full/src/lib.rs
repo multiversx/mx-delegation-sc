@@ -22,9 +22,9 @@ pub trait DelegationFull:
     + delegation_latest::rewards_endpoints::RewardEndpointsModule
     + delegation_latest::user_stake_endpoints::UserStakeEndpointsModule
     + delegation_latest::user_stake_dust_cleanup::UserStakeDustCleanupModule
-    + delegation_latest::elrond_wasm_module_dns::DnsModule
-    + delegation_latest::elrond_wasm_module_features::FeaturesModule
-    + delegation_latest::elrond_wasm_module_pause::PauseModule
+    + delegation_latest::elrond_wasm_modules::dns::DnsModule
+    + delegation_latest::elrond_wasm_modules::features::FeaturesModule
+    + delegation_latest::elrond_wasm_modules::pause::PauseModule
 {
     // METADATA
 
@@ -45,7 +45,7 @@ pub trait DelegationFull:
         n_blocks_before_unbond: u64,
         minimum_stake: BigUint,
         total_delegation_cap: BigUint,
-    ) -> SCResult<()> {
+    ) {
         let owner = self.blockchain().get_caller();
         self.set_user_id(&owner, OWNER_USER_ID.get()); // node reward destination will be user #1
         self.set_user_address(OWNER_USER_ID.get(), &owner);
@@ -61,14 +61,12 @@ pub trait DelegationFull:
         let next_service_fee = BigUint::from(service_fee_per_10000);
         self.set_service_fee(next_service_fee);
 
-        self.set_owner_min_stake_share_validated(owner_min_stake_share_per_10000)?;
+        self.set_owner_min_stake_share_validated(owner_min_stake_share_per_10000);
 
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);
         self.set_minimum_stake(&minimum_stake);
 
         self.set_total_delegation_cap(total_delegation_cap);
         self.set_bootstrap_mode(true);
-
-        Ok(())
     }
 }

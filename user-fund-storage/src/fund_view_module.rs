@@ -14,7 +14,7 @@ use crate::user_data;
 pub const USER_STAKE_TOTALS_ID: usize = 0;
 
 /// Result type containing 5 numeric values, one for each stake type.
-pub type StakeByTypeResult<BigUint> = MultiResult5<BigUint, BigUint, BigUint, BigUint, BigUint>;
+pub type StakeByTypeResult<BigUint> = MultiValue5<BigUint, BigUint, BigUint, BigUint, BigUint>;
 
 #[elrond_wasm::derive::module]
 pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
@@ -168,9 +168,9 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     #[view(getAllUserStakeByType)]
     fn get_all_user_stake_by_type(
         &self,
-    ) -> MultiResultVec<MultiResult2<ManagedAddress, StakeByTypeResult<BigUint>>> {
-        let mut result: MultiResultVec<MultiResult2<ManagedAddress, StakeByTypeResult<BigUint>>> =
-            MultiResultVec::new();
+    ) -> MultiValueVec<MultiValue2<ManagedAddress, StakeByTypeResult<BigUint>>> {
+        let mut result: MultiValueVec<MultiValue2<ManagedAddress, StakeByTypeResult<BigUint>>> =
+            MultiValueVec::new();
         let num_users = self.get_num_users();
         for user_id in 1..=num_users {
             result.push(
@@ -191,8 +191,8 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     fn get_user_deferred_payment_list(
         &self,
         user_address: &ManagedAddress,
-    ) -> MultiResultVec<MultiResult2<BigUint, u64>> {
-        let mut result = MultiResultVec::<MultiResult2<BigUint, u64>>::new();
+    ) -> MultiValueVec<MultiValue2<BigUint, u64>> {
+        let mut result = MultiValueVec::<MultiValue2<BigUint, u64>>::new();
         let user_id = self.get_user_id(user_address);
         if user_id > 0 {
             let _ = self.foreach_fund_by_user_type(
@@ -201,7 +201,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
                 SwapDirection::Forwards,
                 |fund_item| {
                     if let FundDescription::DeferredPayment { created } = fund_item.fund_desc {
-                        result.push(MultiResult2::from((fund_item.balance, created)));
+                        result.push(MultiValue2::from((fund_item.balance, created)));
                     }
                 },
             );
@@ -225,13 +225,13 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     // FULL WAITING LIST
 
     #[view(getFullWaitingList)]
-    fn get_full_waiting_list(&self) -> MultiResultVec<MultiResult3<ManagedAddress, BigUint, u64>> {
-        let mut result = MultiResultVec::<MultiResult3<ManagedAddress, BigUint, u64>>::new();
+    fn get_full_waiting_list(&self) -> MultiValueVec<MultiValue3<ManagedAddress, BigUint, u64>> {
+        let mut result = MultiValueVec::<MultiValue3<ManagedAddress, BigUint, u64>>::new();
         let _ =
             self.foreach_fund_by_type(FundType::Waiting, SwapDirection::Forwards, |fund_item| {
                 if let FundDescription::Waiting { created } = fund_item.fund_desc {
                     let user_address = self.get_user_address(fund_item.user_id);
-                    result.push(MultiResult3::from((
+                    result.push(MultiValue3::from((
                         user_address,
                         fund_item.balance,
                         created,
@@ -244,18 +244,18 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     // FULL ACTIVE LIST
 
     #[view(getFullActiveList)]
-    fn get_full_active_list(&self) -> MultiResultVec<MultiResult2<ManagedAddress, BigUint>> {
-        let mut result = MultiResultVec::<MultiResult2<ManagedAddress, BigUint>>::new();
+    fn get_full_active_list(&self) -> MultiValueVec<MultiValue2<ManagedAddress, BigUint>> {
+        let mut result = MultiValueVec::<MultiValue2<ManagedAddress, BigUint>>::new();
         let _ = self.foreach_fund_by_type(FundType::Active, SwapDirection::Forwards, |fund_item| {
             if let FundDescription::Active = fund_item.fund_desc {
                 if self.is_empty_user_address(fund_item.user_id) {
-                    result.push(MultiResult2::from((
+                    result.push(MultiValue2::from((
                         ManagedAddress::zero(),
                         fund_item.balance,
                     )));
                 } else {
                     let user_address = self.get_user_address(fund_item.user_id);
-                    result.push(MultiResult2::from((user_address, fund_item.balance)));
+                    result.push(MultiValue2::from((user_address, fund_item.balance)));
                 }
             }
         });

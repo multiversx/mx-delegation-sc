@@ -19,7 +19,7 @@ pub trait UserStakeStateModule:
     + crate::rewards_state::RewardStateModule
     + crate::events::EventsModule
 {
-    fn process_stake(&self, payment: BigUint) -> SCResult<()> {
+    fn process_stake(&self, payment: BigUint) {
         // get user id or create user
         // we use user id as an intermediate identifier between user address and data,
         // because we might at some point need to iterate over all user data
@@ -33,10 +33,10 @@ pub trait UserStakeStateModule:
         self.create_waiting(user_id, payment);
 
         // check invariant
-        self.validate_delegation_cap_invariant()?;
+        self.validate_delegation_cap_invariant();
 
         // move funds around
-        self.use_waiting_to_replace_unstaked()
+        self.use_waiting_to_replace_unstaked();
     }
 
     /// The contract can be either overstaked (waiting > 0) or understaked (unstaked > 0).
@@ -44,7 +44,7 @@ pub trait UserStakeStateModule:
     /// This operation does this. It takes min(waiting, unstaked) and converts this amount
     /// from waiting to active and from unstaked to deferred payment.
     /// Note that this operation preserves the invariant that active + unstaked == delegation_cap.
-    fn use_waiting_to_replace_unstaked(&self) -> SCResult<()> {
+    fn use_waiting_to_replace_unstaked(&self) {
         let total_waiting = self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Waiting);
         let mut total_unstaked =
             self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
@@ -72,13 +72,12 @@ pub trait UserStakeStateModule:
                 // this happens only when waiting was enough to fill the delegation cap
                 self.set_bootstrap_mode(false);
             }
-            Ok(())
         } else {
             // regular scenario
             // exactly the same amount is swapped from waiting -> active, as from unstaked -> deferred payment
             let swappable = core::cmp::min(&total_waiting, &total_unstaked);
             if *swappable == 0 {
-                return Ok(());
+                return;
             }
 
             // swap unStaked -> deferred payment
@@ -96,29 +95,27 @@ pub trait UserStakeStateModule:
 
     /// Swaps waiting stake to active within given limits,
     /// and also computes rewards for all affected users before performing the swap itself.
-    fn swap_waiting_to_active_compute_rewards(&self, swappable: &BigUint) -> SCResult<()> {
+    fn swap_waiting_to_active_compute_rewards(&self, swappable: &BigUint) {
         // dry run of swap, to get the affected users
         let (affected_users, remaining) =
             self.get_affected_users_of_swap_waiting_to_active(swappable, || false);
-        require!(remaining == 0, "error swapping waiting to active");
+        require!(remaining == 0u32, "error swapping waiting to active");
 
         // compute rewards for all affected users
         self.compute_one_user_reward(OWNER_USER_ID);
         for user_id in affected_users.iter() {
-            let user_id_nz = non_zero_usize!(user_id, "bad user_id");
+            let user_id_nz = NonZeroUsize::new(user_id).unwrap_or_else(|| sc_panic!("bad user_id"));
             self.compute_one_user_reward(user_id_nz);
         }
 
         // actual swap of waiting to active
         let mut remaining = swappable.clone();
         let _ = self.swap_waiting_to_active(&mut remaining, || false);
-        require!(remaining == 0, "error swapping waiting to active");
-
-        Ok(())
+        require!(remaining == 0u32, "error swapping waiting to active");
     }
 
     /// Mostly invariant: modifyTotalDelegationCap can violate this rule.
-    fn validate_user_minimum_stake(&self, user_id: usize) -> SCResult<()> {
+    fn validate_user_minimum_stake(&self, user_id: usize) {
         let waiting = self.get_user_stake_of_type(user_id, FundType::Waiting);
         let active = self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
         let relevant_stake = &waiting + &active;
@@ -127,12 +124,11 @@ pub trait UserStakeStateModule:
             relevant_stake == 0 || relevant_stake >= self.get_minimum_stake(),
             "cannot have waiting + active stake less than minimum stake"
         );
-        Ok(())
     }
 
     /// Invariant: should never return error.
     #[view(validateOwnerStakeShare)]
-    fn validate_owner_stake_share(&self) -> SCResult<()> {
+    fn validate_owner_stake_share(&self) {
         // owner total stake / contract total stake < owner_min_stake_share / 10000
         // reordered to avoid divisions
         require!(
@@ -142,30 +138,28 @@ pub trait UserStakeStateModule:
                     * self.get_owner_min_stake_share(),
             "owner doesn't have enough stake in the contract"
         );
-        Ok(())
     }
 
-    fn validate_unstake_amount(&self, user_id: usize, amount: &BigUint) -> SCResult<()> {
+    fn validate_unstake_amount(&self, user_id: usize, amount: &BigUint) {
         let max_unstake = self.get_user_stake_of_type(user_id, FundType::Waiting)
             + self.get_user_stake_of_type(user_id, FundType::Active);
         match amount.cmp(&max_unstake) {
             Ordering::Greater => {
-                sc_error!("cannot unstake more than the user waiting + active stake")
+                sc_panic!("cannot unstake more than the user waiting + active stake")
             }
-            Ordering::Equal => Ok(()),
+            Ordering::Equal => {}
             Ordering::Less => {
                 require!(
                     *amount >= self.get_minimum_stake(),
                     "cannot unstake less than minimum stake"
                 );
-                Ok(())
             }
         }
     }
 
     /// Invariant: should never return error.
     #[view(validateDelegationCapInvariant)]
-    fn validate_delegation_cap_invariant(&self) -> SCResult<()> {
+    fn validate_delegation_cap_invariant(&self) {
         let total_active = self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::Active);
         let total_unstaked = self.get_user_stake_of_type(USER_STAKE_TOTALS_ID, FundType::UnStaked);
         let total_delegation_cap = self.get_total_delegation_cap();
@@ -181,7 +175,5 @@ pub trait UserStakeStateModule:
                 "delegation cap invariant violated"
             );
         }
-
-        Ok(())
     }
 }

@@ -15,7 +15,7 @@ pub const STOP_AT_GASLIMIT: u64 = 100_000_000;
 pub trait ResetCheckpointsModule:
     crate::rewards_state::RewardStateModule
     + crate::reset_checkpoint_state::ResetCheckpointStateModule
-    + elrond_wasm_module_features::FeaturesModule
+    + elrond_wasm_modules::features::FeaturesModule
     + user_fund_storage::user_data::UserDataModule
     + user_fund_storage::fund_module::FundModule
     + user_fund_storage::fund_view_module::FundViewModule
@@ -25,7 +25,7 @@ pub trait ResetCheckpointsModule:
     /// Continues executing any interrupted operation.
     /// Returns true if still out of gas, false if computation completed.
     #[endpoint(continueGlobalOperation)]
-    fn continue_global_operation_endpoint(&self) -> SCResult<OperationCompletionStatus> {
+    fn continue_global_operation_endpoint(&self) -> OperationCompletionStatus {
         self.check_feature_on(b"continueGlobalOperation", true);
 
         let orc = self.global_op_checkpoint().get();
@@ -35,7 +35,7 @@ pub trait ResetCheckpointsModule:
     fn continue_global_operation(
         &self,
         mut orc: Box<GlobalOpCheckpoint<Self::Api>>,
-    ) -> SCResult<OperationCompletionStatus> {
+    ) -> OperationCompletionStatus {
         let mut status = OperationCompletionStatus::Completed;
         while matches!(status, OperationCompletionStatus::Completed) && !orc.is_none() {
             let (new_status, new_orc) = self.continue_global_operation_step(orc);
@@ -44,7 +44,7 @@ pub trait ResetCheckpointsModule:
         }
 
         self.global_op_checkpoint().set(&orc);
-        Ok(status)
+        status
     }
 
     fn continue_global_operation_step(
@@ -213,13 +213,9 @@ pub trait ResetCheckpointsModule:
 
     /// Total delegation cap can be modified by owner only.
     /// It will recalculate and set the checkpoint for all the delegators
+    #[only_owner]
     #[endpoint(modifyTotalDelegationCap)]
-    fn modify_total_delegation_cap(
-        &self,
-        new_total_cap: BigUint,
-    ) -> SCResult<OperationCompletionStatus> {
-        only_owner!(self, "only owner allowed to modify delegation cap");
-
+    fn modify_total_delegation_cap(&self, new_total_cap: BigUint) -> OperationCompletionStatus {
         require!(
             !self.is_global_op_in_progress(),
             "cannot modify total delegation cap when last is in progress"
@@ -238,7 +234,7 @@ pub trait ResetCheckpointsModule:
                 // compute all rewards not necessary - no rewards yet
                 // swap not necessary - there cannot be any waiting or unstaked funds
                 self.set_total_delegation_cap(new_total_cap);
-                return Ok(OperationCompletionStatus::Completed);
+                return OperationCompletionStatus::Completed;
             } else {
                 // bootstrap mode is over
                 // no rewards to compute, but
@@ -265,12 +261,12 @@ pub trait ResetCheckpointsModule:
         let orc = match new_total_cap.cmp(&previous_total_cap) {
             Ordering::Equal => {
                 // nothing changes
-                return Ok(OperationCompletionStatus::Completed);
+                return OperationCompletionStatus::Completed;
             }
             Ordering::Greater => {
                 // cap increases
                 require!(
-                    total_unstaked == 0,
+                    total_unstaked == 0u32,
                     "no unstaked funds should be present when increasing delegation cap"
                 );
 
@@ -327,12 +323,7 @@ pub trait ResetCheckpointsModule:
     /// The stake per node can be changed by the owner.
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setServiceFee)]
-    fn set_service_fee_endpoint(
-        &self,
-        service_fee_per_10000: usize,
-    ) -> SCResult<OperationCompletionStatus> {
-        only_owner!(self, "only owner can change service fee");
-
+    fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> OperationCompletionStatus {
         require!(
             service_fee_per_10000 <= PERCENTAGE_DENOMINATOR,
             "service fee out of range"
@@ -345,14 +336,14 @@ pub trait ResetCheckpointsModule:
 
         let new_service_fee = BigUint::from(service_fee_per_10000);
         if self.get_service_fee() == new_service_fee {
-            return Ok(OperationCompletionStatus::Completed);
+            return OperationCompletionStatus::Completed;
         }
 
         if self.is_bootstrap_mode() {
             // no rewards to compute
             // change service fee directly
             self.set_service_fee(new_service_fee);
-            Ok(OperationCompletionStatus::Completed)
+            OperationCompletionStatus::Completed
         } else {
             // start compute all rewards
             self.continue_global_operation(Box::new(GlobalOpCheckpoint::ChangeServiceFee {

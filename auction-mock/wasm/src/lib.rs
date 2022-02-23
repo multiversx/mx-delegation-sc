@@ -7,7 +7,6 @@
 elrond_wasm_node::wasm_endpoints! {
     auction_mock
     (
-        init
         claim
         getBlsDeliberateError
         setBlsDeliberateError
