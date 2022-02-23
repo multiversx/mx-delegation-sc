@@ -2,6 +2,10 @@ use crate::types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState};
 
 elrond_wasm::imports!();
 
+pub const MAX_NODES_PER_OPERATION: usize = 100;
+
+pub type NodeIndexArrayVec = ArrayVec<usize, MAX_NODES_PER_OPERATION>;
+
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
 /// Percents + 2 decimals -> 10000.
@@ -25,25 +29,28 @@ pub trait NodeConfigModule {
     /// Ids start from 1 because 0 means unset of None.
     #[view(getNodeId)]
     #[storage_get("node_bls_to_id")]
-    fn get_node_id(&self, bls_key: &BLSKey) -> usize;
+    fn get_node_id(&self, bls_key: &BLSKey<Self::Api>) -> usize;
 
     #[storage_set("node_bls_to_id")]
-    fn set_node_bls_to_id(&self, bls_key: &BLSKey, node_id: usize);
+    fn set_node_bls_to_id(&self, bls_key: &BLSKey<Self::Api>, node_id: usize);
 
     #[storage_get("node_id_to_bls")]
-    fn get_node_id_to_bls(&self, node_id: usize) -> BLSKey;
+    fn get_node_id_to_bls(&self, node_id: usize) -> BLSKey<Self::Api>;
 
     #[storage_set("node_id_to_bls")]
-    fn set_node_id_to_bls(&self, node_id: usize, bls_key: &BLSKey);
+    fn set_node_id_to_bls(&self, node_id: usize, bls_key: &BLSKey<Self::Api>);
 
     #[storage_get("node_signature")]
-    fn get_node_signature(&self, node_id: usize) -> BLSSignature;
+    fn get_node_signature(&self, node_id: usize) -> BLSSignature<Self::Api>;
 
     #[storage_set("node_signature")]
-    fn set_node_signature(&self, node_id: usize, node_signature: BLSSignature);
+    fn set_node_signature(&self, node_id: usize, node_signature: BLSSignature<Self::Api>);
 
     #[view(getNodeSignature)]
-    fn get_node_signature_endpoint(&self, bls_key: BLSKey) -> OptionalResult<BLSSignature> {
+    fn get_node_signature_endpoint(
+        &self,
+        bls_key: BLSKey<Self::Api>,
+    ) -> OptionalResult<BLSSignature<Self::Api>> {
         let node_id = self.get_node_id(&bls_key);
         if node_id == 0 {
             OptionalResult::None
@@ -60,7 +67,7 @@ pub trait NodeConfigModule {
     fn set_node_state(&self, node_id: usize, node_state: NodeState);
 
     #[view(getNodeState)]
-    fn get_node_state_endpoint(&self, bls_key: BLSKey) -> NodeState {
+    fn get_node_state_endpoint(&self, bls_key: BLSKey<Self::Api>) -> NodeState {
         let node_id = self.get_node_id(&bls_key);
         if node_id == 0 {
             NodeState::Removed
@@ -70,20 +77,23 @@ pub trait NodeConfigModule {
     }
 
     #[view(getAllNodeStates)]
-    fn get_all_node_states(&self) -> MultiResultVec<MultiResult2<BLSKey, u8>> {
+    fn get_all_node_states(&self) -> MultiResultVec<MultiResult2<BLSKey<Self::Api>, u8>> {
         let num_nodes = self.num_nodes().get();
-        let mut result = Vec::new();
+        let mut result = MultiResultVec::new();
         for i in 1..num_nodes + 1 {
             result.push(MultiResult2::from((
                 self.get_node_id_to_bls(i),
                 self.get_node_state(i).discriminant(),
             )));
         }
-        result.into()
+        result
     }
 
     #[view(getNodeBlockNonceOfUnstake)]
-    fn get_node_bl_nonce_of_unstake_endpoint(&self, bls_key: BLSKey) -> OptionalResult<u64> {
+    fn get_node_bl_nonce_of_unstake_endpoint(
+        &self,
+        bls_key: BLSKey<Self::Api>,
+    ) -> OptionalResult<u64> {
         let node_id = self.get_node_id(&bls_key);
         if node_id == 0 {
             OptionalResult::None
@@ -97,12 +107,14 @@ pub trait NodeConfigModule {
     #[endpoint(addNodes)]
     fn add_nodes(
         &self,
-        #[var_args] bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>,
+        #[var_args] bls_keys_signatures: ManagedVarArgs<
+            MultiArg2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
+        >,
     ) -> SCResult<()> {
         only_owner!(self, "only owner can add nodes");
 
         let mut num_nodes = self.num_nodes().get();
-        for bls_sig_pair_arg in bls_keys_signatures.into_vec().into_iter() {
+        for bls_sig_pair_arg in bls_keys_signatures.into_iter() {
             let (bls_key, bls_sig) = bls_sig_pair_arg.into_tuple();
             let mut node_id = self.get_node_id(&bls_key);
             if node_id == 0 {
@@ -124,11 +136,14 @@ pub trait NodeConfigModule {
     }
 
     #[endpoint(removeNodes)]
-    fn remove_nodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
+    fn remove_nodes(
+        &self,
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey<Self::Api>>,
+    ) -> SCResult<()> {
         only_owner!(self, "only owner can remove nodes");
 
-        for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(bls_key);
+        for bls_key in bls_keys.into_iter() {
+            let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "node not registered");
             require!(
                 self.get_node_state(node_id) == NodeState::Inactive,
@@ -142,11 +157,11 @@ pub trait NodeConfigModule {
 
     fn split_node_ids_by_err(
         &self,
-        mut node_ids: Vec<usize>,
-        node_status_args: VarArgs<BLSStatusMultiArg>,
-    ) -> (Vec<usize>, Vec<usize>) {
-        let mut failed_node_ids: Vec<usize> = Vec::new();
-        for arg in node_status_args.into_vec().into_iter() {
+        mut node_ids: NodeIndexArrayVec,
+        node_status_args: ManagedVarArgs<BLSStatusMultiArg<Self::Api>>,
+    ) -> (NodeIndexArrayVec, NodeIndexArrayVec) {
+        let mut failed_node_ids: NodeIndexArrayVec = NodeIndexArrayVec::new();
+        for arg in node_status_args.into_iter() {
             let (bls_key, status) = arg.into_tuple();
             if status != 0 {
                 let node_id = self.get_node_id(&bls_key);

@@ -11,8 +11,8 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.3"
-elrond-wasm = "0.23.0"
-elrond-wasm-derive = "0.23.0"
+elrond-wasm = "0.23.1"
+elrond-wasm-derive = "0.23.1"
 
 [dependencies.node-storage]
 path = ".."

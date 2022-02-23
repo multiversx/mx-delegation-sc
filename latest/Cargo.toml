@@ -11,16 +11,16 @@ path = "../node-storage"
 path = "../user-fund-storage"
 
 [dependencies.elrond-wasm-module-dns]
-version = "0.23.0"
+version = "0.23.1"
 
 [dependencies.elrond-wasm-module-features]
-version = "0.23.0"
+version = "0.23.1"
 
 [dependencies.elrond-wasm-module-pause]
-version = "0.23.0"
+version = "0.23.1"
 
 [dependencies.elrond-wasm]
-version = "0.23.0"
+version = "0.23.1"
 
 [dev-dependencies.elrond-wasm-debug]
-version = "0.23.0"
+version = "0.23.1"

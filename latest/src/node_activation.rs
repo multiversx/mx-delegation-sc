@@ -1,5 +1,8 @@
 use crate::auction_proxy;
-use node_storage::types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState};
+use node_storage::{
+    node_config::NodeIndexArrayVec,
+    types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState},
+};
 
 elrond_wasm::imports!();
 
@@ -24,7 +27,7 @@ pub trait NodeActivationModule:
     fn stake_nodes(
         &self,
         amount_to_stake: BigUint,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
     ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to stake nodes");
 
@@ -45,10 +48,13 @@ pub trait NodeActivationModule:
 
         self.validate_owner_stake_share()?;
 
-        let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
-        let mut bls_keys_signatures: Vec<MultiArg2<BLSKey, BLSSignature>> = Vec::new();
+        let mut node_ids = NodeIndexArrayVec::new();
+        let mut bls_keys_signatures: ManagedVarArgs<
+            Self::Api,
+            MultiArg2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
+        > = ManagedVarArgs::new();
 
-        for bls_key in bls_keys.into_vec().into_iter() {
+        for bls_key in bls_keys.iter() {
             let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "unknown node provided");
 
@@ -64,13 +70,13 @@ pub trait NodeActivationModule:
             self.set_node_state(node_id, NodeState::PendingActivation);
         }
 
-        Ok(self.perform_stake_nodes(node_ids, bls_keys_signatures.into(), amount_to_stake))
+        Ok(self.perform_stake_nodes(node_ids, bls_keys_signatures, amount_to_stake))
     }
 
     fn perform_stake_nodes(
         &self,
-        node_ids: Vec<usize>,
-        bls_keys_signatures: VarArgs<MultiArg2<BLSKey, BLSSignature>>,
+        node_ids: NodeIndexArrayVec,
+        bls_keys_signatures: ManagedVarArgs<MultiArg2<BLSKey<Self::Api>, BLSSignature<Self::Api>>>,
         amount_to_stake: BigUint,
     ) -> AsyncCall {
         let num_nodes = node_ids.len();
@@ -89,27 +95,29 @@ pub trait NodeActivationModule:
     #[callback]
     fn auction_stake_callback(
         &self,
-        node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
+        node_ids: NodeIndexArrayVec,
+        #[call_result] call_result: AsyncCallResult<
+            ManagedMultiResultVec<BLSStatusMultiArg<Self::Api>>,
+        >,
     ) -> SCResult<()> {
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
                 let (node_ids_ok, node_ids_fail) =
                     self.split_node_ids_by_err(node_ids, node_status_args);
-                self.auction_stake_callback_ok(node_ids_ok)?;
+                self.auction_stake_callback_ok(&node_ids_ok)?;
                 self.auction_stake_callback_fail(
-                    node_ids_fail,
-                    &b"staking failed for some nodes"[..],
+                    &node_ids_fail,
+                    &ManagedBuffer::from(b"staking failed for some nodes"),
                 )?;
                 Ok(())
             }
             AsyncCallResult::Err(error) => {
-                self.auction_stake_callback_fail(node_ids, error.err_msg.as_slice())
+                self.auction_stake_callback_fail(&node_ids, &ManagedBuffer::from(error.err_msg))
             }
         }
     }
 
-    fn auction_stake_callback_ok(&self, node_ids: Vec<usize>) -> SCResult<()> {
+    fn auction_stake_callback_ok(&self, node_ids: &NodeIndexArrayVec) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());
         }
@@ -126,7 +134,11 @@ pub trait NodeActivationModule:
         Ok(())
     }
 
-    fn auction_stake_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> SCResult<()> {
+    fn auction_stake_callback_fail(
+        &self,
+        node_ids: &NodeIndexArrayVec,
+        err_msg: &ManagedBuffer,
+    ) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());
         }
@@ -149,7 +161,10 @@ pub trait NodeActivationModule:
     /// This operation is performed by the owner.
     /// Does not unstake tokens.
     #[endpoint(unStakeNodes)]
-    fn unstake_nodes_endpoint(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<AsyncCall> {
+    fn unstake_nodes_endpoint(
+        &self,
+        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
+    ) -> SCResult<AsyncCall> {
         self.unstake_nodes(false, bls_keys)
     }
 
@@ -160,7 +175,7 @@ pub trait NodeActivationModule:
     #[endpoint(unStakeNodesAndTokens)]
     fn unstake_nodes_and_tokens_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
     ) -> SCResult<AsyncCall> {
         self.unstake_nodes(true, bls_keys)
     }
@@ -168,7 +183,7 @@ pub trait NodeActivationModule:
     fn unstake_nodes(
         &self,
         unstake_tokens: bool,
-        bls_keys: VarArgs<BLSKey>,
+        bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
     ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to unstake nodes");
 
@@ -177,9 +192,9 @@ pub trait NodeActivationModule:
             "node operations are temporarily paused as checkpoint is reset"
         );
 
-        let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
+        let mut node_ids = NodeIndexArrayVec::new();
         for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(bls_key);
+            let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "unknown node provided");
             node_ids.push(node_id);
         }
@@ -190,8 +205,8 @@ pub trait NodeActivationModule:
     fn perform_unstake_nodes(
         &self,
         unstake_tokens: bool,
-        node_ids: Vec<usize>,
-        bls_keys: Vec<BLSKey>,
+        node_ids: NodeIndexArrayVec,
+        bls_keys: ManagedVec<BLSKey<Self::Api>>,
     ) -> SCResult<AsyncCall> {
         // convert node state to PendingDeactivation
         for &node_id in node_ids.iter() {
@@ -224,27 +239,29 @@ pub trait NodeActivationModule:
     #[callback]
     fn auction_unstake_callback(
         &self,
-        node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
+        node_ids: NodeIndexArrayVec,
+        #[call_result] call_result: AsyncCallResult<
+            ManagedMultiResultVec<BLSStatusMultiArg<Self::Api>>,
+        >,
     ) -> SCResult<()> {
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
                 let (node_ids_ok, node_ids_fail) =
                     self.split_node_ids_by_err(node_ids, node_status_args);
-                self.auction_unstake_callback_ok(node_ids_ok)?;
+                self.auction_unstake_callback_ok(&node_ids_ok)?;
                 self.auction_unstake_callback_fail(
-                    node_ids_fail,
-                    &b"unstaking failed for some nodes"[..],
+                    &node_ids_fail,
+                    &ManagedBuffer::from(b"unstaking failed for some nodes"),
                 )?;
                 Ok(())
             }
             AsyncCallResult::Err(error) => {
-                self.auction_unstake_callback_fail(node_ids, error.err_msg.as_slice())
+                self.auction_unstake_callback_fail(&node_ids, &ManagedBuffer::from(error.err_msg))
             }
         }
     }
 
-    fn auction_unstake_callback_ok(&self, node_ids: Vec<usize>) -> SCResult<()> {
+    fn auction_unstake_callback_ok(&self, node_ids: &NodeIndexArrayVec) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());
         }
@@ -265,11 +282,14 @@ pub trait NodeActivationModule:
     /// Owner can retry a callback in case of callback failure.
     /// Warning: misuse can lead to state inconsistency.
     #[endpoint(forceNodeUnBondPeriod)]
-    fn force_node_unbond_period(&self, #[var_args] bls_keys: VarArgs<BLSKey>) -> SCResult<()> {
+    fn force_node_unbond_period(
+        &self,
+        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
+    ) -> SCResult<()> {
         only_owner!(self, "only owner can force nodes to unbond period");
 
         for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(bls_key);
+            let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "unknown node provided");
             self.set_node_state(node_id, NodeState::UnBondPeriod { started: 0 });
         }
@@ -277,7 +297,11 @@ pub trait NodeActivationModule:
         Ok(())
     }
 
-    fn auction_unstake_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> SCResult<()> {
+    fn auction_unstake_callback_fail(
+        &self,
+        node_ids: &NodeIndexArrayVec,
+        err_msg: &ManagedBuffer,
+    ) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());
         }
@@ -298,7 +322,7 @@ pub trait NodeActivationModule:
     #[endpoint(unBondNodes)]
     fn unbond_specific_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
     ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to unbond nodes");
 
@@ -309,9 +333,9 @@ pub trait NodeActivationModule:
 
         require!(!bls_keys.is_empty(), "no BLS keys provided");
 
-        let mut node_ids = Vec::<usize>::with_capacity(bls_keys.len());
+        let mut node_ids = NodeIndexArrayVec::new();
         for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(bls_key);
+            let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "unknown node provided");
             require!(
                 self.prepare_node_for_unbond_if_possible(node_id),
@@ -335,8 +359,8 @@ pub trait NodeActivationModule:
         );
 
         let mut node_id = self.num_nodes().get();
-        let mut node_ids = Vec::<usize>::new();
-        let mut bls_keys = Vec::<BLSKey>::new();
+        let mut node_ids = NodeIndexArrayVec::new();
+        let mut bls_keys = ManagedVec::<Self::Api, BLSKey<Self::Api>>::new();
         while node_id >= 1 {
             if self.prepare_node_for_unbond_if_possible(node_id) {
                 node_ids.push(node_id);
@@ -369,7 +393,11 @@ pub trait NodeActivationModule:
         false
     }
 
-    fn perform_unbond(&self, node_ids: Vec<usize>, bls_keys: Vec<BLSKey>) -> AsyncCall {
+    fn perform_unbond(
+        &self,
+        node_ids: NodeIndexArrayVec,
+        bls_keys: ManagedVec<BLSKey<Self::Api>>,
+    ) -> AsyncCall {
         // send unbond command to Auction SC
         let auction_contract_addr = self.get_auction_contract_address();
         self.auction_proxy(auction_contract_addr)
@@ -383,27 +411,29 @@ pub trait NodeActivationModule:
     #[callback]
     fn auction_unbond_callback(
         &self,
-        node_ids: Vec<usize>,
-        #[call_result] call_result: AsyncCallResult<MultiResultVec<BLSStatusMultiArg>>,
+        node_ids: NodeIndexArrayVec,
+        #[call_result] call_result: AsyncCallResult<
+            ManagedMultiResultVec<BLSStatusMultiArg<Self::Api>>,
+        >,
     ) -> SCResult<()> {
         match call_result {
             AsyncCallResult::Ok(node_status_args) => {
                 let (node_ids_ok, node_ids_fail) =
                     self.split_node_ids_by_err(node_ids, node_status_args);
-                self.auction_unbond_callback_ok(node_ids_ok)?;
+                self.auction_unbond_callback_ok(&node_ids_ok)?;
                 self.auction_unbond_callback_fail(
-                    node_ids_fail,
-                    &b"unbonding failed for some nodes"[..],
+                    &node_ids_fail,
+                    &ManagedBuffer::from(b"unbonding failed for some nodes"),
                 )?;
                 Ok(())
             }
             AsyncCallResult::Err(error) => {
-                self.auction_unbond_callback_fail(node_ids, error.err_msg.as_slice())
+                self.auction_unbond_callback_fail(&node_ids, &ManagedBuffer::from(error.err_msg))
             }
         }
     }
 
-    fn auction_unbond_callback_ok(&self, node_ids: Vec<usize>) -> SCResult<()> {
+    fn auction_unbond_callback_ok(&self, node_ids: &NodeIndexArrayVec) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());
         }
@@ -420,7 +450,11 @@ pub trait NodeActivationModule:
         Ok(())
     }
 
-    fn auction_unbond_callback_fail(&self, node_ids: Vec<usize>, err_msg: &[u8]) -> SCResult<()> {
+    fn auction_unbond_callback_fail(
+        &self,
+        node_ids: &NodeIndexArrayVec,
+        err_msg: &ManagedBuffer,
+    ) -> SCResult<()> {
         if node_ids.is_empty() {
             return Ok(());
         }
@@ -467,14 +501,14 @@ pub trait NodeActivationModule:
     #[endpoint(unJailNodes)]
     fn unjail_nodes(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
+        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
         #[payment] fine_payment: BigUint,
     ) -> SCResult<AsyncCall> {
         only_owner!(self, "only owner allowed to unjail nodes");
 
         // validation only
         for bls_key in bls_keys.iter() {
-            let node_id = self.get_node_id(bls_key);
+            let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "unknown node provided");
             require!(
                 self.get_node_state(node_id) == NodeState::Active,

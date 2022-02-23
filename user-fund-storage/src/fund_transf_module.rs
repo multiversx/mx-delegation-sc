@@ -46,7 +46,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
         &self,
         remaining: &mut BigUint,
         interrupt: I,
-    ) -> Vec<usize> {
+    ) -> ManagedVec<usize> {
         self.split_convert_max_by_type(
             Some(remaining),
             FundType::Waiting,
@@ -99,7 +99,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
         &self,
         amount: &BigUint,
         interrupt: I,
-    ) -> (Vec<usize>, BigUint) {
+    ) -> (ManagedVec<usize>, BigUint) {
         let mut stake_to_activate = amount.clone();
         let affected_users = self.split_convert_max_by_type(
             Some(&mut stake_to_activate),

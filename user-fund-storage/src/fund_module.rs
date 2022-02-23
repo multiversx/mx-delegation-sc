@@ -394,12 +394,11 @@ pub trait FundModule {
         transformed: FundDescription,
         fund_item: &mut FundItem<Self::Api>,
     ) {
-        let extracted_balance: BigUint;
-        if let Some(max_amount) = opt_max_amount {
-            extracted_balance = self.decrease_fund_balance(max_amount, &mut *fund_item);
+        let extracted_balance = if let Some(max_amount) = opt_max_amount {
+            self.decrease_fund_balance(max_amount, &mut *fund_item)
         } else {
-            extracted_balance = self.delete_fund(&mut *fund_item);
-        }
+            self.delete_fund(&mut *fund_item)
+        };
         // create / increase
         self.increase_fund_balance((*fund_item).user_id, transformed, extracted_balance);
     }
@@ -420,12 +419,12 @@ pub trait FundModule {
         mut filter_transform: F,
         interrupt: I,
         dry_run: bool,
-    ) -> Vec<usize>
+    ) -> ManagedVec<usize>
     where
         F: FnMut(&FundItem<Self::Api>) -> Option<FundDescription>,
         I: Fn() -> bool,
     {
-        let mut affected_users: Vec<usize> = Vec::new();
+        let mut affected_users: ManagedVec<usize> = ManagedVec::new();
         let mut id = self.first_id_of_type(source_type, direction);
 
         while id > 0 && !interrupt() {
@@ -457,9 +456,11 @@ pub trait FundModule {
                 id = next_id;
             })
         }
+        affected_users.with_self_as_vec(|t_vec| {
+            t_vec.sort_unstable();
+            t_vec.dedup();
+        });
 
-        affected_users.sort_unstable();
-        affected_users.dedup();
         affected_users
     }
 

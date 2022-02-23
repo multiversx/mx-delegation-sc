@@ -9,27 +9,31 @@ pub trait Auction {
     fn stake(
         &self,
         num_nodes: usize,
-        #[var_args] bls_keys_signatures_args: VarArgs<MultiArg2<BLSKey, BLSSignature>>,
-    ) -> SCResult<MultiResultVec<BoxedBytes>>;
+        #[var_args] bls_keys_signatures_args: ManagedVarArgs<
+            MultiArg2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
+        >,
+    ) -> SCResult<MultiResultVec<ManagedBuffer>>;
 
     #[endpoint(unStake)]
     fn unstake(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
-    ) -> SCResult<MultiResultVec<BoxedBytes>>;
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey<Self::Api>>,
+    ) -> SCResult<MultiResultVec<ManagedBuffer>>;
 
     #[endpoint(unStakeNodes)]
     fn unstake_nodes(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey>,
-    ) -> SCResult<MultiResultVec<BoxedBytes>>;
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey<Self::Api>>,
+    ) -> SCResult<MultiResultVec<ManagedBuffer>>;
 
     #[endpoint(unBond)]
-    fn unbond(&self, #[var_args] bls_keys: VarArgs<BLSKey>)
-        -> SCResult<MultiResultVec<BoxedBytes>>;
+    fn unbond(
+        &self,
+        #[var_args] bls_keys: ManagedVarArgs<BLSKey<Self::Api>>,
+    ) -> SCResult<MultiResultVec<ManagedBuffer>>;
 
     #[endpoint(unBondNodes)]
-    fn unbond_nodes(&self, #[var_args] bls_keys: VarArgs<BLSKey>);
+    fn unbond_nodes(&self, #[var_args] bls_keys: ManagedVarArgs<BLSKey<Self::Api>>);
 
     #[endpoint(unStakeTokens)]
     fn unstake_tokens(&self, amount: &BigUint);
@@ -42,5 +46,5 @@ pub trait Auction {
 
     #[payable("EGLD")]
     #[endpoint(unJail)]
-    fn unjail(&self, #[var_args] bls_keys: VarArgs<BLSKey>);
+    fn unjail(&self, #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>);
 }

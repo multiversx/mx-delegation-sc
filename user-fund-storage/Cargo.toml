@@ -5,7 +5,7 @@ authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
 edition = "2018"
 
 [dependencies.elrond-wasm]
-version = "0.23.0"
+version = "0.23.1"
 
 [dev-dependencies.elrond-wasm-debug]
-version = "0.23.0"
+version = "0.23.1"
