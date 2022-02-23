@@ -140,7 +140,7 @@
             "expect": {
                 "out": [],
                 "status": "4",
-                "message": "''cannot modify total delegation cap when last is in progress",
+                "message": "str:cannot modify total delegation cap when last is in progress",
                 "logs": "*",
                 "gas": "*",
                 "refund": "*"
@@ -163,7 +163,7 @@
             "expect": {
                 "out": [],
                 "status": "4",
-                "message":"''global checkpoint is in progress",
+                "message":"str:global checkpoint is in progress",
                 "logs": [],
                 "gas": "*",
                 "refund": "*"
