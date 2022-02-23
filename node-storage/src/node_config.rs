@@ -50,12 +50,12 @@ pub trait NodeConfigModule {
     fn get_node_signature_endpoint(
         &self,
         bls_key: BLSKey<Self::Api>,
-    ) -> OptionalResult<BLSSignature<Self::Api>> {
+    ) -> OptionalValue<BLSSignature<Self::Api>> {
         let node_id = self.get_node_id(&bls_key);
         if node_id == 0 {
-            OptionalResult::None
+            OptionalValue::None
         } else {
-            OptionalResult::Some(self.get_node_signature(node_id))
+            OptionalValue::Some(self.get_node_signature(node_id))
         }
     }
 
@@ -77,11 +77,11 @@ pub trait NodeConfigModule {
     }
 
     #[view(getAllNodeStates)]
-    fn get_all_node_states(&self) -> MultiResultVec<MultiResult2<BLSKey<Self::Api>, u8>> {
+    fn get_all_node_states(&self) -> MultiValueVec<MultiValue2<BLSKey<Self::Api>, u8>> {
         let num_nodes = self.num_nodes().get();
-        let mut result = MultiResultVec::new();
+        let mut result = MultiValueVec::new();
         for i in 1..num_nodes + 1 {
-            result.push(MultiResult2::from((
+            result.push(MultiValue2::from((
                 self.get_node_id_to_bls(i),
                 self.get_node_state(i).discriminant(),
             )));
@@ -93,26 +93,25 @@ pub trait NodeConfigModule {
     fn get_node_bl_nonce_of_unstake_endpoint(
         &self,
         bls_key: BLSKey<Self::Api>,
-    ) -> OptionalResult<u64> {
+    ) -> OptionalValue<u64> {
         let node_id = self.get_node_id(&bls_key);
         if node_id == 0 {
-            OptionalResult::None
+            OptionalValue::None
         } else if let NodeState::UnBondPeriod { started } = self.get_node_state(node_id) {
-            OptionalResult::Some(started)
+            OptionalValue::Some(started)
         } else {
-            OptionalResult::None
+            OptionalValue::None
         }
     }
 
+    #[only_owner]
     #[endpoint(addNodes)]
     fn add_nodes(
         &self,
         #[var_args] bls_keys_signatures: ManagedVarArgs<
-            MultiArg2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
+            MultiValue2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
         >,
-    ) -> SCResult<()> {
-        only_owner!(self, "only owner can add nodes");
-
+    ) {
         let mut num_nodes = self.num_nodes().get();
         for bls_sig_pair_arg in bls_keys_signatures.into_iter() {
             let (bls_key, bls_sig) = bls_sig_pair_arg.into_tuple();
@@ -128,20 +127,15 @@ pub trait NodeConfigModule {
                 self.set_node_state(node_id, NodeState::Inactive);
                 self.set_node_signature(node_id, bls_sig);
             } else {
-                return sc_error!("node already registered");
+                sc_panic!("node already registered");
             }
         }
         self.num_nodes().set(&num_nodes);
-        Ok(())
     }
 
+    #[only_owner]
     #[endpoint(removeNodes)]
-    fn remove_nodes(
-        &self,
-        #[var_args] bls_keys: ManagedVarArgs<BLSKey<Self::Api>>,
-    ) -> SCResult<()> {
-        only_owner!(self, "only owner can remove nodes");
-
+    fn remove_nodes(&self, #[var_args] bls_keys: ManagedVarArgs<BLSKey<Self::Api>>) {
         for bls_key in bls_keys.into_iter() {
             let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "node not registered");
@@ -151,8 +145,6 @@ pub trait NodeConfigModule {
             );
             self.set_node_state(node_id, NodeState::Removed);
         }
-
-        Ok(())
     }
 
     fn split_node_ids_by_err(

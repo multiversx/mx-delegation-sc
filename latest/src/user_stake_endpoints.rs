@@ -17,14 +17,14 @@ pub trait UserStakeEndpointsModule:
     + user_fund_storage::fund_module::FundModule
     + user_fund_storage::fund_view_module::FundViewModule
     + user_fund_storage::fund_transf_module::FundTransformationsModule
-    + elrond_wasm_module_features::FeaturesModule
-    + elrond_wasm_module_pause::PauseModule
+    + elrond_wasm_modules::features::FeaturesModule
+    + elrond_wasm_modules::pause::PauseModule
 {
     /// Delegate stake to the smart contract.
     /// Stake is initially inactive, so does it not produce rewards.
     #[payable("EGLD")]
     #[endpoint(stake)]
-    fn stake_endpoint(&self, #[payment] payment: BigUint) -> SCResult<()> {
+    fn stake_endpoint(&self, #[payment] payment: BigUint) {
         require!(self.not_paused(), "contract paused");
 
         require!(
@@ -43,7 +43,7 @@ pub trait UserStakeEndpointsModule:
     /// unStake - the user will announce that he wants to get out of the contract
     /// selected funds will change from active to inactive, but claimable only after unBond period ends
     #[endpoint(unStake)]
-    fn unstake_endpoint(&self, amount: BigUint) -> SCResult<()> {
+    fn unstake_endpoint(&self, amount: BigUint) {
         require!(self.not_paused(), "contract paused");
 
         require!(
@@ -52,18 +52,18 @@ pub trait UserStakeEndpointsModule:
         );
 
         let caller = self.blockchain().get_caller();
-        let unstake_user_id =
-            non_zero_usize!(self.get_user_id(&caller), "only delegators can unstake");
+        let unstake_user_id = NonZeroUsize::new(self.get_user_id(&caller))
+            .unwrap_or_else(|| sc_panic!("only delegators can unstake"));
 
         // validate that amount does not exceed existing waiting + active stake
-        self.validate_unstake_amount(unstake_user_id.get(), &amount)?;
+        self.validate_unstake_amount(unstake_user_id.get(), &amount);
 
         // first try to remove funds from waiting list
         let mut remaining = amount;
         self.swap_user_waiting_to_withdraw_only(unstake_user_id.get(), &mut remaining);
         if remaining == 0 {
             // waiting list entries covered the whole sum
-            return Ok(());
+            return;
         }
 
         // compute rewards before converting Active -> UnStaked
@@ -75,12 +75,10 @@ pub trait UserStakeEndpointsModule:
         require!(remaining == 0, "error converting Active to UnStaked");
 
         // move funds around
-        self.use_waiting_to_replace_unstaked()?;
+        self.use_waiting_to_replace_unstaked();
 
         // check that minimum stake was not violated
-        self.validate_user_minimum_stake(unstake_user_id.get())?;
-
-        Ok(())
+        self.validate_user_minimum_stake(unstake_user_id.get());
     }
 
     #[view(getUnStakeable)]
@@ -95,7 +93,7 @@ pub trait UserStakeEndpointsModule:
     }
 
     #[endpoint(unBond)]
-    fn unbond_user(&self) -> SCResult<BigUint> {
+    fn unbond_user(&self) -> BigUint {
         require!(self.not_paused(), "contract paused");
 
         let caller = self.blockchain().get_caller();
@@ -117,7 +115,7 @@ pub trait UserStakeEndpointsModule:
                 .direct_egld(&caller, &amount_liquidated, b"delegation stake unbond");
         }
 
-        Ok(amount_liquidated)
+        amount_liquidated
     }
 
     #[view(getUnBondable)]

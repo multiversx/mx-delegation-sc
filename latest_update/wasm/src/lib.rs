@@ -7,7 +7,6 @@
 elrond_wasm_node::wasm_endpoints! {
     delegation_latest_update
     (
-        init
         callBack
         addNodes
         claimRewards

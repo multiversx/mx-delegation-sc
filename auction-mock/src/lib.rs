@@ -17,9 +17,11 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     fn stake(
         &self,
         num_nodes: usize,
-        #[var_args] bls_keys_signatures_args: VarArgs<MultiArg2<ManagedBuffer, ManagedBuffer>>,
+        #[var_args] bls_keys_signatures_args: MultiValueVec<
+            MultiValue2<ManagedBuffer, ManagedBuffer>,
+        >,
         #[payment] payment: BigUint,
-    ) -> SCResult<MultiResultVec<ManagedBuffer>> {
+    ) -> MultiValueVec<ManagedBuffer> {
         let bls_keys_signatures = bls_keys_signatures_args.into_vec();
         require!(
             num_nodes == bls_keys_signatures.len(),
@@ -38,7 +40,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
             "incorrect payment to auction mock"
         );
 
-        let mut result_err_data: MultiResultVec<ManagedBuffer> = MultiResultVec::new();
+        let mut result_err_data: MultiValueVec<ManagedBuffer> = MultiValueVec::new();
         for key_sig_pair in bls_keys_signatures.into_iter() {
             new_num_nodes += 1;
             let (bls_key, bls_sig) = key_sig_pair.into_tuple();
@@ -54,20 +56,20 @@ pub trait AuctionMock: storage::AuctionMockStorage {
 
         self.set_num_nodes(new_num_nodes);
 
-        Ok(result_err_data)
+        result_err_data
     }
 
     #[endpoint(unStake)]
     fn unstake_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<ManagedBuffer>,
-    ) -> SCResult<MultiResultVec<ManagedBuffer>> {
+        #[var_args] bls_keys: MultiValueVec<ManagedBuffer>,
+    ) -> MultiValueVec<ManagedBuffer> {
         require!(
             !self.is_staking_failure(),
             "auction smart contract deliberate error"
         );
 
-        let mut result_err_data: MultiResultVec<ManagedBuffer> = MultiResultVec::new();
+        let mut result_err_data: MultiValueVec<ManagedBuffer> = MultiValueVec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
             self.set_unstake_bls_key(n, bls_key.to_boxed_bytes().as_slice());
 
@@ -78,28 +80,28 @@ pub trait AuctionMock: storage::AuctionMockStorage {
             }
         }
 
-        Ok(result_err_data)
+        result_err_data
     }
 
     #[endpoint(unStakeNodes)]
     fn unstake_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<ManagedBuffer>,
-    ) -> SCResult<MultiResultVec<ManagedBuffer>> {
+        #[var_args] bls_keys: MultiValueVec<ManagedBuffer>,
+    ) -> MultiValueVec<ManagedBuffer> {
         self.unstake_endpoint(bls_keys)
     }
 
     #[endpoint(unBond)]
     fn unbond_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<ManagedBuffer>,
-    ) -> SCResult<MultiResultVec<ManagedBuffer>> {
+        #[var_args] bls_keys: MultiValueVec<ManagedBuffer>,
+    ) -> MultiValueVec<ManagedBuffer> {
         require!(
             !self.is_staking_failure(),
             "auction smart contract deliberate error"
         );
 
-        let mut result_err_data: MultiResultVec<ManagedBuffer> = MultiResultVec::new();
+        let mut result_err_data: MultiValueVec<ManagedBuffer> = MultiValueVec::new();
         for (n, bls_key) in bls_keys.iter().enumerate() {
             self.set_unbond_bls_key(n, bls_key.to_boxed_bytes().as_slice());
 
@@ -114,14 +116,14 @@ pub trait AuctionMock: storage::AuctionMockStorage {
         self.send()
             .direct_egld(&self.blockchain().get_caller(), &unbond_stake, &[]);
 
-        Ok(result_err_data)
+        result_err_data
     }
 
     #[endpoint(unBondNodes)]
     fn unbond_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<ManagedBuffer>,
-    ) -> SCResult<MultiResultVec<ManagedBuffer>> {
+        #[var_args] bls_keys: MultiValueVec<ManagedBuffer>,
+    ) -> MultiValueVec<ManagedBuffer> {
         self.unbond_endpoint(bls_keys)
     }
 
@@ -135,18 +137,15 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     }
 
     #[endpoint]
-    fn claim(&self) -> SCResult<()> {
-        Ok(())
-    }
+    fn claim(&self) {}
 
     #[payable("EGLD")]
     #[endpoint(unJail)]
     fn unjail_endpoint(
         &self,
-        #[var_args] bls_keys: VarArgs<BLSKey<Self::Api>>,
+        #[var_args] bls_keys: MultiValueVec<BLSKey<Self::Api>>,
         #[payment] _fine_payment: BigUint,
-    ) -> SCResult<()> {
+    ) {
         self.set_unjailed(&bls_keys.into_vec());
-        Ok(())
     }
 }

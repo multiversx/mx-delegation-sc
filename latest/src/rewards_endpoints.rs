@@ -11,20 +11,21 @@ pub trait RewardEndpointsModule:
     + user_fund_storage::user_data::UserDataModule
     + user_fund_storage::fund_module::FundModule
     + user_fund_storage::fund_view_module::FundViewModule
-    + elrond_wasm_module_features::FeaturesModule
-    + elrond_wasm_module_pause::PauseModule
+    + elrond_wasm_modules::features::FeaturesModule
+    + elrond_wasm_modules::pause::PauseModule
 {
     /// Retrieve those rewards to which the caller is entitled.
     /// Will send:
     /// - new rewards
     /// - rewards that were previously computed but not sent
     #[endpoint(claimRewards)]
-    fn claim_rewards(&self) -> SCResult<()> {
+    fn claim_rewards(&self) {
         require!(self.not_paused(), "contract paused");
         self.check_feature_on(b"claimRewards", true);
 
         let caller = self.blockchain().get_caller();
-        let user_id = non_zero_usize!(self.get_user_id(&caller), "unknown caller");
+        let user_id = NonZeroUsize::new(self.get_user_id(&caller))
+            .unwrap_or_else(|| sc_panic!("unknown caller"));
 
         require!(
             !self.is_global_op_in_progress(),
@@ -42,8 +43,6 @@ pub trait RewardEndpointsModule:
         }
 
         self.store_user_reward_data(user_id, &user_data);
-
-        Ok(())
     }
 
     fn send_rewards(&self, to: &ManagedAddress, amount: &BigUint) {

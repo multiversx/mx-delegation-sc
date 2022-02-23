@@ -23,9 +23,9 @@ pub trait DelegationUpdate:
     + delegation_latest::rewards_endpoints::RewardEndpointsModule
     + delegation_latest::user_stake_endpoints::UserStakeEndpointsModule
     + delegation_latest::user_stake_dust_cleanup::UserStakeDustCleanupModule
-    + delegation_latest::elrond_wasm_module_dns::DnsModule
-    + delegation_latest::elrond_wasm_module_features::FeaturesModule
-    + delegation_latest::elrond_wasm_module_pause::PauseModule
+    + delegation_latest::elrond_wasm_modules::dns::DnsModule
+    + delegation_latest::elrond_wasm_modules::features::FeaturesModule
+    + delegation_latest::elrond_wasm_modules::pause::PauseModule
 {
     // METADATA
 
@@ -52,8 +52,7 @@ pub trait DelegationUpdate:
     }
 
     #[init]
-    fn init(&self) -> SCResult<()> {
+    fn init(&self) {
         self.update_total_delegation_cap_if_necessary();
-        Ok(())
     }
 }

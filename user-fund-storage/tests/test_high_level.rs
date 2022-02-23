@@ -8,7 +8,8 @@ mod fund_module_check;
 
 #[test]
 fn test_create_destroy() {
-    let module = user_fund_storage::fund_transf_module::contract_obj(DebugApi::dummy());
+    let _ = DebugApi::dummy();
+    let module = user_fund_storage::fund_transf_module::contract_obj::<DebugApi>();
 
     let user_id = 2;
 
@@ -61,7 +62,8 @@ fn test_create_destroy() {
 
 #[test]
 fn test_full_cycle_1() {
-    let module = user_fund_storage::fund_transf_module::contract_obj(DebugApi::dummy());
+    let _ = DebugApi::dummy();
+    let module = user_fund_storage::fund_transf_module::contract_obj::<DebugApi>();
 
     let user_id = 2;
 

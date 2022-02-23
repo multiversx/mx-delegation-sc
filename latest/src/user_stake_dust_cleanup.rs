@@ -47,10 +47,9 @@ pub trait UserStakeDustCleanupModule:
     /// Does not block the rest of the contract. If any operation interferes with an interrupted
     /// dust cleanup, the operation can be begun again.
     /// It will auto-reset if the list ends or the current item is no longer valid.
+    #[only_owner]
     #[endpoint(dustCleanupWaitingList)]
-    fn dust_cleanup_waiting_list(&self, dust_limit: &BigUint) -> SCResult<()> {
-        only_owner!(self, "only owner allowed to clean up dust");
-
+    fn dust_cleanup_waiting_list(&self, dust_limit: &BigUint) {
         require!(
             !self.is_global_op_in_progress(),
             "contract is temporarily paused as checkpoint is reset"
@@ -65,8 +64,6 @@ pub trait UserStakeDustCleanupModule:
                 || self.blockchain().get_gas_left() < DUST_GASLIMIT,
             );
         });
-
-        Ok(())
     }
 
     /// Unstakes and unbonds all active fund buckets that are below a certin threshold.
@@ -75,10 +72,9 @@ pub trait UserStakeDustCleanupModule:
     /// Does not block the rest of the contract. If any operation interferes with an interrupted
     /// dust cleanup, the operation can be begun again.
     /// It will auto-reset if the list ends or the current item is no longer valid.
+    #[only_owner]
     #[endpoint(dustCleanupActive)]
-    fn dust_cleanup_active(&self, dust_limit: &BigUint) -> SCResult<()> {
-        only_owner!(self, "only owner allowed to clean up dust");
-
+    fn dust_cleanup_active(&self, dust_limit: &BigUint) {
         require!(
             !self.is_global_op_in_progress(),
             "contract is temporarily paused as checkpoint is reset"
@@ -108,8 +104,6 @@ pub trait UserStakeDustCleanupModule:
         });
 
         // move funds around
-        self.use_waiting_to_replace_unstaked()?;
-
-        Ok(())
+        self.use_waiting_to_replace_unstaked();
     }
 }

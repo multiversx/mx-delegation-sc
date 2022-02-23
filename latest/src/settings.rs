@@ -56,17 +56,13 @@ pub trait SettingsModule {
     #[storage_set("owner_min_stake_share")]
     fn set_owner_min_stake_share(&self, owner_min_stake_share: usize);
 
-    fn set_owner_min_stake_share_validated(
-        &self,
-        owner_min_stake_share_per_10000: usize,
-    ) -> SCResult<()> {
+    fn set_owner_min_stake_share_validated(&self, owner_min_stake_share_per_10000: usize) {
         require!(
             owner_min_stake_share_per_10000 <= PERCENTAGE_DENOMINATOR,
             "owner min stake share out of range"
         );
 
         self.set_owner_min_stake_share(owner_min_stake_share_per_10000);
-        Ok(())
     }
 
     /// Minimum number of n_blocks between unstake and fund getting into inactive state.
@@ -77,11 +73,10 @@ pub trait SettingsModule {
     #[storage_set("n_blocks_before_unbond")]
     fn set_n_blocks_before_unbond(&self, n_blocks_before_unbond: u64);
 
+    #[only_owner]
     #[endpoint(setNumBlocksBeforeUnBond)]
-    fn set_n_blocks_before_unbond_endpoint(&self, n_blocks_before_unbond: u64) -> SCResult<()> {
-        only_owner!(self, "only owner can set num blocks before unbond");
+    fn set_n_blocks_before_unbond_endpoint(&self, n_blocks_before_unbond: u64) {
         self.set_n_blocks_before_unbond(n_blocks_before_unbond);
-        Ok(())
     }
 
     /// Delegators are not allowed make transactions with less then this amount of stake (of any type).
@@ -93,10 +88,9 @@ pub trait SettingsModule {
     #[storage_set("min_stake")]
     fn set_minimum_stake(&self, minimum_stake: &BigUint);
 
+    #[only_owner]
     #[endpoint(setMinimumStake)]
-    fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) -> SCResult<()> {
-        only_owner!(self, "only owner can set minimum stake");
+    fn set_minimum_stake_endpoint(&self, minimum_stake: BigUint) {
         self.set_minimum_stake(&minimum_stake);
-        Ok(())
     }
 }

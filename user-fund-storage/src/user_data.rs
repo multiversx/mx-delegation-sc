@@ -61,7 +61,7 @@ pub trait UserDataModule {
     fn update_user_address(
         &self,
         #[var_args] addresses: ManagedVarArgs<ManagedAddress>,
-    ) -> SCResult<MultiResult3<usize, usize, usize>> {
+    ) -> MultiValue3<usize, usize, usize> {
         let mut num_updated = 0;
         let mut num_not_updated = 0;
         let mut num_not_found = 0;
@@ -78,12 +78,12 @@ pub trait UserDataModule {
                 num_not_found += 1
             }
         }
-        Ok((num_updated, num_not_updated, num_not_found).into())
+        (num_updated, num_not_updated, num_not_found).into()
     }
 
     #[view(userIdsWithoutAddress)]
-    fn user_ids_without_address(&self) -> MultiResultVec<usize> {
-        let mut result = MultiResultVec::<usize>::new();
+    fn user_ids_without_address(&self) -> MultiValueVec<usize> {
+        let mut result = MultiValueVec::<usize>::new();
         let num_users = self.get_num_users();
         for user_id in 1..=num_users {
             if self.is_empty_user_address(user_id) {

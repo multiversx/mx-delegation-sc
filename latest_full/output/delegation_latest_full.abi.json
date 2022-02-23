@@ -13,7 +13,7 @@
         },
         "framework": {
             "name": "elrond-wasm",
-            "version": "0.23.1"
+            "version": "0.28.0"
         }
     },
     "name": "DelegationFull",
@@ -154,6 +154,7 @@
         },
         {
             "name": "addNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -166,6 +167,7 @@
         },
         {
             "name": "removeNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -530,6 +532,7 @@
                 "Owner activates specific nodes."
             ],
             "name": "stakeNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -552,6 +555,7 @@
                 "Does not unstake tokens."
             ],
             "name": "unStakeNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -570,6 +574,7 @@
                 "Also unstakes tokens."
             ],
             "name": "unStakeNodesAndTokens",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -586,6 +591,7 @@
                 "Warning: misuse can lead to state inconsistency."
             ],
             "name": "forceNodeUnBondPeriod",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -601,6 +607,7 @@
                 "Calls unbond for all provided nodes. Will fail if node cannot be unbonded."
             ],
             "name": "unBondNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -617,26 +624,24 @@
                 "Nothing happens if no nodes can be unbonded."
             ],
             "name": "unBondAllPossibleNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [],
-            "outputs": [
-                {
-                    "type": "optional<AsyncCall>",
-                    "multi_result": true
-                }
-            ]
+            "outputs": []
         },
         {
             "docs": [
                 "Claims from auction SC funds that were sent but are not required to run the nodes."
             ],
             "name": "claimUnusedFunds",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [],
             "outputs": []
         },
         {
             "name": "unJailNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "payableInTokens": [
                 "EGLD"
@@ -749,6 +754,7 @@
         },
         {
             "name": "setNumBlocksBeforeUnBond",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -774,6 +780,7 @@
         },
         {
             "name": "setMinimumStake",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -902,6 +909,7 @@
                 "It will recalculate and set the checkpoint for all the delegators"
             ],
             "name": "modifyTotalDelegationCap",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -1074,6 +1082,7 @@
                 "It will auto-reset if the list ends or the current item is no longer valid."
             ],
             "name": "dustCleanupWaitingList",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -1093,6 +1102,7 @@
                 "It will auto-reset if the list ends or the current item is no longer valid."
             ],
             "name": "dustCleanupActive",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -1104,6 +1114,7 @@
         },
         {
             "name": "dnsRegister",
+            "onlyOwner": true,
             "mutability": "mutable",
             "payableInTokens": [
                 "EGLD"
