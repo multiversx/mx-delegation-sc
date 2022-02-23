@@ -394,12 +394,11 @@ pub trait FundModule {
         transformed: FundDescription,
         fund_item: &mut FundItem<Self::Api>,
     ) {
-        let extracted_balance: BigUint;
-        if let Some(max_amount) = opt_max_amount {
-            extracted_balance = self.decrease_fund_balance(max_amount, &mut *fund_item);
+        let extracted_balance = if let Some(max_amount) = opt_max_amount {
+            self.decrease_fund_balance(max_amount, &mut *fund_item)
         } else {
-            extracted_balance = self.delete_fund(&mut *fund_item);
-        }
+            self.delete_fund(&mut *fund_item)
+        };
         // create / increase
         self.increase_fund_balance((*fund_item).user_id, transformed, extracted_balance);
     }
