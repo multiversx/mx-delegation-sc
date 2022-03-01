@@ -60,7 +60,7 @@ pub trait UserDataModule {
     #[endpoint(updateUserAddress)]
     fn update_user_address(
         &self,
-        #[var_args] addresses: ManagedVarArgs<ManagedAddress>,
+        #[var_args] addresses: MultiValueEncoded<ManagedAddress>,
     ) -> MultiValue3<usize, usize, usize> {
         let mut num_updated = 0;
         let mut num_not_updated = 0;

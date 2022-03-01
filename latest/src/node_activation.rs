@@ -28,7 +28,7 @@ pub trait NodeActivationModule:
     fn stake_nodes(
         &self,
         amount_to_stake: BigUint,
-        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
+        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
     ) {
         require!(
             !self.is_bootstrap_mode(),
@@ -48,10 +48,10 @@ pub trait NodeActivationModule:
         self.validate_owner_stake_share();
 
         let mut node_ids = NodeIndexArrayVec::new();
-        let mut bls_keys_signatures: ManagedVarArgs<
+        let mut bls_keys_signatures: MultiValueEncoded<
             Self::Api,
             MultiValue2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
-        > = ManagedVarArgs::new();
+        > = MultiValueEncoded::new();
 
         for bls_key in bls_keys.iter() {
             let node_id = self.get_node_id(&bls_key);
@@ -75,7 +75,7 @@ pub trait NodeActivationModule:
     fn perform_stake_nodes(
         &self,
         node_ids: NodeIndexArrayVec,
-        bls_keys_signatures: ManagedVarArgs<
+        bls_keys_signatures: MultiValueEncoded<
             MultiValue2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
         >,
         amount_to_stake: BigUint,
@@ -99,7 +99,7 @@ pub trait NodeActivationModule:
         &self,
         node_ids: NodeIndexArrayVec,
         #[call_result] call_result: AsyncCallResult<
-            ManagedMultiResultVec<BLSStatusMultiArg<Self::Api>>,
+            MultiValueEncoded<BLSStatusMultiArg<Self::Api>>,
         >,
     ) {
         match call_result {
@@ -157,7 +157,7 @@ pub trait NodeActivationModule:
     #[endpoint(unStakeNodes)]
     fn unstake_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
+        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
     ) {
         self.unstake_nodes(false, bls_keys)
     }
@@ -170,7 +170,7 @@ pub trait NodeActivationModule:
     #[endpoint(unStakeNodesAndTokens)]
     fn unstake_nodes_and_tokens_endpoint(
         &self,
-        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
+        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
     ) {
         self.unstake_nodes(true, bls_keys)
     }
@@ -178,7 +178,7 @@ pub trait NodeActivationModule:
     fn unstake_nodes(
         &self,
         unstake_tokens: bool,
-        bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
+        bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
     ) {
         require!(
             !self.is_global_op_in_progress(),
@@ -236,7 +236,7 @@ pub trait NodeActivationModule:
         &self,
         node_ids: NodeIndexArrayVec,
         #[call_result] call_result: AsyncCallResult<
-            ManagedMultiResultVec<BLSStatusMultiArg<Self::Api>>,
+            MultiValueEncoded<BLSStatusMultiArg<Self::Api>>,
         >,
     ) {
         match call_result {
@@ -277,7 +277,7 @@ pub trait NodeActivationModule:
     #[endpoint(forceNodeUnBondPeriod)]
     fn force_node_unbond_period(
         &self,
-        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
+        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
     ) {
         for bls_key in bls_keys.iter() {
             let node_id = self.get_node_id(&bls_key);
@@ -306,7 +306,7 @@ pub trait NodeActivationModule:
     #[endpoint(unBondNodes)]
     fn unbond_specific_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
+        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
     ) {
         require!(
             !self.is_global_op_in_progress(),
@@ -387,7 +387,7 @@ pub trait NodeActivationModule:
         &self,
         node_ids: NodeIndexArrayVec,
         #[call_result] call_result: AsyncCallResult<
-            ManagedMultiResultVec<BLSStatusMultiArg<Self::Api>>,
+            MultiValueEncoded<BLSStatusMultiArg<Self::Api>>,
         >,
     ) {
         match call_result {
@@ -466,7 +466,7 @@ pub trait NodeActivationModule:
     #[endpoint(unJailNodes)]
     fn unjail_nodes(
         &self,
-        #[var_args] bls_keys: ManagedVarArgsEager<Self::Api, BLSKey<Self::Api>>,
+        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
         #[payment] fine_payment: BigUint,
     ) {
         // validation only
