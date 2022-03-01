@@ -98,12 +98,12 @@ pub trait NodeActivationModule:
     fn auction_stake_callback(
         &self,
         node_ids: NodeIndexArrayVec,
-        #[call_result] call_result: AsyncCallResult<
+        #[call_result] call_result: ManagedAsyncCallResult<
             MultiValueEncoded<BLSStatusMultiArg<Self::Api>>,
         >,
     ) {
         match call_result {
-            AsyncCallResult::Ok(node_status_args) => {
+            ManagedAsyncCallResult::Ok(node_status_args) => {
                 let (node_ids_ok, node_ids_fail) =
                     self.split_node_ids_by_err(node_ids, node_status_args);
                 self.auction_stake_callback_ok(&node_ids_ok);
@@ -112,8 +112,8 @@ pub trait NodeActivationModule:
                     &ManagedBuffer::from(b"staking failed for some nodes"),
                 );
             }
-            AsyncCallResult::Err(error) => {
-                self.auction_stake_callback_fail(&node_ids, &ManagedBuffer::from(error.err_msg))
+            ManagedAsyncCallResult::Err(error) => {
+                self.auction_stake_callback_fail(&node_ids, &error.err_msg)
             }
         }
     }
@@ -235,12 +235,12 @@ pub trait NodeActivationModule:
     fn auction_unstake_callback(
         &self,
         node_ids: NodeIndexArrayVec,
-        #[call_result] call_result: AsyncCallResult<
+        #[call_result] call_result: ManagedAsyncCallResult<
             MultiValueEncoded<BLSStatusMultiArg<Self::Api>>,
         >,
     ) {
         match call_result {
-            AsyncCallResult::Ok(node_status_args) => {
+            ManagedAsyncCallResult::Ok(node_status_args) => {
                 let (node_ids_ok, node_ids_fail) =
                     self.split_node_ids_by_err(node_ids, node_status_args);
                 self.auction_unstake_callback_ok(&node_ids_ok);
@@ -249,8 +249,8 @@ pub trait NodeActivationModule:
                     &ManagedBuffer::from(b"unstaking failed for some nodes"),
                 );
             }
-            AsyncCallResult::Err(error) => {
-                self.auction_unstake_callback_fail(&node_ids, &ManagedBuffer::from(error.err_msg))
+            ManagedAsyncCallResult::Err(error) => {
+                self.auction_unstake_callback_fail(&node_ids, &error.err_msg)
             }
         }
     }
@@ -386,12 +386,12 @@ pub trait NodeActivationModule:
     fn auction_unbond_callback(
         &self,
         node_ids: NodeIndexArrayVec,
-        #[call_result] call_result: AsyncCallResult<
+        #[call_result] call_result: ManagedAsyncCallResult<
             MultiValueEncoded<BLSStatusMultiArg<Self::Api>>,
         >,
     ) {
         match call_result {
-            AsyncCallResult::Ok(node_status_args) => {
+            ManagedAsyncCallResult::Ok(node_status_args) => {
                 let (node_ids_ok, node_ids_fail) =
                     self.split_node_ids_by_err(node_ids, node_status_args);
                 self.auction_unbond_callback_ok(&node_ids_ok);
@@ -400,8 +400,8 @@ pub trait NodeActivationModule:
                     &ManagedBuffer::from(b"unbonding failed for some nodes"),
                 );
             }
-            AsyncCallResult::Err(error) => {
-                self.auction_unbond_callback_fail(&node_ids, &ManagedBuffer::from(error.err_msg))
+            ManagedAsyncCallResult::Err(error) => {
+                self.auction_unbond_callback_fail(&node_ids, &error.err_msg)
             }
         }
     }
