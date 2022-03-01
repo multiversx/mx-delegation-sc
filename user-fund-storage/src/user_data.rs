@@ -82,8 +82,8 @@ pub trait UserDataModule {
     }
 
     #[view(userIdsWithoutAddress)]
-    fn user_ids_without_address(&self) -> MultiValueVec<usize> {
-        let mut result = MultiValueVec::<usize>::new();
+    fn user_ids_without_address(&self) -> MultiValueEncoded<usize> {
+        let mut result = MultiValueEncoded::<_, usize>::new();
         let num_users = self.get_num_users();
         for user_id in 1..=num_users {
             if self.is_empty_user_address(user_id) {

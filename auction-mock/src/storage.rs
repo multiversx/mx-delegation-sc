@@ -40,5 +40,5 @@ pub trait AuctionMockStorage {
     fn get_bls_deliberate_error(&self, bls_key: &[u8]) -> u8;
 
     #[storage_set("unJailed")]
-    fn set_unjailed(&self, bls_keys: &[BLSKey<Self::Api>]);
+    fn set_unjailed(&self, bls_keys: &ManagedVec<BLSKey<Self::Api>>);
 }

@@ -77,9 +77,9 @@ pub trait NodeConfigModule {
     }
 
     #[view(getAllNodeStates)]
-    fn get_all_node_states(&self) -> MultiValueVec<MultiValue2<BLSKey<Self::Api>, u8>> {
+    fn get_all_node_states(&self) -> MultiValueEncoded<MultiValue2<BLSKey<Self::Api>, u8>> {
         let num_nodes = self.num_nodes().get();
-        let mut result = MultiValueVec::new();
+        let mut result = MultiValueEncoded::new();
         for i in 1..num_nodes + 1 {
             result.push(MultiValue2::from((
                 self.get_node_id_to_bls(i),
