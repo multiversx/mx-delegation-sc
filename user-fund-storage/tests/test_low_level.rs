@@ -1,7 +1,7 @@
 use elrond_wasm::types::BigUint;
 use elrond_wasm_debug::DebugApi;
 use user_fund_storage::fund_module::*;
-use user_fund_storage::types::{FundDescription, FundType};
+use user_fund_storage::types::{AffectedUserIdVec, FundDescription, FundType};
 
 mod fund_module_check;
 
@@ -320,7 +320,7 @@ fn test_transfer_funds_2() {
         false,
     );
 
-    assert_eq!(affected_users.into_vec(), vec![user_1]);
+    assert_eq!(affected_users.as_slice(), [user_1]);
     assert_eq!(amount, BigUint::zero());
 
     fund_module_check::check_consistency(&fund_module, 5);
@@ -369,7 +369,7 @@ fn test_transfer_funds_3_backwards() {
         11u32.into(),
     );
 
-    let mut affected_users: Vec<usize> = Vec::new();
+    let mut affected_users = AffectedUserIdVec::new();
     let mut amount = BigUint::from(40u32);
     let returned_affected_users = fund_module.split_convert_max_by_type(
         Some(&mut amount),
@@ -383,10 +383,9 @@ fn test_transfer_funds_3_backwards() {
         false,
     );
 
-    let affected_users_as_vec = returned_affected_users.into_vec();
-    assert_eq!(affected_users_as_vec, vec![user_2, user_3]);
+    assert_eq!(returned_affected_users.as_slice(), [user_2, user_3]);
     affected_users.sort();
-    assert_eq!(affected_users_as_vec, affected_users);
+    assert_eq!(returned_affected_users, affected_users);
     assert_eq!(amount, BigUint::zero());
 
     fund_module_check::check_consistency(&fund_module, 5);
@@ -435,7 +434,7 @@ fn test_transfer_funds_4_dry_run() {
         11u32.into(),
     );
 
-    let mut affected_users: Vec<usize> = Vec::new();
+    let mut affected_users = AffectedUserIdVec::new();
     let mut amount = BigUint::from(40u32);
     let returned_affected_users = fund_module.split_convert_max_by_type(
         Some(&mut amount),
@@ -449,9 +448,9 @@ fn test_transfer_funds_4_dry_run() {
         true,
     );
 
-    assert_eq!(affected_users, vec![user_3, user_2]);
+    assert_eq!(affected_users.as_slice(), [user_3, user_2]);
     affected_users.sort();
-    assert_eq!(returned_affected_users.into_vec(), affected_users);
+    assert_eq!(returned_affected_users, affected_users);
     assert_eq!(amount, BigUint::zero());
 
     assert_eq!(
@@ -499,7 +498,7 @@ fn test_transfer_funds_5_coalesce() {
         false,
     );
 
-    assert_eq!(affected_users.into_vec(), vec![user_1]);
+    assert_eq!(affected_users.as_slice(), [user_1]);
     assert_eq!(amount, BigUint::zero());
 
     fund_module_check::check_consistency(&fund_module, 5);

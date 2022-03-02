@@ -1,4 +1,5 @@
 #![no_std]
+#![feature(slice_partition_dedup)]
 #![allow(clippy::string_lit_as_bytes)]
 
 // auxiliaries

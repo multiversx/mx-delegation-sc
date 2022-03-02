@@ -17,14 +17,13 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     fn stake(
         &self,
         num_nodes: usize,
-        #[var_args] bls_keys_signatures_args: MultiValueVec<
+        #[var_args] bls_keys_signatures: MultiValueEncoded<
             MultiValue2<ManagedBuffer, ManagedBuffer>,
         >,
         #[payment] payment: BigUint,
-    ) -> MultiValueVec<ManagedBuffer> {
-        let bls_keys_signatures = bls_keys_signatures_args.into_vec();
+    ) -> MultiValueEncoded<ManagedBuffer> {
         require!(
-            num_nodes == bls_keys_signatures.len(),
+            num_nodes * 2 == bls_keys_signatures.raw_len(),
             "incorrect number of arguments"
         );
 
@@ -40,7 +39,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
             "incorrect payment to auction mock"
         );
 
-        let mut result_err_data: MultiValueVec<ManagedBuffer> = MultiValueVec::new();
+        let mut result_err_data: MultiValueEncoded<ManagedBuffer> = MultiValueEncoded::new();
         for key_sig_pair in bls_keys_signatures.into_iter() {
             new_num_nodes += 1;
             let (bls_key, bls_sig) = key_sig_pair.into_tuple();
@@ -62,15 +61,15 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unStake)]
     fn unstake_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueVec<ManagedBuffer>,
-    ) -> MultiValueVec<ManagedBuffer> {
+        #[var_args] bls_keys: MultiValueEncoded<ManagedBuffer>,
+    ) -> MultiValueEncoded<ManagedBuffer> {
         require!(
             !self.is_staking_failure(),
             "auction smart contract deliberate error"
         );
 
-        let mut result_err_data: MultiValueVec<ManagedBuffer> = MultiValueVec::new();
-        for (n, bls_key) in bls_keys.iter().enumerate() {
+        let mut result_err_data: MultiValueEncoded<ManagedBuffer> = MultiValueEncoded::new();
+        for (n, bls_key) in bls_keys.into_iter().enumerate() {
             self.set_unstake_bls_key(n, bls_key.to_boxed_bytes().as_slice());
 
             let err_code = self.get_bls_deliberate_error(bls_key.to_boxed_bytes().as_slice());
@@ -86,23 +85,24 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unStakeNodes)]
     fn unstake_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueVec<ManagedBuffer>,
-    ) -> MultiValueVec<ManagedBuffer> {
+        #[var_args] bls_keys: MultiValueEncoded<ManagedBuffer>,
+    ) -> MultiValueEncoded<ManagedBuffer> {
         self.unstake_endpoint(bls_keys)
     }
 
     #[endpoint(unBond)]
     fn unbond_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueVec<ManagedBuffer>,
-    ) -> MultiValueVec<ManagedBuffer> {
+        #[var_args] bls_keys: MultiValueEncoded<ManagedBuffer>,
+    ) -> MultiValueEncoded<ManagedBuffer> {
         require!(
             !self.is_staking_failure(),
             "auction smart contract deliberate error"
         );
 
-        let mut result_err_data: MultiValueVec<ManagedBuffer> = MultiValueVec::new();
-        for (n, bls_key) in bls_keys.iter().enumerate() {
+        let mut result_err_data: MultiValueEncoded<ManagedBuffer> = MultiValueEncoded::new();
+        let bls_keys_len = bls_keys.len();
+        for (n, bls_key) in bls_keys.into_iter().enumerate() {
             self.set_unbond_bls_key(n, bls_key.to_boxed_bytes().as_slice());
 
             let err_code = self.get_bls_deliberate_error(bls_key.to_boxed_bytes().as_slice());
@@ -112,7 +112,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
             }
         }
 
-        let unbond_stake = self.get_stake_per_node() * BigUint::from(bls_keys.len());
+        let unbond_stake = self.get_stake_per_node() * BigUint::from(bls_keys_len);
         self.send()
             .direct_egld(&self.blockchain().get_caller(), &unbond_stake, &[]);
 
@@ -122,8 +122,8 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unBondNodes)]
     fn unbond_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueVec<ManagedBuffer>,
-    ) -> MultiValueVec<ManagedBuffer> {
+        #[var_args] bls_keys: MultiValueEncoded<ManagedBuffer>,
+    ) -> MultiValueEncoded<ManagedBuffer> {
         self.unbond_endpoint(bls_keys)
     }
 
@@ -143,7 +143,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unJail)]
     fn unjail_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueVec<BLSKey<Self::Api>>,
+        #[var_args] bls_keys: MultiValueManagedVec<BLSKey<Self::Api>>,
         #[payment] _fine_payment: BigUint,
     ) {
         self.set_unjailed(&bls_keys.into_vec());

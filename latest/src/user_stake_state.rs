@@ -103,7 +103,7 @@ pub trait UserStakeStateModule:
 
         // compute rewards for all affected users
         self.compute_one_user_reward(OWNER_USER_ID);
-        for user_id in affected_users.iter() {
+        for user_id in affected_users.into_iter() {
             let user_id_nz = NonZeroUsize::new(user_id).unwrap_or_else(|| sc_panic!("bad user_id"));
             self.compute_one_user_reward(user_id_nz);
         }

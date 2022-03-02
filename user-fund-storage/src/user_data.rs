@@ -60,7 +60,7 @@ pub trait UserDataModule {
     #[endpoint(updateUserAddress)]
     fn update_user_address(
         &self,
-        #[var_args] addresses: ManagedVarArgs<ManagedAddress>,
+        #[var_args] addresses: MultiValueEncoded<ManagedAddress>,
     ) -> MultiValue3<usize, usize, usize> {
         let mut num_updated = 0;
         let mut num_not_updated = 0;
@@ -82,8 +82,8 @@ pub trait UserDataModule {
     }
 
     #[view(userIdsWithoutAddress)]
-    fn user_ids_without_address(&self) -> MultiValueVec<usize> {
-        let mut result = MultiValueVec::<usize>::new();
+    fn user_ids_without_address(&self) -> MultiValueEncoded<usize> {
+        let mut result = MultiValueEncoded::<_, usize>::new();
         let num_users = self.get_num_users();
         for user_id in 1..=num_users {
             if self.is_empty_user_address(user_id) {

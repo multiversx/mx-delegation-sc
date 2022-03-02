@@ -168,9 +168,9 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     #[view(getAllUserStakeByType)]
     fn get_all_user_stake_by_type(
         &self,
-    ) -> MultiValueVec<MultiValue2<ManagedAddress, StakeByTypeResult<BigUint>>> {
-        let mut result: MultiValueVec<MultiValue2<ManagedAddress, StakeByTypeResult<BigUint>>> =
-            MultiValueVec::new();
+    ) -> MultiValueEncoded<MultiValue2<ManagedAddress, StakeByTypeResult<BigUint>>> {
+        let mut result: MultiValueEncoded<MultiValue2<ManagedAddress, StakeByTypeResult<BigUint>>> =
+            MultiValueEncoded::new();
         let num_users = self.get_num_users();
         for user_id in 1..=num_users {
             result.push(
@@ -191,8 +191,8 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     fn get_user_deferred_payment_list(
         &self,
         user_address: &ManagedAddress,
-    ) -> MultiValueVec<MultiValue2<BigUint, u64>> {
-        let mut result = MultiValueVec::<MultiValue2<BigUint, u64>>::new();
+    ) -> MultiValueEncoded<MultiValue2<BigUint, u64>> {
+        let mut result = MultiValueEncoded::new();
         let user_id = self.get_user_id(user_address);
         if user_id > 0 {
             let _ = self.foreach_fund_by_user_type(
@@ -225,8 +225,10 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     // FULL WAITING LIST
 
     #[view(getFullWaitingList)]
-    fn get_full_waiting_list(&self) -> MultiValueVec<MultiValue3<ManagedAddress, BigUint, u64>> {
-        let mut result = MultiValueVec::<MultiValue3<ManagedAddress, BigUint, u64>>::new();
+    fn get_full_waiting_list(
+        &self,
+    ) -> MultiValueEncoded<MultiValue3<ManagedAddress, BigUint, u64>> {
+        let mut result = MultiValueEncoded::new();
         let _ =
             self.foreach_fund_by_type(FundType::Waiting, SwapDirection::Forwards, |fund_item| {
                 if let FundDescription::Waiting { created } = fund_item.fund_desc {
@@ -244,8 +246,8 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     // FULL ACTIVE LIST
 
     #[view(getFullActiveList)]
-    fn get_full_active_list(&self) -> MultiValueVec<MultiValue2<ManagedAddress, BigUint>> {
-        let mut result = MultiValueVec::<MultiValue2<ManagedAddress, BigUint>>::new();
+    fn get_full_active_list(&self) -> MultiValueEncoded<MultiValue2<ManagedAddress, BigUint>> {
+        let mut result = MultiValueEncoded::new();
         let _ = self.foreach_fund_by_type(FundType::Active, SwapDirection::Forwards, |fund_item| {
             if let FundDescription::Active = fund_item.fund_desc {
                 if self.is_empty_user_address(fund_item.user_id) {

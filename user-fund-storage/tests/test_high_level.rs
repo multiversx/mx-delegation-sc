@@ -91,7 +91,7 @@ fn test_full_cycle_1() {
     // Waiting -> Active
     let mut amount = BigUint::from(5000u32);
     let affected_users = module.swap_waiting_to_active(&mut amount, || false);
-    assert_eq!(affected_users.into_vec(), vec![user_id]);
+    assert_eq!(affected_users.as_slice(), [user_id]);
     assert_eq!(amount, BigUint::zero());
 
     fund_module_check::check_consistency(&module, 3);

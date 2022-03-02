@@ -1,7 +1,10 @@
 elrond_wasm::imports!();
 use elrond_wasm::elrond_codec::EncodeDefault;
 
-use crate::types::{FundDescription, FundItem, FundType, FundsListInfo};
+use crate::types::{
+    affected_users_sort_dedup, AffectedUserIdVec, FundDescription, FundItem, FundType,
+    FundsListInfo,
+};
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum SwapDirection {
@@ -419,12 +422,12 @@ pub trait FundModule {
         mut filter_transform: F,
         interrupt: I,
         dry_run: bool,
-    ) -> ManagedVec<usize>
+    ) -> AffectedUserIdVec
     where
         F: FnMut(&FundItem<Self::Api>) -> Option<FundDescription>,
         I: Fn() -> bool,
     {
-        let mut affected_users: ManagedVec<usize> = ManagedVec::new();
+        let mut affected_users = AffectedUserIdVec::new();
         let mut id = self.first_id_of_type(source_type, direction);
 
         while id > 0 && !interrupt() {
@@ -435,7 +438,9 @@ pub trait FundModule {
             }
 
             self.fund_by_id(id).update(|fund_item| {
-                affected_users.push(fund_item.user_id);
+                affected_users
+                    .try_push(fund_item.user_id)
+                    .unwrap_or_else(|_| sc_panic!("affected user capacity exceeded"));
                 let next_id = match direction {
                     // save next id now, because fund_item can be destroyed
                     SwapDirection::Forwards => fund_item.type_list_next,
@@ -456,10 +461,8 @@ pub trait FundModule {
                 id = next_id;
             })
         }
-        affected_users.with_self_as_vec(|t_vec| {
-            t_vec.sort_unstable();
-            t_vec.dedup();
-        });
+
+        affected_users_sort_dedup(&mut affected_users);
 
         affected_users
     }

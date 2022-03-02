@@ -1,8 +1,7 @@
 elrond_wasm::imports!();
 
-use crate::fund_module;
-use crate::fund_module::SwapDirection;
-use crate::types::{FundDescription, FundItem, FundType};
+use crate::fund_module::{self, SwapDirection};
+use crate::types::{AffectedUserIdVec, FundDescription, FundItem, FundType};
 
 /// Deals with storage data about delegators.
 #[elrond_wasm::derive::module]
@@ -46,7 +45,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
         &self,
         remaining: &mut BigUint,
         interrupt: I,
-    ) -> ManagedVec<usize> {
+    ) -> AffectedUserIdVec {
         self.split_convert_max_by_type(
             Some(remaining),
             FundType::Waiting,
@@ -99,7 +98,7 @@ pub trait FundTransformationsModule: fund_module::FundModule {
         &self,
         amount: &BigUint,
         interrupt: I,
-    ) -> (ManagedVec<usize>, BigUint) {
+    ) -> (AffectedUserIdVec, BigUint) {
         let mut stake_to_activate = amount.clone();
         let affected_users = self.split_convert_max_by_type(
             Some(&mut stake_to_activate),
