@@ -47,8 +47,7 @@ pub trait RewardEndpointsModule:
 
     fn send_rewards(&self, to: &ManagedAddress, amount: &BigUint) {
         // send funds
-        self.send()
-            .direct_egld(to, amount, b"delegation rewards claim");
+        self.send().direct_egld(to, amount);
 
         // increment globally sent funds
         let mut sent_rewards = self.get_sent_rewards();

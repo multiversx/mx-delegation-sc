@@ -112,7 +112,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
 
         let unbond_stake = self.get_stake_per_node() * BigUint::from(bls_keys_len);
         self.send()
-            .direct_egld(&self.blockchain().get_caller(), &unbond_stake, &[]);
+            .direct_egld(&self.blockchain().get_caller(), &unbond_stake);
 
         result_err_data
     }
@@ -131,7 +131,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unBondTokens)]
     fn unbond_tokens(&self, amount: BigUint) {
         self.send()
-            .direct_egld(&self.blockchain().get_caller(), &amount, &[]);
+            .direct_egld(&self.blockchain().get_caller(), &amount);
     }
 
     #[endpoint]

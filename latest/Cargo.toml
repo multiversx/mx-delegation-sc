@@ -10,9 +10,9 @@ path = "../node-storage"
 path = "../user-fund-storage"
 
 [dependencies.elrond-wasm-modules]
-version = "0.31.0"
+version = "0.33.0"
 
 [dependencies.elrond-wasm]
-version = "0.31.0"
+version = "0.33.0"
 [dev-dependencies.elrond-wasm-debug]
-version = "0.31.0"
+version = "0.33.0"

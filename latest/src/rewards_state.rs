@@ -202,7 +202,7 @@ pub trait RewardStateModule:
 
         let mut unprotected = self
             .blockchain()
-            .get_sc_balance(&TokenIdentifier::egld(), 0)
+            .get_sc_balance(&EgldOrEsdtTokenIdentifier::egld(), 0)
             + sent_rewards;
         unprotected -= total_rewards;
         unprotected -= total_waiting;
