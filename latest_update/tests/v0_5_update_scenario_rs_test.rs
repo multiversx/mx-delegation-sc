@@ -16,10 +16,10 @@ fn world() -> ScenarioWorld {
 
 #[test]
 fn genesis_addr_fix() {
-    multiversx_sc_scenario::run_rs("mandos/genesis_addr_fix.scen.json", world());
+    multiversx_sc_scenario::run_rs("scenarios/genesis_addr_fix.scen.json", world());
 }
 
 #[test]
 fn version_rs() {
-    multiversx_sc_scenario::run_rs("mandos/version.scen.json", world());
+    multiversx_sc_scenario::run_rs("scenarios/version.scen.json", world());
 }
