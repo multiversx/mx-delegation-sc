@@ -1,10 +1,10 @@
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 use crate::fund_module::{self, SwapDirection};
 use crate::types::{AffectedUserIdVec, FundDescription, FundItem, FundType};
 
 /// Deals with storage data about delegators.
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait FundTransformationsModule: fund_module::FundModule {
     fn create_waiting(&self, user_id: usize, balance: BigUint) {
         let current_bl_nonce = self.blockchain().get_block_nonce();

@@ -1,6 +1,6 @@
-use elrond_wasm::{api::ManagedTypeApi, types::ManagedByteArray};
+use multiversx_sc::{api::ManagedTypeApi, types::ManagedByteArray};
 
-elrond_wasm::derive_imports!();
+multiversx_sc::derive_imports!();
 
 /// BLS signatures have 48 bytes
 pub const BLS_SIGNATURE_BYTE_LENGTH: usize = 48;

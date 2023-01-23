@@ -1,6 +1,6 @@
-use elrond_wasm::elrond_codec::*;
+use multiversx_sc::codec::*;
 
-elrond_wasm::derive_imports!();
+multiversx_sc::derive_imports!();
 
 #[derive(TypeAbi, PartialEq, Clone, Copy, Debug)]
 pub enum FundDescription {

@@ -2,11 +2,11 @@ use crate::settings::OWNER_USER_ID;
 use core::num::NonZeroUsize;
 use user_fund_storage::types::FundType;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 pub const UNBOND_GASLIMIT: u64 = 50_000_000;
 
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait UserStakeEndpointsModule:
     crate::user_stake_state::UserStakeStateModule
     + crate::reset_checkpoint_state::ResetCheckpointStateModule
@@ -17,8 +17,8 @@ pub trait UserStakeEndpointsModule:
     + user_fund_storage::fund_module::FundModule
     + user_fund_storage::fund_view_module::FundViewModule
     + user_fund_storage::fund_transf_module::FundTransformationsModule
-    + elrond_wasm_modules::features::FeaturesModule
-    + elrond_wasm_modules::pause::PauseModule
+    + multiversx_sc_modules::features::FeaturesModule
+    + multiversx_sc_modules::pause::PauseModule
 {
     /// Delegate stake to the smart contract.
     /// Stake is initially inactive, so does it not produce rewards.

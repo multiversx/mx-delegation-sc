@@ -4,9 +4,9 @@ use node_storage::{
     types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState},
 };
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait NodeActivationModule:
     node_storage::node_config::NodeConfigModule
     + user_fund_storage::user_data::UserDataModule

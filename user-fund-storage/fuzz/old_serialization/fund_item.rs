@@ -1,9 +1,9 @@
-use elrond_wasm::api::BigUintApi;
-use elrond_wasm::elrond_codec::*;
+use multiversx_sc::api::BigUintApi;
+use multiversx_sc::codec::*;
 
 use super::fund_type::FundDescription;
 
-elrond_wasm::derive_imports!();
+multiversx_sc::derive_imports!();
 
 /// A unit of balance, usually stake.
 /// Contains a description of the source/intent of the funds, together with a balance.

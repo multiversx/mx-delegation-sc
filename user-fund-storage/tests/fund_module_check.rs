@@ -1,11 +1,11 @@
 use user_fund_storage::types::FundType;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 pub fn check_consistency_for_type<M>(module: &M, fund_type: FundType)
 where
     M: user_fund_storage::fund_module::FundModule,
-    M::Api: elrond_wasm::api::ManagedTypeApi,
+    M::Api: multiversx_sc::api::ManagedTypeApi,
 {
     let mut sum = BigUint::zero();
     let type_list = module.get_fund_list_by_type(fund_type);
@@ -38,7 +38,7 @@ where
 pub fn check_consistency_for_user_type<M>(module: &M, user_id: usize, fund_type: FundType)
 where
     M: user_fund_storage::fund_module::FundModule,
-    M::Api: elrond_wasm::api::ManagedTypeApi,
+    M::Api: multiversx_sc::api::ManagedTypeApi,
 {
     let mut sum = BigUint::<M::Api>::zero();
     let user_type_list = module.fund_list_by_user(user_id, fund_type).get();
@@ -78,7 +78,7 @@ where
 pub fn check_consistency<M>(module: &M, num_users: usize)
 where
     M: user_fund_storage::fund_module::FundModule,
-    M::Api: elrond_wasm::api::ManagedTypeApi,
+    M::Api: multiversx_sc::api::ManagedTypeApi,
 {
     for &fund_type in FundType::ALL_TYPES.iter() {
         check_consistency_for_type(module, fund_type);

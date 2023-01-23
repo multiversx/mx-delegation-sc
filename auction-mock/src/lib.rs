@@ -5,9 +5,9 @@ mod storage;
 
 use node_storage::types::bls_key::BLSKey;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
-#[elrond_wasm::derive::contract]
+#[multiversx_sc::derive::contract]
 pub trait AuctionMock: storage::AuctionMockStorage {
     #[init]
     fn init(&self) {}

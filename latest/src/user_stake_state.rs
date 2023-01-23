@@ -6,10 +6,10 @@ use crate::settings::PERCENTAGE_DENOMINATOR;
 use user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
 use user_fund_storage::types::FundType;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 /// Contains endpoints for staking/withdrawing stake.
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait UserStakeStateModule:
     crate::settings::SettingsModule
     + user_fund_storage::user_data::UserDataModule

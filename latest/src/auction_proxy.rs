@@ -1,8 +1,8 @@
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 use node_storage::types::{BLSKey, BLSSignature};
 
-#[elrond_wasm::derive::proxy]
+#[multiversx_sc::derive::proxy]
 pub trait Auction {
     #[payable("EGLD")]
     #[endpoint]

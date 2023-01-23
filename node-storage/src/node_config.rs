@@ -1,6 +1,6 @@
 use crate::types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState};
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 pub const MAX_NODES_PER_OPERATION: usize = 100;
 
@@ -16,7 +16,7 @@ pub type NodeIndexArrayVec = ArrayVec<usize, MAX_NODES_PER_OPERATION>;
 /// - what BLS keys they have.
 /// - what BLS signatures they have
 ///
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait NodeConfigModule {
     /// The number of nodes that will run with the contract stake, as configured by the owner.
     #[view(getNumNodes)]

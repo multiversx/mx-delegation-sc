@@ -1,5 +1,5 @@
-elrond_wasm::imports!();
-use elrond_wasm::elrond_codec::EncodeDefault;
+multiversx_sc::imports!();
+use multiversx_sc::codec::EncodeDefault;
 
 use crate::types::{
     affected_users_sort_dedup, AffectedUserIdVec, FundDescription, FundItem, FundType,
@@ -13,7 +13,7 @@ pub enum SwapDirection {
 }
 
 /// Deals with storage data about delegators.
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait FundModule {
     #[view(fundById)]
     #[storage_mapper("f")]

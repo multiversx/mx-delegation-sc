@@ -1,7 +1,7 @@
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 /// Contains all events that can be emitted by the contract.
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait EventsModule {
     #[event("userStake")]
     fn stake_event(&self, #[indexed] delegator: &ManagedAddress, amount: &BigUint);

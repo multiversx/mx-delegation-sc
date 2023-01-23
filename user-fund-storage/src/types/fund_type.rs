@@ -1,4 +1,4 @@
-elrond_wasm::derive_imports!();
+multiversx_sc::derive_imports!();
 
 #[derive(
     TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Clone, Copy, Debug,

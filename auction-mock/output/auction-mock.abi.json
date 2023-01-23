@@ -9,12 +9,11 @@
         },
         "contractCrate": {
             "name": "auction-mock",
-            "version": "0.3.4",
-            "git_version": "ae17ef7-modified"
+            "version": "0.3.4"
         },
         "framework": {
-            "name": "elrond-wasm",
-            "version": "0.33.1"
+            "name": "multiversx-sc",
+            "version": "0.39.2"
         }
     },
     "name": "AuctionMock",

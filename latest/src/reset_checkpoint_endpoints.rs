@@ -7,15 +7,15 @@ use core::cmp::Ordering;
 use user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
 use user_fund_storage::types::FundType;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 pub const STOP_AT_GASLIMIT: u64 = 100_000_000;
 
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait ResetCheckpointsModule:
     crate::rewards_state::RewardStateModule
     + crate::reset_checkpoint_state::ResetCheckpointStateModule
-    + elrond_wasm_modules::features::FeaturesModule
+    + multiversx_sc_modules::features::FeaturesModule
     + user_fund_storage::user_data::UserDataModule
     + user_fund_storage::fund_module::FundModule
     + user_fund_storage::fund_view_module::FundViewModule

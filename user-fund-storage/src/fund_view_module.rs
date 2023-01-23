@@ -1,4 +1,4 @@
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 use crate::fund_module::SwapDirection;
 use crate::types::{FundDescription, FundType};
@@ -16,7 +16,7 @@ pub const USER_STAKE_TOTALS_ID: usize = 0;
 /// Result type containing 5 numeric values, one for each stake type.
 pub type StakeByTypeResult<BigUint> = MultiValue5<BigUint, BigUint, BigUint, BigUint, BigUint>;
 
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     // UTILS
 

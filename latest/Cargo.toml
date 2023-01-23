@@ -9,10 +9,10 @@ path = "../node-storage"
 [dependencies.user-fund-storage]
 path = "../user-fund-storage"
 
-[dependencies.elrond-wasm-modules]
-version = "0.33.0"
+[dependencies.multiversx-sc-modules]
+version = "0.39.2"
 
-[dependencies.elrond-wasm]
-version = "0.33.0"
-[dev-dependencies.elrond-wasm-debug]
-version = "0.33.0"
+[dependencies.multiversx-sc]
+version = "0.39.2"
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.39.2"
