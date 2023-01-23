@@ -1,7 +1,7 @@
 [package]
 name = "node-storage"
 version = "0.4.0"
-authors = ["andrei-marinica <andrei.marinica@elrond.com>"]
+authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
 edition = "2018"
 [dependencies.multiversx-sc]
 version = "0.39.2"
