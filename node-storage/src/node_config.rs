@@ -108,7 +108,7 @@ pub trait NodeConfigModule {
     #[endpoint(addNodes)]
     fn add_nodes(
         &self,
-        #[var_args] bls_keys_signatures: MultiValueEncoded<
+        bls_keys_signatures: MultiValueEncoded<
             MultiValue2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
         >,
     ) {
@@ -135,7 +135,7 @@ pub trait NodeConfigModule {
 
     #[only_owner]
     #[endpoint(removeNodes)]
-    fn remove_nodes(&self, #[var_args] bls_keys: MultiValueEncoded<BLSKey<Self::Api>>) {
+    fn remove_nodes(&self, bls_keys: MultiValueEncoded<BLSKey<Self::Api>>) {
         for bls_key in bls_keys.into_iter() {
             let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "node not registered");

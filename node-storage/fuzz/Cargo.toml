@@ -1,33 +1,3 @@
-
-[package]
-name = "node-storage-fuzz"
-version = "0.0.0"
-authors = ["Automatically generated"]
-publish = false
-edition = "2018"
-
-[package.metadata]
-cargo-fuzz = true
-
-[dependencies]
-libfuzzer-sys = "0.3"
-elrond-wasm = "0.29.2"
-elrond-wasm-derive = "0.29.2"
-
-[dependencies.node-storage]
-path = ".."
-
-[dependencies.fuzz-util]
-path = "../../fuzz-util"
-
-# Prevent this from interfering with workspaces
-[workspace]
-members = ["."]
-
-[lib]
-name = "old_serialization"
-path = "old_serialization/lib.rs"
-
 [[bin]]
 name = "fuzz_bls_key"
 path = "fuzz_targets/fuzz_bls_key.rs"
@@ -45,3 +15,31 @@ name = "fuzz_node_state"
 path = "fuzz_targets/fuzz_node_state.rs"
 test = false
 doc = false
+
+[package]
+name = "node-storage-fuzz"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.3"
+elrond-wasm = "0.31.0"
+elrond-wasm-derive = "0.29.2"
+
+[dependencies.node-storage]
+path = ".."
+
+[dependencies.fuzz-util]
+path = "../../fuzz-util"
+
+[workspace]
+members = ["."]
+
+[lib]
+name = "old_serialization"
+path = "old_serialization/lib.rs"
