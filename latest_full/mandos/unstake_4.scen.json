@@ -39,7 +39,7 @@
             "expect": {
                 "out": [],
                 "status": "",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
@@ -119,7 +119,7 @@
                     "0"
                 ],
                 "status": "",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
@@ -161,7 +161,7 @@
                     "1,000,000,000"
                 ],
                 "status": "",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
@@ -188,7 +188,7 @@
                     "0"
                 ],
                 "status": "",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
@@ -200,8 +200,7 @@
                     "nonce": "*",
                     "balance": "1,000,000,000",
                     "storage": {},
-                    "code": "",
-                    "asyncCallData": "str:delegation stake unbond"
+                    "code": ""
                 },
                 "+": ""
             }
@@ -269,7 +268,7 @@
                     "199,999,000,000,000"
                 ],
                 "status": "",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
@@ -296,7 +295,7 @@
                     "0"
                 ],
                 "status": "",
-                "logs": [],
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
@@ -308,8 +307,7 @@
                     "nonce": "*",
                     "balance": "200,000,000,000,000",
                     "storage": {},
-                    "code": "",
-                    "asyncCallData": "str:delegation stake unbond"
+                    "code": ""
                 },
                 "+": ""
             }

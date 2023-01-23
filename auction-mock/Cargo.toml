@@ -8,5 +8,7 @@ path = "../node-storage"
 
 [dependencies.elrond-wasm]
 version = "0.33.0"
+features = ["alloc"]
+
 [dev-dependencies.elrond-wasm-debug]
 version = "0.33.0"
