@@ -4,9 +4,9 @@
 use delegation_latest::user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
 use delegation_latest::user_fund_storage::types::FundType;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
-#[elrond_wasm::derive::contract]
+#[multiversx_sc::derive::contract]
 pub trait DelegationUpdate:
     delegation_latest::node_storage::node_config::NodeConfigModule
     + delegation_latest::user_fund_storage::user_data::UserDataModule
@@ -23,9 +23,9 @@ pub trait DelegationUpdate:
     + delegation_latest::rewards_endpoints::RewardEndpointsModule
     + delegation_latest::user_stake_endpoints::UserStakeEndpointsModule
     + delegation_latest::user_stake_dust_cleanup::UserStakeDustCleanupModule
-    + delegation_latest::elrond_wasm_modules::dns::DnsModule
-    + delegation_latest::elrond_wasm_modules::features::FeaturesModule
-    + delegation_latest::elrond_wasm_modules::pause::PauseModule
+    + delegation_latest::multiversx_sc_modules::dns::DnsModule
+    + delegation_latest::multiversx_sc_modules::features::FeaturesModule
+    + delegation_latest::multiversx_sc_modules::pause::PauseModule
 {
     // METADATA
 

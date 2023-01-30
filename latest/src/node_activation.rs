@@ -4,9 +4,9 @@ use node_storage::{
     types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState},
 };
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait NodeActivationModule:
     node_storage::node_config::NodeConfigModule
     + user_fund_storage::user_data::UserDataModule
@@ -28,7 +28,7 @@ pub trait NodeActivationModule:
     fn stake_nodes(
         &self,
         amount_to_stake: BigUint,
-        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
+        bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
     ) {
         require!(
             !self.is_bootstrap_mode(),
@@ -155,10 +155,7 @@ pub trait NodeActivationModule:
     /// Does not unstake tokens.
     #[only_owner]
     #[endpoint(unStakeNodes)]
-    fn unstake_nodes_endpoint(
-        &self,
-        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
-    ) {
+    fn unstake_nodes_endpoint(&self, bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>) {
         self.unstake_nodes(false, bls_keys)
     }
 
@@ -170,7 +167,7 @@ pub trait NodeActivationModule:
     #[endpoint(unStakeNodesAndTokens)]
     fn unstake_nodes_and_tokens_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
+        bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
     ) {
         self.unstake_nodes(true, bls_keys)
     }
@@ -192,14 +189,14 @@ pub trait NodeActivationModule:
             node_ids.push(node_id);
         }
 
-        self.perform_unstake_nodes(unstake_tokens, node_ids, bls_keys.into_vec())
+        self.perform_unstake_nodes(unstake_tokens, node_ids, bls_keys)
     }
 
     fn perform_unstake_nodes(
         &self,
         unstake_tokens: bool,
         node_ids: NodeIndexArrayVec,
-        bls_keys: ManagedVec<BLSKey<Self::Api>>,
+        bls_keys: MultiValueManagedVec<BLSKey<Self::Api>>,
     ) {
         // convert node state to PendingDeactivation
         for &node_id in node_ids.iter() {
@@ -213,16 +210,15 @@ pub trait NodeActivationModule:
 
         // send unstake command to Auction SC
         let auction_contract_addr = self.get_auction_contract_address();
-        let auction_proxy = self.auction_proxy(auction_contract_addr);
         if unstake_tokens {
-            auction_proxy
-                .unstake(bls_keys.into())
+            self.auction_proxy(auction_contract_addr)
+                .unstake(bls_keys)
                 .async_call()
                 .with_callback(self.callbacks().auction_unstake_callback(node_ids))
                 .call_and_exit()
         } else {
-            auction_proxy
-                .unstake_nodes(bls_keys.into())
+            self.auction_proxy(auction_contract_addr)
+                .unstake_nodes(bls_keys)
                 .async_call()
                 .with_callback(self.callbacks().auction_unstake_callback(node_ids))
                 .call_and_exit()
@@ -277,7 +273,7 @@ pub trait NodeActivationModule:
     #[endpoint(forceNodeUnBondPeriod)]
     fn force_node_unbond_period(
         &self,
-        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
+        bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
     ) {
         for bls_key in bls_keys.iter() {
             let node_id = self.get_node_id(&bls_key);
@@ -306,7 +302,7 @@ pub trait NodeActivationModule:
     #[endpoint(unBondNodes)]
     fn unbond_specific_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
+        bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
     ) {
         require!(
             !self.is_global_op_in_progress(),
@@ -326,7 +322,7 @@ pub trait NodeActivationModule:
             node_ids.push(node_id);
         }
 
-        self.perform_unbond(node_ids, bls_keys.into_vec());
+        self.perform_unbond(node_ids, bls_keys);
     }
 
     /// Calls unbond for all nodes that are in the unbond period and are due.
@@ -341,7 +337,7 @@ pub trait NodeActivationModule:
 
         let mut node_id = self.num_nodes().get();
         let mut node_ids = NodeIndexArrayVec::new();
-        let mut bls_keys = ManagedVec::<Self::Api, BLSKey<Self::Api>>::new();
+        let mut bls_keys = MultiValueManagedVec::<Self::Api, BLSKey<Self::Api>>::new();
         while node_id >= 1 {
             if self.prepare_node_for_unbond_if_possible(node_id) {
                 node_ids.push(node_id);
@@ -370,11 +366,15 @@ pub trait NodeActivationModule:
         false
     }
 
-    fn perform_unbond(&self, node_ids: NodeIndexArrayVec, bls_keys: ManagedVec<BLSKey<Self::Api>>) {
+    fn perform_unbond(
+        &self,
+        node_ids: NodeIndexArrayVec,
+        bls_keys: MultiValueManagedVec<BLSKey<Self::Api>>,
+    ) {
         // send unbond command to Auction SC
         let auction_contract_addr = self.get_auction_contract_address();
         self.auction_proxy(auction_contract_addr)
-            .unbond_nodes(bls_keys.into())
+            .unbond_nodes(bls_keys)
             .async_call()
             .with_callback(self.callbacks().auction_unbond_callback(node_ids))
             .call_and_exit()
@@ -466,7 +466,7 @@ pub trait NodeActivationModule:
     #[endpoint(unJailNodes)]
     fn unjail_nodes(
         &self,
-        #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
+        bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>,
         #[payment] fine_payment: BigUint,
     ) {
         // validation only

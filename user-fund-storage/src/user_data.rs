@@ -1,7 +1,7 @@
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 /// Deals with storage of data about delegators.
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait UserDataModule {
     /// Each delegator gets a user id. This is in order to be able to iterate over their data.
     /// This is a mapping from delegator address to delegator id.
@@ -60,7 +60,7 @@ pub trait UserDataModule {
     #[endpoint(updateUserAddress)]
     fn update_user_address(
         &self,
-        #[var_args] addresses: MultiValueEncoded<ManagedAddress>,
+        addresses: MultiValueEncoded<ManagedAddress>,
     ) -> MultiValue3<usize, usize, usize> {
         let mut num_updated = 0;
         let mut num_not_updated = 0;

@@ -1,15 +1,15 @@
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 use node_storage::types::{BLSKey, BLSSignature};
 
-#[elrond_wasm::derive::proxy]
+#[multiversx_sc::derive::proxy]
 pub trait Auction {
     #[payable("EGLD")]
     #[endpoint]
     fn stake(
         &self,
         num_nodes: usize,
-        #[var_args] bls_keys_signatures_args: MultiValueEncoded<
+        bls_keys_signatures_args: &MultiValueEncoded<
             MultiValue2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
         >,
     ) -> MultiValueEncoded<ManagedBuffer>;
@@ -17,23 +17,23 @@ pub trait Auction {
     #[endpoint(unStake)]
     fn unstake(
         &self,
-        #[var_args] bls_keys: MultiValueEncoded<BLSKey<Self::Api>>,
+        bls_keys: &MultiValueManagedVec<BLSKey<Self::Api>>,
     ) -> MultiValueEncoded<ManagedBuffer>;
 
     #[endpoint(unStakeNodes)]
     fn unstake_nodes(
         &self,
-        #[var_args] bls_keys: MultiValueEncoded<BLSKey<Self::Api>>,
+        bls_keys: &MultiValueManagedVec<BLSKey<Self::Api>>,
     ) -> MultiValueEncoded<ManagedBuffer>;
 
     #[endpoint(unBond)]
     fn unbond(
         &self,
-        #[var_args] bls_keys: MultiValueEncoded<BLSKey<Self::Api>>,
+        bls_keys: &MultiValueEncoded<BLSKey<Self::Api>>,
     ) -> MultiValueEncoded<ManagedBuffer>;
 
     #[endpoint(unBondNodes)]
-    fn unbond_nodes(&self, #[var_args] bls_keys: MultiValueEncoded<BLSKey<Self::Api>>);
+    fn unbond_nodes(&self, bls_keys: &MultiValueManagedVec<BLSKey<Self::Api>>);
 
     #[endpoint(unStakeTokens)]
     fn unstake_tokens(&self, amount: &BigUint);
@@ -46,5 +46,5 @@ pub trait Auction {
 
     #[payable("EGLD")]
     #[endpoint(unJail)]
-    fn unjail(&self, #[var_args] bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>);
+    fn unjail(&self, bls_keys: MultiValueManagedVec<Self::Api, BLSKey<Self::Api>>);
 }

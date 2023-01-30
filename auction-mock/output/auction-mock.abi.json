@@ -1,19 +1,19 @@
 {
     "buildInfo": {
         "rustc": {
-            "version": "1.60.0-nightly",
-            "commitHash": "1e12aef3fab243407f9d71ba9956cb2a1bf105d5",
-            "commitDate": "2022-02-13",
+            "version": "1.68.0-nightly",
+            "commitHash": "4781233a77e879e49cb5ce3c98d2abba6a6ade7a",
+            "commitDate": "2023-01-16",
             "channel": "Nightly",
-            "short": "rustc 1.60.0-nightly (1e12aef3f 2022-02-13)"
+            "short": "rustc 1.68.0-nightly (4781233a7 2023-01-16)"
         },
         "contractCrate": {
             "name": "auction-mock",
             "version": "0.3.4"
         },
         "framework": {
-            "name": "elrond-wasm",
-            "version": "0.29.2"
+            "name": "multiversx-sc",
+            "version": "0.39.4"
         }
     },
     "name": "AuctionMock",
@@ -34,7 +34,7 @@
                     "type": "u32"
                 },
                 {
-                    "name": "bls_keys_signatures_args",
+                    "name": "bls_keys_signatures",
                     "type": "variadic<multi<bytes,bytes>>",
                     "multi_arg": true
                 }
@@ -188,6 +188,7 @@
             ]
         }
     ],
+    "events": [],
     "hasCallback": false,
     "types": {
         "BLSKey": {

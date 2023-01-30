@@ -5,9 +5,9 @@ mod storage;
 
 use node_storage::types::bls_key::BLSKey;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
-#[elrond_wasm::derive::contract]
+#[multiversx_sc::derive::contract]
 pub trait AuctionMock: storage::AuctionMockStorage {
     #[init]
     fn init(&self) {}
@@ -17,9 +17,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     fn stake(
         &self,
         num_nodes: usize,
-        #[var_args] bls_keys_signatures: MultiValueEncoded<
-            MultiValue2<ManagedBuffer, ManagedBuffer>,
-        >,
+        bls_keys_signatures: MultiValueEncoded<MultiValue2<ManagedBuffer, ManagedBuffer>>,
         #[payment] payment: BigUint,
     ) -> MultiValueEncoded<ManagedBuffer> {
         require!(
@@ -61,7 +59,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unStake)]
     fn unstake_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueEncoded<ManagedBuffer>,
+        bls_keys: MultiValueEncoded<ManagedBuffer>,
     ) -> MultiValueEncoded<ManagedBuffer> {
         require!(
             !self.is_staking_failure(),
@@ -85,7 +83,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unStakeNodes)]
     fn unstake_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueEncoded<ManagedBuffer>,
+        bls_keys: MultiValueEncoded<ManagedBuffer>,
     ) -> MultiValueEncoded<ManagedBuffer> {
         self.unstake_endpoint(bls_keys)
     }
@@ -93,7 +91,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unBond)]
     fn unbond_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueEncoded<ManagedBuffer>,
+        bls_keys: MultiValueEncoded<ManagedBuffer>,
     ) -> MultiValueEncoded<ManagedBuffer> {
         require!(
             !self.is_staking_failure(),
@@ -114,7 +112,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
 
         let unbond_stake = self.get_stake_per_node() * BigUint::from(bls_keys_len);
         self.send()
-            .direct_egld(&self.blockchain().get_caller(), &unbond_stake, &[]);
+            .direct_egld(&self.blockchain().get_caller(), &unbond_stake);
 
         result_err_data
     }
@@ -122,7 +120,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unBondNodes)]
     fn unbond_nodes_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueEncoded<ManagedBuffer>,
+        bls_keys: MultiValueEncoded<ManagedBuffer>,
     ) -> MultiValueEncoded<ManagedBuffer> {
         self.unbond_endpoint(bls_keys)
     }
@@ -133,7 +131,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unBondTokens)]
     fn unbond_tokens(&self, amount: BigUint) {
         self.send()
-            .direct_egld(&self.blockchain().get_caller(), &amount, &[]);
+            .direct_egld(&self.blockchain().get_caller(), &amount);
     }
 
     #[endpoint]
@@ -143,7 +141,7 @@ pub trait AuctionMock: storage::AuctionMockStorage {
     #[endpoint(unJail)]
     fn unjail_endpoint(
         &self,
-        #[var_args] bls_keys: MultiValueManagedVec<BLSKey<Self::Api>>,
+        bls_keys: MultiValueManagedVec<BLSKey<Self::Api>>,
         #[payment] _fine_payment: BigUint,
     ) {
         self.set_unjailed(&bls_keys.into_vec());

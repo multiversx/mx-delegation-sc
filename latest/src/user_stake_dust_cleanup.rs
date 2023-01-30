@@ -2,12 +2,12 @@ use crate::settings::OWNER_USER_ID;
 use core::num::NonZeroUsize;
 use user_fund_storage::types::{FundDescription, FundType};
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 pub const DUST_GASLIMIT: u64 = 20_000_000;
 
 /// Functionality for cleaning up very small amounts left in the waiting list.
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait UserStakeDustCleanupModule:
     crate::user_stake_state::UserStakeStateModule
     + crate::reset_checkpoint_state::ResetCheckpointStateModule

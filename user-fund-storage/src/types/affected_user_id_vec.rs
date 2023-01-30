@@ -1,4 +1,4 @@
-use elrond_wasm::arrayvec::ArrayVec;
+use multiversx_sc::arrayvec::ArrayVec;
 
 pub const MAX_AFFECTED_USERS: usize = 10000;
 pub type AffectedUserIdVec = ArrayVec<usize, MAX_AFFECTED_USERS>;

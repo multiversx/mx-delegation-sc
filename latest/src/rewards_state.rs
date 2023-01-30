@@ -4,7 +4,7 @@ use core::num::NonZeroUsize;
 use user_fund_storage::fund_view_module::USER_STAKE_TOTALS_ID;
 use user_fund_storage::types::FundType;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 // Groups together data per delegator from the storage.
 pub struct UserRewardData<BigUint> {
@@ -16,7 +16,7 @@ pub struct UserRewardData<BigUint> {
 }
 
 /// Contains logic to compute and distribute individual delegator rewards.
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait RewardStateModule:
     crate::settings::SettingsModule
     + user_fund_storage::user_data::UserDataModule
@@ -202,7 +202,7 @@ pub trait RewardStateModule:
 
         let mut unprotected = self
             .blockchain()
-            .get_sc_balance(&TokenIdentifier::egld(), 0)
+            .get_sc_balance(&EgldOrEsdtTokenIdentifier::egld(), 0)
             + sent_rewards;
         unprotected -= total_rewards;
         unprotected -= total_waiting;

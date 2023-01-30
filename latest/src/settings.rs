@@ -1,6 +1,6 @@
 use core::num::NonZeroUsize;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
@@ -13,7 +13,7 @@ pub static OWNER_USER_ID: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1)
 
 /// The module deals with initializaton and the global contract settings.
 ///
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait SettingsModule {
     /// Yields the address of the contract with which staking will be performed.
     /// This address is standard in the protocol, but it is saved in storage to avoid hardcoding it.

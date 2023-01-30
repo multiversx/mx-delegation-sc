@@ -1,8 +1,8 @@
-use elrond_wasm::{api::ManagedTypeApi, types::BigUint};
+use multiversx_sc::{api::ManagedTypeApi, types::BigUint};
 
 use super::fund_type::FundDescription;
 
-elrond_wasm::derive_imports!();
+multiversx_sc::derive_imports!();
 
 /// A unit of balance, usually stake.
 /// Contains a description of the source/intent of the funds, together with a balance.
@@ -19,7 +19,7 @@ pub struct FundItem<M: ManagedTypeApi> {
     pub user_list_prev: usize,
 }
 
-impl<M: ManagedTypeApi> elrond_codec::EncodeDefault for FundItem<M> {
+impl<M: ManagedTypeApi> codec::EncodeDefault for FundItem<M> {
     fn is_default(&self) -> bool {
         self.balance == 0
             && self.type_list_next == 0
@@ -29,7 +29,7 @@ impl<M: ManagedTypeApi> elrond_codec::EncodeDefault for FundItem<M> {
     }
 }
 
-impl<M: ManagedTypeApi> elrond_codec::DecodeDefault for FundItem<M> {
+impl<M: ManagedTypeApi> codec::DecodeDefault for FundItem<M> {
     fn default() -> Self {
         FundItem {
             fund_desc: FundDescription::WithdrawOnly,

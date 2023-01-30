@@ -1,8 +1,8 @@
 use crate::reset_checkpoint_types::GlobalOpCheckpoint;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait ResetCheckpointStateModule {
     #[view(getGlobalOperationCheckpoint)]
     #[storage_mapper("global_op_checkpoint")]

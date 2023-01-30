@@ -18,6 +18,6 @@ pub mod user_stake_dust_cleanup;
 pub mod user_stake_endpoints;
 pub mod user_stake_state;
 
-pub use elrond_wasm_modules;
+pub use multiversx_sc_modules;
 pub use node_storage;
 pub use user_fund_storage;

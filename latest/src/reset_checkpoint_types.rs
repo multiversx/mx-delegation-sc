@@ -1,6 +1,6 @@
-use elrond_wasm::{api::ManagedTypeApi, types::BigUint};
+use multiversx_sc::{api::ManagedTypeApi, types::BigUint};
 
-elrond_wasm::derive_imports!();
+multiversx_sc::derive_imports!();
 
 /// Models any computation that can pause itself when it runs out of gas and continue in another block.
 #[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug)]

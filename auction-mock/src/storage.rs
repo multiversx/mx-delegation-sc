@@ -1,8 +1,8 @@
 use node_storage::types::bls_key::BLSKey;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait AuctionMockStorage {
     #[storage_get("stake_per_node")]
     fn get_stake_per_node(&self) -> BigUint;

@@ -1,5 +1,5 @@
-use elrond_wasm::types::BigUint;
-use elrond_wasm_debug::DebugApi;
+use multiversx_sc::types::BigUint;
+use multiversx_sc_scenario::DebugApi;
 use user_fund_storage::fund_module::*;
 use user_fund_storage::types::{AffectedUserIdVec, FundDescription, FundType};
 

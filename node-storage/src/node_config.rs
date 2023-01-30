@@ -1,6 +1,6 @@
 use crate::types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState};
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
 pub const MAX_NODES_PER_OPERATION: usize = 100;
 
@@ -16,7 +16,7 @@ pub type NodeIndexArrayVec = ArrayVec<usize, MAX_NODES_PER_OPERATION>;
 /// - what BLS keys they have.
 /// - what BLS signatures they have
 ///
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait NodeConfigModule {
     /// The number of nodes that will run with the contract stake, as configured by the owner.
     #[view(getNumNodes)]
@@ -108,7 +108,7 @@ pub trait NodeConfigModule {
     #[endpoint(addNodes)]
     fn add_nodes(
         &self,
-        #[var_args] bls_keys_signatures: MultiValueEncoded<
+        bls_keys_signatures: MultiValueEncoded<
             MultiValue2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
         >,
     ) {
@@ -130,12 +130,12 @@ pub trait NodeConfigModule {
                 sc_panic!("node already registered");
             }
         }
-        self.num_nodes().set(&num_nodes);
+        self.num_nodes().set(num_nodes);
     }
 
     #[only_owner]
     #[endpoint(removeNodes)]
-    fn remove_nodes(&self, #[var_args] bls_keys: MultiValueEncoded<BLSKey<Self::Api>>) {
+    fn remove_nodes(&self, bls_keys: MultiValueEncoded<BLSKey<Self::Api>>) {
         for bls_key in bls_keys.into_iter() {
             let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "node not registered");

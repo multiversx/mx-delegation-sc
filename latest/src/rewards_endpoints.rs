@@ -1,8 +1,8 @@
 use core::num::NonZeroUsize;
 
-elrond_wasm::imports!();
+multiversx_sc::imports!();
 
-#[elrond_wasm::derive::module]
+#[multiversx_sc::derive::module]
 pub trait RewardEndpointsModule:
     crate::settings::SettingsModule
     + crate::rewards_state::RewardStateModule
@@ -11,8 +11,8 @@ pub trait RewardEndpointsModule:
     + user_fund_storage::user_data::UserDataModule
     + user_fund_storage::fund_module::FundModule
     + user_fund_storage::fund_view_module::FundViewModule
-    + elrond_wasm_modules::features::FeaturesModule
-    + elrond_wasm_modules::pause::PauseModule
+    + multiversx_sc_modules::features::FeaturesModule
+    + multiversx_sc_modules::pause::PauseModule
 {
     /// Retrieve those rewards to which the caller is entitled.
     /// Will send:
@@ -47,8 +47,7 @@ pub trait RewardEndpointsModule:
 
     fn send_rewards(&self, to: &ManagedAddress, amount: &BigUint) {
         // send funds
-        self.send()
-            .direct_egld(to, amount, b"delegation rewards claim");
+        self.send().direct_egld(to, amount);
 
         // increment globally sent funds
         let mut sent_rewards = self.get_sent_rewards();

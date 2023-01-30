@@ -1,7 +1,7 @@
-use elrond_wasm::elrond_codec::*;
-use elrond_wasm::{Box, Vec};
+use multiversx_sc::codec::*;
+use multiversx_sc::{Box, Vec};
 
-elrond_wasm::derive_imports!();
+multiversx_sc::derive_imports!();
 
 /// BLS signatures have 48 bytes
 pub const BLS_SIGNATURE_BYTE_LENGTH: usize = 48;
@@ -110,8 +110,8 @@ impl fmt::Debug for BLSSignature {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use elrond_wasm::elrond_codec::test_util::*;
-    use elrond_wasm::Vec;
+    use multiversx_sc::codec::test_util::*;
+    use multiversx_sc::Vec;
 
     #[test]
     fn test_bls_serialization() {
