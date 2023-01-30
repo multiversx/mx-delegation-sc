@@ -195,7 +195,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         let mut result = MultiValueEncoded::new();
         let user_id = self.get_user_id(user_address);
         if user_id > 0 {
-            let _ = self.foreach_fund_by_user_type(
+            self.foreach_fund_by_user_type(
                 user_id,
                 FundType::DeferredPayment,
                 SwapDirection::Forwards,
@@ -229,17 +229,16 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
         &self,
     ) -> MultiValueEncoded<MultiValue3<ManagedAddress, BigUint, u64>> {
         let mut result = MultiValueEncoded::new();
-        let _ =
-            self.foreach_fund_by_type(FundType::Waiting, SwapDirection::Forwards, |fund_item| {
-                if let FundDescription::Waiting { created } = fund_item.fund_desc {
-                    let user_address = self.get_user_address(fund_item.user_id);
-                    result.push(MultiValue3::from((
-                        user_address,
-                        fund_item.balance,
-                        created,
-                    )));
-                }
-            });
+        self.foreach_fund_by_type(FundType::Waiting, SwapDirection::Forwards, |fund_item| {
+            if let FundDescription::Waiting { created } = fund_item.fund_desc {
+                let user_address = self.get_user_address(fund_item.user_id);
+                result.push(MultiValue3::from((
+                    user_address,
+                    fund_item.balance,
+                    created,
+                )));
+            }
+        });
         result
     }
 
@@ -248,7 +247,7 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
     #[view(getFullActiveList)]
     fn get_full_active_list(&self) -> MultiValueEncoded<MultiValue2<ManagedAddress, BigUint>> {
         let mut result = MultiValueEncoded::new();
-        let _ = self.foreach_fund_by_type(FundType::Active, SwapDirection::Forwards, |fund_item| {
+        self.foreach_fund_by_type(FundType::Active, SwapDirection::Forwards, |fund_item| {
             if let FundDescription::Active = fund_item.fund_desc {
                 if self.is_empty_user_address(fund_item.user_id) {
                     result.push(MultiValue2::from((

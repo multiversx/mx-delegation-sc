@@ -31,7 +31,10 @@ fn claim_rewards_1_rs() {
 
 #[test]
 fn claim_rewards_owner_with_stake_rs() {
-    multiversx_sc_scenario::run_rs("scenarios/claim_rewards_owner_with_stake.scen.json", world());
+    multiversx_sc_scenario::run_rs(
+        "scenarios/claim_rewards_owner_with_stake.scen.json",
+        world(),
+    );
 }
 
 #[test]
@@ -65,7 +68,10 @@ fn continue_global_operations_rs() {
 
 #[test]
 fn decrease_cap_in_bootstrap_mode_rs() {
-    multiversx_sc_scenario::run_rs("scenarios/decrease_cap_in_bootstrap_mode.scen.json", world());
+    multiversx_sc_scenario::run_rs(
+        "scenarios/decrease_cap_in_bootstrap_mode.scen.json",
+        world(),
+    );
 }
 
 #[test]

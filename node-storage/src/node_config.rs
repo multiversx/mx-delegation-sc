@@ -130,7 +130,7 @@ pub trait NodeConfigModule {
                 sc_panic!("node already registered");
             }
         }
-        self.num_nodes().set(&num_nodes);
+        self.num_nodes().set(num_nodes);
     }
 
     #[only_owner]

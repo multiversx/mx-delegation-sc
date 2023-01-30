@@ -212,7 +212,7 @@ pub trait NodeActivationModule:
         let auction_contract_addr = self.get_auction_contract_address();
         if unstake_tokens {
             self.auction_proxy(auction_contract_addr)
-                .unstake(bls_keys.clone())
+                .unstake(bls_keys)
                 .async_call()
                 .with_callback(self.callbacks().auction_unstake_callback(node_ids))
                 .call_and_exit()

@@ -403,7 +403,7 @@ pub trait FundModule {
             self.delete_fund(&mut *fund_item)
         };
         // create / increase
-        self.increase_fund_balance((*fund_item).user_id, transformed, extracted_balance);
+        self.increase_fund_balance(fund_item.user_id, transformed, extracted_balance);
     }
 
     fn first_id_of_type(&self, source_type: FundType, direction: SwapDirection) -> usize {
