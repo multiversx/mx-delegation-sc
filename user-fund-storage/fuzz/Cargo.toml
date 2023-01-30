@@ -34,8 +34,8 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.3"
-multiversx-sc = "0.39.2"
-multiversx-sc-scenario = "0.39.2"
+multiversx-sc = "0.39.4"
+multiversx-sc-scenario = "0.39.4"
 multiversx-sc-derive = "0.29.2"
 
 [dependencies.fuzz-util]
