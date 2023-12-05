@@ -1,0 +1,11 @@
+[settings]
+main = "full"
+
+[contracts.full]
+name = "delegation_latest_full"
+add-labels = ["init"]
+
+[contracts.update]
+name = "delegation_latest_update"
+add-labels = ["upgrade"]
+
