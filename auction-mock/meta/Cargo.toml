@@ -4,8 +4,10 @@ version = "0.0.0"
 authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
 edition = "2018"
 publish = false
+
 [dependencies.auction-mock]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.39.4"
+version = "0.45.1"
+default-features = false

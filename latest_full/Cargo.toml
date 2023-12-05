@@ -3,13 +3,15 @@ name = "delegation_latest_full"
 version = "0.5.8"
 authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
 edition = "2018"
+
 [dependencies.delegation_latest]
 path = "../latest"
 
 [dependencies.multiversx-sc]
-version = "0.39.4"
+version = "0.45.1"
+
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.39.4"
+version = "0.45.1"
 
 [dev-dependencies.auction-mock]
 path = "../auction-mock"

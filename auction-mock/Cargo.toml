@@ -3,11 +3,13 @@ name = "auction-mock"
 version = "0.3.4"
 authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
 edition = "2018"
+
 [dependencies.node-storage]
 path = "../node-storage"
 
 [dependencies.multiversx-sc]
-version = "0.39.4"
+version = "0.45.1"
 features = ["alloc"]
+
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.39.4"
+version = "0.45.1"

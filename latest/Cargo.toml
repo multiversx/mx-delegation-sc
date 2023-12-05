@@ -3,6 +3,10 @@ name = "delegation_latest"
 version = "0.5.8"
 authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
 edition = "2018"
+
+[lib]
+path = "src/delegation_main.rs"
+
 [dependencies.node-storage]
 path = "../node-storage"
 
@@ -10,9 +14,13 @@ path = "../node-storage"
 path = "../user-fund-storage"
 
 [dependencies.multiversx-sc-modules]
-version = "0.39.4"
+version = "0.45.1"
 
 [dependencies.multiversx-sc]
-version = "0.39.4"
+version = "0.45.1"
+
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.39.4"
+version = "0.45.1"
+
+[dev-dependencies.auction-mock]
+path = "../auction-mock"
