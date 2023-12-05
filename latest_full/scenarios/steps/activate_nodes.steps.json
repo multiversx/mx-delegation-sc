@@ -3,7 +3,7 @@
     "steps": [
         {
             "step": "scCall",
-            "txId": "activate-nodes",
+            "id": "activate-nodes",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -22,14 +22,36 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "*",
+                        "address": "sc:delegation",
                         "endpoint": "str:transferValueOnly",
-                        "topics": [
-                            "sc:delegation",
-                            "sc:auction",
-                            "300,000,000,000,000"
+                        "topics": [                            
+                            "300,000,000,000,000",
+                            "sc:auction"
                         ],
-                        "data": ""
+                        "data": [
+                            "str:AsyncCall",
+                            "str:stake",
+                            "3",
+                            "str:bls_key_2_______________________________________________________________________________________",
+                            "str:signature_2_____________________________________",
+                            "str:bls_key_3_______________________________________________________________________________________",
+                            "str:signature_3_____________________________________",
+                            "str:bls_key_6_______________________________________________________________________________________",
+                            "str:signature_6_____________________________________"
+                        ]
+                    },
+                    {
+                        "address": "sc:auction",
+                        "endpoint": "str:transferValueOnly",
+                        "topics": [                            
+                            "",
+                            "sc:delegation"
+                        ],
+                        "data": [
+                            "str:AsyncCallback",
+                            "str:callBack",
+                            "0x00"
+                        ]
                     },
                     {
                         "address": "sc:delegation",
@@ -37,7 +59,9 @@
                         "topics": [
                             "str:nodeStakeOk"
                         ],
-                        "data": "0x"
+                        "data": [
+                            ""
+                        ]
                     }
                 ],
                 "gas": "*",
@@ -46,7 +70,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-node_state-4_1",
+            "id": "check-node_state-4_1",
             "tx": {
                 "from": "address:someone",
                 "to": "sc:delegation",
@@ -80,7 +104,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-stake-by-type-1",
+            "id": "check-stake-by-type-1",
             "tx": {
                 "from": "address:someone",
                 "to": "sc:delegation",
@@ -107,7 +131,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-stake-by-type-2",
+            "id": "check-stake-by-type-2",
             "tx": {
                 "from": "address:someone",
                 "to": "sc:delegation",
@@ -134,7 +158,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-stake-by-type-total",
+            "id": "check-stake-by-type-total",
             "tx": {
                 "from": "address:someone",
                 "to": "sc:delegation",

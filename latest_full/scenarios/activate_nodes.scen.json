@@ -28,7 +28,7 @@
         },
         {
             "step": "scCall",
-            "txId": "unstake not active ",
+            "id": "unstake not active ",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -51,7 +51,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-nodes_state-1",
+            "id": "check-nodes_state-1",
             "tx": {
                 "from": "address:someone",
                 "to": "sc:delegation",
@@ -85,7 +85,7 @@
         },
         {
             "step": "scCall",
-            "txId": "unstake active",
+            "id": "unstake active",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -106,7 +106,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-nodes_state-2",
+            "id": "check-nodes_state-2",
             "tx": {
                 "from": "address:someone",
                 "to": "sc:delegation",
@@ -140,7 +140,7 @@
         },
         {
             "step": "scCall",
-            "txId": "unBond active",
+            "id": "unBond active",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -162,7 +162,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-nodes_state-3",
+            "id": "check-nodes_state-3",
             "tx": {
                 "from": "address:someone",
                 "to": "sc:delegation",
@@ -196,7 +196,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-nodes_state-4",
+            "id": "check-nodes_state-4",
             "tx": {
                 "from": "address:someone",
                 "to": "sc:delegation",
@@ -237,7 +237,7 @@
         },
         {
             "step": "scCall",
-            "txId": "unBond unStaked 1",
+            "id": "unBond unStaked 1",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -253,14 +253,42 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "*",
+                        "address": "sc:delegation",
                         "endpoint": "str:transferValueOnly",
-                        "topics": [
-                            "sc:auction",
-                            "sc:delegation",
-                            "100,000,000,000,000"
+                        "topics": [                            
+                            "",
+                            "*"
                         ],
-                        "data": ""
+                        "data": [
+                            "str:AsyncCall",
+                            "str:unBondNodes",
+                            "str:bls_key_6_______________________________________________________________________________________"
+                        ]
+                    },
+                    {
+                        "address": "sc:auction",
+                        "endpoint": "str:transferValueOnly",
+                        "topics": [                            
+                            "100,000,000,000,000",
+                            "sc:delegation"
+                        ],
+                        "data": [
+                            "str:BackTransfer",
+                            "0"
+                        ]
+                    },
+                    {
+                        "address": "sc:auction",
+                        "endpoint": "str:transferValueOnly",
+                        "topics": [                            
+                            "100,000,000,000,000",
+                            "sc:delegation"
+                        ],
+                        "data": [
+                            "str:AsyncCallback",
+                            "str:callBack",
+                            "0x00"
+                        ]
                     },
                     {
                         "address": "sc:delegation",
@@ -268,7 +296,9 @@
                         "topics": [
                             "str:nodeUnbondOk"
                         ],
-                        "data": ""
+                        "data": [
+                            ""
+                        ]
                     }
                 ],
                 "gas": "*",
@@ -277,7 +307,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-nodes_state-5",
+            "id": "check-nodes_state-5",
             "tx": {
                 "from": "address:someone",
                 "to": "sc:delegation",
@@ -323,7 +353,7 @@
         },
         {
             "step": "scCall",
-            "txId": "unBond unStaked 2",
+            "id": "unBond unStaked 2",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -351,7 +381,7 @@
         },
         {
             "step": "scCall",
-            "txId": "unBond unStaked 3",
+            "id": "unBond unStaked 3",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -372,7 +402,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-nodes_state-6",
+            "id": "check-nodes_state-6",
             "tx": {
                 "from": "address:someone",
                 "to": "sc:delegation",
@@ -406,7 +436,7 @@
         },
         {
             "step": "scCall",
-            "txId": "unBond all possible",
+            "id": "unBond all possible",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -425,7 +455,7 @@
         },
         {
             "step": "scCall",
-            "txId": "check-nodes_state-7",
+            "id": "check-nodes_state-7",
             "tx": {
                 "from": "address:someone",
                 "to": "sc:delegation",

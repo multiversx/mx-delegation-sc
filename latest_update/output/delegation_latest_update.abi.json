@@ -1,11 +1,11 @@
 {
     "buildInfo": {
         "rustc": {
-            "version": "1.68.0-nightly",
-            "commitHash": "4781233a77e879e49cb5ce3c98d2abba6a6ade7a",
-            "commitDate": "2023-01-16",
+            "version": "1.71.0-nightly",
+            "commitHash": "a2b1646c597329d0a25efa3889b66650f65de1de",
+            "commitDate": "2023-05-25",
             "channel": "Nightly",
-            "short": "rustc 1.68.0-nightly (4781233a7 2023-01-16)"
+            "short": "rustc 1.71.0-nightly (a2b1646c5 2023-05-25)"
         },
         "contractCrate": {
             "name": "delegation_latest_update",
@@ -13,7 +13,7 @@
         },
         "framework": {
             "name": "multiversx-sc",
-            "version": "0.39.4"
+            "version": "0.45.1"
         }
     },
     "name": "DelegationUpdate",
@@ -1245,6 +1245,7 @@
             ]
         }
     ],
+    "esdtAttributes": [],
     "hasCallback": true,
     "types": {
         "BLSKey": {
@@ -1556,6 +1557,23 @@
                     ],
                     "name": "Removed",
                     "discriminant": 7
+                }
+            ]
+        },
+        "OperationCompletionStatus": {
+            "type": "explicit-enum",
+            "variants": [
+                {
+                    "docs": [
+                        "indicates that operation was completed"
+                    ],
+                    "name": "completed"
+                },
+                {
+                    "docs": [
+                        "indicates that operation was interrupted prematurely, due to low gas"
+                    ],
+                    "name": "interrupted"
                 }
             ]
         }

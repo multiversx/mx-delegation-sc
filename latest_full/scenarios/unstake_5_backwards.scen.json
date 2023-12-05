@@ -29,7 +29,7 @@
         },
         {
             "step": "transfer",
-            "txId": "supply delegator 3",
+            "id": "supply delegator 3",
             "tx": {
                 "from": "address:endless_sack_of_erd",
                 "to": "address:delegator3",
@@ -45,7 +45,7 @@
         },
         {
             "step": "scCall",
-            "txId": "delegator 3 stake 1",
+            "id": "delegator 3 stake 1",
             "tx": {
                 "from": "address:delegator3",
                 "to": "sc:delegation",
@@ -66,7 +66,9 @@
                             "str:userStake",
                             "address:delegator3"
                         ],
-                        "data": "200,000,000,000,000"
+                        "data": [
+                            "200,000,000,000,000"
+                        ]
                     }
                 ],
                 "gas": "*",
@@ -82,7 +84,7 @@
         },
         {
             "step": "scCall",
-            "txId": "delegator 3 stake 2",
+            "id": "delegator 3 stake 2",
             "tx": {
                 "from": "address:delegator3",
                 "to": "sc:delegation",
@@ -103,7 +105,9 @@
                             "str:userStake",
                             "address:delegator3"
                         ],
-                        "data": "300,000,000,000,000"
+                        "data": [
+                            "300,000,000,000,000"
+                        ]
                     }
                 ],
                 "gas": "*",
@@ -112,7 +116,7 @@
         },
         {
             "step": "scCall",
-            "txId": "getFullWaitingList-before-unstake",
+            "id": "getFullWaitingList-before-unstake",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -138,7 +142,7 @@
         },
         {
             "step": "scCall",
-            "txId": "user-unstake",
+            "id": "user-unstake",
             "tx": {
                 "from": "address:delegator3",
                 "to": "sc:delegation",
@@ -159,7 +163,7 @@
         },
         {
             "step": "scCall",
-            "txId": "getFullWaitingList-after-unstake",
+            "id": "getFullWaitingList-after-unstake",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",

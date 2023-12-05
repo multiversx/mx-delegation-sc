@@ -1,0 +1,5 @@
+[settings]
+main = "auction-mock"
+
+[contracts.auction-mock]
+allocator = "leaking"

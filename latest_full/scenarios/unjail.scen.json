@@ -41,7 +41,7 @@
         },
         {
             "step": "transfer",
-            "txId": "supply node address",
+            "id": "supply node address",
             "tx": {
                 "from": "address:endless_sack_of_erd",
                 "to": "address:node_address",
@@ -50,7 +50,7 @@
         },
         {
             "step": "scCall",
-            "txId": "unJail inactive nodes",
+            "id": "unJail inactive nodes",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -74,7 +74,7 @@
         },
         {
             "step": "scCall",
-            "txId": "unJail unknown nodes",
+            "id": "unJail unknown nodes",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -98,7 +98,7 @@
         },
         {
             "step": "scCall",
-            "txId": "unJail nodes",
+            "id": "unJail nodes",
             "tx": {
                 "from": "address:node_address",
                 "to": "sc:delegation",
@@ -116,14 +116,31 @@
                 "status": "",
                 "logs": [
                     {
-                        "address": "*",
+                        "address": "sc:delegation",
                         "endpoint": "str:transferValueOnly",
-                        "topics": [
-                            "sc:delegation",
-                            "sc:auction",
-                            "1,000,000,000"
+                        "topics": [                            
+                            "1,000,000,000",
+                            "*"
                         ],
-                        "data": ""
+                        "data": [
+                            "str:AsyncCall",
+                            "str:unJail",
+                            "str:bls_key_2_______________________________________________________________________________________",
+                            "str:bls_key_3_______________________________________________________________________________________"
+                        ]
+                    },
+                    {
+                        "address": "sc:auction",
+                        "endpoint": "str:transferValueOnly",
+                        "topics": [                            
+                            "",
+                            "sc:delegation"
+                        ],
+                        "data": [
+                            "str:AsyncCallback",
+                            "str:callBack",
+                            "0x00"
+                        ]
                     }
                 ],
                 "gas": "*",

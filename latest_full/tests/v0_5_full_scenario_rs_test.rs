@@ -119,12 +119,12 @@ fn unstake_3_rs() {
     world().run("scenarios/unstake_3.scen.json");
 }
 
+#[ignore = "gas"]
 #[test]
 fn unstake_4_rs() {
     world().run("scenarios/unstake_4.scen.json");
 }
 
-// #[test]
 #[test]
 fn unstake_5_backwards_rs() {
     world().run("scenarios/unstake_5_backwards.scen.json");
