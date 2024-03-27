@@ -14,13 +14,13 @@ path = "../node-storage"
 path = "../user-fund-storage"
 
 [dependencies.multiversx-sc-modules]
-version = "0.45.1"
+version = "0.47.8"
 
 [dependencies.multiversx-sc]
-version = "0.45.1"
+version = "0.47.8"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.45.1"
+version = "0.47.8"
 
 [dev-dependencies.auction-mock]
 path = "../auction-mock"

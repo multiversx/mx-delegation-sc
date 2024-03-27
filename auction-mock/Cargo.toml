@@ -8,8 +8,8 @@ edition = "2018"
 path = "../node-storage"
 
 [dependencies.multiversx-sc]
-version = "0.45.1"
+version = "0.47.8"
 features = ["alloc"]
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.45.1"
+version = "0.47.8"
