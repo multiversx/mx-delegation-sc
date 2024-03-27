@@ -111,7 +111,7 @@ pub trait UserStakeEndpointsModule:
 
         if amount_liquidated > 0 {
             // forward payment to seller
-            self.send().direct_egld(&caller, &amount_liquidated);
+            self.tx().to(&caller).egld(&amount_liquidated).transfer();
         }
 
         amount_liquidated
