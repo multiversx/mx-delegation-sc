@@ -1,5 +1,0 @@
-[settings]
-main = "full"
-
-[contracts.full]
-name = "delegation_latest_full"
