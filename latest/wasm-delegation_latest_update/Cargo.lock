@@ -10,9 +10,9 @@ checksum = "96d30a06541fbafbc7f82ed10c06164cfbd2c401138f6addd8404629c4b16711"
 
 [[package]]
 name = "autocfg"
-version = "1.1.0"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
+checksum = "f1fdabc7756949593fe60f30ec81974b613357de856987752631dea1e3394c80"
 
 [[package]]
 name = "bitflags"
@@ -58,9 +58,9 @@ checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
 
 [[package]]
 name = "multiversx-sc"
-version = "0.47.8"
+version = "0.48.0-alpha.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34215a81b2c37619a234db4d6facbef5853e4022df3494746b29ada5ff35859f"
+checksum = "9bd1770357e88d7c9842103e69c84abd03eff8d198f7bdf574b26c5ef76ecdde"
 dependencies = [
  "bitflags",
  "hex-literal",
@@ -93,9 +93,9 @@ dependencies = [
 
 [[package]]
 name = "multiversx-sc-derive"
-version = "0.47.8"
+version = "0.48.0-alpha.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c41ce6becb22f45383e9ff60c88fa1f7946d92915c8409e9fbe3c3719325146f"
+checksum = "49721e4e7cb63e9bf9ef823a5e713a2342a37d2644a0dd55989bfd4d61c8775f"
 dependencies = [
  "hex",
  "proc-macro2",
@@ -106,18 +106,18 @@ dependencies = [
 
 [[package]]
 name = "multiversx-sc-modules"
-version = "0.47.8"
+version = "0.48.0-alpha.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36b0d7511588750e0c9f457b0b7d494f13a6a008d3d4d43af1e0ab95e7e99a4d"
+checksum = "2a4e1fa42b834b43ea4dae18796a71161fe2e4e57c4e3df32fc651c7b6916594"
 dependencies = [
  "multiversx-sc",
 ]
 
 [[package]]
 name = "multiversx-sc-wasm-adapter"
-version = "0.47.8"
+version = "0.48.0-alpha.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73d1089c0fac8d27347f3f7d61285d304342cb7b57ac1cf1989c7efce6edc17a"
+checksum = "361e00a2a8050a932e1e47a6d9074244d2a384324c928f129ca4b487b7736a38"
 dependencies = [
  "multiversx-sc",
 ]
@@ -177,9 +177,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.11.2"
+version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4dccd0940a2dcdf68d092b8cbab7dc0ad8fa938bf95787e1b916b0e3d0e8e970"
+checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "syn"

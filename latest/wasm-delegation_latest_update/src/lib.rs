@@ -4,10 +4,10 @@
 ////////////////// AUTO-GENERATED //////////////////
 ////////////////////////////////////////////////////
 
-// Init:                                 1
-// Endpoints:                           80
+// Upgrade:                              1
+// Endpoints:                           79
 // Async Callback:                       1
-// Total number of exported functions:  82
+// Total number of exported functions:  80
 
 #![no_std]
 #![allow(internal_features)]
@@ -19,6 +19,7 @@ multiversx_sc_wasm_adapter::panic_handler!();
 multiversx_sc_wasm_adapter::endpoints! {
     delegation_latest
     (
+        upgrade => upgrade
         version => version
         getNumNodes => num_nodes
         getNodeId => get_node_id
@@ -98,7 +99,6 @@ multiversx_sc_wasm_adapter::endpoints! {
         pause => pause_endpoint
         unpause => unpause_endpoint
         isPaused => paused_status
-        upgrade => upgrade
     )
 }
 

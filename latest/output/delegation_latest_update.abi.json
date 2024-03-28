@@ -17,6 +17,10 @@
         }
     },
     "name": "DelegationFull",
+    "upgradeConstructor": {
+        "inputs": [],
+        "outputs": []
+    },
     "endpoints": [
         {
             "name": "version",
@@ -1137,15 +1141,6 @@
                 {
                     "type": "bool"
                 }
-            ]
-        },
-        {
-            "name": "upgrade",
-            "mutability": "mutable",
-            "inputs": [],
-            "outputs": [],
-            "labels": [
-                "upgrade"
             ]
         }
     ],
