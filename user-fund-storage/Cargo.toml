@@ -5,7 +5,7 @@ authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
 edition = "2018"
 
 [dependencies.multiversx-sc]
-version = "0.48.0-alpha.1"
+version = "0.49.0-alpha.4"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.48.0-alpha.1"
+version = "0.49.0-alpha.4"
