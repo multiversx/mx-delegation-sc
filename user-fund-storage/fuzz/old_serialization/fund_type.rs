@@ -2,7 +2,8 @@ use multiversx_sc::codec::*;
 
 multiversx_sc::derive_imports!();
 
-#[derive(TypeAbi, PartialEq, Clone, Copy, Debug)]
+#[type_abi]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum FundDescription {
     /// Funds that can only be extracted from contract. Will never be used as stake.
     WithdrawOnly,

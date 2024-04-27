@@ -263,7 +263,7 @@ where
     >(
         self,
         id: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, user_fund_storage::types::fund_item::FundItem<Env::Api>> {
+    ) -> TxProxyCall<Env, From, To, Gas, user_fund_storage::types::FundItem<Env::Api>> {
         self.wrapped_tx
             .raw_call("fundById")
             .argument(&id)
@@ -750,7 +750,7 @@ where
     /// Returns true if still out of gas, false if computation completed. 
     pub fn continue_global_operation_endpoint(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, multiversx_sc::types::io::operation_completion_status::OperationCompletionStatus> {
+    ) -> TxProxyCall<Env, From, To, Gas, multiversx_sc::types::OperationCompletionStatus> {
         self.wrapped_tx
             .raw_call("continueGlobalOperation")
             .original_result()
@@ -763,7 +763,7 @@ where
     >(
         self,
         new_total_cap: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, multiversx_sc::types::io::operation_completion_status::OperationCompletionStatus> {
+    ) -> TxProxyCall<Env, From, To, Gas, multiversx_sc::types::OperationCompletionStatus> {
         self.wrapped_tx
             .raw_call("modifyTotalDelegationCap")
             .argument(&new_total_cap)
@@ -777,7 +777,7 @@ where
     >(
         self,
         service_fee_per_10000: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, multiversx_sc::types::io::operation_completion_status::OperationCompletionStatus> {
+    ) -> TxProxyCall<Env, From, To, Gas, multiversx_sc::types::OperationCompletionStatus> {
         self.wrapped_tx
             .raw_call("setServiceFee")
             .argument(&service_fee_per_10000)

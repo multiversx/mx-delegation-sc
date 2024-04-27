@@ -1,10 +1,10 @@
 use multiversx_sc::proxy_imports::*;
 
 /// Proxy for the auction system smart contract.
-/// 
+///
 /// Initially auto-generated from the mock implementation, but cleaned up by hand.
 /// For insance, because it is a system SC, one cannot call `init`` or `upgrade`` on it.
-/// 
+///
 /// TODO: being a system SC, might be worth adding to the framework.
 pub struct AuctionProxy;
 
@@ -132,9 +132,7 @@ where
     }
 
     pub fn claim(self) -> TxProxyCall<Env, From, To, Gas, ()> {
-        self.wrapped_tx
-            .raw_call("claim")
-            .original_result()
+        self.wrapped_tx.raw_call("claim").original_result()
     }
 
     pub fn unjail<
