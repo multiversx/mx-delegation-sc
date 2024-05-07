@@ -41,8 +41,8 @@ where
     Gas: TxGas<Env>,
 {
     pub fn stake<
-        Arg0: CodecInto<usize>,
-        Arg1: CodecInto<
+        Arg0: ProxyArg<usize>,
+        Arg1: ProxyArg<
             MultiValueEncoded<
                 Env::Api,
                 MultiValue2<
@@ -64,7 +64,7 @@ where
     }
 
     pub fn unstake<
-        Arg0: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -76,7 +76,7 @@ where
     }
 
     pub fn unstake_nodes<
-        Arg0: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -88,7 +88,7 @@ where
     }
 
     pub fn unbond<
-        Arg0: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -100,7 +100,7 @@ where
     }
 
     pub fn unbond_nodes<
-        Arg0: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -111,7 +111,7 @@ where
             .original_result()
     }
 
-    pub fn unstake_tokens<Arg0: CodecInto<BigUint<Env::Api>>>(
+    pub fn unstake_tokens<Arg0: ProxyArg<BigUint<Env::Api>>>(
         self,
         _amount: Arg0,
     ) -> TxProxyCall<Env, From, To, Gas, ()> {
@@ -121,7 +121,7 @@ where
             .original_result()
     }
 
-    pub fn unbond_tokens<Arg0: CodecInto<BigUint<Env::Api>>>(
+    pub fn unbond_tokens<Arg0: ProxyArg<BigUint<Env::Api>>>(
         self,
         amount: Arg0,
     ) -> TxProxyCall<Env, From, To, Gas, ()> {
@@ -136,7 +136,7 @@ where
     }
 
     pub fn unjail<
-        Arg0: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,

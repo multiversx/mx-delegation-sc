@@ -45,12 +45,12 @@ where
 {
     /// This is the contract constructor, called only once when the contract is deployed. 
     pub fn init<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
-        Arg1: CodecInto<usize>,
-        Arg2: CodecInto<usize>,
-        Arg3: CodecInto<u64>,
-        Arg4: CodecInto<BigUint<Env::Api>>,
-        Arg5: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
+        Arg1: ProxyArg<usize>,
+        Arg2: ProxyArg<usize>,
+        Arg3: ProxyArg<u64>,
+        Arg4: ProxyArg<BigUint<Env::Api>>,
+        Arg5: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         auction_contract_addr: Arg0,
@@ -121,7 +121,7 @@ where
     /// The key is the bytes "node_id" concatenated with the BLS key. The value is the node id. 
     /// Ids start from 1 because 0 means unset of None. 
     pub fn get_node_id<
-        Arg0: CodecInto<node_storage::types::bls_key::BLSKey<Env::Api>>,
+        Arg0: ProxyArg<node_storage::types::bls_key::BLSKey<Env::Api>>,
     >(
         self,
         bls_key: Arg0,
@@ -133,7 +133,7 @@ where
     }
 
     pub fn get_node_signature_endpoint<
-        Arg0: CodecInto<node_storage::types::bls_key::BLSKey<Env::Api>>,
+        Arg0: ProxyArg<node_storage::types::bls_key::BLSKey<Env::Api>>,
     >(
         self,
         bls_key: Arg0,
@@ -145,7 +145,7 @@ where
     }
 
     pub fn get_node_state_endpoint<
-        Arg0: CodecInto<node_storage::types::bls_key::BLSKey<Env::Api>>,
+        Arg0: ProxyArg<node_storage::types::bls_key::BLSKey<Env::Api>>,
     >(
         self,
         bls_key: Arg0,
@@ -165,7 +165,7 @@ where
     }
 
     pub fn get_node_bl_nonce_of_unstake_endpoint<
-        Arg0: CodecInto<node_storage::types::bls_key::BLSKey<Env::Api>>,
+        Arg0: ProxyArg<node_storage::types::bls_key::BLSKey<Env::Api>>,
     >(
         self,
         bls_key: Arg0,
@@ -177,7 +177,7 @@ where
     }
 
     pub fn add_nodes<
-        Arg0: CodecInto<MultiValueEncoded<Env::Api, MultiValue2<node_storage::types::bls_key::BLSKey<Env::Api>, node_storage::types::bls_sig::BLSSignature<Env::Api>>>>,
+        Arg0: ProxyArg<MultiValueEncoded<Env::Api, MultiValue2<node_storage::types::bls_key::BLSKey<Env::Api>, node_storage::types::bls_sig::BLSSignature<Env::Api>>>>,
     >(
         self,
         bls_keys_signatures: Arg0,
@@ -189,7 +189,7 @@ where
     }
 
     pub fn remove_nodes<
-        Arg0: CodecInto<MultiValueEncoded<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueEncoded<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -205,7 +205,7 @@ where
     /// The key is the bytes "user_id" concatenated with their public key. 
     /// The value is the user id. 
     pub fn get_user_id<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         address: Arg0,
@@ -217,7 +217,7 @@ where
     }
 
     pub fn get_user_address<
-        Arg0: CodecInto<usize>,
+        Arg0: ProxyArg<usize>,
     >(
         self,
         user_id: Arg0,
@@ -239,7 +239,7 @@ where
     }
 
     pub fn update_user_address<
-        Arg0: CodecInto<MultiValueEncoded<Env::Api, ManagedAddress<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueEncoded<Env::Api, ManagedAddress<Env::Api>>>,
     >(
         self,
         addresses: Arg0,
@@ -259,7 +259,7 @@ where
     }
 
     pub fn fund_by_id<
-        Arg0: CodecInto<usize>,
+        Arg0: ProxyArg<usize>,
     >(
         self,
         id: Arg0,
@@ -280,7 +280,7 @@ where
 
     /// Yields how much a user has staked in the contract. 
     pub fn get_user_total_stake_endpoint<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         user_address: Arg0,
@@ -292,7 +292,7 @@ where
     }
 
     pub fn get_user_withdraw_only_stake<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         user_address: Arg0,
@@ -304,7 +304,7 @@ where
     }
 
     pub fn get_user_waiting_stake<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         user_address: Arg0,
@@ -316,7 +316,7 @@ where
     }
 
     pub fn get_user_active_stake<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         user_address: Arg0,
@@ -328,7 +328,7 @@ where
     }
 
     pub fn get_user_unstaked_stake<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         user_address: Arg0,
@@ -340,7 +340,7 @@ where
     }
 
     pub fn get_user_deferred_payment_stake<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         user_address: Arg0,
@@ -392,7 +392,7 @@ where
     }
 
     pub fn get_user_stake_by_type_endpoint<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         user_address: Arg0,
@@ -420,7 +420,7 @@ where
     }
 
     pub fn get_user_deferred_payment_list<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         user_address: Arg0,
@@ -449,8 +449,8 @@ where
 
     /// Owner activates specific nodes. 
     pub fn stake_nodes<
-        Arg0: CodecInto<BigUint<Env::Api>>,
-        Arg1: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
+        Arg1: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
     >(
         self,
         amount_to_stake: Arg0,
@@ -468,7 +468,7 @@ where
     /// This operation is performed by the owner. 
     /// Does not unstake tokens. 
     pub fn unstake_nodes_endpoint<
-        Arg0: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -484,7 +484,7 @@ where
     /// This operation is performed by the owner. 
     /// Also unstakes tokens. 
     pub fn unstake_nodes_and_tokens_endpoint<
-        Arg0: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -498,7 +498,7 @@ where
     /// Owner can retry a callback in case of callback failure. 
     /// Warning: misuse can lead to state inconsistency. 
     pub fn force_node_unbond_period<
-        Arg0: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -511,7 +511,7 @@ where
 
     /// Calls unbond for all provided nodes. Will fail if node cannot be unbonded. 
     pub fn unbond_specific_nodes_endpoint<
-        Arg0: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -542,7 +542,7 @@ where
     }
 
     pub fn unjail_nodes<
-        Arg0: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -554,7 +554,7 @@ where
     }
 
     pub fn unstake_tokens<
-        Arg0: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         amount: Arg0,
@@ -566,7 +566,7 @@ where
     }
 
     pub fn unbond_tokens<
-        Arg0: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         amount: Arg0,
@@ -633,7 +633,7 @@ where
     }
 
     pub fn set_n_blocks_before_unbond_endpoint<
-        Arg0: CodecInto<u64>,
+        Arg0: ProxyArg<u64>,
     >(
         self,
         n_blocks_before_unbond: Arg0,
@@ -655,7 +655,7 @@ where
     }
 
     pub fn set_minimum_stake_endpoint<
-        Arg0: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         minimum_stake: Arg0,
@@ -700,7 +700,7 @@ where
     /// Yields how much a user is able to claim in rewards at the present time. 
     /// Does not update storage. 
     pub fn get_claimable_rewards<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         user: Arg0,
@@ -750,7 +750,7 @@ where
     /// Returns true if still out of gas, false if computation completed. 
     pub fn continue_global_operation_endpoint(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, multiversx_sc::types::OperationCompletionStatus> {
+    ) -> TxProxyCall<Env, From, To, Gas, OperationCompletionStatus> {
         self.wrapped_tx
             .raw_call("continueGlobalOperation")
             .original_result()
@@ -759,11 +759,11 @@ where
     /// Total delegation cap can be modified by owner only. 
     /// It will recalculate and set the checkpoint for all the delegators 
     pub fn modify_total_delegation_cap<
-        Arg0: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         new_total_cap: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, multiversx_sc::types::OperationCompletionStatus> {
+    ) -> TxProxyCall<Env, From, To, Gas, OperationCompletionStatus> {
         self.wrapped_tx
             .raw_call("modifyTotalDelegationCap")
             .argument(&new_total_cap)
@@ -773,11 +773,11 @@ where
     /// The stake per node can be changed by the owner. 
     /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed. 
     pub fn set_service_fee_endpoint<
-        Arg0: CodecInto<usize>,
+        Arg0: ProxyArg<usize>,
     >(
         self,
         service_fee_per_10000: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, multiversx_sc::types::OperationCompletionStatus> {
+    ) -> TxProxyCall<Env, From, To, Gas, OperationCompletionStatus> {
         self.wrapped_tx
             .raw_call("setServiceFee")
             .argument(&service_fee_per_10000)
@@ -809,7 +809,7 @@ where
     /// unStake - the user will announce that he wants to get out of the contract 
     /// selected funds will change from active to inactive, but claimable only after unBond period ends 
     pub fn unstake_endpoint<
-        Arg0: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         amount: Arg0,
@@ -821,7 +821,7 @@ where
     }
 
     pub fn get_unstakeable<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         user_address: Arg0,
@@ -841,7 +841,7 @@ where
     }
 
     pub fn get_unbondable<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
     >(
         self,
         user_address: Arg0,
@@ -864,7 +864,7 @@ where
     /// Counts fund buckets in the waiting list that are below a certain threshold. 
     /// Unlike most views, yields the number of entries, rather than the sum of EGLD. 
     pub fn count_dust_items_waiting_list<
-        Arg0: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         dust_limit: Arg0,
@@ -878,7 +878,7 @@ where
     /// Counts fund buckets in the active staking list that are below a certain threshold. 
     /// Unlike most views, yields the number of entries, rather than the sum of EGLD. 
     pub fn count_dust_items_active<
-        Arg0: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         dust_limit: Arg0,
@@ -895,7 +895,7 @@ where
     /// dust cleanup, the operation can be begun again. 
     /// It will auto-reset if the list ends or the current item is no longer valid. 
     pub fn dust_cleanup_waiting_list<
-        Arg0: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         dust_limit: Arg0,
@@ -913,7 +913,7 @@ where
     /// dust cleanup, the operation can be begun again. 
     /// It will auto-reset if the list ends or the current item is no longer valid. 
     pub fn dust_cleanup_active<
-        Arg0: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         dust_limit: Arg0,
@@ -925,8 +925,8 @@ where
     }
 
     pub fn dns_register<
-        Arg0: CodecInto<ManagedAddress<Env::Api>>,
-        Arg1: CodecInto<ManagedBuffer<Env::Api>>,
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
+        Arg1: ProxyArg<ManagedBuffer<Env::Api>>,
     >(
         self,
         dns_address: Arg0,
@@ -940,8 +940,8 @@ where
     }
 
     pub fn set_feature_flag_endpoint<
-        Arg0: CodecInto<ManagedBuffer<Env::Api>>,
-        Arg1: CodecInto<bool>,
+        Arg0: ProxyArg<ManagedBuffer<Env::Api>>,
+        Arg1: ProxyArg<bool>,
     >(
         self,
         feature_name: Arg0,
@@ -980,6 +980,7 @@ where
 }
 
 #[rustfmt::skip]
+#[type_abi]
 #[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Debug)]
 pub enum GlobalOpCheckpoint<Api>
 where
@@ -993,6 +994,7 @@ where
     },
 }
 
+#[type_abi]
 #[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Debug)]
 pub struct ModifyTotalDelegationCapData<Api>
 where
@@ -1005,6 +1007,7 @@ where
     pub step: ModifyDelegationCapStep<Api>,
 }
 
+#[type_abi]
 #[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Debug)]
 pub enum ModifyDelegationCapStep<Api>
 where
@@ -1016,6 +1019,7 @@ where
     SwapActiveToDeferredPayment,
 }
 
+#[type_abi]
 #[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Debug)]
 pub struct ComputeAllRewardsData<Api>
 where

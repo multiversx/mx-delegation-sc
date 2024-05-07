@@ -62,8 +62,8 @@ where
     Gas: TxGas<Env>,
 {
     pub fn stake<
-        Arg0: CodecInto<usize>,
-        Arg1: CodecInto<MultiValueEncoded<Env::Api, MultiValue2<ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>>>>,
+        Arg0: ProxyArg<usize>,
+        Arg1: ProxyArg<MultiValueEncoded<Env::Api, MultiValue2<ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>>>>,
     >(
         self,
         num_nodes: Arg0,
@@ -77,7 +77,7 @@ where
     }
 
     pub fn unstake_endpoint<
-        Arg0: CodecInto<MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -89,7 +89,7 @@ where
     }
 
     pub fn unstake_nodes_endpoint<
-        Arg0: CodecInto<MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -101,7 +101,7 @@ where
     }
 
     pub fn unbond_endpoint<
-        Arg0: CodecInto<MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -113,7 +113,7 @@ where
     }
 
     pub fn unbond_nodes_endpoint<
-        Arg0: CodecInto<MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -125,7 +125,7 @@ where
     }
 
     pub fn unstake_tokens<
-        Arg0: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         _amount: Arg0,
@@ -137,7 +137,7 @@ where
     }
 
     pub fn unbond_tokens<
-        Arg0: CodecInto<BigUint<Env::Api>>,
+        Arg0: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         amount: Arg0,
@@ -157,7 +157,7 @@ where
     }
 
     pub fn unjail_endpoint<
-        Arg0: CodecInto<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
+        Arg0: ProxyArg<MultiValueManagedVec<Env::Api, node_storage::types::bls_key::BLSKey<Env::Api>>>,
     >(
         self,
         bls_keys: Arg0,
@@ -169,8 +169,8 @@ where
     }
 
     pub fn set_bls_deliberate_error<
-        Arg0: CodecInto<Box<[u8]>>,
-        Arg1: CodecInto<u8>,
+        Arg0: ProxyArg<Box<[u8]>>,
+        Arg1: ProxyArg<u8>,
     >(
         self,
         bls_key: Arg0,
@@ -184,7 +184,7 @@ where
     }
 
     pub fn get_bls_deliberate_error<
-        Arg0: CodecInto<Box<[u8]>>,
+        Arg0: ProxyArg<Box<[u8]>>,
     >(
         self,
         bls_key: Arg0,
