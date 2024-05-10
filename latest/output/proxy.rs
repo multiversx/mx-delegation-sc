@@ -59,8 +59,9 @@ where
         n_blocks_before_unbond: Arg3,
         minimum_stake: Arg4,
         total_delegation_cap: Arg5,
-    ) -> TxProxyDeploy<Env, From, Gas, ()> {
+    ) -> TxTypedDeploy<Env, From, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_deploy()
             .argument(&auction_contract_addr)
             .argument(&service_fee_per_10000)
@@ -83,8 +84,9 @@ where
 {
     pub fn upgrade(
         self,
-    ) -> TxProxyUpgrade<Env, From, To, Gas, ()> {
+    ) -> TxTypedUpgrade<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_upgrade()
             .original_result()
     }
@@ -101,8 +103,9 @@ where
 {
     pub fn version(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, &'static str> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, &'static str> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("version")
             .original_result()
     }
@@ -110,8 +113,9 @@ where
     /// The number of nodes that will run with the contract stake, as configured by the owner. 
     pub fn num_nodes(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, usize> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getNumNodes")
             .original_result()
     }
@@ -125,8 +129,9 @@ where
     >(
         self,
         bls_key: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, usize> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getNodeId")
             .argument(&bls_key)
             .original_result()
@@ -137,8 +142,9 @@ where
     >(
         self,
         bls_key: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, OptionalValue<node_storage::types::bls_sig::BLSSignature<Env::Api>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<node_storage::types::bls_sig::BLSSignature<Env::Api>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getNodeSignature")
             .argument(&bls_key)
             .original_result()
@@ -149,8 +155,9 @@ where
     >(
         self,
         bls_key: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, node_storage::types::node_state::NodeState> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, node_storage::types::node_state::NodeState> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getNodeState")
             .argument(&bls_key)
             .original_result()
@@ -158,8 +165,9 @@ where
 
     pub fn get_all_node_states(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValueEncoded<Env::Api, MultiValue2<node_storage::types::bls_key::BLSKey<Env::Api>, u8>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, MultiValue2<node_storage::types::bls_key::BLSKey<Env::Api>, u8>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getAllNodeStates")
             .original_result()
     }
@@ -169,8 +177,9 @@ where
     >(
         self,
         bls_key: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, OptionalValue<u64>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<u64>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getNodeBlockNonceOfUnstake")
             .argument(&bls_key)
             .original_result()
@@ -181,8 +190,9 @@ where
     >(
         self,
         bls_keys_signatures: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("addNodes")
             .argument(&bls_keys_signatures)
             .original_result()
@@ -193,8 +203,9 @@ where
     >(
         self,
         bls_keys: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("removeNodes")
             .argument(&bls_keys)
             .original_result()
@@ -209,8 +220,9 @@ where
     >(
         self,
         address: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, usize> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUserId")
             .argument(&address)
             .original_result()
@@ -221,8 +233,9 @@ where
     >(
         self,
         user_id: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ManagedAddress<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ManagedAddress<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUserAddress")
             .argument(&user_id)
             .original_result()
@@ -232,8 +245,9 @@ where
     /// even if they no longer have anything in the contract. 
     pub fn get_num_users(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, usize> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getNumUsers")
             .original_result()
     }
@@ -243,8 +257,9 @@ where
     >(
         self,
         addresses: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValue3<usize, usize, usize>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValue3<usize, usize, usize>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("updateUserAddress")
             .argument(&addresses)
             .original_result()
@@ -252,8 +267,9 @@ where
 
     pub fn user_ids_without_address(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValueEncoded<Env::Api, usize>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, usize>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("userIdsWithoutAddress")
             .original_result()
     }
@@ -263,8 +279,9 @@ where
     >(
         self,
         id: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, user_fund_storage::types::fund_item::FundItem<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, user_fund_storage::types::fund_item::FundItem<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("fundById")
             .argument(&id)
             .original_result()
@@ -272,8 +289,9 @@ where
 
     pub fn get_total_stake(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("totalStake")
             .original_result()
     }
@@ -284,8 +302,9 @@ where
     >(
         self,
         user_address: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUserStake")
             .argument(&user_address)
             .original_result()
@@ -296,8 +315,9 @@ where
     >(
         self,
         user_address: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUserWithdrawOnlyStake")
             .argument(&user_address)
             .original_result()
@@ -308,8 +328,9 @@ where
     >(
         self,
         user_address: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUserWaitingStake")
             .argument(&user_address)
             .original_result()
@@ -320,8 +341,9 @@ where
     >(
         self,
         user_address: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUserActiveStake")
             .argument(&user_address)
             .original_result()
@@ -332,8 +354,9 @@ where
     >(
         self,
         user_address: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUserUnstakedStake")
             .argument(&user_address)
             .original_result()
@@ -344,8 +367,9 @@ where
     >(
         self,
         user_address: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUserDeferredPaymentStake")
             .argument(&user_address)
             .original_result()
@@ -353,40 +377,45 @@ where
 
     pub fn get_total_withdraw_only_stake(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getTotalWithdrawOnlyStake")
             .original_result()
     }
 
     pub fn get_total_waiting_stake(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getTotalWaitingStake")
             .original_result()
     }
 
     pub fn get_total_active_stake(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getTotalActiveStake")
             .original_result()
     }
 
     pub fn get_total_unstaked_stake(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getTotalUnstakedStake")
             .original_result()
     }
 
     pub fn get_total_deferred_payment_stake(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getTotalDeferredPaymentStake")
             .original_result()
     }
@@ -396,8 +425,9 @@ where
     >(
         self,
         user_address: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValue5<BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValue5<BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUserStakeByType")
             .argument(&user_address)
             .original_result()
@@ -405,16 +435,18 @@ where
 
     pub fn get_total_stake_by_type_endpoint(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValue5<BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValue5<BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getTotalStakeByType")
             .original_result()
     }
 
     pub fn get_all_user_stake_by_type(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValueEncoded<Env::Api, MultiValue2<ManagedAddress<Env::Api>, MultiValue5<BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, MultiValue2<ManagedAddress<Env::Api>, MultiValue5<BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getAllUserStakeByType")
             .original_result()
     }
@@ -424,8 +456,9 @@ where
     >(
         self,
         user_address: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValueEncoded<Env::Api, MultiValue2<BigUint<Env::Api>, u64>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, MultiValue2<BigUint<Env::Api>, u64>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUserDeferredPaymentList")
             .argument(&user_address)
             .original_result()
@@ -433,16 +466,18 @@ where
 
     pub fn get_full_waiting_list(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValueEncoded<Env::Api, MultiValue3<ManagedAddress<Env::Api>, BigUint<Env::Api>, u64>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, MultiValue3<ManagedAddress<Env::Api>, BigUint<Env::Api>, u64>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getFullWaitingList")
             .original_result()
     }
 
     pub fn get_full_active_list(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValueEncoded<Env::Api, MultiValue2<ManagedAddress<Env::Api>, BigUint<Env::Api>>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, MultiValue2<ManagedAddress<Env::Api>, BigUint<Env::Api>>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getFullActiveList")
             .original_result()
     }
@@ -455,8 +490,9 @@ where
         self,
         amount_to_stake: Arg0,
         bls_keys: Arg1,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("stakeNodes")
             .argument(&amount_to_stake)
             .argument(&bls_keys)
@@ -472,8 +508,9 @@ where
     >(
         self,
         bls_keys: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unStakeNodes")
             .argument(&bls_keys)
             .original_result()
@@ -488,8 +525,9 @@ where
     >(
         self,
         bls_keys: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unStakeNodesAndTokens")
             .argument(&bls_keys)
             .original_result()
@@ -502,8 +540,9 @@ where
     >(
         self,
         bls_keys: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("forceNodeUnBondPeriod")
             .argument(&bls_keys)
             .original_result()
@@ -515,8 +554,9 @@ where
     >(
         self,
         bls_keys: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unBondNodes")
             .argument(&bls_keys)
             .original_result()
@@ -526,8 +566,9 @@ where
     /// Nothing happens if no nodes can be unbonded. 
     pub fn unbond_all_possible_nodes(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unBondAllPossibleNodes")
             .original_result()
     }
@@ -535,8 +576,9 @@ where
     /// Claims from auction SC funds that were sent but are not required to run the nodes. 
     pub fn claim_unused_funds(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("claimUnusedFunds")
             .original_result()
     }
@@ -546,7 +588,7 @@ where
     >(
         self,
         bls_keys: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, (), Gas, ()> {
         self.wrapped_tx
             .raw_call("unJailNodes")
             .argument(&bls_keys)
@@ -558,8 +600,9 @@ where
     >(
         self,
         amount: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unStakeTokens")
             .argument(&amount)
             .original_result()
@@ -570,8 +613,9 @@ where
     >(
         self,
         amount: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unBondTokens")
             .argument(&amount)
             .original_result()
@@ -581,8 +625,9 @@ where
     /// This address is standard in the protocol, but it is saved in storage to avoid hardcoding it. 
     pub fn get_auction_contract_address(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, ManagedAddress<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ManagedAddress<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getAuctionContractAddress")
             .original_result()
     }
@@ -591,24 +636,27 @@ where
     /// 10000 = 100%. 
     pub fn get_service_fee(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getServiceFee")
             .original_result()
     }
 
     pub fn get_total_delegation_cap(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getTotalDelegationCap")
             .original_result()
     }
 
     pub fn is_bootstrap_mode(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, bool> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, bool> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("isBootstrapMode")
             .original_result()
     }
@@ -617,8 +665,9 @@ where
     /// 10000 = 100%. 
     pub fn get_owner_min_stake_share(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getOwnerMinStakeShare")
             .original_result()
     }
@@ -626,8 +675,9 @@ where
     /// Minimum number of n_blocks between unstake and fund getting into inactive state. 
     pub fn get_n_blocks_before_unbond(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, u64> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, u64> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getNumBlocksBeforeUnBond")
             .original_result()
     }
@@ -637,8 +687,9 @@ where
     >(
         self,
         n_blocks_before_unbond: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("setNumBlocksBeforeUnBond")
             .argument(&n_blocks_before_unbond)
             .original_result()
@@ -648,8 +699,9 @@ where
     /// Zero means disabled. 
     pub fn get_minimum_stake(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getMinimumStake")
             .original_result()
     }
@@ -659,8 +711,9 @@ where
     >(
         self,
         minimum_stake: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("setMinimumStake")
             .argument(&minimum_stake)
             .original_result()
@@ -668,16 +721,18 @@ where
 
     pub fn global_op_checkpoint(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, GlobalOpCheckpoint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, GlobalOpCheckpoint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getGlobalOperationCheckpoint")
             .original_result()
     }
 
     pub fn is_global_op_in_progress(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, bool> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, bool> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("isGlobalOperationInProgress")
             .original_result()
     }
@@ -691,8 +746,9 @@ where
     /// Subtracting that from the current historical rewards yields how much accumulated in the contract since they last claimed. 
     pub fn get_total_cumulated_rewards(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getTotalCumulatedRewards")
             .original_result()
     }
@@ -704,8 +760,9 @@ where
     >(
         self,
         user: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getClaimableRewards")
             .argument(&user)
             .original_result()
@@ -714,16 +771,18 @@ where
     /// Utility readonly function to check how many unclaimed rewards currently reside in the contract. 
     pub fn get_total_unclaimed_rewards(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getTotalUnclaimedRewards")
             .original_result()
     }
 
     pub fn total_unprotected(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getTotalUnProtected")
             .original_result()
     }
@@ -731,8 +790,9 @@ where
     /// Invariant: should never return error. 
     pub fn validate_owner_stake_share(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("validateOwnerStakeShare")
             .original_result()
     }
@@ -740,8 +800,9 @@ where
     /// Invariant: should never return error. 
     pub fn validate_delegation_cap_invariant(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("validateDelegationCapInvariant")
             .original_result()
     }
@@ -750,8 +811,9 @@ where
     /// Returns true if still out of gas, false if computation completed. 
     pub fn continue_global_operation_endpoint(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, OperationCompletionStatus> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OperationCompletionStatus> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("continueGlobalOperation")
             .original_result()
     }
@@ -763,8 +825,9 @@ where
     >(
         self,
         new_total_cap: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, OperationCompletionStatus> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OperationCompletionStatus> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("modifyTotalDelegationCap")
             .argument(&new_total_cap)
             .original_result()
@@ -777,8 +840,9 @@ where
     >(
         self,
         service_fee_per_10000: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, OperationCompletionStatus> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OperationCompletionStatus> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("setServiceFee")
             .argument(&service_fee_per_10000)
             .original_result()
@@ -790,8 +854,9 @@ where
     /// - rewards that were previously computed but not sent 
     pub fn claim_rewards(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("claimRewards")
             .original_result()
     }
@@ -800,7 +865,7 @@ where
     /// Stake is initially inactive, so does it not produce rewards. 
     pub fn stake_endpoint(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, (), Gas, ()> {
         self.wrapped_tx
             .raw_call("stake")
             .original_result()
@@ -813,8 +878,9 @@ where
     >(
         self,
         amount: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unStake")
             .argument(&amount)
             .original_result()
@@ -825,8 +891,9 @@ where
     >(
         self,
         user_address: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUnStakeable")
             .argument(&user_address)
             .original_result()
@@ -834,8 +901,9 @@ where
 
     pub fn unbond_user(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unBond")
             .original_result()
     }
@@ -845,8 +913,9 @@ where
     >(
         self,
         user_address: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, BigUint<Env::Api>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getUnBondable")
             .argument(&user_address)
             .original_result()
@@ -855,8 +924,9 @@ where
     /// Raw id of the last checkpoint reached by any of the dust cleanup endpoints. 
     pub fn dust_cleanup_checkpoint(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, usize> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("dustCleanupCheckpoint")
             .original_result()
     }
@@ -868,8 +938,9 @@ where
     >(
         self,
         dust_limit: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, usize> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("countDustItemsWaitingList")
             .argument(&dust_limit)
             .original_result()
@@ -882,8 +953,9 @@ where
     >(
         self,
         dust_limit: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, usize> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("countDustItemsActive")
             .argument(&dust_limit)
             .original_result()
@@ -899,8 +971,9 @@ where
     >(
         self,
         dust_limit: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("dustCleanupWaitingList")
             .argument(&dust_limit)
             .original_result()
@@ -917,8 +990,9 @@ where
     >(
         self,
         dust_limit: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("dustCleanupActive")
             .argument(&dust_limit)
             .original_result()
@@ -931,7 +1005,7 @@ where
         self,
         dns_address: Arg0,
         name: Arg1,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, (), Gas, ()> {
         self.wrapped_tx
             .raw_call("dnsRegister")
             .argument(&dns_address)
@@ -946,8 +1020,9 @@ where
         self,
         feature_name: Arg0,
         value: Arg1,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("setFeatureFlag")
             .argument(&feature_name)
             .argument(&value)
@@ -956,24 +1031,27 @@ where
 
     pub fn pause_endpoint(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("pause")
             .original_result()
     }
 
     pub fn unpause_endpoint(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unpause")
             .original_result()
     }
 
     pub fn paused_status(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, bool> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, bool> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("isPaused")
             .original_result()
     }

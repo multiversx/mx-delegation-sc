@@ -45,8 +45,9 @@ where
 {
     pub fn init(
         self,
-    ) -> TxProxyDeploy<Env, From, Gas, ()> {
+    ) -> TxTypedDeploy<Env, From, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_deploy()
             .original_result()
     }
@@ -68,7 +69,7 @@ where
         self,
         num_nodes: Arg0,
         bls_keys_signatures: Arg1,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>> {
+    ) -> TxTypedCall<Env, From, To, (), Gas, MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>> {
         self.wrapped_tx
             .raw_call("stake")
             .argument(&num_nodes)
@@ -81,8 +82,9 @@ where
     >(
         self,
         bls_keys: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unStake")
             .argument(&bls_keys)
             .original_result()
@@ -93,8 +95,9 @@ where
     >(
         self,
         bls_keys: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unStakeNodes")
             .argument(&bls_keys)
             .original_result()
@@ -105,8 +108,9 @@ where
     >(
         self,
         bls_keys: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unBond")
             .argument(&bls_keys)
             .original_result()
@@ -117,8 +121,9 @@ where
     >(
         self,
         bls_keys: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, ManagedBuffer<Env::Api>>> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unBondNodes")
             .argument(&bls_keys)
             .original_result()
@@ -129,8 +134,9 @@ where
     >(
         self,
         _amount: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unStakeTokens")
             .argument(&_amount)
             .original_result()
@@ -141,8 +147,9 @@ where
     >(
         self,
         amount: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("unBondTokens")
             .argument(&amount)
             .original_result()
@@ -150,8 +157,9 @@ where
 
     pub fn claim(
         self,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("claim")
             .original_result()
     }
@@ -161,7 +169,7 @@ where
     >(
         self,
         bls_keys: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, (), Gas, ()> {
         self.wrapped_tx
             .raw_call("unJail")
             .argument(&bls_keys)
@@ -175,8 +183,9 @@ where
         self,
         bls_key: Arg0,
         err_code: Arg1,
-    ) -> TxProxyCall<Env, From, To, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("setBlsDeliberateError")
             .argument(&bls_key)
             .argument(&err_code)
@@ -188,8 +197,9 @@ where
     >(
         self,
         bls_key: Arg0,
-    ) -> TxProxyCall<Env, From, To, Gas, u8> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, u8> {
         self.wrapped_tx
+            .payment(NotPayable)
             .raw_call("getBlsDeliberateError")
             .argument(&bls_key)
             .original_result()
