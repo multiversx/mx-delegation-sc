@@ -7,7 +7,8 @@ multiversx_sc::derive_imports!();
 
 /// A unit of balance, usually stake.
 /// Contains a description of the source/intent of the funds, together with a balance.
-#[derive(TypeAbi, PartialEq, Debug)]
+#[type_abi]
+#[derive(PartialEq, Debug)]
 pub struct FundItem<BigUint: BigUintApi> {
     pub fund_desc: FundDescription,
     pub user_id: usize,

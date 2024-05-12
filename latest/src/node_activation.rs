@@ -1,4 +1,4 @@
-use crate::auction_proxy;
+use crate::auction_proxy::AuctionProxy;
 use node_storage::{
     node_config::NodeIndexArrayVec,
     types::{BLSKey, BLSSignature, BLSStatusMultiArg, NodeState},
@@ -19,9 +19,6 @@ pub trait NodeActivationModule:
     + crate::user_stake_state::UserStakeStateModule
     + crate::events::EventsModule
 {
-    #[proxy]
-    fn auction_proxy(&self, to: ManagedAddress) -> auction_proxy::Proxy<Self::Api>;
-
     /// Owner activates specific nodes.
     #[only_owner]
     #[endpoint(stakeNodes)]
@@ -84,12 +81,13 @@ pub trait NodeActivationModule:
         // send all stake to auction contract
         let auction_contract_addr = self.get_auction_contract_address();
 
-        self.auction_proxy(auction_contract_addr)
+        self.tx()
+            .to(auction_contract_addr)
+            .typed(AuctionProxy)
             .stake(num_nodes, bls_keys_signatures)
-            .with_egld_transfer(amount_to_stake)
-            .async_call()
+            .egld(amount_to_stake)
             .with_callback(self.callbacks().auction_stake_callback(node_ids))
-            .call_and_exit()
+            .async_call_and_exit()
     }
 
     /// Only finalize activation if we got confirmation from the auction contract.
@@ -211,17 +209,19 @@ pub trait NodeActivationModule:
         // send unstake command to Auction SC
         let auction_contract_addr = self.get_auction_contract_address();
         if unstake_tokens {
-            self.auction_proxy(auction_contract_addr)
+            self.tx()
+                .to(auction_contract_addr)
+                .typed(AuctionProxy)
                 .unstake(bls_keys)
-                .async_call()
                 .with_callback(self.callbacks().auction_unstake_callback(node_ids))
-                .call_and_exit()
+                .async_call_and_exit()
         } else {
-            self.auction_proxy(auction_contract_addr)
+            self.tx()
+                .to(auction_contract_addr)
+                .typed(AuctionProxy)
                 .unstake_nodes(bls_keys)
-                .async_call()
                 .with_callback(self.callbacks().auction_unstake_callback(node_ids))
-                .call_and_exit()
+                .async_call_and_exit()
         }
     }
 
@@ -373,11 +373,12 @@ pub trait NodeActivationModule:
     ) {
         // send unbond command to Auction SC
         let auction_contract_addr = self.get_auction_contract_address();
-        self.auction_proxy(auction_contract_addr)
+        self.tx()
+            .to(auction_contract_addr)
+            .typed(AuctionProxy)
             .unbond_nodes(bls_keys)
-            .async_call()
             .with_callback(self.callbacks().auction_unbond_callback(node_ids))
-            .call_and_exit()
+            .async_call_and_exit()
     }
 
     /// Only finalize deactivation if we got confirmation from the auction contract.
@@ -455,10 +456,11 @@ pub trait NodeActivationModule:
 
         // send claim command to Auction SC
         let auction_contract_addr = self.get_auction_contract_address();
-        self.auction_proxy(auction_contract_addr)
+        self.tx()
+            .to(auction_contract_addr)
+            .typed(AuctionProxy)
             .claim()
-            .async_call()
-            .call_and_exit()
+            .async_call_and_exit()
     }
 
     #[only_owner]
@@ -481,30 +483,33 @@ pub trait NodeActivationModule:
 
         // send unJail command to Auction SC
         let auction_contract_addr = self.get_auction_contract_address();
-        self.auction_proxy(auction_contract_addr)
+        self.tx()
+            .to(auction_contract_addr)
+            .typed(AuctionProxy)
             .unjail(bls_keys)
-            .with_egld_transfer(fine_payment)
-            .async_call()
-            .call_and_exit()
+            .egld(fine_payment)
+            .async_call_and_exit()
     }
 
     #[endpoint(unStakeTokens)]
     fn unstake_tokens(&self, amount: BigUint) {
         self.unstake_tokens_event(&amount);
         let auction_contract_addr = self.get_auction_contract_address();
-        self.auction_proxy(auction_contract_addr)
+        self.tx()
+            .to(auction_contract_addr)
+            .typed(AuctionProxy)
             .unstake_tokens(&amount)
-            .async_call()
-            .call_and_exit()
+            .async_call_and_exit()
     }
 
     #[endpoint(unBondTokens)]
     fn unbond_tokens(&self, amount: BigUint) {
         self.unbond_tokens_event(&amount);
         let auction_contract_addr = self.get_auction_contract_address();
-        self.auction_proxy(auction_contract_addr)
+        self.tx()
+            .to(auction_contract_addr)
+            .typed(AuctionProxy)
             .unbond_tokens(&amount)
-            .async_call()
-            .call_and_exit()
+            .async_call_and_exit()
     }
 }

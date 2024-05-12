@@ -1,9 +1,8 @@
 multiversx_sc::derive_imports!();
 
 /// Status of a node.
-#[derive(
-    TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Clone, Copy, Debug,
-)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Clone, Copy, Debug)]
 pub enum NodeState {
     /// Node is registered in delegation, but not in the auction SC.
     Inactive,

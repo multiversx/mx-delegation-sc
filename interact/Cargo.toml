@@ -1,0 +1,26 @@
+[package]
+name = "delegation-interact"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "basic-interact"
+path = "src/deleg_interact.rs"
+
+[dependencies]
+clap = { version = "4.4.7", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8.6"
+
+[dependencies.multiversx-sc]
+version = "0.50.0"
+
+[dependencies.multiversx-sc-snippets]
+version = "0.50.0"
+
+[dependencies.node-storage]
+path = "../node-storage"
+
+[dependencies.user-fund-storage]
+path = "../user-fund-storage"

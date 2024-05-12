@@ -3,7 +3,8 @@ use multiversx_sc::codec::*;
 multiversx_sc::derive_imports!();
 
 /// Status of a node.
-#[derive(TypeAbi, PartialEq, Clone, Copy, Debug)]
+#[type_abi]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum NodeState {
     /// Node is registered in delegation, but not in the auction SC.
     Inactive,

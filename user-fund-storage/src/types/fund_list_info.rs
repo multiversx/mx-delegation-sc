@@ -2,9 +2,8 @@ use multiversx_sc::{api::ManagedTypeApi, types::BigUint};
 
 multiversx_sc::derive_imports!();
 
-#[derive(
-    TopEncodeOrDefault, TopDecodeOrDefault, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug,
-)]
+#[type_abi]
+#[derive(TopEncodeOrDefault, TopDecodeOrDefault, NestedEncode, NestedDecode, PartialEq, Debug)]
 pub struct FundsListInfo<M: ManagedTypeApi> {
     pub total_balance: BigUint<M>,
     pub first: usize,
