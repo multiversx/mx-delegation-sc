@@ -311,7 +311,7 @@ pub trait ResetCheckpointsModule:
     }
 
     /// The stake per node can be changed by the owner.
-    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed.
+    /// It does not get set in the constructor, so the owner has to manually set it after the contract is deployed.
     #[endpoint(setServiceFee)]
     fn set_service_fee_endpoint(&self, service_fee_per_10000: usize) -> OperationCompletionStatus {
         require!(
