@@ -1,11 +1,11 @@
 {
     "buildInfo": {
         "rustc": {
-            "version": "1.76.0-nightly",
-            "commitHash": "d86d65bbc19b928387f68427fcc3a0da498d8a19",
-            "commitDate": "2023-12-10",
+            "version": "1.80.0-nightly",
+            "commitHash": "87293c9585a7fb2cc83ca9949ae79661d5d3c31a",
+            "commitDate": "2024-05-08",
             "channel": "Nightly",
-            "short": "rustc 1.76.0-nightly (d86d65bbc 2023-12-10)"
+            "short": "rustc 1.80.0-nightly (87293c958 2024-05-08)"
         },
         "contractCrate": {
             "name": "auction-mock",
@@ -13,7 +13,7 @@
         },
         "framework": {
             "name": "multiversx-sc",
-            "version": "0.47.8"
+            "version": "0.50.0"
         }
     },
     "name": "AuctionMock",

@@ -3,7 +3,8 @@ use multiversx_sc::{api::ManagedTypeApi, types::BigUint};
 multiversx_sc::derive_imports!();
 
 /// Models any computation that can pause itself when it runs out of gas and continue in another block.
-#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Debug)]
 pub enum GlobalOpCheckpoint<M: ManagedTypeApi> {
     None,
     ModifyTotalDelegationCap(ModifyTotalDelegationCapData<M>),
@@ -30,7 +31,8 @@ impl<M: ManagedTypeApi> GlobalOpCheckpoint<M> {
 }
 
 /// Contains data needed to be persisted while performing a change in the total delegation cap.
-#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Debug)]
 pub struct ModifyTotalDelegationCapData<M: ManagedTypeApi> {
     pub new_delegation_cap: BigUint<M>,
     pub remaining_swap_waiting_to_active: BigUint<M>,
@@ -40,7 +42,8 @@ pub struct ModifyTotalDelegationCapData<M: ManagedTypeApi> {
 }
 
 /// Models the steps that need to be executed when modifying the total delegation cap.
-#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Debug)]
 pub enum ModifyDelegationCapStep<M: ManagedTypeApi> {
     ComputeAllRewards(ComputeAllRewardsData<M>),
     SwapWaitingToActive,
@@ -49,7 +52,8 @@ pub enum ModifyDelegationCapStep<M: ManagedTypeApi> {
 }
 
 /// Models the interrupted state of compute_all_rewards.
-#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Debug)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Debug)]
 pub struct ComputeAllRewardsData<M: ManagedTypeApi> {
     pub last_id: usize,
     pub sum_unclaimed: BigUint<M>,

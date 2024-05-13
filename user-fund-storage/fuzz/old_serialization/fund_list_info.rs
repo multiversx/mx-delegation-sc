@@ -3,7 +3,8 @@ use multiversx_sc::codec::*;
 
 multiversx_sc::derive_imports!();
 
-#[derive(TypeAbi, PartialEq, Debug)]
+#[type_abi]
+#[derive(PartialEq, Debug)]
 pub struct FundsListInfo<BigUint: BigUintApi> {
     pub total_balance: BigUint,
     pub first: usize,

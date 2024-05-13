@@ -1,4 +1,5 @@
 [workspace]
+resolver = "2"
 members = [
   "node-storage",
   "user-fund-storage",
@@ -7,4 +8,6 @@ members = [
   "auction-mock/meta",
   "latest",
   "latest/meta",
+
+  "interact",
 ]
