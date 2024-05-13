@@ -42,7 +42,7 @@ pub trait UserStakeDustCleanupModule:
         })
     }
 
-    /// Unstakes all fund buckets in the waiting list that are below a certin threshold.
+    /// Unstakes all fund buckets in the waiting list that are below a certain threshold.
     /// Will stop if running low on gas.
     /// Does not block the rest of the contract. If any operation interferes with an interrupted
     /// dust cleanup, the operation can be begun again.
@@ -66,7 +66,7 @@ pub trait UserStakeDustCleanupModule:
         });
     }
 
-    /// Unstakes and unbonds all active fund buckets that are below a certin threshold.
+    /// Unstakes and unbonds all active fund buckets that are below a certain threshold.
     /// Unlike the regular unstake/unbond process, it will send the funds directly in `WithdrawOnly` state.
     /// Will stop if running low on gas.
     /// Does not block the rest of the contract. If any operation interferes with an interrupted

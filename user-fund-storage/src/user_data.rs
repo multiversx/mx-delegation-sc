@@ -24,7 +24,7 @@ pub trait UserDataModule {
     #[storage_set("user_address")]
     fn set_user_address(&self, user_id: usize, address: &ManagedAddress);
 
-    /// Retrieves the number of delegtors, including the owner,
+    /// Retrieves the number of delegators, including the owner,
     /// even if they no longer have anything in the contract.
     #[view(getNumUsers)]
     #[storage_get("num_users")]

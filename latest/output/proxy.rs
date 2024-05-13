@@ -241,7 +241,7 @@ where
             .original_result()
     }
 
-    /// Retrieves the number of delegtors, including the owner, 
+    /// Retrieves the number of delegators, including the owner, 
     /// even if they no longer have anything in the contract. 
     pub fn get_num_users(
         self,
@@ -834,7 +834,7 @@ where
     }
 
     /// The stake per node can be changed by the owner. 
-    /// It does not get set in the contructor, so the owner has to manually set it after the contract is deployed. 
+    /// It does not get set in the constructor, so the owner has to manually set it after the contract is deployed. 
     pub fn set_service_fee_endpoint<
         Arg0: ProxyArg<usize>,
     >(
@@ -961,7 +961,7 @@ where
             .original_result()
     }
 
-    /// Unstakes all fund buckets in the waiting list that are below a certin threshold. 
+    /// Unstakes all fund buckets in the waiting list that are below a certain threshold. 
     /// Will stop if running low on gas. 
     /// Does not block the rest of the contract. If any operation interferes with an interrupted 
     /// dust cleanup, the operation can be begun again. 
@@ -979,7 +979,7 @@ where
             .original_result()
     }
 
-    /// Unstakes and unbonds all active fund buckets that are below a certin threshold. 
+    /// Unstakes and unbonds all active fund buckets that are below a certain threshold. 
     /// Unlike the regular unstake/unbond process, it will send the funds directly in `WithdrawOnly` state. 
     /// Will stop if running low on gas. 
     /// Does not block the rest of the contract. If any operation interferes with an interrupted 
