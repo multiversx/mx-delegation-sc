@@ -1,11 +1,13 @@
 use multiversx_sc::arrayvec::ArrayVec;
 
+use super::partition_dedup::partition_dedup;
+
 pub const MAX_AFFECTED_USERS: usize = 10000;
 pub type AffectedUserIdVec = ArrayVec<usize, MAX_AFFECTED_USERS>;
 
 pub fn affected_users_sort_dedup(affected_users: &mut AffectedUserIdVec) {
     affected_users.sort_unstable();
-    let (dedup, _) = affected_users.partition_dedup();
+    let (dedup, _) = partition_dedup(affected_users);
     let dedup_len = dedup.len();
     unsafe {
         affected_users.set_len(dedup_len);
