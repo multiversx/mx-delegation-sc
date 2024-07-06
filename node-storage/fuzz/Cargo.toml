@@ -28,7 +28,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.3"
-multiversx-sc = "0.50.0"
+multiversx-sc = "0.51.1"
 multiversx-sc-derive = "0.29.2"
 
 [dependencies.node-storage]
