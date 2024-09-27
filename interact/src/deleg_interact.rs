@@ -98,13 +98,62 @@ impl AdderInteract {
 
         let (withdraw, waiting, active, unstaked, deferred) = result.into_tuple();
 
-        println!("WithdrawOnly:    {}", display_egld_amount(&withdraw));
-        println!("Waiting:         {}", display_egld_amount(&waiting));
-        println!("Active:          {}", display_egld_amount(&active));
-        println!("UnStaked:        {}", display_egld_amount(&unstaked));
-        println!("DeferredPayment: {}", display_egld_amount(&deferred));
+        println!("WithdrawOnly:      {}", display_egld_amount(&withdraw));
+        println!("Waiting:           {}", display_egld_amount(&waiting));
+        println!("Active:            {}", display_egld_amount(&active));
+        println!("UnStaked:          {}", display_egld_amount(&unstaked));
+        println!("DeferredPayment:   {}", display_egld_amount(&deferred));
+
+        println!();
+
+        let total_unstakeable = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_unstakeable(address)
+            .returns(ReturnsResult)
+            .prepare_async()
+            .run()
+            .await;
+
+        println!(
+            "Total Unstakeable: {}",
+            display_egld_amount(&total_unstakeable)
+        );
+
+        let total_unbondable = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_unbondable(address)
+            .returns(ReturnsResult)
+            .prepare_async()
+            .run()
+            .await;
+
+        println!(
+            "Total Unbondable:  {}",
+            display_egld_amount(&total_unbondable)
+        );
 
         if deferred > 0 {
+            println!();
+
+            let num_blocks_before_unbond = self
+                .interactor
+                .query()
+                .to(&self.config.sc_address)
+                .typed(latest_proxy::DelegationFullProxy)
+                .get_n_blocks_before_unbond()
+                .returns(ReturnsResult)
+                .prepare_async()
+                .run()
+                .await;
+
+            println!("Num blocks before unbond: {num_blocks_before_unbond}");
+
             let result = self
                 .interactor
                 .query()
@@ -116,10 +165,15 @@ impl AdderInteract {
                 .run()
                 .await;
 
-            println!("\nDeferredPayment list:");
+            println!("DeferredPayment list:");
             for pair in result {
-                let (amount, timestamp) = pair.into_tuple();
-                println!("Amount:          {}  Due block: {}", display_egld_amount(&amount), timestamp);
+                let (amount, reg_block) = pair.into_tuple();
+                println!(
+                    "Amount:            {}    Registration block: {}    Due block: {}",
+                    display_egld_amount(&amount),
+                    reg_block,
+                    reg_block + num_blocks_before_unbond,
+                );
             }
         }
     }
