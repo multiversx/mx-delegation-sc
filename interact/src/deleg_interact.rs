@@ -96,13 +96,32 @@ impl AdderInteract {
             .run()
             .await;
 
-        let tuple = result.into_tuple();
+        let (withdraw, waiting, active, unstaked, deferred) = result.into_tuple();
 
-        println!("WithdrawOnly:    {}", display_egld_amount(&tuple.0));
-        println!("Waiting:         {}", display_egld_amount(&tuple.1));
-        println!("Active:          {}", display_egld_amount(&tuple.2));
-        println!("UnStaked:        {}", display_egld_amount(&tuple.3));
-        println!("DeferredPayment: {}", display_egld_amount(&tuple.4));
+        println!("WithdrawOnly:    {}", display_egld_amount(&withdraw));
+        println!("Waiting:         {}", display_egld_amount(&waiting));
+        println!("Active:          {}", display_egld_amount(&active));
+        println!("UnStaked:        {}", display_egld_amount(&unstaked));
+        println!("DeferredPayment: {}", display_egld_amount(&deferred));
+
+        if deferred > 0 {
+            let result = self
+                .interactor
+                .query()
+                .to(&self.config.sc_address)
+                .typed(latest_proxy::DelegationFullProxy)
+                .get_user_deferred_payment_list(address)
+                .returns(ReturnsResult)
+                .prepare_async()
+                .run()
+                .await;
+
+            println!("\nDeferredPayment list:");
+            for pair in result {
+                let (amount, timestamp) = pair.into_tuple();
+                println!("Amount:          {}  Due block: {}", display_egld_amount(&amount), timestamp);
+            }
+        }
     }
 
     async fn query_all_user_stake_by_type(&mut self) {
