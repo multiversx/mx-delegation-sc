@@ -2,7 +2,7 @@
 name = "auction-mock"
 version = "0.3.4"
 authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies.node-storage]
 path = "../node-storage"

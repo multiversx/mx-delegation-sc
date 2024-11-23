@@ -2,7 +2,7 @@
 name = "auction-mock-meta"
 version = "0.0.0"
 authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [dependencies.auction-mock]

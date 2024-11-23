@@ -2,7 +2,7 @@
 name = "delegation_latest"
 version = "0.5.8"
 authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
-edition = "2018"
+edition = "2021"
 
 [lib]
 path = "src/delegation_main.rs"
