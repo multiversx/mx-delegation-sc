@@ -56,7 +56,6 @@ impl AdderInteract {
             .typed(latest_proxy::DelegationFullProxy)
             .get_total_stake_by_type_endpoint()
             .returns(ReturnsResult)
-            .prepare_async()
             .run()
             .await;
 
@@ -77,7 +76,6 @@ impl AdderInteract {
             .typed(latest_proxy::DelegationFullProxy)
             .get_num_users()
             .returns(ReturnsResult)
-            .prepare_async()
             .run()
             .await;
 
@@ -92,7 +90,6 @@ impl AdderInteract {
             .typed(latest_proxy::DelegationFullProxy)
             .get_user_stake_by_type_endpoint(address)
             .returns(ReturnsResult)
-            .prepare_async()
             .run()
             .await;
 
@@ -113,7 +110,6 @@ impl AdderInteract {
             .typed(latest_proxy::DelegationFullProxy)
             .get_unstakeable(address)
             .returns(ReturnsResult)
-            .prepare_async()
             .run()
             .await;
 
@@ -129,7 +125,6 @@ impl AdderInteract {
             .typed(latest_proxy::DelegationFullProxy)
             .get_unbondable(address)
             .returns(ReturnsResult)
-            .prepare_async()
             .run()
             .await;
 
@@ -148,7 +143,6 @@ impl AdderInteract {
                 .typed(latest_proxy::DelegationFullProxy)
                 .get_n_blocks_before_unbond()
                 .returns(ReturnsResult)
-                .prepare_async()
                 .run()
                 .await;
 
@@ -161,7 +155,6 @@ impl AdderInteract {
                 .typed(latest_proxy::DelegationFullProxy)
                 .get_user_deferred_payment_list(address)
                 .returns(ReturnsResult)
-                .prepare_async()
                 .run()
                 .await;
 
@@ -186,7 +179,6 @@ impl AdderInteract {
             .typed(latest_proxy::DelegationFullProxy)
             .get_all_user_stake_by_type()
             .returns(ReturnsResult)
-            .prepare_async()
             .run()
             .await;
 
