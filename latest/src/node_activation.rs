@@ -50,7 +50,7 @@ pub trait NodeActivationModule:
             MultiValue2<BLSKey<Self::Api>, BLSSignature<Self::Api>>,
         > = MultiValueEncoded::new();
 
-        for bls_key in bls_keys.iter() {
+        for bls_key in bls_keys.into_iter() {
             let node_id = self.get_node_id(&bls_key);
             require!(node_id != 0, "unknown node provided");
 
