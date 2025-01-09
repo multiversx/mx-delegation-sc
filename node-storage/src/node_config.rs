@@ -6,11 +6,6 @@ pub const MAX_NODES_PER_OPERATION: usize = 100;
 
 pub type NodeIndexArrayVec = ArrayVec<usize, MAX_NODES_PER_OPERATION>;
 
-/// Indicates how we express the percentage of rewards that go to the node.
-/// Since we cannot have floating point numbers, we use fixed point with this denominator.
-/// Percents + 2 decimals -> 10000.
-// pub static PERCENTAGE_DENOMINATOR: usize = 10000;
-
 /// This module manages the validator node info:
 /// - how many nodes there are,
 /// - what BLS keys they have.
