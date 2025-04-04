@@ -77,9 +77,9 @@ dependencies = [
 
 [[package]]
 name = "multiversx-sc"
-version = "0.57.0"
+version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e74fed665ae19d5dc7809645bb5feddd858983c7dc1f1f77f7e6f1f43710f155"
+checksum = "20602d4fc336092faadc03b6b445c4bb5e4dbc4c86fb53726e46eca67070813a"
 dependencies = [
  "bitflags",
  "generic-array",
@@ -117,9 +117,9 @@ dependencies = [
 
 [[package]]
 name = "multiversx-sc-derive"
-version = "0.57.0"
+version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7eef4051f20a38970e79c11c496e891e08464020b2f7f5dadda9b7f6bbe75ac"
+checksum = "0d44d08d3376c199e8c391cc07752d2822cd289693da5319d7905599501e557f"
 dependencies = [
  "hex",
  "proc-macro2",
@@ -130,18 +130,18 @@ dependencies = [
 
 [[package]]
 name = "multiversx-sc-modules"
-version = "0.57.0"
+version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f219eac47f858a854c0e878104f2922e1b89c3a46ba277a8200be54dd0abadae"
+checksum = "502edabc05791315e65bddb415086aaaa0f62821ee076a27ddee4d86334e22c7"
 dependencies = [
  "multiversx-sc",
 ]
 
 [[package]]
 name = "multiversx-sc-wasm-adapter"
-version = "0.57.0"
+version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f42def07cb8d7c21b6aea45c4696a8c0ac5d3d93103887bb7f0c33402e277d56"
+checksum = "ee8253b84600554fbe16ea0a234b009854348dc95ce174ba6eba046dc5918f8f"
 dependencies = [
  "multiversx-sc",
 ]
@@ -201,9 +201,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.13.2"
+version = "1.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
+checksum = "7fcf8323ef1faaee30a44a340193b1ac6814fd9b7b4e88e9d4519a3e4abe1cfd"
 
 [[package]]
 name = "syn"
@@ -224,9 +224,9 @@ checksum = "1dccffe3ce07af9386bfd29e80c0ab1a8205a2fc34e4bcd40364df902cfa8f3f"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.14"
+version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adb9e6ca4f869e1180728b7950e35922a7fc6397f7b641499e8f3ef06e50dc83"
+checksum = "5a5f39404a5da50712a4c1eecf25e90dd62b613502b7e925fd4e4d19b5c96512"
 
 [[package]]
 name = "unwrap-infallible"
