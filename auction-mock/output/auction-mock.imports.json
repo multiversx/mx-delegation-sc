@@ -6,8 +6,6 @@
   "bigIntMul",
   "bigIntSetInt64",
   "checkNoPayment",
-  "getArgument",
-  "getArgumentLength",
   "getNumArguments",
   "mBufferAppend",
   "mBufferAppendBytes",
