@@ -1,7 +1,7 @@
-use multiversx_sc_scenario::{imports::ExecutorConfig, *};
+use multiversx_sc_scenario::imports::*;
 
 fn world() -> ScenarioWorld {
-    let mut blockchain = ScenarioWorld::new().executor_config(ExecutorConfig::full_suite());
+    let mut blockchain = ScenarioWorld::new();
 
     blockchain.register_contract(
         "file:../auction-mock/output/auction-mock.wasm",
