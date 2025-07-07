@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           79
+// Endpoints:                           80
 // Async Callback:                       1
-// Total number of exported functions:  81
+// Total number of exported functions:  82
 
 #![no_std]
 
@@ -97,6 +97,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         pause => pause_endpoint
         unpause => unpause_endpoint
         isPaused => paused_status
+        delegateVote => delegate_vote
     )
 }
 

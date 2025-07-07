@@ -62,10 +62,10 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
 
     fn get_user_stake_of_type_by_address(
         &self,
-        user_address: ManagedAddress,
+        user_address: &ManagedAddress,
         fund_type: FundType,
     ) -> BigUint {
-        let user_id = self.get_user_id(&user_address);
+        let user_id = self.get_user_id(user_address);
         if user_id == 0 {
             BigUint::zero()
         } else {
@@ -75,27 +75,27 @@ pub trait FundViewModule: fund_module::FundModule + user_data::UserDataModule {
 
     #[view(getUserWithdrawOnlyStake)]
     fn get_user_withdraw_only_stake(&self, user_address: ManagedAddress) -> BigUint {
-        self.get_user_stake_of_type_by_address(user_address, FundType::WithdrawOnly)
+        self.get_user_stake_of_type_by_address(&user_address, FundType::WithdrawOnly)
     }
 
     #[view(getUserWaitingStake)]
     fn get_user_waiting_stake(&self, user_address: ManagedAddress) -> BigUint {
-        self.get_user_stake_of_type_by_address(user_address, FundType::Waiting)
+        self.get_user_stake_of_type_by_address(&user_address, FundType::Waiting)
     }
 
     #[view(getUserActiveStake)]
     fn get_user_active_stake(&self, user_address: ManagedAddress) -> BigUint {
-        self.get_user_stake_of_type_by_address(user_address, FundType::Active)
+        self.get_user_stake_of_type_by_address(&user_address, FundType::Active)
     }
 
     #[view(getUserUnstakedStake)]
     fn get_user_unstaked_stake(&self, user_address: ManagedAddress) -> BigUint {
-        self.get_user_stake_of_type_by_address(user_address, FundType::UnStaked)
+        self.get_user_stake_of_type_by_address(&user_address, FundType::UnStaked)
     }
 
     #[view(getUserDeferredPaymentStake)]
     fn get_user_deferred_payment_stake(&self, user_address: ManagedAddress) -> BigUint {
-        self.get_user_stake_of_type_by_address(user_address, FundType::DeferredPayment)
+        self.get_user_stake_of_type_by_address(&user_address, FundType::DeferredPayment)
     }
 
     // TOTAL PER TYPE

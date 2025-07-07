@@ -4,6 +4,7 @@
 
 // auxiliaries
 pub mod auction_proxy;
+pub mod governance_sc_proxy;
 
 // modules
 pub mod events;
@@ -17,6 +18,7 @@ pub mod settings;
 pub mod user_stake_dust_cleanup;
 pub mod user_stake_endpoints;
 pub mod user_stake_state;
+pub mod governance;
 
 pub use multiversx_sc_modules;
 pub use node_storage;
@@ -48,6 +50,7 @@ pub trait DelegationFull:
     + multiversx_sc_modules::dns::DnsModule
     + multiversx_sc_modules::features::FeaturesModule
     + multiversx_sc_modules::pause::PauseModule
+    + governance::GovernanceModule
 {
     // METADATA
 

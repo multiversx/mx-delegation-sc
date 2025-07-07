@@ -1142,6 +1142,21 @@
                     "type": "bool"
                 }
             ]
+        },
+        {
+            "name": "delegateVote",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "proposal_to_vote",
+                    "type": "u64"
+                },
+                {
+                    "name": "vote",
+                    "type": "bytes"
+                }
+            ],
+            "outputs": []
         }
     ],
     "events": [
