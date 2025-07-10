@@ -1,13 +1,13 @@
-mod deleg_interact_admin;
-mod deleg_interact_cli;
-mod deleg_interact_config;
-mod deleg_interact_stats;
-mod deleg_interact_user;
+mod deleg_interactor_admin;
+mod deleg_interactor_cli;
+mod deleg_interactor_config;
+mod deleg_interactor_stats;
+mod deleg_interactor_user;
 mod latest_proxy;
 
 use clap::Parser;
-use deleg_interact_cli::{InteractCli, InteractCliCommand};
-use deleg_interact_config::Config;
+use deleg_interactor_cli::{InteractCli, InteractCliCommand};
+use deleg_interactor_config::Config;
 
 use multiversx_sc_snippets::imports::*;
 

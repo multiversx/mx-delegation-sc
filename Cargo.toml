@@ -9,5 +9,5 @@ members = [
   "latest",
   "latest/meta",
 
-  "interact",
+  "interactor",
 ]

@@ -1,6 +1,6 @@
 [[bin]]
 name = "basic-interact"
-path = "src/deleg_interact.rs"
+path = "src/deleg_interactor.rs"
 
 [package]
 name = "delegation-interact"
