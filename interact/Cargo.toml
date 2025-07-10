@@ -9,6 +9,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
+hex = "0.4.3"
 toml = "0.8.6"
 
 [dependencies.clap]

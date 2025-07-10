@@ -12,6 +12,9 @@ pub struct InteractCli {
 /// Adder Interact CLI Commands
 #[derive(Clone, PartialEq, Eq, Debug, Subcommand)]
 pub enum InteractCliCommand {
+    #[command(name = "version", about = "Query global state")]
+    Version,
+
     #[command(name = "global", about = "Query global state")]
     Global,
 
@@ -23,6 +26,15 @@ pub enum InteractCliCommand {
 
     #[command(name = "user-stake", about = "User stake by type")]
     UserStake(UserStakeArgs),
+
+    #[command(about = "Stake for a user")]
+    Stake,
+
+    #[command(about = "Upgrade contract to latest")]
+    Upgrade,
+
+    #[command(about = "Fix missing info from the old contract")]
+    FixUsers,
 }
 
 #[derive(Default, Clone, PartialEq, Eq, Debug, Args)]

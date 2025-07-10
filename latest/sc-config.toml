@@ -8,6 +8,7 @@ add-labels = ["upgrade"]
 
 [[proxy]]
 path = "../interact/src/latest_proxy.rs"
+add-labels = ["init", "upgrade"]
 
 [[proxy.path-rename]]
 from = "user_fund_storage::types::fund_item::FundItem"
@@ -16,3 +17,7 @@ to = "user_fund_storage::types::FundItem"
 [[proxy.path-rename]]
 from = "multiversx_sc::types::io::operation_completion_status::OperationCompletionStatus"
 to = "multiversx_sc::types::OperationCompletionStatus"
+
+[[proxy]]
+path = "interactor/src/proxy.rs"
+add-labels = ["init", "upgrade"]

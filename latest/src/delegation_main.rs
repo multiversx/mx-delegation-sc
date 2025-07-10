@@ -8,6 +8,7 @@ pub mod governance_sc_proxy;
 
 // modules
 pub mod events;
+pub mod governance;
 pub mod node_activation;
 pub mod reset_checkpoint_endpoints;
 pub mod reset_checkpoint_state;
@@ -18,7 +19,6 @@ pub mod settings;
 pub mod user_stake_dust_cleanup;
 pub mod user_stake_endpoints;
 pub mod user_stake_state;
-pub mod governance;
 
 pub use multiversx_sc_modules;
 pub use node_storage;

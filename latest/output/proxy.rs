@@ -1055,6 +1055,22 @@ where
             .raw_call("isPaused")
             .original_result()
     }
+
+    pub fn delegate_vote<
+        Arg0: ProxyArg<u64>,
+        Arg1: ProxyArg<ManagedBuffer<Env::Api>>,
+    >(
+        self,
+        proposal_to_vote: Arg0,
+        vote: Arg1,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("delegateVote")
+            .argument(&proposal_to_vote)
+            .argument(&vote)
+            .original_result()
+    }
 }
 
 #[rustfmt::skip]
