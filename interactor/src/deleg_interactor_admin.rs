@@ -4,6 +4,13 @@ use crate::{latest_proxy, LegacyDelegationInteractor};
 
 const LATEST_CODE_PATH: FilePath = FilePath("../latest/output/delegation_latest_update.wasm");
 
+fn operation_completion_status(status: OperationCompletionStatus) -> &'static str {
+    match status {
+        OperationCompletionStatus::Completed => "completed",
+        OperationCompletionStatus::InterruptedBeforeOutOfGas => "interrupted",
+    }
+}
+
 impl LegacyDelegationInteractor {
     pub async fn version(&mut self) {
         let response = self
@@ -19,15 +26,19 @@ impl LegacyDelegationInteractor {
         println!("Result: {response:?}");
     }
 
-    pub async fn upgrade_contract_to_latest(&mut self) {
+    async fn register_owner(&mut self) -> Address {
         let owner_wallet = Wallet::from_pem_file("legacyDelegationOwner.pem").unwrap();
-        let owner_address = self.interactor.register_wallet(owner_wallet).await;
+        self.interactor.register_wallet(owner_wallet).await
+    }
+
+    pub async fn upgrade_contract_to_latest(&mut self) {
+        let owner_address = self.register_owner().await;
 
         self.interactor
             .tx()
             .from(&owner_address)
             .to(&self.config.sc_address)
-            .gas(30_000_000u64)
+            .gas(150_000_000u64)
             .typed(latest_proxy::DelegationFullProxy)
             .upgrade()
             .code(LATEST_CODE_PATH)
@@ -37,6 +48,28 @@ impl LegacyDelegationInteractor {
             .await;
 
         println!("Upgrade completed");
+    }
+
+    pub async fn modify_delegation_cap(&mut self) {
+        let owner_address = self.register_owner().await;
+        let egld_amount = BigUint::<StaticApi>::from(4235000_000000000000000000u128 - 100_000000000000000000u128);
+
+        let status = self
+            .interactor
+            .tx()
+            .from(owner_address)
+            .to(&self.config.sc_address)
+            .gas(100_000_000u64)
+            .typed(latest_proxy::DelegationFullProxy)
+            .modify_total_delegation_cap(egld_amount)
+            .returns(ReturnsResult)
+            .run()
+            .await;
+
+        println!(
+            "Modified delegation cap: {}",
+            operation_completion_status(status)
+        );
     }
 
     pub async fn fix_users(&mut self) {

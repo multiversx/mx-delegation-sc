@@ -19,7 +19,54 @@ pub trait GovernanceModule:
         self.tx()
             .to(GovernanceSystemSCAddress)
             .typed(GovernanceSCLocalProxy)
-            .delegate_vote(proposal_to_vote, vote, voter, staked_balance)
+            .delegate_vote(&proposal_to_vote, &vote, &voter, &staked_balance)
+            .callback(
+                self.callbacks()
+                    .delegate_vote_callback(&voter, proposal_to_vote, &vote),
+            )
             .async_call_and_exit();
+    }
+
+    #[callback]
+    fn delegate_vote_callback(
+        &self,
+        voter: &ManagedAddress,
+        proposal_to_vote: u64,
+        vote: &ManagedBuffer,
+        #[call_result] call_result: ManagedAsyncCallResult<()>,
+    ) {
+        match call_result {
+            ManagedAsyncCallResult::Ok(()) => {
+                self.delegate_vote_success_event(voter, proposal_to_vote, vote);
+            }
+            ManagedAsyncCallResult::Err(error) => {
+                self.delegate_vote_error_event(voter, proposal_to_vote, vote, &error.err_msg);
+            }
+        }
+    }
+
+    #[event("delegateVoteSuccess")]
+    fn delegate_vote_success_event(
+        &self,
+        #[indexed] voter: &ManagedAddress,
+        #[indexed] proposal_to_vote: u64,
+        #[indexed] vote: &ManagedBuffer,
+    );
+
+    #[event("delegateVoteError")]
+    fn delegate_vote_error_event(
+        &self,
+        #[indexed] voter: &ManagedAddress,
+        #[indexed] proposal_to_vote: u64,
+        #[indexed] vote: &ManagedBuffer,
+        error_msg: &ManagedBuffer,
+    );
+
+    /// Voting power of a single user, based on their active stake.
+    #[view(getVotingPower)]
+    fn get_voting_power(&self) -> BigUint {
+        let voter = self.blockchain().get_caller();
+
+        self.get_user_stake_of_type_by_address(&voter, FundType::Active)
     }
 }

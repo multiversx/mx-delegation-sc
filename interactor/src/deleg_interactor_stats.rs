@@ -5,6 +5,10 @@ use crate::{latest_proxy, LegacyDelegationInteractor};
 impl LegacyDelegationInteractor {
     pub async fn query_global(&mut self) {
         self.query_total_active_stake().await;
+        println!();
+        self.query_delegation_cap().await;
+        println!();
+        self.query_num_users().await;
     }
 
     pub async fn query_total_active_stake(&mut self) {
@@ -38,7 +42,21 @@ impl LegacyDelegationInteractor {
             .run()
             .await;
 
-        println!("{num_users}");
+        println!("Number of users: {num_users}");
+    }
+
+    pub async fn query_delegation_cap(&mut self) {
+        let delegation_cap = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_total_delegation_cap()
+            .returns(ReturnsResult)
+            .run()
+            .await;
+
+        println!("Delegation cap: {}", display_egld_amount(&delegation_cap));
     }
 
     pub async fn query_user_stake_by_type(&mut self, address: &Bech32Address) {

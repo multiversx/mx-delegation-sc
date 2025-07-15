@@ -9,7 +9,7 @@
         },
         "contractCrate": {
             "name": "delegation_latest",
-            "version": "0.5.8"
+            "version": "0.5.9"
         },
         "framework": {
             "name": "multiversx-sc",
@@ -1185,6 +1185,19 @@
                 }
             ],
             "outputs": []
+        },
+        {
+            "docs": [
+                "Voting power of a single user, based on their active stake."
+            ],
+            "name": "getVotingPower",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "BigUint"
+                }
+            ]
         }
     ],
     "events": [
@@ -1294,6 +1307,50 @@
         {
             "identifier": "unpauseContract",
             "inputs": []
+        },
+        {
+            "identifier": "delegateVoteSuccess",
+            "inputs": [
+                {
+                    "name": "voter",
+                    "type": "Address",
+                    "indexed": true
+                },
+                {
+                    "name": "proposal_to_vote",
+                    "type": "u64",
+                    "indexed": true
+                },
+                {
+                    "name": "vote",
+                    "type": "bytes",
+                    "indexed": true
+                }
+            ]
+        },
+        {
+            "identifier": "delegateVoteError",
+            "inputs": [
+                {
+                    "name": "voter",
+                    "type": "Address",
+                    "indexed": true
+                },
+                {
+                    "name": "proposal_to_vote",
+                    "type": "u64",
+                    "indexed": true
+                },
+                {
+                    "name": "vote",
+                    "type": "bytes",
+                    "indexed": true
+                },
+                {
+                    "name": "error_msg",
+                    "type": "bytes"
+                }
+            ]
         }
     ],
     "esdtAttributes": [],

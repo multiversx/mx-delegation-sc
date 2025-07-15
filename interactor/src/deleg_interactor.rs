@@ -36,11 +36,23 @@ async fn main() {
         InteractCliCommand::Stake => {
             basic_interact.stake_endpoint().await;
         }
+        InteractCliCommand::Unstake => {
+            basic_interact.unstake_endpoint().await;
+        }
+        InteractCliCommand::Claim => {
+            basic_interact.claim_rewards().await;
+        }
+        InteractCliCommand::Vote => {
+            basic_interact.delegate_vote().await;
+        }
         InteractCliCommand::Upgrade => {
             basic_interact.upgrade_contract_to_latest().await;
         }
         InteractCliCommand::FixUsers => {
             basic_interact.fix_users().await;
+        }
+        InteractCliCommand::ModifyCap => {
+            basic_interact.modify_delegation_cap().await;
         }
     }
 }

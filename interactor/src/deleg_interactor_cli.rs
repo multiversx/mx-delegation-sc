@@ -30,8 +30,20 @@ pub enum InteractCliCommand {
     #[command(about = "Stake for a user")]
     Stake,
 
+    #[command(about = "Unstake for a user")]
+    Unstake,
+
+    #[command(about = "Claim rewards")]
+    Claim,
+
+    #[command(about = "Vote")]
+    Vote,
+
     #[command(about = "Upgrade contract to latest")]
     Upgrade,
+
+    #[command(about = "Modify delegation cap")]
+    ModifyCap,
 
     #[command(about = "Fix missing info from the old contract")]
     FixUsers,
