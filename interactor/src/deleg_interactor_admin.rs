@@ -52,7 +52,8 @@ impl LegacyDelegationInteractor {
 
     pub async fn modify_delegation_cap(&mut self) {
         let owner_address = self.register_owner().await;
-        let egld_amount = BigUint::<StaticApi>::from(4235000_000000000000000000u128 - 100_000000000000000000u128);
+        let egld_amount =
+            BigUint::<StaticApi>::from(4235000_000000000000000000u128 - 100_000000000000000000u128);
 
         let status = self
             .interactor

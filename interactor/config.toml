@@ -1,8 +1,16 @@
+
+# chain_type = 'real'
 # gateway = 'https://gateway.multiversx.com'
 # sc_address = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
 
-gateway = 'https://devnet-gateway.multiversx.com'
+# chain_type = 'real'
+# gateway = 'https://devnet-gateway.multiversx.com'
+# sc_address = "erd1qqqqqqqqqqqqqpgq97wezxw6l7lgg7k9rxvycrz66vn92ksh2tssxwf7ep"
+
+chain_type = 'real'
+gateway = 'https://testnet-gateway.multiversx.com'
 sc_address = "erd1qqqqqqqqqqqqqpgq97wezxw6l7lgg7k9rxvycrz66vn92ksh2tssxwf7ep"
 
-# gateway = 'https://testnet-gateway.multiversx.com'
-# sc_address = "erd1qqqqqqqqqqqqqpgq97wezxw6l7lgg7k9rxvycrz66vn92ksh2tssxwf7ep"
+# chain_type = 'simulator'
+# gateway = 'http://localhost:8085'
+# sc_address = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"

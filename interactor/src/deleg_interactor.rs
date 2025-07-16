@@ -66,7 +66,9 @@ struct LegacyDelegationInteractor {
 impl LegacyDelegationInteractor {
     async fn init() -> Self {
         let config = Config::load_config();
-        let interactor = Interactor::new(config.gateway()).await;
+        let interactor = Interactor::new(config.gateway())
+            .await
+            .use_chain_simulator(config.is_chain_simulator());
 
         Self { interactor, config }
     }
