@@ -1,11 +1,11 @@
 {
     "buildInfo": {
         "rustc": {
-            "version": "1.58.0-nightly",
-            "commitHash": "46b8e7488eae116722196e8390c1bd2ea2e396cf",
-            "commitDate": "2021-11-07",
+            "version": "1.80.0-nightly",
+            "commitHash": "791adf759cc065316f054961875052d5bc03e16c",
+            "commitDate": "2024-05-21",
             "channel": "Nightly",
-            "short": "rustc 1.58.0-nightly (46b8e7488 2021-11-07)"
+            "short": "rustc 1.80.0-nightly (791adf759 2024-05-21)"
         },
         "contractCrate": {
             "name": "delegation_latest_full",
@@ -13,7 +13,7 @@
         },
         "framework": {
             "name": "elrond-wasm",
-            "version": "0.23.0"
+            "version": "0.23.1"
         }
     },
     "name": "DelegationFull",

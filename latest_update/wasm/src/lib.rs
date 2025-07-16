@@ -84,6 +84,7 @@ elrond_wasm_node::wasm_endpoints! {
         unStakeTokens
         unpause
         updateUserAddress
+        upgrade
         userIdsWithoutAddress
         validateDelegationCapInvariant
         validateOwnerStakeShare

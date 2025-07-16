@@ -52,7 +52,10 @@ pub trait DelegationUpdate:
     }
 
     #[init]
-    fn init(&self) -> SCResult<()> {
+    fn init(&self) {}
+
+    #[endpoint]
+    fn upgrade(&self) -> SCResult<()> {
         self.update_total_delegation_cap_if_necessary();
         Ok(())
     }
