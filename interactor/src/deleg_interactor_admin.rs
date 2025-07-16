@@ -2,7 +2,7 @@ use multiversx_sc_snippets::imports::*;
 
 use crate::{latest_proxy, LegacyDelegationInteractor};
 
-const LATEST_CODE_PATH: FilePath = FilePath("../latest/output/delegation_latest_update.wasm");
+const LATEST_CODE_PATH: FilePath = FilePath("../v0_5_9_update/output/delegation_latest_update.wasm");
 
 fn operation_completion_status(status: OperationCompletionStatus) -> &'static str {
     match status {
@@ -38,7 +38,7 @@ impl LegacyDelegationInteractor {
             .tx()
             .from(&owner_address)
             .to(&self.config.sc_address)
-            .gas(150_000_000u64)
+            .gas(300_000_000u64)
             .typed(latest_proxy::DelegationFullProxy)
             .upgrade()
             .code(LATEST_CODE_PATH)
