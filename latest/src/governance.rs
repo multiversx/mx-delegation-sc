@@ -71,9 +71,7 @@ pub trait GovernanceModule:
 
     /// Voting power of a single user, based on their active stake.
     #[view(getVotingPower)]
-    fn get_voting_power(&self) -> BigUint {
-        let voter = self.blockchain().get_caller();
-
+    fn get_voting_power(&self, voter: ManagedAddress) -> BigUint {
         self.get_user_stake_of_type_by_address(voter, FundType::Active)
     }
 }
