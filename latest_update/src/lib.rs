@@ -26,6 +26,7 @@ pub trait DelegationUpdate:
     + delegation_latest::elrond_wasm_module_dns::DnsModule
     + delegation_latest::elrond_wasm_module_features::FeaturesModule
     + delegation_latest::elrond_wasm_module_pause::PauseModule
+    + delegation_latest::governance::GovernanceModule
 {
     // METADATA
 
