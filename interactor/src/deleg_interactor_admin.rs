@@ -2,7 +2,7 @@ use multiversx_sc_snippets::imports::*;
 
 use crate::{latest_proxy, LegacyDelegationInteractor};
 
-/// New implementation.
+// /// New implementation.
 // const LATEST_CODE_PATH: FilePath = FilePath("../latest/output/delegation_latest_update.wasm");
 
 /// Backwards compatible implementation.

@@ -1178,7 +1178,12 @@
             ],
             "name": "getVotingPower",
             "mutability": "readonly",
-            "inputs": [],
+            "inputs": [
+                {
+                    "name": "voter",
+                    "type": "Address"
+                }
+            ],
             "outputs": [
                 {
                     "type": "BigUint"
