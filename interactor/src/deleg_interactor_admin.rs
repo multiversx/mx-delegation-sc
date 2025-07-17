@@ -2,7 +2,7 @@ use multiversx_sc_snippets::imports::*;
 
 use crate::{latest_proxy, LegacyDelegationInteractor};
 
-const LATEST_CODE_PATH: FilePath = FilePath("../v0_5_9_update/output/delegation_latest_update.wasm");
+const LATEST_CODE_PATH: FilePath = FilePath("../v0_5_9_update/output/delegation_v0_5_9_update.wasm");
 
 fn operation_completion_status(status: OperationCompletionStatus) -> &'static str {
     match status {
