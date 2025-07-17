@@ -2,7 +2,12 @@ use multiversx_sc_snippets::imports::*;
 
 use crate::{latest_proxy, LegacyDelegationInteractor};
 
-const LATEST_CODE_PATH: FilePath = FilePath("../v0_5_9_update/output/delegation_v0_5_9_update.wasm");
+/// New implementation.
+// const LATEST_CODE_PATH: FilePath = FilePath("../latest/output/delegation_latest_update.wasm");
+
+/// Backwards compatible implementation.
+const LATEST_CODE_PATH: FilePath =
+    FilePath("../v0_5_9_update/output/delegation_v0_5_9_update.wasm");
 
 fn operation_completion_status(status: OperationCompletionStatus) -> &'static str {
     match status {
@@ -98,7 +103,7 @@ impl LegacyDelegationInteractor {
     }
 }
 
-const TESTNET_USER_ADDRESSES: &[&str] = &[
+pub const TESTNET_USER_ADDRESSES: &[&str] = &[
     "010771a4db695bc82356795c8f60b8290faeb99faafc0352ac3aa81c0a48bdff",
     "015f69627da26828922dd6a5ea07736acb43db9e56b30c49f64561551bafdad5",
     "054b27ece747c1339ab91bc0e4fb04cb172852d97a6d41d66f14809058480331",

@@ -146,6 +146,19 @@ impl LegacyDelegationInteractor {
                 );
             }
         }
+
+        let voting_power = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_voting_power(address)
+            .returns(ReturnsResult)
+            .run()
+            .await;
+
+        println!();
+        println!("Voting power:      {}", display_egld_amount(&voting_power));
     }
 
     pub async fn query_all_user_stake_by_type(&mut self) {

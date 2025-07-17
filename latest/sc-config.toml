@@ -7,7 +7,7 @@ name = "delegation_latest_update"
 add-labels = ["upgrade"]
 
 [[proxy]]
-path = "../interact/src/latest_proxy.rs"
+path = "../interactor/src/latest_proxy.rs"
 add-labels = ["init", "upgrade"]
 
 [[proxy.path-rename]]
@@ -17,7 +17,3 @@ to = "user_fund_storage::types::FundItem"
 [[proxy.path-rename]]
 from = "multiversx_sc::types::io::operation_completion_status::OperationCompletionStatus"
 to = "multiversx_sc::types::OperationCompletionStatus"
-
-[[proxy]]
-path = "interactor/src/proxy.rs"
-add-labels = ["init", "upgrade"]

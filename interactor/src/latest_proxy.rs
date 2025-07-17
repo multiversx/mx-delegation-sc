@@ -1071,6 +1071,20 @@ where
             .argument(&vote)
             .original_result()
     }
+
+    /// Voting power of a single user, based on their active stake. 
+    pub fn get_voting_power<
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
+    >(
+        self,
+        voter: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("getVotingPower")
+            .argument(&voter)
+            .original_result()
+    }
 }
 
 #[rustfmt::skip]
