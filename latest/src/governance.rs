@@ -1,8 +1,6 @@
 use multiversx_sc::imports::*;
 use user_fund_storage::types::FundType;
 
-use super::governance_sc_proxy::GovernanceSCLocalProxy;
-
 /// Contains logic to forward governance votes to the governance system SC.
 #[multiversx_sc::derive::module]
 pub trait GovernanceModule:
@@ -18,7 +16,7 @@ pub trait GovernanceModule:
 
         self.tx()
             .to(GovernanceSystemSCAddress)
-            .typed(GovernanceSCLocalProxy)
+            .typed(GovernanceSCProxy)
             .delegate_vote(&proposal_to_vote, &vote, &voter, &staked_balance)
             .callback(
                 self.callbacks()

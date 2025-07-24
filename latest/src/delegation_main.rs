@@ -4,7 +4,6 @@
 
 // auxiliaries
 pub mod auction_proxy;
-pub mod governance_sc_proxy;
 
 // modules
 pub mod events;

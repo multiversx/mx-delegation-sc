@@ -10,11 +10,11 @@
         "contractCrate": {
             "name": "auction-mock",
             "version": "0.3.4",
-            "gitVersion": "v0.5.8-118-g10cfbfd"
+            "gitVersion": "v0.5.8-120-gb745d1e"
         },
         "framework": {
             "name": "multiversx-sc",
-            "version": "0.59.0"
+            "version": "0.59.1"
         }
     },
     "name": "AuctionMock",
