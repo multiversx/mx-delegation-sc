@@ -1,11 +1,11 @@
 {
     "buildInfo": {
         "rustc": {
-            "version": "1.80.0-nightly",
-            "commitHash": "791adf759cc065316f054961875052d5bc03e16c",
-            "commitDate": "2024-05-21",
+            "version": "1.76.0-nightly",
+            "commitHash": "d86d65bbc19b928387f68427fcc3a0da498d8a19",
+            "commitDate": "2023-12-10",
             "channel": "Nightly",
-            "short": "rustc 1.80.0-nightly (791adf759 2024-05-21)"
+            "short": "rustc 1.76.0-nightly (d86d65bbc 2023-12-10)"
         },
         "contractCrate": {
             "name": "delegation_latest_update",
@@ -13,7 +13,7 @@
         },
         "framework": {
             "name": "elrond-wasm",
-            "version": "0.23.1"
+            "version": "0.29.2"
         }
     },
     "name": "DelegationUpdate",
@@ -132,6 +132,7 @@
         },
         {
             "name": "addNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -144,6 +145,7 @@
         },
         {
             "name": "removeNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -508,6 +510,7 @@
                 "Owner activates specific nodes."
             ],
             "name": "stakeNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -530,6 +533,7 @@
                 "Does not unstake tokens."
             ],
             "name": "unStakeNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -548,6 +552,7 @@
                 "Also unstakes tokens."
             ],
             "name": "unStakeNodesAndTokens",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -564,6 +569,7 @@
                 "Warning: misuse can lead to state inconsistency."
             ],
             "name": "forceNodeUnBondPeriod",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -579,6 +585,7 @@
                 "Calls unbond for all provided nodes. Will fail if node cannot be unbonded."
             ],
             "name": "unBondNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -595,26 +602,24 @@
                 "Nothing happens if no nodes can be unbonded."
             ],
             "name": "unBondAllPossibleNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [],
-            "outputs": [
-                {
-                    "type": "optional<AsyncCall>",
-                    "multi_result": true
-                }
-            ]
+            "outputs": []
         },
         {
             "docs": [
                 "Claims from auction SC funds that were sent but are not required to run the nodes."
             ],
             "name": "claimUnusedFunds",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [],
             "outputs": []
         },
         {
             "name": "unJailNodes",
+            "onlyOwner": true,
             "mutability": "mutable",
             "payableInTokens": [
                 "EGLD"
@@ -727,6 +732,7 @@
         },
         {
             "name": "setNumBlocksBeforeUnBond",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -752,6 +758,7 @@
         },
         {
             "name": "setMinimumStake",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -880,6 +887,7 @@
                 "It will recalculate and set the checkpoint for all the delegators"
             ],
             "name": "modifyTotalDelegationCap",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -1052,6 +1060,7 @@
                 "It will auto-reset if the list ends or the current item is no longer valid."
             ],
             "name": "dustCleanupWaitingList",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -1071,6 +1080,7 @@
                 "It will auto-reset if the list ends or the current item is no longer valid."
             ],
             "name": "dustCleanupActive",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -1082,6 +1092,7 @@
         },
         {
             "name": "dnsRegister",
+            "onlyOwner": true,
             "mutability": "mutable",
             "payableInTokens": [
                 "EGLD"
@@ -1100,6 +1111,7 @@
         },
         {
             "name": "setFeatureFlag",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -1125,12 +1137,14 @@
         },
         {
             "name": "pause",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [],
             "outputs": []
         },
         {
             "name": "unpause",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [],
             "outputs": []
@@ -1175,7 +1189,7 @@
             "type": "struct",
             "fields": [
                 {
-                    "name": "0",
+                    "name": "bytes",
                     "type": "array96<u8>"
                 }
             ]
@@ -1184,7 +1198,7 @@
             "type": "struct",
             "fields": [
                 {
-                    "name": "0",
+                    "name": "bytes",
                     "type": "array48<u8>"
                 }
             ]
