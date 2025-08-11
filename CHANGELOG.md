@@ -2,11 +2,11 @@
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [0.5.9] - 2025-07-16
-- Governance `delegateVote` & `getVotingPower`, compiled from the old `v0.5.8` tag, using elrond-wasm 0.23.0.
+## [0.5.9] - 2025-08-11
+- Governance `delegateVote` & `getVotingPower`, adapted from the old `v0.5.8` sources, using elrond-wasm 0.29.2.
 
-## [0.5.8] - 2021-11-24
-- upgraded to elrond-wasm 0.23.0
+## [0.5.8] - 2022-03-01
+- upgraded to elrond-wasm 0.29.2
 - `unStakeTokens`/`unBondTokens` endpoints
 
 ## [0.5.7] - 2021-06-23
