@@ -1,20 +1,20 @@
 {
     "buildInfo": {
         "rustc": {
-            "version": "1.88.0",
-            "commitHash": "6b00bc3880198600130e1cf62b8f8a93494488cc",
-            "commitDate": "2025-06-23",
+            "version": "1.89.0",
+            "commitHash": "29483883eed69d5fb4db01964cdf2af4d86e9cb2",
+            "commitDate": "2025-08-04",
             "channel": "Stable",
-            "short": "rustc 1.88.0 (6b00bc388 2025-06-23)"
+            "short": "rustc 1.89.0 (29483883e 2025-08-04)"
         },
         "contractCrate": {
             "name": "delegation_latest",
             "version": "0.5.9",
-            "gitVersion": "v0.5.8-120-gb745d1e"
+            "gitVersion": "v0.5.8-121-g7896fa8"
         },
         "framework": {
             "name": "multiversx-sc",
-            "version": "0.59.1"
+            "version": "0.60.0"
         }
     },
     "name": "DelegationFull",
