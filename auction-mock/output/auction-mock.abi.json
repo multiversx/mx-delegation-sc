@@ -1,11 +1,11 @@
 {
     "buildInfo": {
         "rustc": {
-            "version": "1.60.0-nightly",
-            "commitHash": "1e12aef3fab243407f9d71ba9956cb2a1bf105d5",
-            "commitDate": "2022-02-13",
+            "version": "1.76.0-nightly",
+            "commitHash": "d86d65bbc19b928387f68427fcc3a0da498d8a19",
+            "commitDate": "2023-12-10",
             "channel": "Nightly",
-            "short": "rustc 1.60.0-nightly (1e12aef3f 2022-02-13)"
+            "short": "rustc 1.76.0-nightly (d86d65bbc 2023-12-10)"
         },
         "contractCrate": {
             "name": "auction-mock",
