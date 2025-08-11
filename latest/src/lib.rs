@@ -4,9 +4,11 @@
 
 // auxiliaries
 pub mod auction_proxy;
+pub mod governance_legacy_proxy;
 
 // modules
 pub mod events;
+pub mod governance;
 pub mod node_activation;
 pub mod reset_checkpoint_endpoints;
 pub mod reset_checkpoint_state;

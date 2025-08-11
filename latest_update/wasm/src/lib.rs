@@ -14,6 +14,7 @@ elrond_wasm_node::wasm_endpoints! {
         continueGlobalOperation
         countDustItemsActive
         countDustItemsWaitingList
+        delegateVote
         dnsRegister
         dustCleanupActive
         dustCleanupCheckpoint
@@ -59,6 +60,7 @@ elrond_wasm_node::wasm_endpoints! {
         getUserUnstakedStake
         getUserWaitingStake
         getUserWithdrawOnlyStake
+        getVotingPower
         isBootstrapMode
         isGlobalOperationInProgress
         isPaused
@@ -83,6 +85,7 @@ elrond_wasm_node::wasm_endpoints! {
         unStakeTokens
         unpause
         updateUserAddress
+        upgrade
         userIdsWithoutAddress
         validateDelegationCapInvariant
         validateOwnerStakeShare

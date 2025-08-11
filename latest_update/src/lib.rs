@@ -26,6 +26,7 @@ pub trait DelegationUpdate:
     + delegation_latest::elrond_wasm_modules::dns::DnsModule
     + delegation_latest::elrond_wasm_modules::features::FeaturesModule
     + delegation_latest::elrond_wasm_modules::pause::PauseModule
+    + delegation_latest::governance::GovernanceModule
 {
     // METADATA
 
@@ -52,7 +53,10 @@ pub trait DelegationUpdate:
     }
 
     #[init]
-    fn init(&self) {
+    fn init(&self) {}
+
+    #[endpoint]
+    fn upgrade(&self) {
         self.update_total_delegation_cap_if_necessary();
     }
 }

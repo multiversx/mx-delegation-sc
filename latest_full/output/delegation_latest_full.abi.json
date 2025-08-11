@@ -1170,6 +1170,39 @@
             "mutability": "mutable",
             "inputs": [],
             "outputs": []
+        },
+        {
+            "name": "delegateVote",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "proposal_to_vote",
+                    "type": "u64"
+                },
+                {
+                    "name": "vote",
+                    "type": "bytes"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "docs": [
+                "Voting power of a single user, based on their active stake."
+            ],
+            "name": "getVotingPower",
+            "mutability": "readonly",
+            "inputs": [
+                {
+                    "name": "voter",
+                    "type": "Address"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "BigUint"
+                }
+            ]
         }
     ],
     "hasCallback": true,
