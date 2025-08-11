@@ -17,7 +17,7 @@ pub trait GovernanceModule:
         self.tx()
             .to(GovernanceSystemSCAddress)
             .typed(GovernanceSCProxy)
-            .delegate_vote(&proposal_to_vote, &vote, &voter, &staked_balance)
+            .delegate_vote(proposal_to_vote, &vote, &voter, &staked_balance)
             .callback(
                 self.callbacks()
                     .delegate_vote_callback(&voter, proposal_to_vote, &vote),
