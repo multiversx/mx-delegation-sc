@@ -8,6 +8,7 @@ impl LegacyDelegationInteractor {
         println!();
         self.query_delegation_cap().await;
         println!();
+        self.query_service_fee().await;
         self.query_num_users().await;
     }
 
@@ -29,6 +30,20 @@ impl LegacyDelegationInteractor {
         println!("Active:          {}", display_egld_amount(&tuple.2));
         println!("UnStaked:        {}", display_egld_amount(&tuple.3));
         println!("DeferredPayment: {}", display_egld_amount(&tuple.4));
+    }
+
+    pub async fn query_service_fee(&mut self) {
+        let service_fee = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_service_fee()
+            .returns(ReturnsResultUnmanaged)
+            .run()
+            .await;
+
+        println!("Service fee: {}%", service_fee / 100u32);
     }
 
     pub async fn query_num_users(&mut self) {
