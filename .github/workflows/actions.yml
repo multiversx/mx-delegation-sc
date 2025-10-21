@@ -1,21 +1,20 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
+    push:
+        branches:
+            - master
 
 permissions:
-  checks: write
-  pull-requests: write
+    checks: write
+    pull-requests: write
 
 jobs:
-  contracts:
-    name: Contracts
-    uses: multiversx/mx-sc-actions/.github/workflows/contracts.yml@v4.2.2
-    with:
-      rust-toolchain: stable
-      mx-scenario-go-version: v3.0.0
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+    contracts:
+        name: Contracts
+        uses: multiversx/mx-sc-actions/.github/workflows/contracts.yml@v4.2.2
+        with:
+            rust-toolchain: stable
+            mx-scenario-go-version: v3.0.0
+        secrets:
+            token: ${{ secrets.GITHUB_TOKEN }}
