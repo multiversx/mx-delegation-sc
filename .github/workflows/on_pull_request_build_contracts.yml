@@ -11,4 +11,5 @@ jobs:
         uses: multiversx/mx-sc-actions/.github/workflows/reproducible-build.yml@v4.2.2
         with:
             image_tag: v6.1.2
+            contract_name: delegation_latest
             package_whole_project_src: true
