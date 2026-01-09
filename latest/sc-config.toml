@@ -7,7 +7,8 @@ name = "delegation_latest_update"
 add-labels = ["upgrade"]
 
 [[proxy]]
-path = "../interact/src/latest_proxy.rs"
+path = "../interactor/src/latest_proxy.rs"
+add-labels = ["init", "upgrade"]
 
 [[proxy.path-rename]]
 from = "user_fund_storage::types::fund_item::FundItem"

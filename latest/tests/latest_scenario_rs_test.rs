@@ -132,8 +132,8 @@ fn unstake_3_rs() {
     world().run("scenarios/unstake_3.scen.json");
 }
 
-#[ignore = "gas"]
 #[test]
+#[ignore = "gas"]
 fn unstake_4_rs() {
     world().run("scenarios/unstake_4.scen.json");
 }
@@ -154,6 +154,11 @@ fn user_fund_getters_rs() {
 }
 
 #[test]
-fn version_rs() {
-    world().run("scenarios/version.scen.json");
+fn version_full_rs() {
+    world().run("scenarios/version_full.scen.json");
+}
+
+#[test]
+fn version_update_rs() {
+    world().run("scenarios/version_update.scen.json");
 }

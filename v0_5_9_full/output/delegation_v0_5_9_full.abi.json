@@ -1,20 +1,19 @@
 {
     "buildInfo": {
         "rustc": {
-            "version": "1.89.0",
-            "commitHash": "29483883eed69d5fb4db01964cdf2af4d86e9cb2",
-            "commitDate": "2025-08-04",
-            "channel": "Stable",
-            "short": "rustc 1.89.0 (29483883e 2025-08-04)"
+            "version": "1.76.0-nightly",
+            "commitHash": "d86d65bbc19b928387f68427fcc3a0da498d8a19",
+            "commitDate": "2023-12-10",
+            "channel": "Nightly",
+            "short": "rustc 1.76.0-nightly (d86d65bbc 2023-12-10)"
         },
         "contractCrate": {
-            "name": "delegation_latest",
-            "version": "0.5.9",
-            "gitVersion": "v0.5.8-121-g7896fa8"
+            "name": "delegation_latest_full",
+            "version": "0.5.8"
         },
         "framework": {
-            "name": "multiversx-sc",
-            "version": "0.60.0"
+            "name": "elrond-wasm",
+            "version": "0.29.2"
         }
     },
     "name": "DelegationFull",
@@ -217,7 +216,7 @@
         },
         {
             "docs": [
-                "Retrieves the number of delegators, including the owner,",
+                "Retrieves the number of delegtors, including the owner,",
                 "even if they no longer have anything in the contract."
             ],
             "name": "getNumUsers",
@@ -927,7 +926,7 @@
         {
             "docs": [
                 "The stake per node can be changed by the owner.",
-                "It does not get set in the constructor, so the owner has to manually set it after the contract is deployed."
+                "It does not get set in the contructor, so the owner has to manually set it after the contract is deployed."
             ],
             "name": "setServiceFee",
             "mutability": "mutable",
@@ -1076,7 +1075,7 @@
         },
         {
             "docs": [
-                "Unstakes all fund buckets in the waiting list that are below a certain threshold.",
+                "Unstakes all fund buckets in the waiting list that are below a certin threshold.",
                 "Will stop if running low on gas.",
                 "Does not block the rest of the contract. If any operation interferes with an interrupted",
                 "dust cleanup, the operation can be begun again.",
@@ -1095,7 +1094,7 @@
         },
         {
             "docs": [
-                "Unstakes and unbonds all active fund buckets that are below a certain threshold.",
+                "Unstakes and unbonds all active fund buckets that are below a certin threshold.",
                 "Unlike the regular unstake/unbond process, it will send the funds directly in `WithdrawOnly` state.",
                 "Will stop if running low on gas.",
                 "Does not block the rest of the contract. If any operation interferes with an interrupted",
@@ -1149,6 +1148,16 @@
             "outputs": []
         },
         {
+            "name": "isPaused",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "bool"
+                }
+            ]
+        },
+        {
             "name": "pause",
             "onlyOwner": true,
             "mutability": "mutable",
@@ -1161,16 +1170,6 @@
             "mutability": "mutable",
             "inputs": [],
             "outputs": []
-        },
-        {
-            "name": "isPaused",
-            "mutability": "readonly",
-            "inputs": [],
-            "outputs": [
-                {
-                    "type": "bool"
-                }
-            ]
         },
         {
             "name": "delegateVote",
@@ -1206,160 +1205,6 @@
             ]
         }
     ],
-    "events": [
-        {
-            "identifier": "userStake",
-            "inputs": [
-                {
-                    "name": "delegator",
-                    "type": "Address",
-                    "indexed": true
-                },
-                {
-                    "name": "amount",
-                    "type": "BigUint"
-                }
-            ]
-        },
-        {
-            "identifier": "userUnstake",
-            "inputs": [
-                {
-                    "name": "delegator",
-                    "type": "Address",
-                    "indexed": true
-                },
-                {
-                    "name": "amount",
-                    "type": "BigUint"
-                }
-            ]
-        },
-        {
-            "identifier": "nodeStakeOk",
-            "inputs": []
-        },
-        {
-            "identifier": "nodeStakeFail",
-            "inputs": [
-                {
-                    "name": "reason",
-                    "type": "bytes"
-                }
-            ]
-        },
-        {
-            "identifier": "nodeUnstakeOk",
-            "inputs": []
-        },
-        {
-            "identifier": "nodeUnstakeFail",
-            "inputs": [
-                {
-                    "name": "reason",
-                    "type": "bytes"
-                }
-            ]
-        },
-        {
-            "identifier": "nodeUnbondOk",
-            "inputs": []
-        },
-        {
-            "identifier": "nodeUnbondFail",
-            "inputs": [
-                {
-                    "name": "reason",
-                    "type": "bytes"
-                }
-            ]
-        },
-        {
-            "identifier": "tokensUnstake",
-            "inputs": [
-                {
-                    "name": "amount",
-                    "type": "BigUint"
-                }
-            ]
-        },
-        {
-            "identifier": "tokensUnbond",
-            "inputs": [
-                {
-                    "name": "amount",
-                    "type": "BigUint"
-                }
-            ]
-        },
-        {
-            "identifier": "userClaimRewards",
-            "inputs": [
-                {
-                    "name": "user",
-                    "type": "Address",
-                    "indexed": true
-                },
-                {
-                    "name": "amount",
-                    "type": "BigUint"
-                }
-            ]
-        },
-        {
-            "identifier": "pauseContract",
-            "inputs": []
-        },
-        {
-            "identifier": "unpauseContract",
-            "inputs": []
-        },
-        {
-            "identifier": "delegateVoteSuccess",
-            "inputs": [
-                {
-                    "name": "voter",
-                    "type": "Address",
-                    "indexed": true
-                },
-                {
-                    "name": "proposal_to_vote",
-                    "type": "u64",
-                    "indexed": true
-                },
-                {
-                    "name": "vote",
-                    "type": "bytes",
-                    "indexed": true
-                }
-            ]
-        },
-        {
-            "identifier": "delegateVoteError",
-            "inputs": [
-                {
-                    "name": "voter",
-                    "type": "Address",
-                    "indexed": true
-                },
-                {
-                    "name": "proposal_to_vote",
-                    "type": "u64",
-                    "indexed": true
-                },
-                {
-                    "name": "vote",
-                    "type": "bytes",
-                    "indexed": true
-                },
-                {
-                    "name": "error_msg",
-                    "type": "bytes"
-                }
-            ]
-        }
-    ],
-    "esdtAttributes": [],
     "hasCallback": true,
     "types": {
         "BLSKey": {
@@ -1671,23 +1516,6 @@
                     ],
                     "name": "Removed",
                     "discriminant": 7
-                }
-            ]
-        },
-        "OperationCompletionStatus": {
-            "type": "explicit-enum",
-            "variants": [
-                {
-                    "docs": [
-                        "indicates that operation was completed"
-                    ],
-                    "name": "completed"
-                },
-                {
-                    "docs": [
-                        "indicates that operation was interrupted prematurely, due to low gas"
-                    ],
-                    "name": "interrupted"
                 }
             ]
         }

@@ -5,11 +5,11 @@ multiversx_sc::imports!();
 /// Indicates how we express the percentage of rewards that go to the node.
 /// Since we cannot have floating point numbers, we use fixed point with this denominator.
 /// Percents + 2 decimals -> 10000.
-pub static PERCENTAGE_DENOMINATOR: usize = 10000;
+pub const PERCENTAGE_DENOMINATOR: usize = 10000;
 
 /// Validator reward destination will always be user with id 1.
 /// This can also count as a delegator (if the owner adds stake into the contract) or not.
-pub static OWNER_USER_ID: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1) };
+pub const OWNER_USER_ID: NonZeroUsize = NonZeroUsize::new(1).unwrap();
 
 /// The module deals with initializaton and the global contract settings.
 ///

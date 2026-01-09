@@ -1055,6 +1055,36 @@ where
             .raw_call("isPaused")
             .original_result()
     }
+
+    pub fn delegate_vote<
+        Arg0: ProxyArg<u64>,
+        Arg1: ProxyArg<ManagedBuffer<Env::Api>>,
+    >(
+        self,
+        proposal_to_vote: Arg0,
+        vote: Arg1,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("delegateVote")
+            .argument(&proposal_to_vote)
+            .argument(&vote)
+            .original_result()
+    }
+
+    /// Voting power of a single user, based on their active stake. 
+    pub fn get_voting_power<
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
+    >(
+        self,
+        voter: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("getVotingPower")
+            .argument(&voter)
+            .original_result()
+    }
 }
 
 #[rustfmt::skip]

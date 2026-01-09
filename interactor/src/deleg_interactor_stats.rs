@@ -1,54 +1,18 @@
-mod deleg_interact_cli;
-mod deleg_interact_config;
-mod latest_proxy;
-
-use clap::Parser;
-use deleg_interact_cli::{InteractCli, InteractCliCommand};
-use deleg_interact_config::Config;
-
 use multiversx_sc_snippets::imports::*;
 
-#[tokio::main]
-async fn main() {
-    env_logger::init();
+use crate::{latest_proxy, LegacyDelegationInteractor};
 
-    let mut basic_interact = AdderInteract::init().await;
-
-    let cli = InteractCli::parse();
-    match &cli.command.expect("interactor command expected") {
-        InteractCliCommand::Global => {
-            basic_interact.query_global().await;
-        }
-        InteractCliCommand::UserFull => {
-            basic_interact.query_all_user_stake_by_type().await;
-        }
-        InteractCliCommand::NumUsers => basic_interact.query_num_users().await,
-        InteractCliCommand::UserStake(args) => {
-            let address = Bech32Address::from_bech32_string(args.address.clone());
-            basic_interact.query_user_stake_by_type(&address).await;
-        }
-    }
-}
-
-#[allow(unused)]
-struct AdderInteract {
-    interactor: Interactor,
-    config: Config,
-}
-
-impl AdderInteract {
-    async fn init() -> Self {
-        let config = Config::load_config();
-        let interactor = Interactor::new(config.gateway()).await;
-
-        Self { interactor, config }
-    }
-
-    async fn query_global(&mut self) {
+impl LegacyDelegationInteractor {
+    pub async fn query_global(&mut self) {
         self.query_total_active_stake().await;
+        println!();
+        self.query_delegation_cap().await;
+        println!();
+        self.query_service_fee().await;
+        self.query_num_users().await;
     }
 
-    async fn query_total_active_stake(&mut self) {
+    pub async fn query_total_active_stake(&mut self) {
         let result = self
             .interactor
             .query()
@@ -68,7 +32,21 @@ impl AdderInteract {
         println!("DeferredPayment: {}", display_egld_amount(&tuple.4));
     }
 
-    async fn query_num_users(&mut self) {
+    pub async fn query_service_fee(&mut self) {
+        let service_fee = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_service_fee()
+            .returns(ReturnsResultUnmanaged)
+            .run()
+            .await;
+
+        println!("Service fee: {}%", service_fee / 100u32);
+    }
+
+    pub async fn query_num_users(&mut self) {
         let num_users = self
             .interactor
             .query()
@@ -79,10 +57,24 @@ impl AdderInteract {
             .run()
             .await;
 
-        println!("{num_users}");
+        println!("Number of users: {num_users}");
     }
 
-    async fn query_user_stake_by_type(&mut self, address: &Bech32Address) {
+    pub async fn query_delegation_cap(&mut self) {
+        let delegation_cap = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_total_delegation_cap()
+            .returns(ReturnsResult)
+            .run()
+            .await;
+
+        println!("Delegation cap: {}", display_egld_amount(&delegation_cap));
+    }
+
+    pub async fn query_user_stake_by_type(&mut self, address: &Bech32Address) {
         let result = self
             .interactor
             .query()
@@ -169,9 +161,22 @@ impl AdderInteract {
                 );
             }
         }
+
+        let voting_power = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_voting_power(address)
+            .returns(ReturnsResult)
+            .run()
+            .await;
+
+        println!();
+        println!("Voting power:      {}", display_egld_amount(&voting_power));
     }
 
-    async fn query_all_user_stake_by_type(&mut self) {
+    pub async fn query_all_user_stake_by_type(&mut self) {
         let result = self
             .interactor
             .query()

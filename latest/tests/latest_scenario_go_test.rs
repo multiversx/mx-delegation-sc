@@ -135,6 +135,11 @@ fn user_fund_getters_go() {
 }
 
 #[test]
-fn version_go() {
-    world().run("scenarios/version.scen.json");
+fn version_full_go() {
+    world().run("scenarios/version_full.scen.json");
+}
+
+#[test]
+fn version_update_go() {
+    world().run("scenarios/version_update.scen.json");
 }

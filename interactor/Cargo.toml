@@ -1,6 +1,6 @@
 [[bin]]
 name = "basic-interact"
-path = "src/deleg_interact.rs"
+path = "src/deleg_interactor.rs"
 
 [package]
 name = "delegation-interact"
@@ -9,6 +9,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
+hex = "0.4.3"
 toml = "0.8.6"
 
 [dependencies.clap]
@@ -20,10 +21,10 @@ version = "1.0"
 features = ["derive"]
 
 [dependencies.multiversx-sc]
-version = "=0.58.0"
+version = "=0.60.0"
 
 [dependencies.multiversx-sc-snippets]
-version = "=0.58.0"
+version = "=0.60.0"
 
 [dependencies.node-storage]
 path = "../node-storage"

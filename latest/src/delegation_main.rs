@@ -7,6 +7,7 @@ pub mod auction_proxy;
 
 // modules
 pub mod events;
+pub mod governance;
 pub mod node_activation;
 pub mod reset_checkpoint_endpoints;
 pub mod reset_checkpoint_state;
@@ -48,6 +49,7 @@ pub trait DelegationFull:
     + multiversx_sc_modules::dns::DnsModule
     + multiversx_sc_modules::features::FeaturesModule
     + multiversx_sc_modules::pause::PauseModule
+    + governance::GovernanceModule
 {
     // METADATA
 

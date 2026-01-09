@@ -5,9 +5,17 @@ use std::io::Read;
 /// Config file
 const CONFIG_FILE: &str = "config.toml";
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ChainType {
+    Real,
+    Simulator,
+}
+
 /// Adder Interact configuration
 #[derive(Debug, Deserialize)]
 pub struct Config {
+    pub chain_type: ChainType,
     pub gateway: String,
     pub sc_address: Bech32Address,
 }
@@ -24,5 +32,13 @@ impl Config {
     // Returns the gateway
     pub fn gateway(&self) -> &str {
         &self.gateway
+    }
+
+    // Returns if chain type is chain simulator
+    pub fn is_chain_simulator(&self) -> bool {
+        match self.chain_type {
+            ChainType::Real => false,
+            ChainType::Simulator => true,
+        }
     }
 }
