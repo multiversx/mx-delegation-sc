@@ -13,9 +13,9 @@ permissions:
 jobs:
   contracts:
     name: Contracts
-    uses: multiversx/mx-sc-actions/.github/workflows/contracts.yml@v4.2.2
+    uses: multiversx/mx-sc-actions/.github/workflows/contracts.yml@b4c4e6c942f6d35578beddac98a16055735cd0c2
     with:
       rust-toolchain: stable
-      mx-scenario-go-version: v5.0.0
+      mx-scenario-go-version: v5.1.0
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
