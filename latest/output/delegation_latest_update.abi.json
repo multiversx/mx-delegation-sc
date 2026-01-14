@@ -1,20 +1,22 @@
 {
     "buildInfo": {
         "rustc": {
-            "version": "1.89.0",
-            "commitHash": "29483883eed69d5fb4db01964cdf2af4d86e9cb2",
-            "commitDate": "2025-08-04",
+            "version": "1.90.0",
+            "commitHash": "1159e78c4747b02ef996e55082b704c09b970588",
+            "commitDate": "2025-09-14",
             "channel": "Stable",
-            "short": "rustc 1.89.0 (29483883e 2025-08-04)"
+            "host": "aarch64-apple-darwin",
+            "short": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+            "llvmVersion": "20.1"
         },
         "contractCrate": {
             "name": "delegation_latest",
             "version": "0.5.9",
-            "gitVersion": "v0.5.8-121-g7896fa8"
+            "gitVersion": "vDevnet_2025_08_12-12-ge8bbb90"
         },
         "framework": {
             "name": "multiversx-sc",
-            "version": "0.60.0"
+            "version": "0.64.1"
         }
     },
     "name": "DelegationFull",

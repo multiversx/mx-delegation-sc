@@ -21,10 +21,10 @@ version = "1.0"
 features = ["derive"]
 
 [dependencies.multiversx-sc]
-version = "=0.60.0"
+version = "=0.64.1"
 
 [dependencies.multiversx-sc-snippets]
-version = "=0.60.0"
+version = "=0.64.1"
 
 [dependencies.node-storage]
 path = "../node-storage"
