@@ -12,11 +12,11 @@
         "contractCrate": {
             "name": "delegation_latest",
             "version": "0.5.9",
-            "gitVersion": "vDevnet_2025_08_12-12-ge8bbb90"
+            "gitVersion": "vDevnet_2025_08_12-13-g16d77fd"
         },
         "framework": {
             "name": "multiversx-sc",
-            "version": "0.64.1"
+            "version": "0.64.2"
         }
     },
     "name": "DelegationFull",
