@@ -21,7 +21,6 @@
   "mBufferCopyByteSlice",
   "mBufferEq",
   "mBufferFinish",
-  "mBufferFromBigIntSigned",
   "mBufferFromBigIntUnsigned",
   "mBufferFromSmallIntUnsigned",
   "mBufferGetArgument",
@@ -45,7 +44,6 @@
   "managedTransferValueExecute",
   "managedWriteLog",
   "signalError",
-  "smallIntFinishSigned",
   "smallIntFinishUnsigned",
   "smallIntGetUnsignedArgument"
 ]

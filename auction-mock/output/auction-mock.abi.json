@@ -12,11 +12,11 @@
         "contractCrate": {
             "name": "auction-mock",
             "version": "0.3.4",
-            "gitVersion": "vDevnet_2025_08_12-13-g16d77fd"
+            "gitVersion": "vDevnet_2025_08_12-14-g0c40525"
         },
         "framework": {
             "name": "multiversx-sc",
-            "version": "0.64.2"
+            "version": "0.65.0"
         }
     },
     "name": "AuctionMock",
@@ -51,6 +51,7 @@
         },
         {
             "name": "unStake",
+            "rustMethodName": "unstake_endpoint",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -68,6 +69,7 @@
         },
         {
             "name": "unStakeNodes",
+            "rustMethodName": "unstake_nodes_endpoint",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -85,6 +87,7 @@
         },
         {
             "name": "unBond",
+            "rustMethodName": "unbond_endpoint",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -102,6 +105,7 @@
         },
         {
             "name": "unBondNodes",
+            "rustMethodName": "unbond_nodes_endpoint",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -119,6 +123,7 @@
         },
         {
             "name": "unStakeTokens",
+            "rustMethodName": "unstake_tokens",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -130,6 +135,7 @@
         },
         {
             "name": "unBondTokens",
+            "rustMethodName": "unbond_tokens",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -147,6 +153,7 @@
         },
         {
             "name": "unJail",
+            "rustMethodName": "unjail_endpoint",
             "mutability": "mutable",
             "payableInTokens": [
                 "EGLD"
@@ -162,6 +169,7 @@
         },
         {
             "name": "setBlsDeliberateError",
+            "rustMethodName": "set_bls_deliberate_error",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -177,6 +185,7 @@
         },
         {
             "name": "getBlsDeliberateError",
+            "rustMethodName": "get_bls_deliberate_error",
             "mutability": "mutable",
             "inputs": [
                 {
