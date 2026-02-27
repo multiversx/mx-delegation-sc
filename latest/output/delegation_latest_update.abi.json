@@ -12,11 +12,11 @@
         "contractCrate": {
             "name": "delegation_latest",
             "version": "0.5.9",
-            "gitVersion": "vDevnet_2025_08_12-12-ge8bbb90"
+            "gitVersion": "vDevnet_2025_08_12-14-g0c40525"
         },
         "framework": {
             "name": "multiversx-sc",
-            "version": "0.64.1"
+            "version": "0.65.0"
         }
     },
     "name": "DelegationFull",
@@ -40,6 +40,7 @@
                 "The number of nodes that will run with the contract stake, as configured by the owner."
             ],
             "name": "getNumNodes",
+            "rustMethodName": "num_nodes",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -56,6 +57,7 @@
                 "Ids start from 1 because 0 means unset of None."
             ],
             "name": "getNodeId",
+            "rustMethodName": "get_node_id",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -71,6 +73,7 @@
         },
         {
             "name": "getNodeSignature",
+            "rustMethodName": "get_node_signature_endpoint",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -87,6 +90,7 @@
         },
         {
             "name": "getNodeState",
+            "rustMethodName": "get_node_state_endpoint",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -102,6 +106,7 @@
         },
         {
             "name": "getAllNodeStates",
+            "rustMethodName": "get_all_node_states",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -113,6 +118,7 @@
         },
         {
             "name": "getNodeBlockNonceOfUnstake",
+            "rustMethodName": "get_node_bl_nonce_of_unstake_endpoint",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -129,6 +135,7 @@
         },
         {
             "name": "addNodes",
+            "rustMethodName": "add_nodes",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -142,6 +149,7 @@
         },
         {
             "name": "removeNodes",
+            "rustMethodName": "remove_nodes",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -161,6 +169,7 @@
                 "The value is the user id."
             ],
             "name": "getUserId",
+            "rustMethodName": "get_user_id",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -176,6 +185,7 @@
         },
         {
             "name": "getUserAddress",
+            "rustMethodName": "get_user_address",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -195,6 +205,7 @@
                 "even if they no longer have anything in the contract."
             ],
             "name": "getNumUsers",
+            "rustMethodName": "get_num_users",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -205,6 +216,7 @@
         },
         {
             "name": "updateUserAddress",
+            "rustMethodName": "update_user_address",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -227,6 +239,7 @@
         },
         {
             "name": "userIdsWithoutAddress",
+            "rustMethodName": "user_ids_without_address",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -238,6 +251,7 @@
         },
         {
             "name": "fundById",
+            "rustMethodName": "fund_by_id",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -253,6 +267,7 @@
         },
         {
             "name": "totalStake",
+            "rustMethodName": "get_total_stake",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -266,6 +281,7 @@
                 "Yields how much a user has staked in the contract."
             ],
             "name": "getUserStake",
+            "rustMethodName": "get_user_total_stake_endpoint",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -281,6 +297,7 @@
         },
         {
             "name": "getUserWithdrawOnlyStake",
+            "rustMethodName": "get_user_withdraw_only_stake",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -296,6 +313,7 @@
         },
         {
             "name": "getUserWaitingStake",
+            "rustMethodName": "get_user_waiting_stake",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -311,6 +329,7 @@
         },
         {
             "name": "getUserActiveStake",
+            "rustMethodName": "get_user_active_stake",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -326,6 +345,7 @@
         },
         {
             "name": "getUserUnstakedStake",
+            "rustMethodName": "get_user_unstaked_stake",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -341,6 +361,7 @@
         },
         {
             "name": "getUserDeferredPaymentStake",
+            "rustMethodName": "get_user_deferred_payment_stake",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -356,6 +377,7 @@
         },
         {
             "name": "getTotalWithdrawOnlyStake",
+            "rustMethodName": "get_total_withdraw_only_stake",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -366,6 +388,7 @@
         },
         {
             "name": "getTotalWaitingStake",
+            "rustMethodName": "get_total_waiting_stake",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -376,6 +399,7 @@
         },
         {
             "name": "getTotalActiveStake",
+            "rustMethodName": "get_total_active_stake",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -386,6 +410,7 @@
         },
         {
             "name": "getTotalUnstakedStake",
+            "rustMethodName": "get_total_unstaked_stake",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -396,6 +421,7 @@
         },
         {
             "name": "getTotalDeferredPaymentStake",
+            "rustMethodName": "get_total_deferred_payment_stake",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -406,6 +432,7 @@
         },
         {
             "name": "getUserStakeByType",
+            "rustMethodName": "get_user_stake_by_type_endpoint",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -433,6 +460,7 @@
         },
         {
             "name": "getTotalStakeByType",
+            "rustMethodName": "get_total_stake_by_type_endpoint",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -455,6 +483,7 @@
         },
         {
             "name": "getAllUserStakeByType",
+            "rustMethodName": "get_all_user_stake_by_type",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -466,6 +495,7 @@
         },
         {
             "name": "getUserDeferredPaymentList",
+            "rustMethodName": "get_user_deferred_payment_list",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -482,6 +512,7 @@
         },
         {
             "name": "getFullWaitingList",
+            "rustMethodName": "get_full_waiting_list",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -493,6 +524,7 @@
         },
         {
             "name": "getFullActiveList",
+            "rustMethodName": "get_full_active_list",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -507,6 +539,7 @@
                 "Owner activates specific nodes."
             ],
             "name": "stakeNodes",
+            "rustMethodName": "stake_nodes",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -530,6 +563,7 @@
                 "Does not unstake tokens."
             ],
             "name": "unStakeNodes",
+            "rustMethodName": "unstake_nodes_endpoint",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -549,6 +583,7 @@
                 "Also unstakes tokens."
             ],
             "name": "unStakeNodesAndTokens",
+            "rustMethodName": "unstake_nodes_and_tokens_endpoint",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -566,6 +601,7 @@
                 "Warning: misuse can lead to state inconsistency."
             ],
             "name": "forceNodeUnBondPeriod",
+            "rustMethodName": "force_node_unbond_period",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -582,6 +618,7 @@
                 "Calls unbond for all provided nodes. Will fail if node cannot be unbonded."
             ],
             "name": "unBondNodes",
+            "rustMethodName": "unbond_specific_nodes_endpoint",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -599,6 +636,7 @@
                 "Nothing happens if no nodes can be unbonded."
             ],
             "name": "unBondAllPossibleNodes",
+            "rustMethodName": "unbond_all_possible_nodes",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [],
@@ -609,6 +647,7 @@
                 "Claims from auction SC funds that were sent but are not required to run the nodes."
             ],
             "name": "claimUnusedFunds",
+            "rustMethodName": "claim_unused_funds",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [],
@@ -616,6 +655,7 @@
         },
         {
             "name": "unJailNodes",
+            "rustMethodName": "unjail_nodes",
             "onlyOwner": true,
             "mutability": "mutable",
             "payableInTokens": [
@@ -632,6 +672,7 @@
         },
         {
             "name": "unStakeTokens",
+            "rustMethodName": "unstake_tokens",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -643,6 +684,7 @@
         },
         {
             "name": "unBondTokens",
+            "rustMethodName": "unbond_tokens",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -658,6 +700,7 @@
                 "This address is standard in the protocol, but it is saved in storage to avoid hardcoding it."
             ],
             "name": "getAuctionContractAddress",
+            "rustMethodName": "get_auction_contract_address",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -672,6 +715,7 @@
                 "10000 = 100%."
             ],
             "name": "getServiceFee",
+            "rustMethodName": "get_service_fee",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -682,6 +726,7 @@
         },
         {
             "name": "getTotalDelegationCap",
+            "rustMethodName": "get_total_delegation_cap",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -692,6 +737,7 @@
         },
         {
             "name": "isBootstrapMode",
+            "rustMethodName": "is_bootstrap_mode",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -706,6 +752,7 @@
                 "10000 = 100%."
             ],
             "name": "getOwnerMinStakeShare",
+            "rustMethodName": "get_owner_min_stake_share",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -719,6 +766,7 @@
                 "Minimum number of n_blocks between unstake and fund getting into inactive state."
             ],
             "name": "getNumBlocksBeforeUnBond",
+            "rustMethodName": "get_n_blocks_before_unbond",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -729,6 +777,7 @@
         },
         {
             "name": "setNumBlocksBeforeUnBond",
+            "rustMethodName": "set_n_blocks_before_unbond_endpoint",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -745,6 +794,7 @@
                 "Zero means disabled."
             ],
             "name": "getMinimumStake",
+            "rustMethodName": "get_minimum_stake",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -755,6 +805,7 @@
         },
         {
             "name": "setMinimumStake",
+            "rustMethodName": "set_minimum_stake_endpoint",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -767,6 +818,7 @@
         },
         {
             "name": "getGlobalOperationCheckpoint",
+            "rustMethodName": "global_op_checkpoint",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -777,6 +829,7 @@
         },
         {
             "name": "isGlobalOperationInProgress",
+            "rustMethodName": "is_global_op_in_progress",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -796,6 +849,7 @@
                 "Subtracting that from the current historical rewards yields how much accumulated in the contract since they last claimed."
             ],
             "name": "getTotalCumulatedRewards",
+            "rustMethodName": "get_total_cumulated_rewards",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -810,6 +864,7 @@
                 "Does not update storage."
             ],
             "name": "getClaimableRewards",
+            "rustMethodName": "get_claimable_rewards",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -828,6 +883,7 @@
                 "Utility readonly function to check how many unclaimed rewards currently reside in the contract."
             ],
             "name": "getTotalUnclaimedRewards",
+            "rustMethodName": "get_total_unclaimed_rewards",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -838,6 +894,7 @@
         },
         {
             "name": "getTotalUnProtected",
+            "rustMethodName": "total_unprotected",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -851,6 +908,7 @@
                 "Invariant: should never return error."
             ],
             "name": "validateOwnerStakeShare",
+            "rustMethodName": "validate_owner_stake_share",
             "mutability": "readonly",
             "inputs": [],
             "outputs": []
@@ -860,6 +918,7 @@
                 "Invariant: should never return error."
             ],
             "name": "validateDelegationCapInvariant",
+            "rustMethodName": "validate_delegation_cap_invariant",
             "mutability": "readonly",
             "inputs": [],
             "outputs": []
@@ -870,6 +929,7 @@
                 "Returns true if still out of gas, false if computation completed."
             ],
             "name": "continueGlobalOperation",
+            "rustMethodName": "continue_global_operation_endpoint",
             "mutability": "mutable",
             "inputs": [],
             "outputs": [
@@ -884,6 +944,7 @@
                 "It will recalculate and set the checkpoint for all the delegators"
             ],
             "name": "modifyTotalDelegationCap",
+            "rustMethodName": "modify_total_delegation_cap",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -904,6 +965,7 @@
                 "It does not get set in the constructor, so the owner has to manually set it after the contract is deployed."
             ],
             "name": "setServiceFee",
+            "rustMethodName": "set_service_fee_endpoint",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -925,6 +987,7 @@
                 "- rewards that were previously computed but not sent"
             ],
             "name": "claimRewards",
+            "rustMethodName": "claim_rewards",
             "mutability": "mutable",
             "inputs": [],
             "outputs": []
@@ -935,6 +998,7 @@
                 "Stake is initially inactive, so does it not produce rewards."
             ],
             "name": "stake",
+            "rustMethodName": "stake_endpoint",
             "mutability": "mutable",
             "payableInTokens": [
                 "EGLD"
@@ -948,6 +1012,7 @@
                 "selected funds will change from active to inactive, but claimable only after unBond period ends"
             ],
             "name": "unStake",
+            "rustMethodName": "unstake_endpoint",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -959,6 +1024,7 @@
         },
         {
             "name": "getUnStakeable",
+            "rustMethodName": "get_unstakeable",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -974,6 +1040,7 @@
         },
         {
             "name": "unBond",
+            "rustMethodName": "unbond_user",
             "mutability": "mutable",
             "inputs": [],
             "outputs": [
@@ -984,6 +1051,7 @@
         },
         {
             "name": "getUnBondable",
+            "rustMethodName": "get_unbondable",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -1002,6 +1070,7 @@
                 "Raw id of the last checkpoint reached by any of the dust cleanup endpoints."
             ],
             "name": "dustCleanupCheckpoint",
+            "rustMethodName": "dust_cleanup_checkpoint",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -1016,6 +1085,7 @@
                 "Unlike most views, yields the number of entries, rather than the sum of EGLD."
             ],
             "name": "countDustItemsWaitingList",
+            "rustMethodName": "count_dust_items_waiting_list",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -1035,6 +1105,7 @@
                 "Unlike most views, yields the number of entries, rather than the sum of EGLD."
             ],
             "name": "countDustItemsActive",
+            "rustMethodName": "count_dust_items_active",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -1057,6 +1128,7 @@
                 "It will auto-reset if the list ends or the current item is no longer valid."
             ],
             "name": "dustCleanupWaitingList",
+            "rustMethodName": "dust_cleanup_waiting_list",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -1077,6 +1149,7 @@
                 "It will auto-reset if the list ends or the current item is no longer valid."
             ],
             "name": "dustCleanupActive",
+            "rustMethodName": "dust_cleanup_active",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -1089,6 +1162,7 @@
         },
         {
             "name": "dnsRegister",
+            "rustMethodName": "dns_register",
             "onlyOwner": true,
             "mutability": "mutable",
             "payableInTokens": [
@@ -1108,6 +1182,7 @@
         },
         {
             "name": "setFeatureFlag",
+            "rustMethodName": "set_feature_flag_endpoint",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
@@ -1124,6 +1199,7 @@
         },
         {
             "name": "pause",
+            "rustMethodName": "pause_endpoint",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [],
@@ -1131,6 +1207,7 @@
         },
         {
             "name": "unpause",
+            "rustMethodName": "unpause_endpoint",
             "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [],
@@ -1138,6 +1215,7 @@
         },
         {
             "name": "isPaused",
+            "rustMethodName": "paused_status",
             "mutability": "readonly",
             "inputs": [],
             "outputs": [
@@ -1148,6 +1226,7 @@
         },
         {
             "name": "delegateVote",
+            "rustMethodName": "delegate_vote",
             "mutability": "mutable",
             "inputs": [
                 {
@@ -1166,6 +1245,7 @@
                 "Voting power of a single user, based on their active stake."
             ],
             "name": "getVotingPower",
+            "rustMethodName": "get_voting_power",
             "mutability": "readonly",
             "inputs": [
                 {
