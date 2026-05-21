@@ -24,3 +24,6 @@ Cargo.lock
 # Debugging
 compile.sh
 debug-tests.sh
+
+# Other
+**/.DS_Store
