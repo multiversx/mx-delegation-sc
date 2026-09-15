@@ -43,7 +43,7 @@ impl LegacyDelegationInteractor {
             .run()
             .await;
 
-        println!("Service fee: {}%", service_fee / 100u32);
+        println!("Service fee: {}", display_percentage(service_fee));
     }
 
     pub async fn query_num_users(&mut self) {
@@ -133,15 +133,18 @@ impl LegacyDelegationInteractor {
             .await;
 
         println!("Auction contract address: {auction_contract_address}");
-        println!("Service fee:              {}%", service_fee / 100u32);
+        println!(
+            "Service fee:              {}",
+            display_percentage(service_fee)
+        );
         println!(
             "Total delegation cap:     {}",
             display_egld_amount(&total_delegation_cap)
         );
         println!("Bootstrap mode:           {is_bootstrap_mode}");
         println!(
-            "Owner min stake share:    {}%",
-            owner_min_stake_share / 100u32
+            "Owner min stake share:    {}",
+            display_percentage(owner_min_stake_share)
         );
         println!("Num blocks before unbond: {num_blocks_before_unbond}");
         println!(
@@ -291,6 +294,19 @@ impl LegacyDelegationInteractor {
             println!();
         }
     }
+}
+
+/// Formats a value expressed in hundredths of a percent (10000 = 100%) as e.g. "12.50%".
+fn display_percentage<T>(value_per_10000: T) -> String
+where
+    T: Clone
+        + core::ops::Div<u32, Output = T>
+        + core::ops::Rem<u32, Output = T>
+        + core::fmt::Display,
+{
+    let whole = value_per_10000.clone() / 100u32;
+    let frac = value_per_10000 % 100u32;
+    format!("{whole}.{frac:02}%")
 }
 
 fn display_egld_amount(managed_bu: &BigUint<StaticApi>) -> String {
