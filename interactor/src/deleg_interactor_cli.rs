@@ -18,6 +18,9 @@ pub enum InteractCliCommand {
     #[command(name = "global", about = "Query global state")]
     Global,
 
+    #[command(name = "settings", about = "Query all contract settings")]
+    Settings,
+
     #[command(name = "user-full", about = "All user stake by type")]
     UserFull,
 
