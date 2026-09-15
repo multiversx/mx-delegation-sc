@@ -1,22 +1,22 @@
 {
     "buildInfo": {
         "rustc": {
-            "version": "1.90.0",
-            "commitHash": "1159e78c4747b02ef996e55082b704c09b970588",
-            "commitDate": "2025-09-14",
+            "version": "1.98.1",
+            "commitHash": "48a229ceaefd4985c50990b14116b6d856af0985",
+            "commitDate": "2026-09-01",
             "channel": "Stable",
             "host": "aarch64-apple-darwin",
-            "short": "rustc 1.90.0 (1159e78c4 2025-09-14)",
-            "llvmVersion": "20.1"
+            "short": "rustc 1.98.1 (48a229cea 2026-09-01)",
+            "llvmVersion": "22.1"
         },
         "contractCrate": {
             "name": "auction-mock",
             "version": "0.3.4",
-            "gitVersion": "vDevnet_2025_08_12-18-gd969bc4"
+            "gitVersion": "vDevnet_2025_08_12-24-gdc9a9ae"
         },
         "framework": {
             "name": "multiversx-sc",
-            "version": "0.66.0"
+            "version": "0.66.2"
         }
     },
     "name": "AuctionMock",

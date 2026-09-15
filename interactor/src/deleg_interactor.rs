@@ -25,6 +25,9 @@ async fn main() {
         InteractCliCommand::Global => {
             basic_interact.query_global().await;
         }
+        InteractCliCommand::Settings => {
+            basic_interact.query_settings().await;
+        }
         InteractCliCommand::UserFull => {
             basic_interact.query_all_user_stake_by_type().await;
         }

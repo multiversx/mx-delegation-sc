@@ -43,7 +43,7 @@ impl LegacyDelegationInteractor {
             .run()
             .await;
 
-        println!("Service fee: {}%", service_fee / 100u32);
+        println!("Service fee: {}", display_percentage(service_fee));
     }
 
     pub async fn query_num_users(&mut self) {
@@ -58,6 +58,99 @@ impl LegacyDelegationInteractor {
             .await;
 
         println!("Number of users: {num_users}");
+    }
+
+    pub async fn query_settings(&mut self) {
+        let auction_contract_address = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_auction_contract_address()
+            .returns(ReturnsResult)
+            .run()
+            .await;
+        let auction_contract_address = Bech32Address::from(auction_contract_address.to_address());
+
+        let service_fee = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_service_fee()
+            .returns(ReturnsResultUnmanaged)
+            .run()
+            .await;
+
+        let total_delegation_cap = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_total_delegation_cap()
+            .returns(ReturnsResult)
+            .run()
+            .await;
+
+        let is_bootstrap_mode = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .is_bootstrap_mode()
+            .returns(ReturnsResult)
+            .run()
+            .await;
+
+        let owner_min_stake_share = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_owner_min_stake_share()
+            .returns(ReturnsResultUnmanaged)
+            .run()
+            .await;
+
+        let num_blocks_before_unbond = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_n_blocks_before_unbond()
+            .returns(ReturnsResult)
+            .run()
+            .await;
+
+        let minimum_stake = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .get_minimum_stake()
+            .returns(ReturnsResult)
+            .run()
+            .await;
+
+        println!("Auction contract address: {auction_contract_address}");
+        println!(
+            "Service fee:              {}",
+            display_percentage(service_fee)
+        );
+        println!(
+            "Total delegation cap:     {}",
+            display_egld_amount(&total_delegation_cap)
+        );
+        println!("Bootstrap mode:           {is_bootstrap_mode}");
+        println!(
+            "Owner min stake share:    {}",
+            display_percentage(owner_min_stake_share)
+        );
+        println!("Num blocks before unbond: {num_blocks_before_unbond}");
+        println!(
+            "Minimum stake:            {}",
+            display_egld_amount(&minimum_stake)
+        );
     }
 
     pub async fn query_delegation_cap(&mut self) {
@@ -201,6 +294,19 @@ impl LegacyDelegationInteractor {
             println!();
         }
     }
+}
+
+/// Formats a value expressed in hundredths of a percent (10000 = 100%) as e.g. "12.50%".
+fn display_percentage<T>(value_per_10000: T) -> String
+where
+    T: Clone
+        + core::ops::Div<u32, Output = T>
+        + core::ops::Rem<u32, Output = T>
+        + core::fmt::Display,
+{
+    let whole = value_per_10000.clone() / 100u32;
+    let frac = value_per_10000 % 100u32;
+    format!("{whole}.{frac:02}%")
 }
 
 fn display_egld_amount(managed_bu: &BigUint<StaticApi>) -> String {
