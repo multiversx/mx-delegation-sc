@@ -9,7 +9,7 @@
         },
         "contractCrate": {
             "name": "delegation_latest_full",
-            "version": "0.5.8"
+            "version": "0.5.10"
         },
         "framework": {
             "name": "elrond-wasm",
@@ -657,6 +657,7 @@
         },
         {
             "name": "unStakeTokens",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -668,6 +669,7 @@
         },
         {
             "name": "unBondTokens",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -929,6 +931,7 @@
                 "It does not get set in the contructor, so the owner has to manually set it after the contract is deployed."
             ],
             "name": "setServiceFee",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {

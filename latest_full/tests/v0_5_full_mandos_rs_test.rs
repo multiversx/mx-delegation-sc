@@ -142,6 +142,11 @@ fn unstake_5_backwards_rs() {
 }
 
 #[test]
+fn unstake_tokens_rs() {
+    elrond_wasm_debug::mandos_rs("mandos/unstake_tokens.scen.json", world());
+}
+
+#[test]
 fn user_fund_getters_rs() {
     elrond_wasm_debug::mandos_rs("mandos/user_fund_getters.scen.json", world());
 }

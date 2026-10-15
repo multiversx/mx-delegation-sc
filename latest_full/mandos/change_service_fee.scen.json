@@ -33,6 +33,28 @@
         },
         {
             "step": "scCall",
+            "txId": "-set-service-fee-not-owner-bootstrap-",
+            "tx": {
+                "from": "address:someone",
+                "to": "sc:delegation",
+                "function": "setServiceFee",
+                "arguments": [
+                    "1000"
+                ],
+                "gasLimit": "1,000,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:Endpoint can only be called by owner",
+                "logs": "*",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
             "txId": "-set-service-fee-",
             "tx": {
                 "from": "address:node_address",
@@ -104,6 +126,28 @@
                 ],
                 "status": "",
                 "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "-set-service-fee-not-owner-",
+            "tx": {
+                "from": "address:someone",
+                "to": "sc:delegation",
+                "function": "setServiceFee",
+                "arguments": [
+                    "2000"
+                ],
+                "gasLimit": "1,000,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:Endpoint can only be called by owner",
+                "logs": "*",
                 "gas": "*",
                 "refund": "*"
             }
