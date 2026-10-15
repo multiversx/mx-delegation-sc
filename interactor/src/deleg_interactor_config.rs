@@ -1,44 +1,46 @@
-use multiversx_sc_snippets::imports::Bech32Address;
+use multiversx_sc_snippets::imports::*;
 use serde::Deserialize;
-use std::io::Read;
 
-/// Config file
-const CONFIG_FILE: &str = "config.toml";
-
+/// General settings: which contract, and where its code is.
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum ChainType {
-    Real,
-    Simulator,
+pub struct GeneralConfig {
+    /// Address of the delegation contract.
+    pub sc_address: Bech32Address,
+
+    /// Code of the latest contract version, used for upgrades.
+    pub contract_path: ConfigPath,
 }
 
-/// Adder Interact configuration
+/// Delegation Interact configuration
 #[derive(Debug, Deserialize)]
 pub struct Config {
-    pub chain_type: ChainType,
-    pub gateway: String,
-    pub sc_address: Bech32Address,
+    pub general: GeneralConfig,
+    pub connection: ConnectionConfig,
+
+    /// Contract owner, used for upgrading and for admin endpoints.
+    pub owner: WalletConfig,
+
+    /// Main user wallet, used for staking, unstaking, voting and others.
+    pub user: WalletConfig,
+
+    /// Secondary user wallet, used for claiming rewards.
+    pub user2: WalletConfig,
+
+    /// Sends the `continueGlobalOperation` transactions.
+    pub continue_global_sender: WalletConfig,
 }
 
-impl Config {
-    // Deserializes config from file
-    pub fn load_config() -> Self {
-        let mut file = std::fs::File::open(CONFIG_FILE).unwrap();
-        let mut content = String::new();
-        file.read_to_string(&mut content).unwrap();
-        toml::from_str(&content).unwrap()
+impl InteractorConfig for Config {
+    fn connection(&self) -> &ConnectionConfig {
+        &self.connection
     }
 
-    // Returns the gateway
-    pub fn gateway(&self) -> &str {
-        &self.gateway
-    }
-
-    // Returns if chain type is chain simulator
-    pub fn is_chain_simulator(&self) -> bool {
-        match self.chain_type {
-            ChainType::Real => false,
-            ChainType::Simulator => true,
-        }
+    fn register_wallets(&self) -> Vec<Wallet> {
+        vec![
+            self.owner.wallet().clone(),
+            self.user.wallet().clone(),
+            self.user2.wallet().clone(),
+            self.continue_global_sender.wallet().clone(),
+        ]
     }
 }

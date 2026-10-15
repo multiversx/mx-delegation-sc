@@ -1,6 +1,6 @@
 use multiversx_sc_snippets::imports::*;
 
-use crate::{latest_proxy, LegacyDelegationInteractor};
+use crate::{LegacyDelegationInteractor, latest_proxy};
 
 impl LegacyDelegationInteractor {
     pub async fn query_global(&mut self) {
@@ -16,7 +16,7 @@ impl LegacyDelegationInteractor {
         let result = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_total_stake_by_type_endpoint()
             .returns(ReturnsResult)
@@ -36,7 +36,7 @@ impl LegacyDelegationInteractor {
         let service_fee = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_service_fee()
             .returns(ReturnsResultUnmanaged)
@@ -50,7 +50,7 @@ impl LegacyDelegationInteractor {
         let num_users = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_num_users()
             .returns(ReturnsResult)
@@ -64,7 +64,7 @@ impl LegacyDelegationInteractor {
         let auction_contract_address = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_auction_contract_address()
             .returns(ReturnsResult)
@@ -75,7 +75,7 @@ impl LegacyDelegationInteractor {
         let service_fee = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_service_fee()
             .returns(ReturnsResultUnmanaged)
@@ -85,7 +85,7 @@ impl LegacyDelegationInteractor {
         let total_delegation_cap = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_total_delegation_cap()
             .returns(ReturnsResult)
@@ -95,7 +95,7 @@ impl LegacyDelegationInteractor {
         let is_bootstrap_mode = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .is_bootstrap_mode()
             .returns(ReturnsResult)
@@ -105,7 +105,7 @@ impl LegacyDelegationInteractor {
         let owner_min_stake_share = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_owner_min_stake_share()
             .returns(ReturnsResultUnmanaged)
@@ -115,7 +115,7 @@ impl LegacyDelegationInteractor {
         let num_blocks_before_unbond = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_n_blocks_before_unbond()
             .returns(ReturnsResult)
@@ -125,7 +125,7 @@ impl LegacyDelegationInteractor {
         let minimum_stake = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_minimum_stake()
             .returns(ReturnsResult)
@@ -157,7 +157,7 @@ impl LegacyDelegationInteractor {
         let delegation_cap = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_total_delegation_cap()
             .returns(ReturnsResult)
@@ -171,7 +171,7 @@ impl LegacyDelegationInteractor {
         let result = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_user_stake_by_type_endpoint(address)
             .returns(ReturnsResult)
@@ -191,7 +191,7 @@ impl LegacyDelegationInteractor {
         let total_unstakeable = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_unstakeable(address)
             .returns(ReturnsResult)
@@ -206,7 +206,7 @@ impl LegacyDelegationInteractor {
         let total_unbondable = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_unbondable(address)
             .returns(ReturnsResult)
@@ -224,7 +224,7 @@ impl LegacyDelegationInteractor {
             let num_blocks_before_unbond = self
                 .interactor
                 .query()
-                .to(&self.config.sc_address)
+                .to(&self.config.general.sc_address)
                 .typed(latest_proxy::DelegationFullProxy)
                 .get_n_blocks_before_unbond()
                 .returns(ReturnsResult)
@@ -236,7 +236,7 @@ impl LegacyDelegationInteractor {
             let result = self
                 .interactor
                 .query()
-                .to(&self.config.sc_address)
+                .to(&self.config.general.sc_address)
                 .typed(latest_proxy::DelegationFullProxy)
                 .get_user_deferred_payment_list(address)
                 .returns(ReturnsResult)
@@ -258,7 +258,7 @@ impl LegacyDelegationInteractor {
         let voting_power = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_voting_power(address)
             .returns(ReturnsResult)
@@ -273,7 +273,7 @@ impl LegacyDelegationInteractor {
         let result = self
             .interactor
             .query()
-            .to(&self.config.sc_address)
+            .to(&self.config.general.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_all_user_stake_by_type()
             .returns(ReturnsResult)
