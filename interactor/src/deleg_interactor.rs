@@ -51,6 +51,9 @@ async fn main() {
         InteractCliCommand::Upgrade => {
             basic_interact.upgrade_contract_to_latest().await;
         }
+        InteractCliCommand::ContinueGlobal => {
+            basic_interact.continue_global_operation().await;
+        }
         InteractCliCommand::FixUsers => {
             basic_interact.fix_users().await;
         }

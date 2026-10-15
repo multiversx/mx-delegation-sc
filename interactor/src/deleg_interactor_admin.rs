@@ -7,7 +7,7 @@ use crate::{latest_proxy, LegacyDelegationInteractor};
 
 /// Backwards compatible implementation.
 const LATEST_CODE_PATH: FilePath =
-    FilePath("../v0_5_9_update/output/delegation_v0_5_9_update.wasm");
+    FilePath("../v0_5_10_update/output/delegation_v0_5_10_update.wasm");
 
 fn operation_completion_status(status: OperationCompletionStatus) -> &'static str {
     match status {
@@ -76,6 +76,61 @@ impl LegacyDelegationInteractor {
             "Modified delegation cap: {}",
             operation_completion_status(status)
         );
+    }
+
+    /// Calls `continueGlobalOperation` repeatedly, until the current global operation completes.
+    pub async fn continue_global_operation(&mut self) {
+        let owner_address = self.register_owner().await;
+
+        let checkpoint = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .global_op_checkpoint()
+            .returns(ReturnsResult)
+            .run()
+            .await;
+        println!("Checkpoint: {checkpoint:#?}");
+
+        let in_progress = self
+            .interactor
+            .query()
+            .to(&self.config.sc_address)
+            .typed(latest_proxy::DelegationFullProxy)
+            .is_global_op_in_progress()
+            .returns(ReturnsResult)
+            .run()
+            .await;
+        if !in_progress {
+            println!("No global operation in progress.");
+            return;
+        }
+
+        let mut call_count = 0u32;
+        loop {
+            let status = self
+                .interactor
+                .tx()
+                .from(&owner_address)
+                .to(&self.config.sc_address)
+                .gas(300_000_000u64)
+                .typed(latest_proxy::DelegationFullProxy)
+                .continue_global_operation_endpoint()
+                .returns(ReturnsResult)
+                .run()
+                .await;
+
+            call_count += 1;
+            println!(
+                "Call #{call_count}: {}",
+                operation_completion_status(status)
+            );
+            if matches!(status, OperationCompletionStatus::Completed) {
+                println!("Global operation completed after {call_count} call(s).");
+                break;
+            }
+        }
     }
 
     pub async fn fix_users(&mut self) {

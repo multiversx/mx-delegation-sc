@@ -48,6 +48,12 @@ pub enum InteractCliCommand {
     #[command(about = "Modify delegation cap")]
     ModifyCap,
 
+    #[command(
+        name = "continue-global",
+        about = "Continue the global operation until it completes"
+    )]
+    ContinueGlobal,
+
     #[command(about = "Fix missing info from the old contract")]
     FixUsers,
 }
