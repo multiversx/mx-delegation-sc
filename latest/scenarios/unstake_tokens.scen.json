@@ -20,8 +20,35 @@
                     "storage": {
                         "str:auction_addr": "sc:auction"
                     },
-                    "code": "file:../output/delegation_latest_full.wasm"
+                    "code": "file:../output/delegation_latest_full.wasm",
+                    "owner": "address:node_address"
+                },
+                "address:someone": {
+                    "nonce": "0",
+                    "balance": "0"
                 }
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "unStakeTokens-not-owner",
+            "tx": {
+                "from": "address:someone",
+                "to": "sc:delegation",
+                "function": "unStakeTokens",
+                "arguments": [
+                    "1000"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:Endpoint can only be called by owner",
+                "logs": "*",
+                "gas": "*",
+                "refund": "*"
             }
         },
         {
@@ -100,6 +127,28 @@
                     "code": "file:../output/delegation_latest_full.wasm"
                 },
                 "+": ""
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "unBondTokens-not-owner",
+            "tx": {
+                "from": "address:someone",
+                "to": "sc:delegation",
+                "function": "unBondTokens",
+                "arguments": [
+                    "1000"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:Endpoint can only be called by owner",
+                "logs": "*",
+                "gas": "*",
+                "refund": "*"
             }
         },
         {

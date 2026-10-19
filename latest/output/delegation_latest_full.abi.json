@@ -12,7 +12,7 @@
         "contractCrate": {
             "name": "delegation_latest",
             "version": "0.5.9",
-            "gitVersion": "vDevnet_2025_08_12-24-gdc9a9ae"
+            "gitVersion": "vDevnet_2025_08_12-27-g204bd85"
         },
         "framework": {
             "name": "multiversx-sc",
@@ -701,6 +701,7 @@
         {
             "name": "unStakeTokens",
             "rustMethodName": "unstake_tokens",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -713,6 +714,7 @@
         {
             "name": "unBondTokens",
             "rustMethodName": "unbond_tokens",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
@@ -994,6 +996,7 @@
             ],
             "name": "setServiceFee",
             "rustMethodName": "set_service_fee_endpoint",
+            "onlyOwner": true,
             "mutability": "mutable",
             "inputs": [
                 {
