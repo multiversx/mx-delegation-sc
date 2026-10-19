@@ -102,7 +102,7 @@ impl LegacyDelegationInteractor {
                 .tx()
                 .from(&sender_address)
                 .to(&self.config.general.sc_address)
-                .gas(300_000_000u64)
+                .gas(400_000_000u64)
                 .typed(latest_proxy::DelegationFullProxy)
                 .continue_global_operation_endpoint()
                 .returns(ReturnsResult)

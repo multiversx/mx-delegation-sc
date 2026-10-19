@@ -8,8 +8,8 @@ sc_address = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
 contract_path = '../v0_5_10_update/output/delegation_v0_5_10_update.wasm'
 
 [connection]
-# chain_type = 'real'
-# gateway_uri = 'https://gateway.multiversx.com'
+chain_type = 'real'
+gateway_uri = 'https://gateway.multiversx.com'
 
 # chain_type = 'real'
 # gateway_uri = 'https://devnet-gateway.multiversx.com'
@@ -20,14 +20,10 @@ contract_path = '../v0_5_10_update/output/delegation_v0_5_10_update.wasm'
 # chain_type = 'simulator'
 # gateway_uri = 'http://localhost:8085'
 
-chain_type = 'real'
-gateway_uri = 'https://proxy-shadowfork-four.elrond.ro/'
-
-# Wallets: provide exactly one of test_wallet, pem, keyfile (+ keystore_password), or address.
-
 # Contract owner - upgrades and admin endpoints.
 [owner]
-pem = 'legacyDelegationOwner.pem'
+# pem = 'legacyDelegationOwner.pem'
+no_sig = 'erd1ghg3vusfhy0wx92kvafw2kxhu2pdz8rrt3kr6yd3zapfwwwfd94qvnkddh'
 
 # Main user - stake, unstake, vote.
 [user]
@@ -39,5 +35,5 @@ pem = 'delegator2.pem'
 
 # Sends the continueGlobalOperation transactions.
 [continue_global_sender]
-pem = 'legacyDelegationOwner.pem'
-# no_sig = 'erd1nszf4y8dkply45skqxa2998uypc53tdsd26ycl5yndtqhl7j2tssfxzk2y'
+# pem = 'legacyDelegationOwner.pem'
+no_sig = 'erd1nszf4y8dkply45skqxa2998uypc53tdsd26ycl5yndtqhl7j2tssfxzk2y'
