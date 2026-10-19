@@ -2,12 +2,14 @@
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [0.5.10] - 2026-10-15
+## [0.5.10] - 2026-10-15 - currently on mainnet
 - `setServiceFee` restored to `#[only_owner]` - the check was dropped in the elrond-wasm 0.28 migration from the `only_owner!` macro
 - `unStakeTokens`/`unBondTokens` are now `#[only_owner]` - they never had an owner check
+- Mainnet upgrade: 2026-10-15, tx [`340ab3886e46110fe17e399e4885482958cc493a7ec41658214b52db4119c6e9`](https://explorer.multiversx.com/transactions/340ab3886e46110fe17e399e4885482958cc493a7ec41658214b52db4119c6e9)
 
-## [0.5.9] - 2025-08-11 - currently on mainnet
+## [0.5.9] - 2025-08-11
 - Governance `delegateVote` & `getVotingPower`, adapted from the old `v0.5.8` sources, using elrond-wasm 0.29.2.
+- Mainnet upgrade: 2025-10-21, tx [`c2a1603f04683a6871471c4c59e1d1380a736594cad93be5e584a02c49f92acb`](https://explorer.multiversx.com/transactions/c2a1603f04683a6871471c4c59e1d1380a736594cad93be5e584a02c49f92acb)
 
 ## [0.5.8] - 2022-03-01
 - upgraded to elrond-wasm 0.29.2
