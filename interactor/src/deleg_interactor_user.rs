@@ -10,7 +10,7 @@ impl LegacyDelegationInteractor {
         self.interactor
             .tx()
             .from(user_address)
-            .to(&self.config.general.sc_address)
+            .to(&self.config.chain_config.sc_address)
             .gas(10_000_000u64)
             .typed(latest_proxy::DelegationFullProxy)
             .stake_endpoint()
@@ -28,7 +28,7 @@ impl LegacyDelegationInteractor {
         self.interactor
             .tx()
             .from(user_address)
-            .to(&self.config.general.sc_address)
+            .to(&self.config.chain_config.sc_address)
             .gas(30_000_000u64)
             .typed(latest_proxy::DelegationFullProxy)
             .unstake_endpoint(egld_amount)
@@ -44,7 +44,7 @@ impl LegacyDelegationInteractor {
         self.interactor
             .tx()
             .from(user_address)
-            .to(&self.config.general.sc_address)
+            .to(&self.config.chain_config.sc_address)
             .gas(10_000_000u64)
             .typed(latest_proxy::DelegationFullProxy)
             .claim_rewards()
@@ -60,7 +60,7 @@ impl LegacyDelegationInteractor {
         self.interactor
             .tx()
             .from(user_address)
-            .to(&self.config.general.sc_address)
+            .to(&self.config.chain_config.sc_address)
             .gas(100_000_000u64)
             .typed(latest_proxy::DelegationFullProxy)
             .delegate_vote(4u64, "yes")

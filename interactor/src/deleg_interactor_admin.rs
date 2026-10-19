@@ -14,7 +14,7 @@ impl LegacyDelegationInteractor {
         let response = self
             .interactor
             .query()
-            .to(&self.config.general.sc_address)
+            .to(&self.config.chain_config.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .version()
             .returns(ReturnsResultAs::<String>::new())
@@ -30,7 +30,7 @@ impl LegacyDelegationInteractor {
         self.interactor
             .tx()
             .from(&owner_address)
-            .to(&self.config.general.sc_address)
+            .to(&self.config.chain_config.sc_address)
             .gas(300_000_000u64)
             .typed(latest_proxy::DelegationFullProxy)
             .upgrade()
@@ -52,7 +52,7 @@ impl LegacyDelegationInteractor {
             .interactor
             .tx()
             .from(owner_address)
-            .to(&self.config.general.sc_address)
+            .to(&self.config.chain_config.sc_address)
             .gas(100_000_000u64)
             .typed(latest_proxy::DelegationFullProxy)
             .modify_total_delegation_cap(egld_amount)
@@ -73,7 +73,7 @@ impl LegacyDelegationInteractor {
         let checkpoint = self
             .interactor
             .query()
-            .to(&self.config.general.sc_address)
+            .to(&self.config.chain_config.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .global_op_checkpoint()
             .returns(ReturnsResult)
@@ -84,7 +84,7 @@ impl LegacyDelegationInteractor {
         let in_progress = self
             .interactor
             .query()
-            .to(&self.config.general.sc_address)
+            .to(&self.config.chain_config.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .is_global_op_in_progress()
             .returns(ReturnsResult)
@@ -101,7 +101,7 @@ impl LegacyDelegationInteractor {
                 .interactor
                 .tx()
                 .from(&sender_address)
-                .to(&self.config.general.sc_address)
+                .to(&self.config.chain_config.sc_address)
                 .gas(400_000_000u64)
                 .typed(latest_proxy::DelegationFullProxy)
                 .continue_global_operation_endpoint()
@@ -133,7 +133,7 @@ impl LegacyDelegationInteractor {
             .interactor
             .tx()
             .from(user_address)
-            .to(&self.config.general.sc_address)
+            .to(&self.config.chain_config.sc_address)
             .gas(100_000_000u64)
             .typed(latest_proxy::DelegationFullProxy)
             .update_user_address(address_multi_vec)

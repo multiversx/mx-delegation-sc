@@ -1,24 +1,27 @@
 [general]
-sc_address = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
-
 # Code of the latest version, used for upgrades.
 # New implementation:
 # contract_path = '../latest/output/delegation_latest_update.wasm'
 # Backwards compatible implementation:
 contract_path = '../v0_5_10_update/output/delegation_v0_5_10_update.wasm'
 
-[connection]
+# Chain and the address of the contract on that chain. Keep exactly one block uncommented.
+[chain_config]
 chain_type = 'real'
 gateway_uri = 'https://gateway.multiversx.com'
+sc_address = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
 
 # chain_type = 'real'
 # gateway_uri = 'https://devnet-gateway.multiversx.com'
+# sc_address = "erd1qqqqqqqqqqqqqpgq97wezxw6l7lgg7k9rxvycrz66vn92ksh2tssxwf7ep"
 
 # chain_type = 'real'
 # gateway_uri = 'https://testnet-gateway.multiversx.com'
+# sc_address = "erd1qqqqqqqqqqqqqpgq97wezxw6l7lgg7k9rxvycrz66vn92ksh2tssxwf7ep"
 
 # chain_type = 'simulator'
 # gateway_uri = 'http://localhost:8085'
+# sc_address = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
 
 # Contract owner - upgrades and admin endpoints.
 [owner]

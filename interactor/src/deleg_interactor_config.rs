@@ -1,12 +1,19 @@
 use multiversx_sc_snippets::imports::*;
 use serde::Deserialize;
 
-/// General settings: which contract, and where its code is.
+/// Chain-specific settings: how to connect, and where the contract lives on that chain.
+#[derive(Debug, Deserialize)]
+pub struct ChainConfig {
+    #[serde(flatten)]
+    pub connection: ConnectionConfig,
+
+    /// Address of the delegation contract on this chain.
+    pub sc_address: Bech32Address,
+}
+
+/// General settings, not chain-specific.
 #[derive(Debug, Deserialize)]
 pub struct GeneralConfig {
-    /// Address of the delegation contract.
-    pub sc_address: Bech32Address,
-
     /// Code of the latest contract version, used for upgrades.
     pub contract_path: ConfigPath,
 }
@@ -15,7 +22,7 @@ pub struct GeneralConfig {
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub general: GeneralConfig,
-    pub connection: ConnectionConfig,
+    pub chain_config: ChainConfig,
 
     /// Contract owner, used for upgrading and for admin endpoints.
     pub owner: WalletConfig,
@@ -32,7 +39,7 @@ pub struct Config {
 
 impl InteractorConfig for Config {
     fn connection(&self) -> &ConnectionConfig {
-        &self.connection
+        &self.chain_config.connection
     }
 
     fn register_wallets(&self) -> Vec<Wallet> {
