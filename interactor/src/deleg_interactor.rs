@@ -48,8 +48,14 @@ async fn main() {
         InteractCliCommand::Vote => {
             basic_interact.delegate_vote().await;
         }
+        InteractCliCommand::Deploy => {
+            basic_interact.deploy().await;
+        }
         InteractCliCommand::Upgrade => {
             basic_interact.upgrade_contract_to_latest().await;
+        }
+        InteractCliCommand::ContinueGlobal => {
+            basic_interact.continue_global_operation().await;
         }
         InteractCliCommand::FixUsers => {
             basic_interact.fix_users().await;
@@ -60,18 +66,15 @@ async fn main() {
     }
 }
 
-#[allow(unused)]
-struct LegacyDelegationInteractor {
+pub struct LegacyDelegationInteractor {
     interactor: Interactor,
     config: Config,
 }
 
 impl LegacyDelegationInteractor {
     async fn init() -> Self {
-        let config = Config::load_config();
-        let interactor = Interactor::new(config.gateway())
-            .await
-            .use_chain_simulator(config.is_chain_simulator());
+        let mut interactor = Interactor::empty().with_current_dir(env!("CARGO_MANIFEST_DIR"));
+        let config: Config = interactor.load_config_toml().await;
 
         Self { interactor, config }
     }
