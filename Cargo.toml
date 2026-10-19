@@ -13,16 +13,16 @@ members = [
 ]
 
 [patch.crates-io]
-multiversx-sc = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-sc-derive = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-sc-meta-lib = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-sc-scenario = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-sc-snippets = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-sdk = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-sdk-http = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-chain-scenario-format = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-sc-codec = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-sc-codec-derive = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-chain-core = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-chain-vm = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
-multiversx-sc-modules = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "d74db0a831c7dcf3d3435838453111490b35e30e" }
+multiversx-sc = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-sc-derive = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-sc-meta-lib = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-sc-scenario = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-sc-snippets = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-sdk = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-sdk-http = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-chain-scenario-format = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-sc-codec = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-sc-codec-derive = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-chain-core = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-chain-vm = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }
+multiversx-sc-modules = { git = "https://github.com/multiversx/mx-sdk-rs", rev = "4746bea4757ef61f9ecbf7789389e4b964ed0436" }

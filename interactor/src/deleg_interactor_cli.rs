@@ -42,6 +42,9 @@ pub enum InteractCliCommand {
     #[command(about = "Vote")]
     Vote,
 
+    #[command(about = "Deploy a new delegation contract")]
+    Deploy,
+
     #[command(about = "Upgrade contract to latest")]
     Upgrade,
 

@@ -48,6 +48,9 @@ async fn main() {
         InteractCliCommand::Vote => {
             basic_interact.delegate_vote().await;
         }
+        InteractCliCommand::Deploy => {
+            basic_interact.deploy().await;
+        }
         InteractCliCommand::Upgrade => {
             basic_interact.upgrade_contract_to_latest().await;
         }

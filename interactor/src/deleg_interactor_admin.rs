@@ -24,6 +24,41 @@ impl LegacyDelegationInteractor {
         println!("Result: {response:?}");
     }
 
+    pub async fn deploy(&mut self) {
+        let owner_address = self.config.owner.address();
+        let deploy = &self.config.deploy;
+        let minimum_stake: u128 = deploy.minimum_stake.parse().expect("invalid minimum_stake");
+        let total_delegation_cap: u128 = deploy
+            .total_delegation_cap
+            .parse()
+            .expect("invalid total_delegation_cap");
+
+        let new_address = self
+            .interactor
+            .tx()
+            .from(&owner_address)
+            .gas(300_000_000u64)
+            .typed(latest_proxy::DelegationFullProxy)
+            .init(
+                &deploy.auction_address,
+                deploy.service_fee_per_10000,
+                deploy.owner_min_stake_share_per_10000,
+                deploy.n_blocks_before_unbond,
+                BigUint::<StaticApi>::from(minimum_stake),
+                BigUint::<StaticApi>::from(total_delegation_cap),
+            )
+            .code(&self.config.deploy.contract_path)
+            .code_metadata(
+                CodeMetadata::UPGRADEABLE | CodeMetadata::READABLE | CodeMetadata::PAYABLE_BY_SC,
+            )
+            .returns(ReturnsNewBech32Address)
+            .run()
+            .await;
+
+        println!("New contract address: {new_address}");
+        println!("Set it as sc_address in config.toml to use it.");
+    }
+
     pub async fn upgrade_contract_to_latest(&mut self) {
         let owner_address = self.config.owner.address();
 
@@ -34,7 +69,7 @@ impl LegacyDelegationInteractor {
             .gas(300_000_000u64)
             .typed(latest_proxy::DelegationFullProxy)
             .upgrade()
-            .code(&self.config.general.contract_path)
+            .code(&self.config.upgrade.contract_path)
             .code_metadata(CodeMetadata::UPGRADEABLE)
             .returns(ReturnsResultUnmanaged)
             .run()
