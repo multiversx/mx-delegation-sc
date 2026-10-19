@@ -2,6 +2,10 @@
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.5.10] - 2026-10-15
+- `setServiceFee` restored to `#[only_owner]` - the check was dropped in the elrond-wasm 0.28 migration from the `only_owner!` macro
+- `unStakeTokens`/`unBondTokens` are now `#[only_owner]` - they never had an owner check
+
 ## [0.5.8] - 2022-03-01 - currently on mainnet
 - upgraded to elrond-wasm 0.23.2
 - `unStakeTokens`/`unBondTokens` endpoints
