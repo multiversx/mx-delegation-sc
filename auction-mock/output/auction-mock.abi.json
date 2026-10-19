@@ -12,7 +12,7 @@
         "contractCrate": {
             "name": "auction-mock",
             "version": "0.3.4",
-            "gitVersion": "vDevnet_2025_08_12-24-gdc9a9ae"
+            "gitVersion": "vDevnet_2025_08_12-27-g204bd85"
         },
         "framework": {
             "name": "multiversx-sc",

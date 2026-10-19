@@ -491,6 +491,7 @@ pub trait NodeActivationModule:
             .async_call_and_exit()
     }
 
+    #[only_owner]
     #[endpoint(unStakeTokens)]
     fn unstake_tokens(&self, amount: BigUint) {
         self.unstake_tokens_event(&amount);
@@ -502,6 +503,7 @@ pub trait NodeActivationModule:
             .async_call_and_exit()
     }
 
+    #[only_owner]
     #[endpoint(unBondTokens)]
     fn unbond_tokens(&self, amount: BigUint) {
         self.unbond_tokens_event(&amount);
