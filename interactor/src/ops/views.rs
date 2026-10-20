@@ -7,6 +7,11 @@ use crate::{
 
 /// Queries. All of these are free - no transaction, no block, no fee - which is what
 /// makes it affordable for the fuzzer to check state after every single operation.
+///
+/// Results come back unmanaged wherever the contract's type has an unmanaged equivalent,
+/// so that callers work with `RustBigUint` and `Address` rather than types that need a
+/// managed API context. The exceptions are plain primitives, which are already unmanaged,
+/// and `GlobalOpCheckpoint`, whose `#[type_abi]` derive maps it to itself.
 impl DelegationOps<'_> {
     pub async fn version(&mut self) -> String {
         self.interactor
@@ -25,7 +30,7 @@ impl DelegationOps<'_> {
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_total_stake_by_type_endpoint()
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
             .await
             .into_tuple()
@@ -37,31 +42,26 @@ impl DelegationOps<'_> {
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_user_stake_by_type_endpoint(user)
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
             .await
             .into_tuple()
     }
 
     pub async fn all_user_stake_by_type(&mut self) -> Vec<(Bech32Address, StakeByType)> {
-        let result = self
-            .interactor
+        self.interactor
             .query()
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_all_user_stake_by_type()
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
-            .await;
-
-        result
+            .await
+            .into_vec()
             .into_iter()
             .map(|entry| {
                 let (address, stake_by_type) = entry.into_tuple();
-                (
-                    Bech32Address::from(address.to_address()),
-                    stake_by_type.into_tuple(),
-                )
+                (Bech32Address::from(address), stake_by_type.into_tuple())
             })
             .collect()
     }
@@ -99,13 +99,13 @@ impl DelegationOps<'_> {
             .await
     }
 
-    pub async fn total_delegation_cap(&mut self) -> BigUint<StaticApi> {
+    pub async fn total_delegation_cap(&mut self) -> RustBigUint {
         self.interactor
             .query()
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_total_delegation_cap()
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
             .await
     }
@@ -117,11 +117,11 @@ impl DelegationOps<'_> {
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_auction_contract_address()
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
             .await;
 
-        Bech32Address::from(address.to_address())
+        Bech32Address::from(address)
     }
 
     pub async fn is_bootstrap_mode(&mut self) -> bool {
@@ -146,35 +146,35 @@ impl DelegationOps<'_> {
             .await
     }
 
-    pub async fn minimum_stake(&mut self) -> BigUint<StaticApi> {
+    pub async fn minimum_stake(&mut self) -> RustBigUint {
         self.interactor
             .query()
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_minimum_stake()
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
             .await
     }
 
-    pub async fn unstakeable(&mut self, user: &Bech32Address) -> BigUint<StaticApi> {
+    pub async fn unstakeable(&mut self, user: &Bech32Address) -> RustBigUint {
         self.interactor
             .query()
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_unstakeable(user)
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
             .await
     }
 
-    pub async fn unbondable(&mut self, user: &Bech32Address) -> BigUint<StaticApi> {
+    pub async fn unbondable(&mut self, user: &Bech32Address) -> RustBigUint {
         self.interactor
             .query()
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_unbondable(user)
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
             .await
     }
@@ -183,51 +183,52 @@ impl DelegationOps<'_> {
     pub async fn user_deferred_payment_list(
         &mut self,
         user: &Bech32Address,
-    ) -> Vec<(BigUint<StaticApi>, u64)> {
+    ) -> Vec<(RustBigUint, u64)> {
         self.interactor
             .query()
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_user_deferred_payment_list(user)
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
             .await
+            .into_vec()
             .into_iter()
             .map(|pair| pair.into_tuple())
             .collect()
     }
 
-    pub async fn voting_power(&mut self, user: &Bech32Address) -> BigUint<StaticApi> {
+    pub async fn voting_power(&mut self, user: &Bech32Address) -> RustBigUint {
         self.interactor
             .query()
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_voting_power(user)
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
             .await
     }
 
     /// All validator rewards ever received by the contract. Monotonically increasing;
     /// this is what individual reward shares are computed against.
-    pub async fn total_cumulated_rewards(&mut self) -> BigUint<StaticApi> {
+    pub async fn total_cumulated_rewards(&mut self) -> RustBigUint {
         self.interactor
             .query()
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_total_cumulated_rewards()
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
             .await
     }
 
-    pub async fn claimable_rewards(&mut self, user: &Bech32Address) -> BigUint<StaticApi> {
+    pub async fn claimable_rewards(&mut self, user: &Bech32Address) -> RustBigUint {
         self.interactor
             .query()
             .to(self.sc_address)
             .typed(latest_proxy::DelegationFullProxy)
             .get_claimable_rewards(user)
-            .returns(ReturnsResult)
+            .returns(ReturnsResultUnmanaged)
             .run()
             .await
     }
@@ -243,9 +244,9 @@ impl DelegationOps<'_> {
             .await
     }
 
-    pub async fn global_op_checkpoint(
-        &mut self,
-    ) -> latest_proxy::GlobalOpCheckpoint<StaticApi> {
+    /// Stays managed: `GlobalOpCheckpoint` is a contract-defined type, and `#[type_abi]`
+    /// maps such types to themselves, so there is no unmanaged version to decode into.
+    pub async fn global_op_checkpoint(&mut self) -> latest_proxy::GlobalOpCheckpoint<StaticApi> {
         self.interactor
             .query()
             .to(self.sc_address)

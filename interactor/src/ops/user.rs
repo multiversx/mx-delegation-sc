@@ -4,7 +4,7 @@ use crate::{latest_proxy, ops::DelegationOps};
 
 impl DelegationOps<'_> {
     /// Sends EGLD into the contract, landing as active or waiting stake.
-    pub async fn stake(&mut self, sender: &Bech32Address, amount: BigUint<StaticApi>) {
+    pub async fn stake(&mut self, sender: &Bech32Address, amount: &RustBigUint) {
         self.interactor
             .tx()
             .from(sender)
@@ -12,20 +12,20 @@ impl DelegationOps<'_> {
             .gas(self.gas.stake)
             .typed(latest_proxy::DelegationFullProxy)
             .stake_endpoint()
-            .egld(amount)
+            .egld(BigUint::<StaticApi>::from(amount))
             .run()
             .await;
     }
 
     /// Moves stake out of the active/waiting buckets, towards deferred payment.
-    pub async fn unstake(&mut self, sender: &Bech32Address, amount: BigUint<StaticApi>) {
+    pub async fn unstake(&mut self, sender: &Bech32Address, amount: &RustBigUint) {
         self.interactor
             .tx()
             .from(sender)
             .to(self.sc_address)
             .gas(self.gas.unstake)
             .typed(latest_proxy::DelegationFullProxy)
-            .unstake_endpoint(amount)
+            .unstake_endpoint(amount.clone())
             .run()
             .await;
     }

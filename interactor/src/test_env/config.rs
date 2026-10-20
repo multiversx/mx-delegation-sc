@@ -61,23 +61,20 @@ pub struct TestConfig {
 }
 
 impl TestConfig {
-    pub fn stake_amount(&self) -> BigUint<StaticApi> {
+    pub fn stake_amount(&self) -> RustBigUint {
         parse_amount(&self.actions.stake_amount, "stake_amount")
     }
 
-    pub fn unstake_amount(&self) -> BigUint<StaticApi> {
+    pub fn unstake_amount(&self) -> RustBigUint {
         parse_amount(&self.actions.unstake_amount, "unstake_amount")
     }
 
-    pub fn delegation_cap(&self) -> BigUint<StaticApi> {
+    pub fn delegation_cap(&self) -> RustBigUint {
         parse_amount(&self.actions.delegation_cap, "delegation_cap")
     }
 
     pub fn reward_amount(&self) -> RustBigUint {
-        self.actions
-            .reward_amount
-            .parse()
-            .unwrap_or_else(|_| panic!("invalid reward_amount: '{}'", self.actions.reward_amount))
+        parse_amount(&self.actions.reward_amount, "reward_amount")
     }
 }
 
@@ -92,9 +89,7 @@ impl InteractorConfig for TestConfig {
 }
 
 /// Parses an atomic-unit amount from a config string.
-pub fn parse_amount(raw: &str, field: &str) -> BigUint<StaticApi> {
-    let parsed: RustBigUint = raw
-        .parse()
-        .unwrap_or_else(|_| panic!("invalid {field}: '{raw}'"));
-    BigUint::<StaticApi>::from(parsed)
+pub fn parse_amount(raw: &str, field: &str) -> RustBigUint {
+    raw.parse()
+        .unwrap_or_else(|_| panic!("invalid {field}: '{raw}'"))
 }

@@ -27,7 +27,7 @@ impl LegacyDelegationInteractor {
         match self.ops().continue_global_operation(&sender).await {
             Some(call_count) => {
                 println!("Global operation completed after {call_count} call(s).")
-            },
+            }
             None => println!("No global operation in progress."),
         }
     }

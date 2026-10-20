@@ -16,25 +16,12 @@ where
 }
 
 /// Formats an atomic-unit amount as EGLD, right-aligned with 18 decimals.
-pub fn display_egld_amount(managed_bu: &BigUint<StaticApi>) -> String {
-    if managed_bu == &0u32 {
+pub fn display_egld_amount(amount: &RustBigUint) -> String {
+    if amount == &RustBigUint::default() {
         return "       0".to_string();
     }
 
-    display_egld_str(&managed_bu.to_alloc().to_string())
-}
-
-/// Same, for an amount that is already a plain big integer.
-pub fn display_egld_rust_amount(amount: &RustBigUint) -> String {
-    if amount == &RustBigUint::from(0u32) {
-        return "       0".to_string();
-    }
-
-    display_egld_str(&amount.to_string())
-}
-
-fn display_egld_str(s: &str) -> String {
-    let s = format!("{s:0>19}");
+    let s = format!("{amount:0>19}");
     let s = format!("{s:>26}");
     let len_before_dot = s.len() - 18;
     format!("{}.{}", &s[..len_before_dot], &s[len_before_dot..])

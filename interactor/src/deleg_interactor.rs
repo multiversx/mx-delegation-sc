@@ -31,7 +31,12 @@ async fn main() {
         Version => real(&config_file).await.version().await,
         Global => real(&config_file).await.query_global().await,
         Settings => real(&config_file).await.query_settings().await,
-        UserFull => real(&config_file).await.query_all_user_stake_by_type().await,
+        UserFull => {
+            real(&config_file)
+                .await
+                .query_all_user_stake_by_type()
+                .await
+        }
         NumUsers => real(&config_file).await.query_num_users().await,
         UserStake(args) => {
             let address = Bech32Address::from_bech32_string(args.address);
@@ -39,7 +44,7 @@ async fn main() {
                 .await
                 .query_user_stake_by_type(&address)
                 .await
-        },
+        }
         Upgrade => real(&config_file).await.upgrade_contract_to_latest().await,
         ContinueGlobal => real(&config_file).await.continue_global_operation().await,
         FixUsers => real(&config_file).await.fix_users().await,
@@ -55,14 +60,14 @@ async fn main() {
                 .await
                 .modify_delegation_cap(args.amount)
                 .await
-        },
+        }
         AddRewards(args) => test(&config_file).await.add_rewards(args.amount).await,
         GenerateBlocks(args) => {
             test(&config_file)
                 .await
                 .generate_blocks(args.num_blocks)
                 .await
-        },
+        }
     }
 }
 

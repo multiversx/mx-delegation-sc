@@ -26,8 +26,8 @@ pub async fn deploy(
             deploy_config.service_fee_per_10000,
             deploy_config.owner_min_stake_share_per_10000,
             deploy_config.n_blocks_before_unbond,
-            BigUint::<StaticApi>::from(deploy_config.minimum_stake()),
-            BigUint::<StaticApi>::from(deploy_config.total_delegation_cap()),
+            deploy_config.minimum_stake(),
+            deploy_config.total_delegation_cap(),
         )
         .code(&deploy_config.contract_path)
         .code_metadata(
@@ -59,7 +59,7 @@ impl DelegationOps<'_> {
     pub async fn modify_total_delegation_cap(
         &mut self,
         owner: &Bech32Address,
-        new_cap: BigUint<StaticApi>,
+        new_cap: &RustBigUint,
     ) -> OperationCompletionStatus {
         self.interactor
             .tx()
@@ -67,7 +67,7 @@ impl DelegationOps<'_> {
             .to(self.sc_address)
             .gas(self.gas.modify_cap)
             .typed(latest_proxy::DelegationFullProxy)
-            .modify_total_delegation_cap(new_cap)
+            .modify_total_delegation_cap(new_cap.clone())
             .returns(ReturnsResult)
             .run()
             .await

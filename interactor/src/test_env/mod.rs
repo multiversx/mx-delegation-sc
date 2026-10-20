@@ -10,7 +10,7 @@ pub use config::{TestConfig, parse_amount};
 use multiversx_sc_snippets::imports::*;
 
 use crate::{
-    display::{display_egld_amount, display_egld_rust_amount},
+    display::display_egld_amount,
     ops::{self, DelegationOps, operation_completion_status},
 };
 
@@ -37,8 +37,13 @@ impl TestInteractor {
 
     pub async fn deploy(&mut self) {
         let owner = self.config.owner.address();
-        let new_address =
-            ops::deploy(&mut self.interactor, &owner, &self.config.deploy, &self.config.gas).await;
+        let new_address = ops::deploy(
+            &mut self.interactor,
+            &owner,
+            &self.config.deploy,
+            &self.config.gas,
+        )
+        .await;
 
         println!("New contract address: {new_address}");
         println!("Set it as sc_address in the config file to use it.");
@@ -52,7 +57,7 @@ impl TestInteractor {
         };
 
         println!("Staking {} from {user}", display_egld_amount(&amount));
-        self.ops().stake(&user, amount).await;
+        self.ops().stake(&user, &amount).await;
         println!("Stake done");
     }
 
@@ -64,7 +69,7 @@ impl TestInteractor {
         };
 
         println!("Unstaking {} from {user}", display_egld_amount(&amount));
-        self.ops().unstake(&user, amount).await;
+        self.ops().unstake(&user, &amount).await;
         println!("Unstake done");
     }
 
@@ -95,7 +100,10 @@ impl TestInteractor {
         };
 
         println!("New delegation cap: {}", display_egld_amount(&new_cap));
-        let status = self.ops().modify_total_delegation_cap(&owner, new_cap).await;
+        let status = self
+            .ops()
+            .modify_total_delegation_cap(&owner, &new_cap)
+            .await;
 
         println!(
             "Modified delegation cap: {}",
@@ -110,7 +118,7 @@ impl TestInteractor {
     pub async fn add_rewards(&mut self, amount: Option<String>) {
         let sc_address = self.config.chain_config.sc_address().clone();
         let amount = match amount {
-            Some(raw) => raw.parse().unwrap_or_else(|_| panic!("invalid amount: '{raw}'")),
+            Some(raw) => parse_amount(&raw, "amount"),
             None => self.config.reward_amount(),
         };
 
@@ -125,24 +133,23 @@ impl TestInteractor {
         let after = self.ops().total_cumulated_rewards().await;
         let balance_after = self.balance(&sc_address).await;
 
-        println!("Injected reward:          {}", display_egld_rust_amount(&amount));
+        println!("Injected reward:          {}", display_egld_amount(&amount));
         println!("Cumulated rewards before: {}", display_egld_amount(&before));
         println!("Cumulated rewards after:  {}", display_egld_amount(&after));
         println!(
             "Contract balance:         {} -> {}",
-            display_egld_rust_amount(&balance_before),
-            display_egld_rust_amount(&balance_after)
+            display_egld_amount(&balance_before),
+            display_egld_amount(&balance_after)
         );
 
         let observed = &after - &before;
-        let expected = BigUint::<StaticApi>::from_bytes_be(&amount.to_bytes_be());
-        if observed == expected {
+        if observed == amount {
             println!("Contract sees the full reward.");
         } else {
             println!(
                 "MISMATCH: contract saw {}, expected {}",
                 display_egld_amount(&observed),
-                display_egld_rust_amount(&amount)
+                display_egld_amount(&amount)
             );
         }
     }
@@ -158,7 +165,11 @@ impl TestInteractor {
 
     /// An account's EGLD balance, as a plain integer.
     async fn balance(&self, address: &Bech32Address) -> RustBigUint {
-        let balance = self.interactor.get_account(address.as_address()).await.balance;
+        let balance = self
+            .interactor
+            .get_account(address.as_address())
+            .await
+            .balance;
         if balance.is_empty() {
             return RustBigUint::default();
         }

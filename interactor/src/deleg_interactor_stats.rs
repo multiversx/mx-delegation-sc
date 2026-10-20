@@ -90,7 +90,7 @@ impl LegacyDelegationInteractor {
             display_egld_amount(&total_unbondable)
         );
 
-        if deferred > 0 {
+        if deferred > RustBigUint::default() {
             println!();
 
             let num_blocks_before_unbond = self.ops().n_blocks_before_unbond().await;

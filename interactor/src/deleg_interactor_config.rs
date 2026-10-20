@@ -17,9 +17,9 @@ pub struct ChainConfig {
 impl ChainConfig {
     /// The contract address, or a panic explaining how to obtain one.
     pub fn sc_address(&self) -> &Bech32Address {
-        self.sc_address.as_ref().expect(
-            "no `sc_address` set in the config file; deploy a contract first, then set it",
-        )
+        self.sc_address
+            .as_ref()
+            .expect("no `sc_address` set in the config file; deploy a contract first, then set it")
     }
 }
 
@@ -83,11 +83,11 @@ pub struct DeployConfig {
 }
 
 impl DeployConfig {
-    pub fn minimum_stake(&self) -> u128 {
+    pub fn minimum_stake(&self) -> RustBigUint {
         self.minimum_stake.parse().expect("invalid minimum_stake")
     }
 
-    pub fn total_delegation_cap(&self) -> u128 {
+    pub fn total_delegation_cap(&self) -> RustBigUint {
         self.total_delegation_cap
             .parse()
             .expect("invalid total_delegation_cap")

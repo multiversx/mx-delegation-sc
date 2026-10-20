@@ -39,11 +39,11 @@ impl<'a> DelegationOps<'a> {
 /// The contract's five fund buckets, in the order the contract returns them:
 /// WithdrawOnly, Waiting, Active, UnStaked, DeferredPayment.
 pub type StakeByType = (
-    BigUint<StaticApi>,
-    BigUint<StaticApi>,
-    BigUint<StaticApi>,
-    BigUint<StaticApi>,
-    BigUint<StaticApi>,
+    RustBigUint,
+    RustBigUint,
+    RustBigUint,
+    RustBigUint,
+    RustBigUint,
 );
 
 /// Renders an `OperationCompletionStatus` the way the contract's own tests name it.
