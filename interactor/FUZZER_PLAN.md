@@ -150,7 +150,6 @@ interactor/src/
   test_env/                      # NEW: chain-simulator harness (test.toml)
     mod.rs
     config.rs                    # TestConfig
-    chain_sim.rs                 # set-state, balances, blocks, epochs, add-keys
     accounts.rs                  # no_sig address generation, shard spread, funding
     setup.rs                     # deploy + fund + register   (fuzzDelegationInit.go)
   fuzz/                          # NEW: the fuzzer proper
@@ -316,16 +315,22 @@ logic meaningfully exercised without the cost.
 
 ### c) Reward injection (`reward_mode = "injected"`)
 
-Per reward event:
+This lives in the framework, not here:
+`InteractorBase::inject_validator_reward(address, amount)`, alongside
+`get_cumulated_validator_rewards` and the `VALIDATOR_REWARD_KEY` constant
+(`framework/snippets/src/interactor/interactor_chain_simulator.rs`). The harness just
+calls it.
 
-1. `GET /address/<sc>` → current balance and nonce; `GET /address/<sc>/keys` → current
-   `ELRONDreward`.
-2. One `set_state` with `balance = old + reward`,
+What it does, per reward event:
+
+1. Reads the account (balance, nonce) and its current `ELRONDreward` value.
+2. Issues one `set-state` with `balance = old + reward`,
    `pairs = { "454c524f4e44726577617264": be_hex(cumulated + reward) }`,
    empty `code` (preserved), and **the real nonce passed back** so it is not reset to 0.
 
 Safe as a read-modify-write because the interactor is sequential and generates blocks until
-each transaction settles, so nothing is in flight against that account.
+each transaction settles, so nothing is in flight against that account. It is a no-op
+returning `"no-simulator"` when the interactor is not pointed at a chain simulator.
 
 ### d) Fees break Go's balance accounting
 
@@ -467,7 +472,7 @@ event type.
 
 | Phase | Deliverable | Gate |
 | --- | --- | --- |
-| 0 | `test.toml` + `TestConfig`, config auto-selection, `ops/` refactor, `auction_proxy.rs`, `chain_sim.rs` | Inject a reward into a freshly deployed contract and watch `getTotalCumulatedRewards` move |
+| 0 | `test.toml` + `TestConfig`, config auto-selection, `ops/` refactor, reward injection | Inject a reward into a freshly deployed contract and watch `getTotalCumulatedRewards` move |
 | 1 | `test_env/`: deploy, generate `no_sig` delegators across shards, fund them, sinks. `fuzz-setup` | A cross-shard `stake` from a shard-2 delegator settles within the block budget |
 | 2 | Each operation in `ops/` + its CLI action, with Go-equivalent logging | All commands work by hand |
 | 3 | Roulette, seeded event loop, per-step invariants, action log | A 100-iteration run completes clean |

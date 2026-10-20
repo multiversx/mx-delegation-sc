@@ -1,181 +1,49 @@
 use multiversx_sc_snippets::imports::*;
 
-use crate::{LegacyDelegationInteractor, latest_proxy};
-
-fn operation_completion_status(status: OperationCompletionStatus) -> &'static str {
-    match status {
-        OperationCompletionStatus::Completed => "completed",
-        OperationCompletionStatus::InterruptedBeforeOutOfGas => "interrupted",
-    }
-}
+use crate::LegacyDelegationInteractor;
 
 impl LegacyDelegationInteractor {
     pub async fn version(&mut self) {
-        let response = self
-            .interactor
-            .query()
-            .to(&self.config.chain_config.sc_address)
-            .typed(latest_proxy::DelegationFullProxy)
-            .version()
-            .returns(ReturnsResultAs::<String>::new())
-            .run()
-            .await;
-
-        println!("Result: {response:?}");
-    }
-
-    pub async fn deploy(&mut self) {
-        let owner_address = self.config.owner.address();
-        let deploy = &self.config.deploy;
-        let minimum_stake: u128 = deploy.minimum_stake.parse().expect("invalid minimum_stake");
-        let total_delegation_cap: u128 = deploy
-            .total_delegation_cap
-            .parse()
-            .expect("invalid total_delegation_cap");
-
-        let new_address = self
-            .interactor
-            .tx()
-            .from(&owner_address)
-            .gas(300_000_000u64)
-            .typed(latest_proxy::DelegationFullProxy)
-            .init(
-                &deploy.auction_address,
-                deploy.service_fee_per_10000,
-                deploy.owner_min_stake_share_per_10000,
-                deploy.n_blocks_before_unbond,
-                BigUint::<StaticApi>::from(minimum_stake),
-                BigUint::<StaticApi>::from(total_delegation_cap),
-            )
-            .code(&self.config.deploy.contract_path)
-            .code_metadata(
-                CodeMetadata::UPGRADEABLE | CodeMetadata::READABLE | CodeMetadata::PAYABLE_BY_SC,
-            )
-            .returns(ReturnsNewBech32Address)
-            .run()
-            .await;
-
-        println!("New contract address: {new_address}");
-        println!("Set it as sc_address in config.toml to use it.");
+        let version = self.ops().version().await;
+        println!("Result: {version:?}");
     }
 
     pub async fn upgrade_contract_to_latest(&mut self) {
-        let owner_address = self.config.owner.address();
+        let owner = self.config.owner();
+        let contract_path = self.config.upgrade().contract_path.clone();
 
-        self.interactor
-            .tx()
-            .from(&owner_address)
-            .to(&self.config.chain_config.sc_address)
-            .gas(300_000_000u64)
-            .typed(latest_proxy::DelegationFullProxy)
-            .upgrade()
-            .code(&self.config.upgrade.contract_path)
-            .code_metadata(CodeMetadata::UPGRADEABLE)
-            .returns(ReturnsResultUnmanaged)
-            .run()
-            .await;
+        self.ops().upgrade(&owner, &contract_path).await;
 
         println!("Upgrade completed");
     }
 
-    pub async fn modify_delegation_cap(&mut self) {
-        let owner_address = self.config.owner.address();
-        let egld_amount =
-            BigUint::<StaticApi>::from(4235000_000000000000000000u128 - 100_000000000000000000u128);
-
-        let status = self
-            .interactor
-            .tx()
-            .from(owner_address)
-            .to(&self.config.chain_config.sc_address)
-            .gas(100_000_000u64)
-            .typed(latest_proxy::DelegationFullProxy)
-            .modify_total_delegation_cap(egld_amount)
-            .returns(ReturnsResult)
-            .run()
-            .await;
-
-        println!(
-            "Modified delegation cap: {}",
-            operation_completion_status(status)
-        );
-    }
-
     /// Calls `continueGlobalOperation` repeatedly, until the current global operation completes.
     pub async fn continue_global_operation(&mut self) {
-        let sender_address = self.config.continue_global_sender.address();
+        let sender = self.config.continue_global_sender();
 
-        let checkpoint = self
-            .interactor
-            .query()
-            .to(&self.config.chain_config.sc_address)
-            .typed(latest_proxy::DelegationFullProxy)
-            .global_op_checkpoint()
-            .returns(ReturnsResult)
-            .run()
-            .await;
+        let checkpoint = self.ops().global_op_checkpoint().await;
         println!("Checkpoint: {checkpoint:#?}");
 
-        let in_progress = self
-            .interactor
-            .query()
-            .to(&self.config.chain_config.sc_address)
-            .typed(latest_proxy::DelegationFullProxy)
-            .is_global_op_in_progress()
-            .returns(ReturnsResult)
-            .run()
-            .await;
-        if !in_progress {
-            println!("No global operation in progress.");
-            return;
-        }
-
-        let mut call_count = 0u32;
-        loop {
-            let status = self
-                .interactor
-                .tx()
-                .from(&sender_address)
-                .to(&self.config.chain_config.sc_address)
-                .gas(400_000_000u64)
-                .typed(latest_proxy::DelegationFullProxy)
-                .continue_global_operation_endpoint()
-                .returns(ReturnsResult)
-                .run()
-                .await;
-
-            call_count += 1;
-            println!(
-                "Call #{call_count}: {}",
-                operation_completion_status(status)
-            );
-            if matches!(status, OperationCompletionStatus::Completed) {
-                println!("Global operation completed after {call_count} call(s).");
-                break;
-            }
+        match self.ops().continue_global_operation(&sender).await {
+            Some(call_count) => {
+                println!("Global operation completed after {call_count} call(s).")
+            },
+            None => println!("No global operation in progress."),
         }
     }
 
     pub async fn fix_users(&mut self) {
-        let user_address = self.config.user.address();
+        let user = self.config.user();
 
         let mut address_multi_vec = MultiValueVec::new();
-        for &addres_hex in TESTNET_USER_ADDRESSES {
-            address_multi_vec.push(Address::from_slice(&hex::decode(addres_hex).unwrap()));
+        for &address_hex in TESTNET_USER_ADDRESSES {
+            address_multi_vec.push(Address::from_slice(&hex::decode(address_hex).unwrap()));
         }
 
         let (num_updated, num_not_updated, num_not_found) = self
-            .interactor
-            .tx()
-            .from(user_address)
-            .to(&self.config.chain_config.sc_address)
-            .gas(100_000_000u64)
-            .typed(latest_proxy::DelegationFullProxy)
-            .update_user_address(address_multi_vec)
-            .returns(ReturnsResult)
-            .run()
-            .await
-            .into_tuple();
+            .ops()
+            .update_user_address(&user, address_multi_vec)
+            .await;
 
         println!(
             "Success. Updated: {num_updated}. Not updated: {num_not_updated}. Not found: {num_not_found}."

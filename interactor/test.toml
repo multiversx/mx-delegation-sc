@@ -1,0 +1,57 @@
+# Configuration for work on the chain simulator: the fuzzer, and the manual test actions
+# that mirror the fuzzer's operations.
+#
+# Picked up automatically by the chain-simulator commands (deploy, stake, unstake, claim,
+# vote, modify-cap, add-rewards, generate-blocks). Override with `--config <file>`.
+#
+# For investigating contracts deployed on real chains, see config.toml.
+
+[chain_config]
+chain_type = 'simulator'
+gateway_uri = 'http://localhost:8085'
+# Written here after `deploy` prints the new address.
+sc_address = "erd1qqqqqqqqqqqqqpgqak8zt22wl2ph4tswtyc39namqx6ysa2sd8ss4xmlj3"
+
+# Contract owner - deploys, upgrades, admin endpoints.
+[owner]
+test_wallet = 'alice'
+
+# Acting user - stake, unstake, claim, vote.
+[user]
+test_wallet = 'bob'
+
+# Deployment of a new contract.
+[deploy]
+# Full contract code.
+contract_path = '../latest/output/delegation_latest_full.wasm'
+# The real system auction (validator) contract, present on the chain simulator.
+auction_address = "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l"
+service_fee_per_10000 = 1000
+owner_min_stake_share_per_10000 = 0
+n_blocks_before_unbond = 10
+# Atomic units (1 EGLD = 10^18), as strings.
+minimum_stake = "1000000000000000000"
+total_delegation_cap = "100000000000000000000000"
+
+# Gas limits per operation. Every field is optional; the defaults are in
+# deleg_interactor_config.rs. The chain caps a transaction at 600,000,000.
+[gas]
+deploy = 300000000
+upgrade = 300000000
+stake = 10000000
+unstake = 500000000
+claim_rewards = 10000000
+vote = 100000000
+modify_cap = 100000000
+continue_global = 400000000
+fix_users = 100000000
+
+# Defaults for the manual test actions, when no amount is given on the command line.
+# Atomic units (1 EGLD = 10^18), as strings.
+[actions]
+stake_amount = "2000000000000000000"
+unstake_amount = "1000000000000000000"
+reward_amount = "1000000000000000000"
+delegation_cap = "100000000000000000000000"
+vote_proposal = 1
+vote_decision = "yes"
