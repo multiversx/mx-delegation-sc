@@ -51,9 +51,20 @@ async fn main() {
 
         // --- chain simulator testing ---
         Deploy => test(&config_file).await.deploy().await,
-        Stake(args) => test(&config_file).await.stake(args.amount).await,
-        Unstake(args) => test(&config_file).await.unstake(args.amount).await,
-        Claim => test(&config_file).await.claim_rewards().await,
+        FuzzSetup => test(&config_file).await.fuzz_setup().await,
+        Stake(args) => {
+            test(&config_file)
+                .await
+                .stake(args.amount, args.delegator)
+                .await
+        }
+        Unstake(args) => {
+            test(&config_file)
+                .await
+                .unstake(args.amount, args.delegator)
+                .await
+        }
+        Claim(args) => test(&config_file).await.claim_rewards(args.delegator).await,
         Vote => test(&config_file).await.delegate_vote().await,
         ModifyCap(args) => {
             test(&config_file)

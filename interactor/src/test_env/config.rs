@@ -32,6 +32,26 @@ impl Default for ActionsConfig {
     }
 }
 
+/// The delegators a fuzz run operates with.
+#[derive(Debug, Deserialize)]
+pub struct DelegatorsConfig {
+    /// How many delegators to generate, on top of the owner.
+    pub count: usize,
+
+    /// Seed the addresses are derived from. The same seed always yields the same
+    /// addresses, so a run needs nothing stored on disk to be repeatable.
+    pub seed: u64,
+
+    /// Starting balance for each generated delegator, in atomic units, as a string.
+    pub initial_balance: String,
+}
+
+impl DelegatorsConfig {
+    pub fn initial_balance(&self) -> RustBigUint {
+        parse_amount(&self.initial_balance, "initial_balance")
+    }
+}
+
 /// Configuration for work on the chain simulator: the fuzzer, and the manual test
 /// actions that mirror the fuzzer's operations.
 ///
@@ -58,6 +78,9 @@ pub struct TestConfig {
 
     /// Acting user: stake, unstake, claim, vote.
     pub user: WalletConfig,
+
+    /// The delegators a fuzz run operates with.
+    pub delegators: DelegatorsConfig,
 }
 
 impl TestConfig {

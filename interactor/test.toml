@@ -10,15 +10,27 @@
 chain_type = 'simulator'
 gateway_uri = 'http://localhost:8085'
 # Written here after `deploy` prints the new address.
-sc_address = "erd1qqqqqqqqqqqqqpgqak8zt22wl2ph4tswtyc39namqx6ysa2sd8ss4xmlj3"
+sc_address = "erd1qqqqqqqqqqqqqpgq2j4t5v0lu0cvrwapl9z5zr88zfcepvjsd8ssc6sfq6"
 
 # Contract owner - deploys, upgrades, admin endpoints.
 [owner]
 test_wallet = 'alice'
 
-# Acting user - stake, unstake, claim, vote.
+# Acting user for the manual actions, when no --delegator is given.
 [user]
 test_wallet = 'bob'
+
+# The delegators a fuzz run operates with. Addresses are derived from `seed`, so a run is
+# reproducible without storing them anywhere, and they are spread across all shards on
+# purpose - the contract sees genuine cross-shard traffic.
+#
+# Delegator 0 is always the contract owner, as in the original Go fuzzer. `count` is how
+# many are generated on top of that.
+[delegators]
+count = 10
+seed = 42
+# Atomic units (1 EGLD = 10^18), as a string. Covers both stake and transaction fees.
+initial_balance = "10000000000000000000000"
 
 # Deployment of a new contract.
 [deploy]

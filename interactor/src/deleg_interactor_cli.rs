@@ -59,14 +59,20 @@ pub enum InteractCliCommand {
     #[command(about = "Deploy a new delegation contract")]
     Deploy,
 
+    #[command(
+        name = "fuzz-setup",
+        about = "Deploy a contract and prepare the delegators and sinks a fuzz run needs"
+    )]
+    FuzzSetup,
+
     #[command(about = "Stake for a user")]
-    Stake(AmountArgs),
+    Stake(UserActionArgs),
 
     #[command(about = "Unstake for a user")]
-    Unstake(AmountArgs),
+    Unstake(UserActionArgs),
 
     #[command(about = "Claim rewards")]
-    Claim,
+    Claim(DelegatorArgs),
 
     #[command(about = "Vote")]
     Vote,
@@ -95,8 +101,8 @@ impl InteractCliCommand {
             Version | Global | Settings | UserFull | NumUsers | UserStake(_) | Upgrade
             | ContinueGlobal | FixUsers => REAL_CHAIN_CONFIG,
 
-            Deploy | Stake(_) | Unstake(_) | Claim | Vote | ModifyCap(_) | AddRewards(_)
-            | GenerateBlocks(_) => TEST_CONFIG,
+            Deploy | FuzzSetup | Stake(_) | Unstake(_) | Claim(_) | Vote | ModifyCap(_)
+            | AddRewards(_) | GenerateBlocks(_) => TEST_CONFIG,
         }
     }
 }
@@ -113,6 +119,24 @@ pub struct AmountArgs {
     /// Amount in atomic units (1 EGLD = 10^18). Defaults to the value in the config file.
     #[arg()]
     pub amount: Option<String>,
+}
+
+#[derive(Default, Clone, PartialEq, Eq, Debug, Args)]
+pub struct UserActionArgs {
+    /// Amount in atomic units (1 EGLD = 10^18). Defaults to the value in the config file.
+    #[arg()]
+    pub amount: Option<String>,
+
+    /// Act as this generated delegator (0 is the owner) instead of the [user] wallet.
+    #[arg(long)]
+    pub delegator: Option<usize>,
+}
+
+#[derive(Default, Clone, PartialEq, Eq, Debug, Args)]
+pub struct DelegatorArgs {
+    /// Act as this generated delegator (0 is the owner) instead of the [user] wallet.
+    #[arg(long)]
+    pub delegator: Option<usize>,
 }
 
 #[derive(Default, Clone, PartialEq, Eq, Debug, Args)]

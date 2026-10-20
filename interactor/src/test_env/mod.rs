@@ -3,10 +3,14 @@
 //!
 //! Driven by `test.toml`, see [`TestConfig`].
 
+mod accounts;
 mod config;
+mod setup;
 
-pub use config::{TestConfig, parse_amount};
+pub use accounts::TestAccounts;
+pub use config::{DelegatorsConfig, TestConfig, parse_amount};
 
+use multiversx_sc::chain_core::types::ShardConfig;
 use multiversx_sc_snippets::imports::*;
 
 use crate::{
@@ -25,6 +29,43 @@ impl TestInteractor {
         let config: TestConfig = interactor.load_config_from_file(config_file).await;
 
         TestInteractor { interactor, config }
+    }
+
+    /// How the network splits addresses between shards, read from the network itself
+    /// rather than assumed, so a simulator with a different shard count still works.
+    fn shard_config(&self) -> ShardConfig {
+        let num_shards = self.interactor.network_config().num_shards_without_meta;
+        ShardConfig::new(num_shards)
+            .unwrap_or_else(|| panic!("network reports an invalid shard count: {num_shards}"))
+    }
+
+    /// The delegators and sinks for this configuration. Derived, not stored, so every
+    /// command agrees on them without a state file.
+    fn accounts(&self) -> TestAccounts {
+        TestAccounts::generate(
+            self.config.owner.address(),
+            &self.config.delegators,
+            &self.shard_config(),
+            self.interactor.get_hrp(),
+        )
+    }
+
+    /// Who a user action acts as: a generated delegator when an index is given, otherwise
+    /// the `[user]` wallet.
+    ///
+    /// Delegator 0 is the owner, which is already a registered signing wallet - it must
+    /// not be re-registered as a signature-less address.
+    async fn sender(&mut self, delegator: Option<usize>) -> Bech32Address {
+        let Some(index) = delegator else {
+            return self.config.user.address();
+        };
+        if index == 0 {
+            return self.config.owner.address();
+        }
+
+        let address = self.accounts().delegator(index).clone();
+        self.interactor.register_address(address.clone()).await;
+        address
     }
 
     fn ops(&mut self) -> DelegationOps<'_> {
@@ -49,8 +90,8 @@ impl TestInteractor {
         println!("Set it as sc_address in the config file to use it.");
     }
 
-    pub async fn stake(&mut self, amount: Option<String>) {
-        let user = self.config.user.address();
+    pub async fn stake(&mut self, amount: Option<String>, delegator: Option<usize>) {
+        let user = self.sender(delegator).await;
         let amount = match amount {
             Some(raw) => parse_amount(&raw, "amount"),
             None => self.config.stake_amount(),
@@ -61,8 +102,8 @@ impl TestInteractor {
         println!("Stake done");
     }
 
-    pub async fn unstake(&mut self, amount: Option<String>) {
-        let user = self.config.user.address();
+    pub async fn unstake(&mut self, amount: Option<String>, delegator: Option<usize>) {
+        let user = self.sender(delegator).await;
         let amount = match amount {
             Some(raw) => parse_amount(&raw, "amount"),
             None => self.config.unstake_amount(),
@@ -73,8 +114,8 @@ impl TestInteractor {
         println!("Unstake done");
     }
 
-    pub async fn claim_rewards(&mut self) {
-        let user = self.config.user.address();
+    pub async fn claim_rewards(&mut self, delegator: Option<usize>) {
+        let user = self.sender(delegator).await;
 
         let claimable = self.ops().claimable_rewards(&user).await;
         println!("Claimable: {}", display_egld_amount(&claimable));
