@@ -144,20 +144,26 @@ interactor/src/
   deleg_interactor_{admin,user,stats}.rs
   latest_proxy.rs
   auction_proxy.rs               # NEW: real auction SC (queries only, for invariants)
-  ops/                           # NEW: endpoint calls, config-agnostic
-    mod.rs                       #   fn stake(interactor, sc, sender, amount) -> ...
-    stake.rs  rewards.rs  nodes.rs  admin.rs  dust.rs  views.rs
-  test_env/                      # NEW: chain-simulator harness (test.toml)
-    mod.rs
-    config.rs                    # TestConfig
-    accounts.rs                  # no_sig address generation, shard spread, funding
-    setup.rs                     # deploy + fund + register   (fuzzDelegationInit.go)
+  ops/                           # endpoint calls, config-agnostic
+    mod.rs                       #   DelegationOps { interactor, sc_address, gas }
+    user.rs                      #   stake / unstake / unbond / claim / vote
+    admin.rs                     #   deploy / upgrade / cap / service fee / global op
+    nodes.rs                     #   addNodes / removeNodes, BLS key placeholders
+    dust.rs                      #   dust counts and cleanup
+    invariants.rs                #   the contract's own consistency endpoints
+    views.rs                     #   every query
+  test_env/                      # chain-simulator harness (test.toml)
+    mod.rs                       #   TestInteractor + shared helpers
+    config.rs                    #   TestConfig
+    accounts.rs                  #   no_sig address generation, shard spread
+    setup.rs                     #   deploy + fund + register  (fuzzDelegationInit.go)
+    actions.rs                   #   one operation per CLI action
   fuzz/                          # NEW: the fuzzer proper
     mod.rs
     roulette.rs                  # weighted choice + seeded RNG
     events.rs                    # the event table              (fuzzDelegation_test.go)
     state.rs                     # totals: staked / rewarded / withdrawn
-    invariants.rs                # per-step + closing checks
+    closing.rs                   # end-of-run invariants and report
     log.rs                       # action log for replay
     run.rs                       # the loop
 ```
@@ -428,23 +434,27 @@ not reproduce from the seed alone. Two mitigations:
 
 ## 11. CLI actions
 
-Every fuzz operation also gets a manual command, all reading `test.toml`:
+Everything that runs against a chain simulator is grouped under one `fuzz` subcommand,
+which reads `test.toml`; `--config` overrides the file.
 
 ```
-fuzz [--seed N] [--iterations N]     run the fuzzer
-fuzz-setup                           deploy + fund + register, leave a usable environment
-deploy                               deploy the delegation contract
-add-nodes <n> / remove-nodes <n>
-stake <delegator> [amount]
-unstake <delegator> [amount]
-unbond <delegator>
-claim <delegator>
-add-rewards <amount>                 set-state injection (simulator only)
-set-service-fee <value>
-modify-cap <amount>
-dust-cleanup <limit>
-generate-blocks <n>
-check-invariants
+fuzz run [--seed N] [--iterations N]   run the fuzzer                     (phase 3)
+fuzz setup                             deploy + fund + register
+fuzz deploy                            deploy the delegation contract, nothing else
+fuzz status                            totals, settings and sink balances
+fuzz stake [amount] [--delegator i]
+fuzz unstake [amount] [--delegator i]
+fuzz unbond [--delegator i]            into the withdraw sink
+fuzz claim [--delegator i]             into the rewards sink
+fuzz vote [--delegator i]
+fuzz add-nodes <n> / remove-nodes <n>
+fuzz set-service-fee <value>
+fuzz modify-cap [amount]
+fuzz continue-global
+fuzz dust-cleanup [limit]
+fuzz add-rewards [amount]              set-state injection (simulator only)
+fuzz generate-blocks <n>
+fuzz check-invariants
 ```
 
 Later, with natural rewards: `stake-nodes`, `unstake-nodes`, `unbond-nodes`, `add-bls-keys`.

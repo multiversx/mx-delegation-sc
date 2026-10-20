@@ -5,10 +5,14 @@
 //! (driven by `test.toml`) share one implementation.
 
 mod admin;
+mod dust;
+mod invariants;
+mod nodes;
 mod user;
 mod views;
 
 pub use admin::deploy;
+pub use nodes::NODE_STATE_INACTIVE;
 
 use multiversx_sc_snippets::imports::*;
 

@@ -10,7 +10,7 @@
 chain_type = 'simulator'
 gateway_uri = 'http://localhost:8085'
 # Written here after `deploy` prints the new address.
-sc_address = "erd1qqqqqqqqqqqqqpgq2j4t5v0lu0cvrwapl9z5zr88zfcepvjsd8ssc6sfq6"
+sc_address = "erd1qqqqqqqqqqqqqpgqxe80hegndzmp25c2qnsutze45h8q7nlud8ssplfp8u"
 
 # Contract owner - deploys, upgrades, admin endpoints.
 [owner]
@@ -65,5 +65,6 @@ stake_amount = "2000000000000000000"
 unstake_amount = "1000000000000000000"
 reward_amount = "1000000000000000000"
 delegation_cap = "100000000000000000000000"
+dust_limit = "100000000000000000"
 vote_proposal = 1
 vote_decision = "yes"

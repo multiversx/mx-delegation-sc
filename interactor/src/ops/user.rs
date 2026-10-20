@@ -43,6 +43,23 @@ impl DelegationOps<'_> {
             .await;
     }
 
+    /// Withdraws whatever is currently unbondable, and returns how much that was.
+    ///
+    /// One call only: the endpoint works in bounded chunks, so a caller wanting everything
+    /// keeps calling while `unbondable` is above zero.
+    pub async fn unbond_user(&mut self, sender: &Bech32Address) -> RustBigUint {
+        self.interactor
+            .tx()
+            .from(sender)
+            .to(self.sc_address)
+            .gas(self.gas.unbond)
+            .typed(latest_proxy::DelegationFullProxy)
+            .unbond_user()
+            .returns(ReturnsResultUnmanaged)
+            .run()
+            .await
+    }
+
     /// Casts a governance vote with the caller's voting power.
     pub async fn delegate_vote(&mut self, sender: &Bech32Address, proposal: u64, vote: &str) {
         self.interactor

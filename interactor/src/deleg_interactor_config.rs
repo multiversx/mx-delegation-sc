@@ -37,8 +37,15 @@ pub struct GasConfig {
     pub claim_rewards: u64,
     pub vote: u64,
     pub modify_cap: u64,
+    pub set_service_fee: u64,
     pub continue_global: u64,
     pub fix_users: u64,
+    pub unbond: u64,
+    pub add_nodes: u64,
+    pub remove_nodes: u64,
+    pub dust_cleanup: u64,
+    pub validate_invariant: u64,
+    pub transfer: u64,
 }
 
 impl Default for GasConfig {
@@ -51,8 +58,15 @@ impl Default for GasConfig {
             claim_rewards: 10_000_000,
             vote: 100_000_000,
             modify_cap: 100_000_000,
+            set_service_fee: 100_000_000,
             continue_global: 400_000_000,
             fix_users: 100_000_000,
+            unbond: 90_000_000,
+            add_nodes: 500_000_000,
+            remove_nodes: 100_000_000,
+            dust_cleanup: 300_000_000,
+            validate_invariant: 50_000_000,
+            transfer: 100_000,
         }
     }
 }

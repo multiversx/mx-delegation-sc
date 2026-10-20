@@ -73,6 +73,24 @@ impl DelegationOps<'_> {
             .await
     }
 
+    /// Changes the service fee. May start a global operation.
+    pub async fn set_service_fee(
+        &mut self,
+        owner: &Bech32Address,
+        service_fee_per_10000: usize,
+    ) -> OperationCompletionStatus {
+        self.interactor
+            .tx()
+            .from(owner)
+            .to(self.sc_address)
+            .gas(self.gas.set_service_fee)
+            .typed(latest_proxy::DelegationFullProxy)
+            .set_service_fee_endpoint(service_fee_per_10000)
+            .returns(ReturnsResult)
+            .run()
+            .await
+    }
+
     /// One `continueGlobalOperation` call.
     pub async fn continue_global_operation_once(
         &mut self,

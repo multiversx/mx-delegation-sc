@@ -15,6 +15,7 @@ pub struct ActionsConfig {
     pub unstake_amount: String,
     pub reward_amount: String,
     pub delegation_cap: String,
+    pub dust_limit: String,
     pub vote_proposal: u64,
     pub vote_decision: String,
 }
@@ -26,6 +27,7 @@ impl Default for ActionsConfig {
             unstake_amount: "1000000000000000000".to_owned(),
             reward_amount: "1000000000000000000".to_owned(),
             delegation_cap: "100000000000000000000000".to_owned(),
+            dust_limit: "100000000000000000".to_owned(),
             vote_proposal: 1,
             vote_decision: "yes".to_owned(),
         }
@@ -98,6 +100,10 @@ impl TestConfig {
 
     pub fn reward_amount(&self) -> RustBigUint {
         parse_amount(&self.actions.reward_amount, "reward_amount")
+    }
+
+    pub fn dust_limit(&self) -> RustBigUint {
+        parse_amount(&self.actions.dust_limit, "dust_limit")
     }
 }
 

@@ -12,7 +12,7 @@ pub struct InteractCli {
     /// Config file to load, relative to the interactor directory.
     ///
     /// Defaults per command: `config.toml` for the real-chain investigation commands,
-    /// `test.toml` for the chain-simulator ones. Pointing a command at the other file
+    /// `test.toml` for everything under `fuzz`. Pointing a command at the other file
     /// works as long as that file carries the sections the command needs.
     #[arg(long, global = true)]
     pub config: Option<String>,
@@ -21,10 +21,10 @@ pub struct InteractCli {
     pub command: Option<InteractCliCommand>,
 }
 
-/// Delegation Interact CLI Commands
+/// Top-level commands: investigating a contract on a real chain, plus the `fuzz` group
+/// for everything that runs against a chain simulator.
 #[derive(Clone, PartialEq, Eq, Debug, Subcommand)]
 pub enum InteractCliCommand {
-    // --- real chain investigation, `config.toml` ---
     #[command(name = "version", about = "Query the contract version")]
     Version,
 
@@ -55,56 +55,86 @@ pub enum InteractCliCommand {
     #[command(about = "Fix missing info from the old contract")]
     FixUsers,
 
-    // --- chain simulator testing, `test.toml` ---
-    #[command(about = "Deploy a new delegation contract")]
-    Deploy,
-
     #[command(
-        name = "fuzz-setup",
-        about = "Deploy a contract and prepare the delegators and sinks a fuzz run needs"
+        subcommand,
+        about = "Fuzzing and testing against a chain simulator (reads test.toml)"
     )]
-    FuzzSetup,
-
-    #[command(about = "Stake for a user")]
-    Stake(UserActionArgs),
-
-    #[command(about = "Unstake for a user")]
-    Unstake(UserActionArgs),
-
-    #[command(about = "Claim rewards")]
-    Claim(DelegatorArgs),
-
-    #[command(about = "Vote")]
-    Vote,
-
-    #[command(name = "modify-cap", about = "Modify the total delegation cap")]
-    ModifyCap(AmountArgs),
-
-    #[command(
-        name = "add-rewards",
-        about = "Simulate a validator reward arriving at the contract (chain simulator only)"
-    )]
-    AddRewards(AmountArgs),
-
-    #[command(
-        name = "generate-blocks",
-        about = "Advance the chain simulator by a number of blocks"
-    )]
-    GenerateBlocks(BlocksArgs),
+    Fuzz(FuzzCliCommand),
 }
 
 impl InteractCliCommand {
     /// The config file this command reads when `--config` is not given.
     pub fn default_config_file(&self) -> &'static str {
-        use InteractCliCommand::*;
         match self {
-            Version | Global | Settings | UserFull | NumUsers | UserStake(_) | Upgrade
-            | ContinueGlobal | FixUsers => REAL_CHAIN_CONFIG,
-
-            Deploy | FuzzSetup | Stake(_) | Unstake(_) | Claim(_) | Vote | ModifyCap(_)
-            | AddRewards(_) | GenerateBlocks(_) => TEST_CONFIG,
+            InteractCliCommand::Fuzz(_) => TEST_CONFIG,
+            _ => REAL_CHAIN_CONFIG,
         }
     }
+}
+
+/// Everything that runs against a chain simulator: the fuzzer, and the individual
+/// operations it is built from, each runnable by hand.
+#[derive(Clone, PartialEq, Eq, Debug, Subcommand)]
+pub enum FuzzCliCommand {
+    #[command(about = "Deploy a contract and prepare the delegators and sinks")]
+    Setup,
+
+    #[command(about = "Deploy a new delegation contract, nothing else")]
+    Deploy,
+
+    #[command(about = "Contract totals, settings and sink balances")]
+    Status,
+
+    #[command(about = "Stake for a delegator")]
+    Stake(UserActionArgs),
+
+    #[command(about = "Unstake for a delegator")]
+    Unstake(UserActionArgs),
+
+    #[command(about = "Unbond everything available, into the withdraw sink")]
+    Unbond(DelegatorArgs),
+
+    #[command(about = "Claim rewards, into the rewards sink")]
+    Claim(DelegatorArgs),
+
+    #[command(about = "Vote on a governance proposal")]
+    Vote(DelegatorArgs),
+
+    #[command(name = "add-nodes", about = "Register nodes with the contract")]
+    AddNodes(CountArgs),
+
+    #[command(name = "remove-nodes", about = "Remove the most recently added nodes")]
+    RemoveNodes(CountArgs),
+
+    #[command(name = "set-service-fee", about = "Set the service fee")]
+    SetServiceFee(ServiceFeeArgs),
+
+    #[command(name = "modify-cap", about = "Modify the total delegation cap")]
+    ModifyCap(AmountArgs),
+
+    #[command(
+        name = "continue-global",
+        about = "Continue the global operation until it completes"
+    )]
+    ContinueGlobal,
+
+    #[command(name = "dust-cleanup", about = "Sweep fund entries below a limit")]
+    DustCleanup(AmountArgs),
+
+    #[command(
+        name = "add-rewards",
+        about = "Simulate a validator reward arriving at the contract"
+    )]
+    AddRewards(AmountArgs),
+
+    #[command(name = "generate-blocks", about = "Advance the simulator by N blocks")]
+    GenerateBlocks(BlocksArgs),
+
+    #[command(
+        name = "check-invariants",
+        about = "Run the contract's own consistency checks"
+    )]
+    CheckInvariants,
 }
 
 #[derive(Default, Clone, PartialEq, Eq, Debug, Args)]
@@ -137,6 +167,20 @@ pub struct DelegatorArgs {
     /// Act as this generated delegator (0 is the owner) instead of the [user] wallet.
     #[arg(long)]
     pub delegator: Option<usize>,
+}
+
+#[derive(Default, Clone, PartialEq, Eq, Debug, Args)]
+pub struct CountArgs {
+    /// How many nodes.
+    #[arg()]
+    pub count: usize,
+}
+
+#[derive(Default, Clone, PartialEq, Eq, Debug, Args)]
+pub struct ServiceFeeArgs {
+    /// Service fee in 1/10000 (e.g. 1000 = 10%).
+    #[arg()]
+    pub service_fee_per_10000: usize,
 }
 
 #[derive(Default, Clone, PartialEq, Eq, Debug, Args)]
