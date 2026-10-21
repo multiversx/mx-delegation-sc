@@ -10,6 +10,7 @@
 //! ordinary and which are a finding.
 
 mod admin;
+mod delegation_ops;
 mod dust;
 mod invariants;
 mod nodes;
@@ -17,33 +18,10 @@ mod user;
 mod views;
 
 pub use admin::deploy;
+pub use delegation_ops::DelegationOps;
 pub use nodes::NODE_STATE_INACTIVE;
 
 use multiversx_sc_snippets::imports::*;
-
-use crate::deleg_interactor_config::GasConfig;
-
-/// Everything needed to call a delegation contract: the connection, the contract, and
-/// the gas limits to use.
-pub struct DelegationOps<'a> {
-    pub interactor: &'a mut Interactor,
-    pub sc_address: &'a Bech32Address,
-    pub gas: &'a GasConfig,
-}
-
-impl<'a> DelegationOps<'a> {
-    pub fn new(
-        interactor: &'a mut Interactor,
-        sc_address: &'a Bech32Address,
-        gas: &'a GasConfig,
-    ) -> Self {
-        DelegationOps {
-            interactor,
-            sc_address,
-            gas,
-        }
-    }
-}
 
 /// The contract's five fund buckets, in the order the contract returns them:
 /// WithdrawOnly, Waiting, Active, UnStaked, DeferredPayment.

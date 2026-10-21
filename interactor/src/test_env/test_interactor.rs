@@ -1,19 +1,7 @@
-//! The chain-simulator test harness: the fuzzer, and the manual actions that mirror its
-//! operations.
-//!
-//! Driven by `test.toml`, see [`TestConfig`].
-
-mod accounts;
-mod actions;
-mod config;
-mod setup;
-
-pub use accounts::TestAccounts;
-pub use config::{DelegatorsConfig, EventWeights, TestConfig, parse_amount};
-
 use multiversx_sc::chain_core::types::ShardConfig;
 use multiversx_sc_snippets::imports::*;
 
+use super::{TestAccounts, TestConfig};
 use crate::ops::DelegationOps;
 
 pub struct TestInteractor {
@@ -31,7 +19,7 @@ impl TestInteractor {
 
     /// How the network splits addresses between shards, read from the network itself
     /// rather than assumed, so a simulator with a different shard count still works.
-    fn shard_config(&self) -> ShardConfig {
+    pub(super) fn shard_config(&self) -> ShardConfig {
         let num_shards = self.interactor.network_config().num_shards_without_meta;
         ShardConfig::new(num_shards)
             .unwrap_or_else(|| panic!("network reports an invalid shard count: {num_shards}"))
@@ -53,7 +41,7 @@ impl TestInteractor {
     ///
     /// Delegator 0 is the owner, which is already a registered signing wallet - it must
     /// not be re-registered as a signature-less address.
-    async fn sender(&mut self, delegator: Option<usize>) -> Bech32Address {
+    pub(super) async fn sender(&mut self, delegator: Option<usize>) -> Bech32Address {
         let Some(index) = delegator else {
             return self.config.user.address();
         };

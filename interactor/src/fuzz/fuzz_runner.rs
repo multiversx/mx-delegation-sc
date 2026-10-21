@@ -1,15 +1,4 @@
-//! The fuzzer: a seeded sequence of random operations against a freshly deployed
-//! contract, checking the contract's own invariants as it goes.
-//!
-//! The port of `fuzzDelegation_test.go`.
-
-mod bounds;
-mod events;
-mod log;
-mod roulette;
-mod state;
-
-pub use events::Event;
+//! The run loop: draw an event, execute it, check the contract's invariants, repeat.
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -20,7 +9,7 @@ use crate::{
     deleg_interactor_config::DeployConfig,
     deleg_interactor_stats::print_stake_by_type,
     display::{display_egld_amount, display_percentage},
-    fuzz::{bounds::Bounds, log::ActionLog, state::FuzzState},
+    fuzz::{Event, bounds::Bounds, log::ActionLog, roulette, state::FuzzState},
     test_env::{TestAccounts, TestInteractor},
 };
 
