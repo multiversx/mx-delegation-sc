@@ -6,3 +6,6 @@ state.toml
 
 # Trace file of interactor tooling
 interactor_trace.scen.json
+
+# Per-event log written by a fuzz run
+fuzz_run.jsonl

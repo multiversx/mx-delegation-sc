@@ -158,14 +158,14 @@ interactor/src/
     accounts.rs                  #   no_sig address generation, shard spread
     setup.rs                     #   deploy + fund + register  (fuzzDelegationInit.go)
     actions.rs                   #   one operation per CLI action
-  fuzz/                          # NEW: the fuzzer proper
-    mod.rs
-    roulette.rs                  # weighted choice + seeded RNG
-    events.rs                    # the event table              (fuzzDelegation_test.go)
-    state.rs                     # totals: staked / rewarded / withdrawn
-    closing.rs                   # end-of-run invariants and report
-    log.rs                       # action log for replay
-    run.rs                       # the loop
+  fuzz/                          # the fuzzer proper
+    mod.rs                       #   FuzzRunner: setup, the loop, the report
+    bounds.rs                    #   the ranges a run draws from
+    events.rs                    #   the event table            (fuzzDelegation_test.go)
+    roulette.rs                  #   weighted choice, random big integers
+    state.rs                     #   totals: staked / rewarded / withdrawn
+    log.rs                       #   action log for replay
+    closing.rs                   # NEW in phase 4: end-of-run invariants
 ```
 
 The key refactor is **`ops/`**: the endpoint-calling code becomes free functions taking
@@ -496,9 +496,12 @@ Deferred, not scheduled: `reward_mode = "natural"` (§4) — BLS keypair fixture
 Phase 0 and Phase 1 are the risk gates — reward injection and cross-shard latency
 respectively. Everything after is mechanical.
 
-Throughput gets measured at the end of Phase 4. If a 1000-iteration run is too slow, the
-levers are `invariant_check_every`, batching independent transactions through the existing
-`homogenous_tx_buffer`, and lowering `block_advance_max`.
+Throughput turned out not to be a problem. A 100-event run with `invariant_check_every = 1`
+took 23 seconds - 169 transactions, about half of them the invariant checks - which puts a
+1000-event run near four minutes. Running the views as free queries rather than as the
+transactions the Go harness needed is what paid for the invariant checking. If a campaign
+ever does get too slow, the levers are `invariant_check_every`, batching independent
+transactions through the existing `homogenous_tx_buffer`, and lowering `block_advance_max`.
 
 ---
 

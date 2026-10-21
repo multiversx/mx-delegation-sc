@@ -9,7 +9,7 @@ mod config;
 mod setup;
 
 pub use accounts::TestAccounts;
-pub use config::{DelegatorsConfig, TestConfig, parse_amount};
+pub use config::{DelegatorsConfig, EventWeights, TestConfig, parse_amount};
 
 use multiversx_sc::chain_core::types::ShardConfig;
 use multiversx_sc_snippets::imports::*;
@@ -17,8 +17,8 @@ use multiversx_sc_snippets::imports::*;
 use crate::ops::DelegationOps;
 
 pub struct TestInteractor {
-    interactor: Interactor,
-    config: TestConfig,
+    pub(crate) interactor: Interactor,
+    pub(crate) config: TestConfig,
 }
 
 impl TestInteractor {
@@ -39,7 +39,7 @@ impl TestInteractor {
 
     /// The delegators and sinks for this configuration. Derived, not stored, so every
     /// command agrees on them without a state file.
-    fn accounts(&self) -> TestAccounts {
+    pub(crate) fn accounts(&self) -> TestAccounts {
         TestAccounts::generate(
             self.config.owner.address(),
             &self.config.delegators,
@@ -66,7 +66,7 @@ impl TestInteractor {
         address
     }
 
-    fn ops(&mut self) -> DelegationOps<'_> {
+    pub(crate) fn ops(&mut self) -> DelegationOps<'_> {
         DelegationOps::new(
             &mut self.interactor,
             self.config.chain_config.sc_address(),
@@ -75,7 +75,7 @@ impl TestInteractor {
     }
 
     /// An account's EGLD balance, as a plain integer.
-    async fn balance(&self, address: &Bech32Address) -> RustBigUint {
+    pub(crate) async fn balance(&self, address: &Bech32Address) -> RustBigUint {
         let balance = self
             .interactor
             .get_account(address.as_address())
@@ -96,7 +96,12 @@ impl TestInteractor {
     /// fuzzer's way of proving rewards were paid out - summing delegator balances - no
     /// longer holds. Forwarding what a delegator receives to an account that never spends
     /// keeps that figure exact, and leaves the delegator's own balance free to absorb fees.
-    async fn forward(&mut self, from: &Bech32Address, to: &Bech32Address, amount: &RustBigUint) {
+    pub(crate) async fn forward(
+        &mut self,
+        from: &Bech32Address,
+        to: &Bech32Address,
+        amount: &RustBigUint,
+    ) {
         if amount == &RustBigUint::default() {
             return;
         }

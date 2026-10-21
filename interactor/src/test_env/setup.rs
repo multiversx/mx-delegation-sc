@@ -8,26 +8,32 @@
 use multiversx_sc_snippets::imports::*;
 
 use crate::{
+    deleg_interactor_config::DeployConfig,
     display::display_egld_amount,
     ops,
     test_env::{TestAccounts, TestInteractor},
 };
 
 impl TestInteractor {
-    /// Deploys a contract and prepares every account a fuzz run needs.
+    /// Deploys a contract and prepares every account a fuzz run needs, reporting what it
+    /// built. The CLI entry point; a fuzz run calls [`Self::setup`] directly with its own
+    /// randomized constructor arguments.
+    pub async fn fuzz_setup(&mut self) {
+        let deploy = self.config.deploy.clone();
+
+        let (sc_address, accounts) = self.setup(&deploy).await;
+        self.report_setup(&sc_address, &accounts).await;
+    }
+
+    /// Deploys with the given constructor arguments, then creates and registers the
+    /// delegators and sinks.
     ///
     /// Starts from scratch each time: the delegators get their configured balance and a
     /// zero nonce, and the sinks are emptied, so two runs cannot contaminate each other.
-    pub async fn fuzz_setup(&mut self) {
+    pub(crate) async fn setup(&mut self, deploy: &DeployConfig) -> (Bech32Address, TestAccounts) {
         let owner = self.config.owner.address();
 
-        let sc_address = ops::deploy(
-            &mut self.interactor,
-            &owner,
-            &self.config.deploy,
-            &self.config.gas,
-        )
-        .await;
+        let sc_address = ops::deploy(&mut self.interactor, &owner, deploy, &self.config.gas).await;
         self.config.chain_config.sc_address = Some(sc_address.clone());
 
         let accounts = self.accounts();
@@ -40,7 +46,8 @@ impl TestInteractor {
         }
 
         self.fund(&accounts).await;
-        self.report_setup(&sc_address, &accounts).await;
+
+        (sc_address, accounts)
     }
 
     /// Sets exact balances: the configured amount for every generated delegator, and zero
@@ -68,7 +75,11 @@ impl TestInteractor {
             .expect("could not set delegator and sink balances");
     }
 
-    async fn report_setup(&mut self, sc_address: &Bech32Address, accounts: &TestAccounts) {
+    pub(crate) async fn report_setup(
+        &mut self,
+        sc_address: &Bech32Address,
+        accounts: &TestAccounts,
+    ) {
         let shard_config = self.shard_config();
         let balance = self.config.delegators.initial_balance();
 

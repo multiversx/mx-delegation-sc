@@ -76,6 +76,9 @@ impl InteractCliCommand {
 /// operations it is built from, each runnable by hand.
 #[derive(Clone, PartialEq, Eq, Debug, Subcommand)]
 pub enum FuzzCliCommand {
+    #[command(about = "Run the fuzzer: deploy, then a random sequence of operations")]
+    Run(FuzzRunArgs),
+
     #[command(about = "Deploy a contract and prepare the delegators and sinks")]
     Setup,
 
@@ -167,6 +170,17 @@ pub struct DelegatorArgs {
     /// Act as this generated delegator (0 is the owner) instead of the [user] wallet.
     #[arg(long)]
     pub delegator: Option<usize>,
+}
+
+#[derive(Default, Clone, PartialEq, Eq, Debug, Args)]
+pub struct FuzzRunArgs {
+    /// Random seed. Overrides the config; zero or absent means derive one from the clock.
+    #[arg(long)]
+    pub seed: Option<u64>,
+
+    /// How many events to generate. Overrides the config.
+    #[arg(long)]
+    pub iterations: Option<usize>,
 }
 
 #[derive(Default, Clone, PartialEq, Eq, Debug, Args)]

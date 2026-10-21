@@ -1,6 +1,9 @@
 use multiversx_sc_snippets::imports::*;
 
-use crate::{latest_proxy, ops::DelegationOps};
+use crate::{
+    latest_proxy,
+    ops::{DelegationOps, OpResult},
+};
 
 /// Dust cleanup sweeps fund entries too small to be worth their storage.
 ///
@@ -33,7 +36,7 @@ impl DelegationOps<'_> {
         &mut self,
         owner: &Bech32Address,
         dust_limit: &RustBigUint,
-    ) {
+    ) -> OpResult {
         self.interactor
             .tx()
             .from(owner)
@@ -41,11 +44,17 @@ impl DelegationOps<'_> {
             .gas(self.gas.dust_cleanup)
             .typed(latest_proxy::DelegationFullProxy)
             .dust_cleanup_waiting_list(dust_limit.clone())
+            .returns(ReturnsHandledOrError::new())
             .run()
-            .await;
+            .await
+            .map_err(Into::into)
     }
 
-    pub async fn dust_cleanup_active(&mut self, owner: &Bech32Address, dust_limit: &RustBigUint) {
+    pub async fn dust_cleanup_active(
+        &mut self,
+        owner: &Bech32Address,
+        dust_limit: &RustBigUint,
+    ) -> OpResult {
         self.interactor
             .tx()
             .from(owner)
@@ -53,7 +62,9 @@ impl DelegationOps<'_> {
             .gas(self.gas.dust_cleanup)
             .typed(latest_proxy::DelegationFullProxy)
             .dust_cleanup_active(dust_limit.clone())
+            .returns(ReturnsHandledOrError::new())
             .run()
-            .await;
+            .await
+            .map_err(Into::into)
     }
 }

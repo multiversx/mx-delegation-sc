@@ -58,6 +58,42 @@ modify_cap = 100000000
 continue_global = 400000000
 fix_users = 100000000
 
+# The fuzzer's parameter space. Bounds mirror the original Go fuzzer's, scaled from its
+# raw units to EGLD; block counts are much smaller, because the Go values went up to 1000
+# per event, which at 20 rounds per epoch would mean tens of epoch changes per step.
+[fuzz]
+# 0 = derive a seed from the clock and print it. --seed overrides either way.
+seed = 0
+iterations = 1000
+# 1 matches the Go fuzzer, which checked after almost every step. Raise it for speed.
+invariant_check_every = 1
+block_advance_max = 20
+# Atomic units (1 EGLD = 10^18), as strings.
+max_stake = "2000000000000000000"
+max_reward = "1000000000000000000"
+max_delegation_cap = "4000000000000000000"
+max_dust = "250000000000000000"
+max_minimum_stake = "1000000000000000000"
+max_service_fee = 10000
+max_n_blocks_before_unbond = 20
+max_nodes_added = 3
+max_nodes_removed = 2
+log_file = "fuzz_run.jsonl"
+
+# Roulette weights. Zero turns an event off, which is how a campaign is narrowed.
+[fuzz.weights]
+advance_blocks = 5
+add_nodes = 5
+remove_nodes = 5
+stake = 5
+add_rewards = 5
+claim_rewards = 20
+unstake = 5
+unbond = 10
+modify_cap = 5
+set_service_fee = 5
+dust_cleanup = 1
+
 # Defaults for the manual test actions, when no amount is given on the command line.
 # Atomic units (1 EGLD = 10^18), as strings.
 [actions]

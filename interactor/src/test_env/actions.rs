@@ -9,7 +9,7 @@ use multiversx_sc_snippets::imports::*;
 use crate::{
     deleg_interactor_stats::print_stake_by_type,
     display::{display_egld_amount, display_percentage},
-    ops::{self, NODE_STATE_INACTIVE, operation_completion_status},
+    ops::{self, NODE_STATE_INACTIVE, OpResult, operation_completion_status},
     test_env::{TestInteractor, parse_amount},
 };
 
@@ -37,9 +37,19 @@ impl TestInteractor {
             None => self.config.stake_amount(),
         };
 
-        println!("Staking {} from {user}", display_egld_amount(&amount));
-        self.ops().stake(&user, &amount).await;
-        println!("Stake done");
+        report("stake", self.stake_from(&user, &amount).await);
+    }
+
+    pub(crate) async fn stake_from(
+        &mut self,
+        user: &Bech32Address,
+        amount: &RustBigUint,
+    ) -> OpResult {
+        println!(
+            "stake, delegator: {user}, amount: {}",
+            display_egld_amount(amount)
+        );
+        self.ops().stake(user, amount).await
     }
 
     pub async fn unstake(&mut self, amount: Option<String>, delegator: Option<usize>) {
@@ -49,9 +59,19 @@ impl TestInteractor {
             None => self.config.unstake_amount(),
         };
 
-        println!("Unstaking {} from {user}", display_egld_amount(&amount));
-        self.ops().unstake(&user, &amount).await;
-        println!("Unstake done");
+        report("unStake", self.unstake_from(&user, &amount).await);
+    }
+
+    pub(crate) async fn unstake_from(
+        &mut self,
+        user: &Bech32Address,
+        amount: &RustBigUint,
+    ) -> OpResult {
+        println!(
+            "unStake, delegator: {user}, amount: {}",
+            display_egld_amount(amount)
+        );
+        self.ops().unstake(user, amount).await
     }
 
     /// Withdraws everything currently unbondable, then forwards it to the withdraw sink.
@@ -61,13 +81,19 @@ impl TestInteractor {
     /// since otherwise an endpoint that stops making progress would spin forever.
     pub async fn unbond(&mut self, delegator: Option<usize>) {
         let user = self.sender(delegator).await;
+        report("unBond", self.unbond_from(&user).await);
+    }
+
+    /// Returns how much was unbonded, so a caller tracking totals does not have to read
+    /// the sink to find out.
+    pub(crate) async fn unbond_from(&mut self, user: &Bech32Address) -> OpResult<RustBigUint> {
         let withdraw_sink = self.accounts().withdraw_sink.clone();
 
         let mut total = RustBigUint::default();
         let mut call_count = 0u32;
 
-        while self.ops().unbondable(&user).await > RustBigUint::default() {
-            let unbonded = self.ops().unbond_user(&user).await;
+        while self.ops().unbondable(user).await > RustBigUint::default() {
+            let unbonded = self.ops().unbond_user(user).await?;
             call_count += 1;
             println!(
                 "unBond call #{call_count}: {}",
@@ -81,36 +107,42 @@ impl TestInteractor {
             total += unbonded;
         }
 
-        println!("Unbonded total: {}", display_egld_amount(&total));
-        self.forward(&user, &withdraw_sink, &total).await;
-        if total > RustBigUint::default() {
-            println!("Forwarded to the withdraw sink.");
-        }
+        println!("unBond total: {}", display_egld_amount(&total));
+        self.forward(user, &withdraw_sink, &total).await;
+        Ok(total)
     }
 
     /// Claims rewards and forwards them to the rewards sink.
     pub async fn claim_rewards(&mut self, delegator: Option<usize>) {
         let user = self.sender(delegator).await;
+        report("claim", self.claim_from(&user).await);
+    }
+
+    /// Returns how much was claimed.
+    pub(crate) async fn claim_from(&mut self, user: &Bech32Address) -> OpResult<RustBigUint> {
         let rewards_sink = self.accounts().rewards_sink.clone();
 
-        let claimable = self.ops().claimable_rewards(&user).await;
+        let claimable = self.ops().claimable_rewards(user).await;
         if claimable == RustBigUint::default() {
-            println!("No rewards to claim for {user}");
-            return;
+            println!("no rewards, delegator: {user}");
+            return Ok(claimable);
         }
 
-        println!("Claimable: {}", display_egld_amount(&claimable));
-        self.ops().claim_rewards(&user).await;
+        self.ops().claim_rewards(user).await?;
 
-        let remaining = self.ops().claimable_rewards(&user).await;
+        let remaining = self.ops().claimable_rewards(user).await;
         assert_eq!(
             remaining,
             RustBigUint::default(),
             "getClaimableRewards should always be zero after claimRewards, got {remaining}"
         );
 
-        self.forward(&user, &rewards_sink, &claimable).await;
-        println!("Claimed and forwarded to the rewards sink.");
+        println!(
+            "claim rewards, delegator: {user}, amount: {}",
+            display_egld_amount(&claimable)
+        );
+        self.forward(user, &rewards_sink, &claimable).await;
+        Ok(claimable)
     }
 
     pub async fn delegate_vote(&mut self, delegator: Option<usize>) {
@@ -118,22 +150,36 @@ impl TestInteractor {
         let proposal = self.config.actions.vote_proposal;
         let decision = self.config.actions.vote_decision.clone();
 
-        self.ops().delegate_vote(&user, proposal, &decision).await;
-        println!("Vote sent");
+        report(
+            "vote",
+            self.ops().delegate_vote(&user, proposal, &decision).await,
+        );
     }
 
     // ----- owner operations -----
 
-    pub async fn add_nodes(&mut self, count: usize) {
+    pub async fn add_nodes_action(&mut self, count: usize) {
+        report("addNodes", self.add_nodes(count).await);
+    }
+
+    pub async fn set_service_fee_action(&mut self, service_fee_per_10000: usize) {
+        report(
+            "setServiceFee",
+            self.set_service_fee(service_fee_per_10000).await,
+        );
+    }
+
+    pub(crate) async fn add_nodes(&mut self, count: usize) -> OpResult {
         let owner = self.config.owner.address();
         let first_index = self.ops().num_nodes().await;
 
-        self.ops().add_nodes(&owner, first_index, count).await;
+        self.ops().add_nodes(&owner, first_index, count).await?;
 
         println!(
             "Added {count} node(s), key indexes {first_index}..{}",
             first_index + count
         );
+        Ok(())
     }
 
     /// Removes the most recently added nodes that can still be removed.
@@ -170,38 +216,48 @@ impl TestInteractor {
         }
     }
 
-    pub async fn set_service_fee(&mut self, service_fee_per_10000: usize) {
+    pub(crate) async fn set_service_fee(&mut self, service_fee_per_10000: usize) -> OpResult {
         let owner = self.config.owner.address();
 
         let status = self
             .ops()
             .set_service_fee(&owner, service_fee_per_10000)
-            .await;
+            .await?;
 
         println!(
             "Service fee set to {}: {}",
             display_percentage(service_fee_per_10000 as u32),
             operation_completion_status(status)
         );
+        Ok(())
     }
 
     pub async fn modify_delegation_cap(&mut self, amount: Option<String>) {
-        let owner = self.config.owner.address();
         let new_cap = match amount {
             Some(raw) => parse_amount(&raw, "amount"),
             None => self.config.delegation_cap(),
         };
 
-        println!("New delegation cap: {}", display_egld_amount(&new_cap));
+        report(
+            "modify delegation cap",
+            self.modify_delegation_cap_to(&new_cap).await,
+        );
+    }
+
+    pub(crate) async fn modify_delegation_cap_to(&mut self, new_cap: &RustBigUint) -> OpResult {
+        let owner = self.config.owner.address();
+
         let status = self
             .ops()
-            .modify_total_delegation_cap(&owner, &new_cap)
-            .await;
+            .modify_total_delegation_cap(&owner, new_cap)
+            .await?;
 
         println!(
-            "Modified delegation cap: {}",
-            operation_completion_status(status)
+            "modify delegation cap: {}, new cap {}",
+            operation_completion_status(status),
+            display_egld_amount(new_cap)
         );
+        Ok(())
     }
 
     /// Drives the current global operation to completion. Changing the delegation cap or
@@ -218,20 +274,25 @@ impl TestInteractor {
 
     /// Sweeps fund entries smaller than the limit, waiting list first, then active.
     pub async fn dust_cleanup(&mut self, limit: Option<String>) {
-        let owner = self.config.owner.address();
         let limit = match limit {
             Some(raw) => parse_amount(&raw, "limit"),
             None => self.config.dust_limit(),
         };
 
-        println!("Dust limit: {}", display_egld_amount(&limit));
+        report("dust cleanup", self.dust_cleanup_below(&limit).await);
+    }
 
-        let mut remaining = self.ops().count_dust_items_waiting_list(&limit).await;
+    pub(crate) async fn dust_cleanup_below(&mut self, limit: &RustBigUint) -> OpResult {
+        let owner = self.config.owner.address();
+
+        println!("dust cleanup, limit: {}", display_egld_amount(limit));
+
+        let mut remaining = self.ops().count_dust_items_waiting_list(limit).await;
         println!("Dust items in the waiting list: {remaining}");
         while remaining > 0 {
-            self.ops().dust_cleanup_waiting_list(&owner, &limit).await;
+            self.ops().dust_cleanup_waiting_list(&owner, limit).await?;
 
-            let left = self.ops().count_dust_items_waiting_list(&limit).await;
+            let left = self.ops().count_dust_items_waiting_list(limit).await;
             println!("  -> {left} left");
             if left >= remaining {
                 println!("  cleanup made no progress, stopping.");
@@ -240,12 +301,12 @@ impl TestInteractor {
             remaining = left;
         }
 
-        let mut remaining = self.ops().count_dust_items_active(&limit).await;
+        let mut remaining = self.ops().count_dust_items_active(limit).await;
         println!("Dust items in the active list: {remaining}");
         while remaining > 0 {
-            self.ops().dust_cleanup_active(&owner, &limit).await;
+            self.ops().dust_cleanup_active(&owner, limit).await?;
 
-            let left = self.ops().count_dust_items_active(&limit).await;
+            let left = self.ops().count_dust_items_active(limit).await;
             println!("  -> {left} left");
             if left >= remaining {
                 println!("  cleanup made no progress, stopping.");
@@ -253,6 +314,8 @@ impl TestInteractor {
             }
             remaining = left;
         }
+
+        Ok(())
     }
 
     // ----- harness operations -----
@@ -262,24 +325,29 @@ impl TestInteractor {
     /// Chain simulator only: writes the protocol's own cumulated-reward storage key, the
     /// same one a real reward transaction writes.
     pub async fn add_rewards(&mut self, amount: Option<String>) {
-        let sc_address = self.config.chain_config.sc_address().clone();
         let amount = match amount {
             Some(raw) => parse_amount(&raw, "amount"),
             None => self.config.reward_amount(),
         };
 
+        self.inject_reward(&amount).await;
+    }
+
+    pub(crate) async fn inject_reward(&mut self, amount: &RustBigUint) {
+        let sc_address = self.config.chain_config.sc_address().clone();
+
         let before = self.ops().total_cumulated_rewards().await;
         let balance_before = self.balance(&sc_address).await;
 
         self.interactor
-            .inject_validator_reward(&sc_address, &amount)
+            .inject_validator_reward(&sc_address, amount)
             .await
             .expect("could not inject a validator reward");
 
         let after = self.ops().total_cumulated_rewards().await;
         let balance_after = self.balance(&sc_address).await;
 
-        println!("Injected reward:          {}", display_egld_amount(&amount));
+        println!("Injected reward:          {}", display_egld_amount(amount));
         println!("Cumulated rewards before: {}", display_egld_amount(&before));
         println!("Cumulated rewards after:  {}", display_egld_amount(&after));
         println!(
@@ -289,18 +357,20 @@ impl TestInteractor {
         );
 
         let observed = &after - &before;
-        if observed == amount {
-            println!("Contract sees the full reward.");
-        } else {
-            println!(
-                "MISMATCH: contract saw {}, expected {}",
-                display_egld_amount(&observed),
-                display_egld_amount(&amount)
-            );
-        }
+        assert_eq!(
+            &observed, amount,
+            "contract saw a different reward than was injected"
+        );
     }
 
+    /// Advances the chain. Asking for no blocks is a no-op rather than an error - the
+    /// simulator refuses a zero-block request, and every caller here would rather carry on.
     pub async fn generate_blocks(&mut self, num_blocks: u64) {
+        if num_blocks == 0 {
+            println!("No blocks to generate.");
+            return;
+        }
+
         self.interactor
             .generate_blocks(num_blocks)
             .await
@@ -312,10 +382,22 @@ impl TestInteractor {
     /// Runs the contract's own consistency checks, the ones the Go fuzzer ran after most
     /// events. Both are endpoints that fail when the property is broken.
     pub async fn check_invariants(&mut self) {
-        let owner = self.config.owner.address();
-        let mut all_passed = true;
+        let failures = self.invariant_failures().await;
+        if failures.is_empty() {
+            println!("All invariants hold.");
+            return;
+        }
 
-        for (name, result) in [
+        for failure in failures {
+            println!("BROKEN - {failure}");
+        }
+    }
+
+    /// Runs the contract's own consistency checks and returns what broke, if anything.
+    pub(crate) async fn invariant_failures(&mut self) -> Vec<String> {
+        let owner = self.config.owner.address();
+
+        [
             (
                 "owner stake share",
                 self.ops().validate_owner_stake_share(&owner).await,
@@ -324,19 +406,10 @@ impl TestInteractor {
                 "delegation cap",
                 self.ops().validate_delegation_cap_invariant(&owner).await,
             ),
-        ] {
-            match result {
-                Ok(()) => println!("{name}: ok"),
-                Err(message) => {
-                    all_passed = false;
-                    println!("{name}: BROKEN - {message}");
-                },
-            }
-        }
-
-        if all_passed {
-            println!("All invariants hold.");
-        }
+        ]
+        .into_iter()
+        .filter_map(|(name, result)| result.err().map(|error| format!("{name}: {error}")))
+        .collect()
     }
 
     /// A quick look at the contract, without needing the real-chain config.
@@ -363,5 +436,12 @@ impl TestInteractor {
         println!();
         println!("Rewards sink:      {}", display_egld_amount(&rewards_sink));
         println!("Withdraw sink:     {}", display_egld_amount(&withdraw_sink));
+    }
+}
+
+/// Prints a refusal rather than letting it abort a hand-run command.
+fn report<T>(what: &str, result: OpResult<T>) {
+    if let Err(error) = result {
+        println!("{what} failed: {error}");
     }
 }

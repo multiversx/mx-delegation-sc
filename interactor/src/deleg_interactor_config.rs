@@ -72,7 +72,7 @@ impl Default for GasConfig {
 }
 
 /// Deployment settings: contract code and constructor arguments.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct DeployConfig {
     /// Code of the full contract.
     pub contract_path: ConfigPath,

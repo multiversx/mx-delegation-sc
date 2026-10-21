@@ -1,7 +1,10 @@
 use multiversx_sc_snippets::imports::*;
 use node_storage::types::{bls_key::BLSKey, bls_sig::BLSSignature};
 
-use crate::{latest_proxy, ops::DelegationOps};
+use crate::{
+    latest_proxy,
+    ops::{DelegationOps, OpResult},
+};
 
 /// `NodeState::Inactive` as the contract encodes it: registered here, but not staked at
 /// the auction contract. Only nodes in this state can be removed.
@@ -43,7 +46,12 @@ impl DelegationOps<'_> {
     ///
     /// Only the owner may do this. Registration is bookkeeping - nothing is sent to the
     /// auction contract until the nodes are staked.
-    pub async fn add_nodes(&mut self, owner: &Bech32Address, first_index: usize, count: usize) {
+    pub async fn add_nodes(
+        &mut self,
+        owner: &Bech32Address,
+        first_index: usize,
+        count: usize,
+    ) -> OpResult {
         let mut bls_keys_signatures = MultiValueEncoded::new();
         for index in first_index..first_index + count {
             bls_keys_signatures.push((bls_key(index), bls_signature(index)).into());
@@ -56,17 +64,15 @@ impl DelegationOps<'_> {
             .gas(self.gas.add_nodes)
             .typed(latest_proxy::DelegationFullProxy)
             .add_nodes(bls_keys_signatures)
+            .returns(ReturnsHandledOrError::new())
             .run()
-            .await;
+            .await
+            .map_err(Into::into)
     }
 
     /// Removes nodes by index. Fails unless every one of them is inactive, which is why
     /// the caller gets the error rather than a panic.
-    pub async fn remove_nodes(
-        &mut self,
-        owner: &Bech32Address,
-        indexes: &[usize],
-    ) -> Result<(), String> {
+    pub async fn remove_nodes(&mut self, owner: &Bech32Address, indexes: &[usize]) -> OpResult {
         let mut bls_keys = MultiValueEncoded::new();
         for &index in indexes {
             bls_keys.push(bls_key(index));
@@ -82,7 +88,7 @@ impl DelegationOps<'_> {
             .returns(ReturnsHandledOrError::new())
             .run()
             .await
-            .map_err(|err| err.message)
+            .map_err(Into::into)
     }
 }
 

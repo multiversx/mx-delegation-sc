@@ -3,6 +3,7 @@ mod deleg_interactor_cli;
 mod deleg_interactor_config;
 mod deleg_interactor_stats;
 mod display;
+mod fuzz;
 mod latest_proxy;
 mod ops;
 mod test_env;
@@ -10,6 +11,7 @@ mod test_env;
 use clap::Parser;
 use deleg_interactor_cli::{FuzzCliCommand, InteractCli, InteractCliCommand};
 use deleg_interactor_config::Config;
+use fuzz::FuzzRunner;
 use ops::DelegationOps;
 use test_env::TestInteractor;
 
@@ -30,7 +32,12 @@ async fn main() {
         Version => real(&config_file).await.version().await,
         Global => real(&config_file).await.query_global().await,
         Settings => real(&config_file).await.query_settings().await,
-        UserFull => real(&config_file).await.query_all_user_stake_by_type().await,
+        UserFull => {
+            real(&config_file)
+                .await
+                .query_all_user_stake_by_type()
+                .await
+        }
         NumUsers => real(&config_file).await.query_num_users().await,
         UserStake(args) => {
             let address = Bech32Address::from_bech32_string(args.address);
@@ -38,7 +45,7 @@ async fn main() {
                 .await
                 .query_user_stake_by_type(&address)
                 .await
-        },
+        }
         Upgrade => real(&config_file).await.upgrade_contract_to_latest().await,
         ContinueGlobal => real(&config_file).await.continue_global_operation().await,
         FixUsers => real(&config_file).await.fix_users().await,
@@ -49,10 +56,22 @@ async fn main() {
 
 /// Everything under `fuzz`, running against a chain simulator.
 async fn run_fuzz(command: FuzzCliCommand, config_file: &str) {
+    use FuzzCliCommand::*;
+
+    // The runner deploys its own contract, so it does not go through TestInteractor::init
+    // the way the single operations do.
+    if let Run(args) = command {
+        FuzzRunner::start(config_file, args.seed, args.iterations)
+            .await
+            .run()
+            .await;
+        return;
+    }
+
     let mut interact = TestInteractor::init(config_file).await;
 
-    use FuzzCliCommand::*;
     match command {
+        Run(_) => unreachable!("handled above"),
         Setup => interact.fuzz_setup().await,
         Deploy => interact.deploy().await,
         Status => interact.status().await,
@@ -61,9 +80,13 @@ async fn run_fuzz(command: FuzzCliCommand, config_file: &str) {
         Unbond(args) => interact.unbond(args.delegator).await,
         Claim(args) => interact.claim_rewards(args.delegator).await,
         Vote(args) => interact.delegate_vote(args.delegator).await,
-        AddNodes(args) => interact.add_nodes(args.count).await,
+        AddNodes(args) => interact.add_nodes_action(args.count).await,
         RemoveNodes(args) => interact.remove_nodes(args.count).await,
-        SetServiceFee(args) => interact.set_service_fee(args.service_fee_per_10000).await,
+        SetServiceFee(args) => {
+            interact
+                .set_service_fee_action(args.service_fee_per_10000)
+                .await
+        }
         ModifyCap(args) => interact.modify_delegation_cap(args.amount).await,
         ContinueGlobal => interact.continue_global_operation().await,
         DustCleanup(args) => interact.dust_cleanup(args.amount).await,
