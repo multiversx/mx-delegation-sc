@@ -1,9 +1,6 @@
 use multiversx_sc_snippets::imports::*;
 
-use crate::{
-    latest_proxy,
-    ops::{DelegationOps, OpResult},
-};
+use crate::{latest_proxy, ops::DelegationOps};
 
 /// The contract's own consistency checks.
 ///
@@ -12,7 +9,10 @@ use crate::{
 /// can report every broken invariant instead of stopping at the first.
 impl DelegationOps<'_> {
     /// The owner must hold at least their configured minimum share of the active stake.
-    pub async fn validate_owner_stake_share(&mut self, sender: &Bech32Address) -> OpResult {
+    pub async fn validate_owner_stake_share(
+        &mut self,
+        sender: &Bech32Address,
+    ) -> Result<(), TxResponseStatus> {
         self.interactor
             .tx()
             .from(sender)
@@ -23,11 +23,13 @@ impl DelegationOps<'_> {
             .returns(ReturnsHandledOrError::new())
             .run()
             .await
-            .map_err(Into::into)
     }
 
     /// Active stake must not exceed the total delegation cap.
-    pub async fn validate_delegation_cap_invariant(&mut self, sender: &Bech32Address) -> OpResult {
+    pub async fn validate_delegation_cap_invariant(
+        &mut self,
+        sender: &Bech32Address,
+    ) -> Result<(), TxResponseStatus> {
         self.interactor
             .tx()
             .from(sender)
@@ -38,6 +40,5 @@ impl DelegationOps<'_> {
             .returns(ReturnsHandledOrError::new())
             .run()
             .await
-            .map_err(Into::into)
     }
 }

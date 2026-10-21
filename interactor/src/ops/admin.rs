@@ -3,7 +3,7 @@ use multiversx_sc_snippets::imports::*;
 use crate::{
     deleg_interactor_config::{DeployConfig, GasConfig},
     latest_proxy,
-    ops::{DelegationOps, OpResult, operation_completion_status},
+    ops::{DelegationOps, operation_completion_status},
 };
 
 /// Deploys a fresh delegation contract and returns its address.
@@ -60,7 +60,7 @@ impl DelegationOps<'_> {
         &mut self,
         owner: &Bech32Address,
         new_cap: &RustBigUint,
-    ) -> OpResult<OperationCompletionStatus> {
+    ) -> Result<OperationCompletionStatus, TxResponseStatus> {
         self.interactor
             .tx()
             .from(owner)
@@ -71,7 +71,6 @@ impl DelegationOps<'_> {
             .returns(ReturnsHandledOrError::new().returns(ReturnsResult))
             .run()
             .await
-            .map_err(Into::into)
     }
 
     /// Changes the service fee. May start a global operation.
@@ -79,7 +78,7 @@ impl DelegationOps<'_> {
         &mut self,
         owner: &Bech32Address,
         service_fee_per_10000: usize,
-    ) -> OpResult<OperationCompletionStatus> {
+    ) -> Result<OperationCompletionStatus, TxResponseStatus> {
         self.interactor
             .tx()
             .from(owner)
@@ -90,7 +89,6 @@ impl DelegationOps<'_> {
             .returns(ReturnsHandledOrError::new().returns(ReturnsResult))
             .run()
             .await
-            .map_err(Into::into)
     }
 
     /// One `continueGlobalOperation` call.

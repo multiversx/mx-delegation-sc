@@ -1,10 +1,7 @@
 use multiversx_sc_snippets::imports::*;
 use node_storage::types::{bls_key::BLSKey, bls_sig::BLSSignature};
 
-use crate::{
-    latest_proxy,
-    ops::{DelegationOps, OpResult},
-};
+use crate::{latest_proxy, ops::DelegationOps};
 
 /// `NodeState::Inactive` as the contract encodes it: registered here, but not staked at
 /// the auction contract. Only nodes in this state can be removed.
@@ -51,7 +48,7 @@ impl DelegationOps<'_> {
         owner: &Bech32Address,
         first_index: usize,
         count: usize,
-    ) -> OpResult {
+    ) -> Result<(), TxResponseStatus> {
         let mut bls_keys_signatures = MultiValueEncoded::new();
         for index in first_index..first_index + count {
             bls_keys_signatures.push((bls_key(index), bls_signature(index)).into());
@@ -67,12 +64,15 @@ impl DelegationOps<'_> {
             .returns(ReturnsHandledOrError::new())
             .run()
             .await
-            .map_err(Into::into)
     }
 
     /// Removes nodes by index. Fails unless every one of them is inactive, which is why
     /// the caller gets the error rather than a panic.
-    pub async fn remove_nodes(&mut self, owner: &Bech32Address, indexes: &[usize]) -> OpResult {
+    pub async fn remove_nodes(
+        &mut self,
+        owner: &Bech32Address,
+        indexes: &[usize],
+    ) -> Result<(), TxResponseStatus> {
         let mut bls_keys = MultiValueEncoded::new();
         for &index in indexes {
             bls_keys.push(bls_key(index));
@@ -88,7 +88,6 @@ impl DelegationOps<'_> {
             .returns(ReturnsHandledOrError::new())
             .run()
             .await
-            .map_err(Into::into)
     }
 }
 

@@ -9,7 +9,7 @@ use multiversx_sc_snippets::imports::*;
 use crate::{
     deleg_interactor_stats::print_stake_by_type,
     display::{display_egld_amount, display_percentage},
-    ops::{self, NODE_STATE_INACTIVE, OpResult, operation_completion_status},
+    ops::{self, NODE_STATE_INACTIVE, operation_completion_status},
     test_env::{TestInteractor, parse_amount},
 };
 
@@ -44,7 +44,7 @@ impl TestInteractor {
         &mut self,
         user: &Bech32Address,
         amount: &RustBigUint,
-    ) -> OpResult {
+    ) -> Result<(), TxResponseStatus> {
         println!(
             "stake, delegator: {user}, amount: {}",
             display_egld_amount(amount)
@@ -66,7 +66,7 @@ impl TestInteractor {
         &mut self,
         user: &Bech32Address,
         amount: &RustBigUint,
-    ) -> OpResult {
+    ) -> Result<(), TxResponseStatus> {
         println!(
             "unStake, delegator: {user}, amount: {}",
             display_egld_amount(amount)
@@ -86,7 +86,10 @@ impl TestInteractor {
 
     /// Returns how much was unbonded, so a caller tracking totals does not have to read
     /// the sink to find out.
-    pub(crate) async fn unbond_from(&mut self, user: &Bech32Address) -> OpResult<RustBigUint> {
+    pub(crate) async fn unbond_from(
+        &mut self,
+        user: &Bech32Address,
+    ) -> Result<RustBigUint, TxResponseStatus> {
         let withdraw_sink = self.accounts().withdraw_sink.clone();
 
         let mut total = RustBigUint::default();
@@ -119,7 +122,10 @@ impl TestInteractor {
     }
 
     /// Returns how much was claimed.
-    pub(crate) async fn claim_from(&mut self, user: &Bech32Address) -> OpResult<RustBigUint> {
+    pub(crate) async fn claim_from(
+        &mut self,
+        user: &Bech32Address,
+    ) -> Result<RustBigUint, TxResponseStatus> {
         let rewards_sink = self.accounts().rewards_sink.clone();
 
         let claimable = self.ops().claimable_rewards(user).await;
@@ -169,7 +175,7 @@ impl TestInteractor {
         );
     }
 
-    pub(crate) async fn add_nodes(&mut self, count: usize) -> OpResult {
+    pub(crate) async fn add_nodes(&mut self, count: usize) -> Result<(), TxResponseStatus> {
         let owner = self.config.owner.address();
         let first_index = self.ops().num_nodes().await;
 
@@ -216,7 +222,10 @@ impl TestInteractor {
         }
     }
 
-    pub(crate) async fn set_service_fee(&mut self, service_fee_per_10000: usize) -> OpResult {
+    pub(crate) async fn set_service_fee(
+        &mut self,
+        service_fee_per_10000: usize,
+    ) -> Result<(), TxResponseStatus> {
         let owner = self.config.owner.address();
 
         let status = self
@@ -244,7 +253,10 @@ impl TestInteractor {
         );
     }
 
-    pub(crate) async fn modify_delegation_cap_to(&mut self, new_cap: &RustBigUint) -> OpResult {
+    pub(crate) async fn modify_delegation_cap_to(
+        &mut self,
+        new_cap: &RustBigUint,
+    ) -> Result<(), TxResponseStatus> {
         let owner = self.config.owner.address();
 
         let status = self
@@ -282,7 +294,10 @@ impl TestInteractor {
         report("dust cleanup", self.dust_cleanup_below(&limit).await);
     }
 
-    pub(crate) async fn dust_cleanup_below(&mut self, limit: &RustBigUint) -> OpResult {
+    pub(crate) async fn dust_cleanup_below(
+        &mut self,
+        limit: &RustBigUint,
+    ) -> Result<(), TxResponseStatus> {
         let owner = self.config.owner.address();
 
         println!("dust cleanup, limit: {}", display_egld_amount(limit));
@@ -408,7 +423,11 @@ impl TestInteractor {
             ),
         ]
         .into_iter()
-        .filter_map(|(name, result)| result.err().map(|error| format!("{name}: {error}")))
+        .filter_map(|(name, result)| {
+            result
+                .err()
+                .map(|error| format!("{name}: {}", error.message))
+        })
         .collect()
     }
 
@@ -440,8 +459,8 @@ impl TestInteractor {
 }
 
 /// Prints a refusal rather than letting it abort a hand-run command.
-fn report<T>(what: &str, result: OpResult<T>) {
+fn report<T>(what: &str, result: Result<T, TxResponseStatus>) {
     if let Err(error) = result {
-        println!("{what} failed: {error}");
+        println!("{what} failed: {}", error.message);
     }
 }

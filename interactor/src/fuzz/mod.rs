@@ -21,7 +21,6 @@ use crate::{
     deleg_interactor_stats::print_stake_by_type,
     display::{display_egld_amount, display_percentage},
     fuzz::{bounds::Bounds, log::ActionLog, state::FuzzState},
-    ops::{OpError, OpResult},
     test_env::{TestAccounts, TestInteractor},
 };
 
@@ -214,29 +213,34 @@ impl FuzzRunner {
     /// A refusal the contract makes as a matter of course. The Go fuzzer logged these and
     /// carried on; running out of gas is the one case it treated as a defect, because it
     /// means the endpoint cannot finish within its budget.
-    fn tolerate<T>(&self, step: usize, what: &str, result: OpResult<T>) -> Option<T> {
+    fn tolerate<T>(
+        &self,
+        step: usize,
+        what: &str,
+        result: Result<T, TxResponseStatus>,
+    ) -> Option<T> {
         match result {
             Ok(value) => Some(value),
-            Err(error) if error.out_of_gas() => self.fail(step, what, &error),
+            Err(error) if error.status == ReturnCode::OutOfGas => self.fail(step, what, &error),
             Err(error) => {
-                println!("{what} refused: {error}");
+                println!("{what} refused: {}", error.message);
                 None
             }
         }
     }
 
     /// An operation that should have gone through. Anything else ends the run.
-    fn require<T>(&self, step: usize, what: &str, result: OpResult<T>) -> T {
+    fn require<T>(&self, step: usize, what: &str, result: Result<T, TxResponseStatus>) -> T {
         match result {
             Ok(value) => value,
             Err(error) => self.fail(step, what, &error),
         }
     }
 
-    fn fail(&self, step: usize, what: &str, error: &OpError) -> ! {
+    fn fail(&self, step: usize, what: &str, error: &TxResponseStatus) -> ! {
         println!();
         println!("UNEXPECTED FAILURE at step {step}, seed {}", self.seed);
-        println!("  {what}: {error}");
+        println!("  {what}: {}", error.message);
         panic!("{what} failed at step {step}");
     }
 
