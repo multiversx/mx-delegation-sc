@@ -1,0 +1,106 @@
+# Configuration for work on the chain simulator: the fuzzer, and the manual test actions
+# that mirror the fuzzer's operations.
+#
+# Picked up automatically by the chain-simulator commands (deploy, stake, unstake, claim,
+# vote, modify-cap, add-rewards, generate-blocks). Override with `--config <file>`.
+#
+# For investigating contracts deployed on real chains, see config.toml.
+
+[chain_config]
+chain_type = 'simulator'
+gateway_uri = 'http://localhost:8085'
+# Written here after `deploy` prints the new address.
+sc_address = "erd1qqqqqqqqqqqqqpgqxe80hegndzmp25c2qnsutze45h8q7nlud8ssplfp8u"
+
+# Contract owner - deploys, upgrades, admin endpoints.
+[owner]
+test_wallet = 'alice'
+
+# Acting user for the manual actions, when no --delegator is given.
+[user]
+test_wallet = 'bob'
+
+# The delegators a fuzz run operates with. Addresses are derived from `seed`, so a run is
+# reproducible without storing them anywhere, and they are spread across all shards on
+# purpose - the contract sees genuine cross-shard traffic.
+#
+# Delegator 0 is always the contract owner, as in the original Go fuzzer. `count` is how
+# many are generated on top of that.
+[delegators]
+count = 10
+seed = 42
+# Atomic units (1 EGLD = 10^18), as a string. Covers both stake and transaction fees.
+initial_balance = "10000000000000000000000"
+
+# Deployment of a new contract.
+[deploy]
+# Full contract code.
+contract_path = '../latest/output/delegation_latest_full.wasm'
+# The real system auction (validator) contract, present on the chain simulator.
+auction_address = "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l"
+service_fee_per_10000 = 1000
+owner_min_stake_share_per_10000 = 0
+n_blocks_before_unbond = 10
+# Atomic units (1 EGLD = 10^18), as strings.
+minimum_stake = "1000000000000000000"
+total_delegation_cap = "100000000000000000000000"
+
+# Gas limits per operation. Every field is optional; the defaults are in
+# deleg_interactor_config.rs. The chain caps a transaction at 600,000,000.
+[gas]
+deploy = 300000000
+upgrade = 300000000
+stake = 10000000
+unstake = 500000000
+claim_rewards = 10000000
+vote = 100000000
+modify_cap = 100000000
+continue_global = 400000000
+fix_users = 100000000
+
+# The fuzzer's parameter space. Bounds mirror the original Go fuzzer's, scaled from its
+# raw units to EGLD; block counts are much smaller, because the Go values went up to 1000
+# per event, which at 20 rounds per epoch would mean tens of epoch changes per step.
+[fuzz]
+# 0 = derive a seed from the clock and print it. --seed overrides either way.
+seed = 0
+iterations = 1000
+# 1 matches the Go fuzzer, which checked after almost every step. Raise it for speed.
+invariant_check_every = 1
+block_advance_max = 20
+# Atomic units (1 EGLD = 10^18), as strings.
+max_stake = "2000000000000000000"
+max_reward = "1000000000000000000"
+max_delegation_cap = "4000000000000000000"
+max_dust = "250000000000000000"
+max_minimum_stake = "1000000000000000000"
+max_service_fee = 10000
+max_n_blocks_before_unbond = 20
+max_nodes_added = 3
+max_nodes_removed = 2
+log_file = "fuzz_run.jsonl"
+
+# Roulette weights. Zero turns an event off, which is how a campaign is narrowed.
+[fuzz.weights]
+advance_blocks = 5
+add_nodes = 5
+remove_nodes = 5
+stake = 5
+add_rewards = 5
+claim_rewards = 20
+unstake = 5
+unbond = 10
+modify_cap = 5
+set_service_fee = 5
+dust_cleanup = 1
+
+# Defaults for the manual test actions, when no amount is given on the command line.
+# Atomic units (1 EGLD = 10^18), as strings.
+[actions]
+stake_amount = "2000000000000000000"
+unstake_amount = "1000000000000000000"
+reward_amount = "1000000000000000000"
+delegation_cap = "100000000000000000000000"
+dust_limit = "100000000000000000"
+vote_proposal = 1
+vote_decision = "yes"

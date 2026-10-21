@@ -25,9 +25,9 @@ test_wallet = 'alice'
 [user]
 pem = 'delegator1.pem'
 
-# Secondary user - claim rewards.
-[user2]
-pem = 'delegator2.pem'
+# Secondary user. Currently unused: claiming is a test.toml action, which uses [user].
+# [user2]
+# pem = 'delegator2.pem'
 
 # Sends the continueGlobalOperation transactions.
 [continue_global_sender]
@@ -39,7 +39,7 @@ no_sig = 'erd1nszf4y8dkply45skqxa2998uypc53tdsd26ycl5yndtqhl7j2tssfxzk2y'
 # Full contract code.
 contract_path = '../latest/output/delegation_latest_full.wasm'
 # Constructor arguments.
-auction_address = "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllllscktaww"
+auction_address = "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l"
 service_fee_per_10000 = 1000
 owner_min_stake_share_per_10000 = 500
 n_blocks_before_unbond = 10
